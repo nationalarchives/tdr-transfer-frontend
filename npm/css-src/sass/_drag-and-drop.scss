@@ -38,11 +38,14 @@
   margin-bottom: 0;
 }
 
-.drag-and-drop__selected {
-  align-items: baseline;
+#success-and-removal-message-container {
   border-bottom: 1px solid #b1b4b6;
+}
+
+.js-drag-and-drop-selected {
   display: flex;
   gap: 15px;
+  align-items: baseline;
 }
 
 .drag-and-drop__selected__description {

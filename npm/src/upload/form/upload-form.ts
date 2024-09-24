@@ -188,9 +188,13 @@ export class UploadForm {
     const folderSelectionMessage: HTMLElement | null = document.querySelector(
       "#item-selection-success-container"
     )
+    const topLevelFolderCheckBox: HTMLElement | null = document.querySelector(
+        "#top-level-folder-checkbox"
+    )
 
     this.selectedFiles = []
     folderSelectionMessage?.setAttribute("hidden", "true")
+    topLevelFolderCheckBox?.setAttribute("hidden", "true")
     this.warningMessages.removedSelectionMessage?.removeAttribute("hidden")
     this.successAndRemovalMessageContainer?.focus()
 

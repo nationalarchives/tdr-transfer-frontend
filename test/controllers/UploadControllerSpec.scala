@@ -225,10 +225,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """<p class="govuk-body">Click 'Select a folder' to open a dialog box and select a folder. Once selected you will be prompted to confirm your choice.</p>"""
       )
       uploadPageAsString must include(
-        """<p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>"""
+        """<p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-body drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>"""
       )
       uploadPageAsString must include(
         """<a id="remove-file-btn" href="#" aria-describedby="files-selected-folder-name" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-19 govuk-body govuk-!-font-weight-bold">Remove<span class="govuk-visually-hidden">&nbsp; selected files</span></a>""".stripMargin
+      )
+      uploadPageAsString must include(
+        """<label class="govuk-label govuk-checkboxes__label govuk-!-padding-top-0" for="includeTopLevelFolder">
+          |                                            The folder <strong class="folder-name"></strong> will NOT be displayed on the public catalogue by default. If this folder name is meaningful and you DO want this to be displayed on the public catalogue, check here.
+          |                                        </label>""".stripMargin
       )
       uploadPageAsString must include(
         """<p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>"""" +
