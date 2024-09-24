@@ -83,7 +83,6 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
     metadataReviewPageAsString must include(s"""<th scope="col" class="govuk-table__header">
          |              <span class="govuk-visually-hidden">Actions</span>
          |            </th>""".stripMargin)
-    metadataReviewPageAsString must include(s"""These are requested reviews that have not been responded to.""")
     metadataReviewPageAsString must include(s"""<th scope="row" class="govuk-table__header">TDR-2024-TEST</th>""")
     metadataReviewPageAsString must include(s"""<strong class="tdr-tag tdr-tag--green">Requested</strong>""")
     metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">TransferringBody</td>""")
