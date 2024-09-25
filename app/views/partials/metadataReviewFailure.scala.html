@@ -21,13 +21,13 @@
     </div>
     <div class="da-alert__content">
         <h2 class="da-alert__heading">We found issues in your metadata</h2>
-        <p>We have emailed guidance to <strong>@email</strong></p>
+        <p>We will email guidance to <strong>@email</strong></p>
     </div>
 </div>
 
 <p class="govuk-body">Follow the guidance to amend your metadata. You can download a copy of the metadata we reviewed below.</p>
 
-    @downloadMetadataLink(consignmentId)
+    @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
 
 <div class="govuk-button-group">
     <a class="govuk-button" href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">
