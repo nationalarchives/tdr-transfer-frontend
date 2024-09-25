@@ -20,10 +20,12 @@ export const addFolderSelectionSuccessMessage = (
       .createRange()
       .createContextualFragment(e.firstElementChild.innerHTML)
 
-    const folderElements = document.querySelectorAll<HTMLElement>('.folder-name');
-    folderElements.forEach(element => {
-      element.textContent = folderName;
-    });
+    const folderElements =
+      document.querySelectorAll<HTMLElement>(".folder-name")
+
+    folderElements.forEach((element) => {
+      element.textContent = folderName
+    })
     selectedContentFragment.querySelector(".folder-size").textContent =
       `${folderSize} ${folderSize === 1 ? "file" : "files"}`
 
@@ -42,7 +44,7 @@ export const displaySelectionSuccessMessage = (
   const successMessageContainer: HTMLElement | null = document.querySelector(
     "#item-selection-success-container"
   )
- const topLevelFolderCheckBox: HTMLElement | null = document.querySelector(
+  const topLevelFolderCheckBox: HTMLElement | null = document.querySelector(
     "#top-level-folder-checkbox"
   )
 

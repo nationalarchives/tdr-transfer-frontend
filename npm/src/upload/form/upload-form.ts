@@ -189,7 +189,7 @@ export class UploadForm {
       "#item-selection-success-container"
     )
     const topLevelFolderCheckBox: HTMLElement | null = document.querySelector(
-        "#top-level-folder-checkbox"
+      "#top-level-folder-checkbox"
     )
 
     this.selectedFiles = []
