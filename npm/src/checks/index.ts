@@ -41,13 +41,12 @@ export class Checks {
     if (isJudgmentUser) {
       this.checkJudgmentTransferProgress(goToNextPage)
     } else {
-
       const refreshPageIntervalId: ReturnType<typeof setInterval> = setInterval(
-          async () => {
-            clearInterval(intervalId)
-            window.location.reload()
-          },
-          300000
+        async () => {
+          clearInterval(intervalId)
+          window.location.reload()
+        },
+        300000
       )
 
       const intervalId: ReturnType<typeof setInterval> = setInterval(
