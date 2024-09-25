@@ -282,7 +282,7 @@ export class UploadForm {
   }
 
   readonly successAndRemovalMessageContainer: HTMLElement | null =
-    document.querySelector("#success-and-removal-message-container")
+    document.querySelector(".success-and-removal-message-container")
 
   private getParentFolderName(folder: IEntryWithPath[]) {
     const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]

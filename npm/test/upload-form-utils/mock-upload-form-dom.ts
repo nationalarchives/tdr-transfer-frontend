@@ -276,7 +276,7 @@ export class MockUploadFormDom {
   uploadingRecordsSection = document.querySelector("#upload-progress")
 
   successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
-    "#success-and-removal-message-container"
+    ".success-and-removal-message-container"
   )
 
   successMessageContainer: HTMLElement | null = document.querySelector(

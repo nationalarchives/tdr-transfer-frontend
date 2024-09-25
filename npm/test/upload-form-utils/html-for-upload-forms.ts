@@ -43,27 +43,24 @@ export const htmlForFolderUploadForm = `
                                         </label>
                                     </div>
                                 </div>
-                                <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload govuk-visually-hidden">
-                                    <div class="js-drag-and-drop-selected drag-and-drop__selected" id="item-selection-success-container">
-                                        <p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>
+                                <div class="success-and-removal-message-container govuk-!-margin-bottom-6 govuk-visually-hidden">
+                                    <div class="js-drag-and-drop-selected" id="item-selection-success-container">
+                                        <p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-body drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>
                                         <a id="remove-file-btn" href="#" aria-describedby="files-selected-folder-name" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-19 govuk-body govuk-!-font-weight-bold">Remove<span class="govuk-visually-hidden">&nbsp; selected files</span></a>
                                     </div>
-                                    <div class="js-drag-and-drop-selected drag-and-drop__selected" id="removed-selection-container" hidden="true">
+                                    <div class="js-drag-and-drop-selected" id="removed-selection-container" hidden="hidden">
                                         <p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>
                                     </div>
-                                </div>
-                                <p class="govuk-body">For more information on what metadata will be captured during the upload please visit our FAQ’s page</p>
-                                <div class="govuk-form-group">
-                                    <fieldset class="govuk-fieldset" aria-describedby="waste-hint">
-                                        <div class="govuk-checkboxes">
+                                    <div class="govuk-form-group govuk-!-margin-bottom-3" id="top-level-folder-checkbox" hidden="hidden">
+                                        <div class="govuk-checkboxes govuk-checkboxes--small">
                                             <div class="govuk-checkboxes__item">
-                                                <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox" value="mines">
-                                                <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
-                                                    Check the box if you want to display the name of your top-level folder in the public catalogue.
+                                                <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox">
+                                                <label class="govuk-label govuk-checkboxes__label govuk-!-padding-top-0" for="includeTopLevelFolder">
+                                                    The folder <strong class="folder-name"></strong> will NOT be displayed on the public catalogue by default. If this folder name is meaningful and you DO want this to be displayed on the public catalogue, check here.
                                                 </label>
                                             </div>
                                         </div>
-                                    </fieldset>
+                                    </div>
                                 </div>
                                 <div class="govuk-button-group">
                                     <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
@@ -139,18 +136,25 @@ export const htmlForFileUploadForm = `
                                       </label>
                                   </div>
                               </div>
-                              <div class="govuk-form-group">
-                                  <fieldset class="govuk-fieldset" aria-describedby="waste-hint">
-                                      <div class="govuk-checkboxes">
-                                          <div class="govuk-checkboxes__item">
-                                              <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox" value="mines">
-                                              <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
-                                                  Check the box if you want to display the name of your top-level folder in the public catalogue.
-                                              </label>
-                                          </div>
-                                      </div>
-                                  </fieldset>
-                              </div>
+                                <div class="success-and-removal-message-container govuk-!-margin-bottom-6 govuk-visually-hidden">
+                                    <div class="js-drag-and-drop-selected" id="item-selection-success-container">
+                                        <p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-body drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>
+                                        <a id="remove-file-btn" href="#" aria-describedby="files-selected-folder-name" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-19 govuk-body govuk-!-font-weight-bold">Remove<span class="govuk-visually-hidden">&nbsp; selected files</span></a>
+                                    </div>
+                                    <div class="js-drag-and-drop-selected" id="removed-selection-container" hidden="hidden">
+                                        <p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>
+                                    </div>
+                                    <div class="govuk-form-group govuk-!-margin-bottom-3" id="top-level-folder-checkbox" hidden="hidden">
+                                        <div class="govuk-checkboxes govuk-checkboxes--small">
+                                            <div class="govuk-checkboxes__item">
+                                                <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox">
+                                                <label class="govuk-label govuk-checkboxes__label govuk-!-padding-top-0" for="includeTopLevelFolder">
+                                                    The folder <strong class="folder-name"></strong> will NOT be displayed on the public catalogue by default. If this folder name is meaningful and you DO want this to be displayed on the public catalogue, check here.
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                               <div class="govuk-button-group">
                                   <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                       Start upload
