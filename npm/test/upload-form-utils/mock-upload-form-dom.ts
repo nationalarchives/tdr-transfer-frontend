@@ -213,6 +213,9 @@ export class MockUploadFormDom {
   itemRetriever: HTMLInputElement | null =
     document.querySelector("#file-selection")
 
+  topLevelFolderCheckBox: HTMLInputElement | null =
+      document.querySelector("#top-level-folder-checkbox")
+
   fileNameElement: HTMLElement | null = document.querySelector(".file-name")
 
   folderNameElement: () => HTMLElement | null = () => document.querySelector(".folder-name")
