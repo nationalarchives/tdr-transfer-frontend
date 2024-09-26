@@ -232,7 +232,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
       uploadPageAsString must include(
         """<label class="govuk-label govuk-checkboxes__label govuk-!-padding-top-0" for="includeTopLevelFolder">
-          |                                            The folder <strong class="folder-name"></strong> will NOT be displayed on the public catalogue by default. If this folder name is meaningful and you DO want this to be displayed on the public catalogue, check here.
+          |                                            If you want the folder name <strong class="folder-name"></strong> to be displayed on Discovery/the public catalogue, select this checkbox.
           |                                        </label>""".stripMargin
       )
       uploadPageAsString must include(
