@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.183",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.214",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.215",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.387",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.60",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.211",
@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.39.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.14.0" % Test,
+  "org.mockito" % "mockito-core" % "5.14.1" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
