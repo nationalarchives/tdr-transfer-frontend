@@ -96,16 +96,6 @@ class ConfirmTransferController @Inject() (
 
   def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     loadStandardPageBasedOnCtStatus(consignmentId, Ok)
-    //    if (applicationConfig.blockSkipMetadataReview) {
-//      for {
-//        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-//        confirmTransferPage <- loadStandardPageBasedOnCtStatus(consignmentId, Ok)
-//      } yield {
-//        RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(confirmTransferPage)
-//      }
-//    } else {
-//      loadStandardPageBasedOnCtStatus(consignmentId, Ok)
-//    }
   }
 
   def finalTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
