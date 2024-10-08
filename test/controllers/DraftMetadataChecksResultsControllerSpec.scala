@@ -22,12 +22,12 @@ import testUtils.FrontEndTestHelper
 import uk.gov.nationalarchives.tdr.validation.Metadata
 
 import java.io.ByteArrayInputStream
-import java.net.URL
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.{Properties, UUID}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 import scala.jdk.CollectionConverters.IterableHasAsScala
+import scala.util.Using
 
 class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -288,18 +288,17 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
 
-    val url: URL = getClass.getResource("file:///home/ian/nationalarchivesgithub/tdr-transfer-frontend/conf/messages")
-
-    val source = Source.fromFile("conf/messages")
-
     val properties = new Properties()
-    properties.load(source.bufferedReader())
+    Using(Source.fromFile("conf/messages")) { source =>
+      properties.load(source.bufferedReader())
+    }
     import scala.jdk.CollectionConverters._
     val map = properties.asScala.toMap
     val testMessages = Map(
       "default" -> map
     )
     val messagesApi = new DefaultMessagesApi(testMessages)
+
     new DraftMetadataChecksResultsController(
       securityComponents,
       keycloakConfiguration,
