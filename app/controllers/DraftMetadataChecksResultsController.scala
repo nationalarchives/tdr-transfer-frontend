@@ -6,7 +6,7 @@ import controllers.util.ExcelUtils
 import controllers.util.MetadataProperty.filePath
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
-import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, Lang, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Request}
 import services.FileError.SCHEMA_VALIDATION
 import services.Statuses._

@@ -12,10 +12,9 @@ import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.http.HttpVerbs.GET
-import play.api.i18n.{DefaultMessagesApi, Lang, Messages, MessagesImpl, MessagesProvider}
-import play.api.mvc.{MessagesRequestHeader, RequestHeader}
+import play.api.i18n.DefaultMessagesApi
 import play.api.test.CSRFTokenHelper._
-import play.api.test.{FakeRequest, Helpers}
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status => playStatus, _}
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, FailedValue}
 import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, Error, ErrorFileData, FileError, ValidationErrors}
