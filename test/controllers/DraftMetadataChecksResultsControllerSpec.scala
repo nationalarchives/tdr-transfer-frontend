@@ -12,8 +12,10 @@ import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.http.HttpVerbs.GET
+import play.api.i18n.{DefaultMessagesApi, Lang, Messages, MessagesImpl, MessagesProvider}
+import play.api.mvc.{MessagesRequestHeader, RequestHeader}
 import play.api.test.CSRFTokenHelper._
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status => playStatus, _}
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, FailedValue}
 import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, Error, ErrorFileData, FileError, ValidationErrors}
@@ -21,9 +23,11 @@ import testUtils.FrontEndTestHelper
 import uk.gov.nationalarchives.tdr.validation.Metadata
 
 import java.io.ByteArrayInputStream
+import java.net.URL
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
-import java.util.UUID
+import java.util.{Properties, UUID}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.io.Source
 import scala.jdk.CollectionConverters.IterableHasAsScala
 
 class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
@@ -117,10 +121,15 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
   "DraftMetadataChecksResultsController should render the error page with error report download button" should {
     val draftMetadataStatuses = Table(
-      ("status", "fileError"),
-      (CompletedWithIssuesValue.value, FileError.SCHEMA_VALIDATION)
+      ("status", "fileError", "detailsMessage", "actionMessage"),
+      (
+        CompletedWithIssuesValue.value,
+        FileError.SCHEMA_VALIDATION,
+        "We found validation errors in the uploaded metadata.",
+        "Download the report below for details on individual validation errors."
+      )
     )
-    forAll(draftMetadataStatuses) { (statusValue, fileError) =>
+    forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage) =>
       {
         s"render the draftMetadataResults page when the status is $statusValue" in {
           val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
@@ -145,36 +154,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
             |    Results of your metadata checks
             |</h1>""".stripMargin
           )
-          pageAsString must include(
-            s"""<dl class="govuk-summary-list">
-             |    <div class="govuk-summary-list__row">
-             |        <dt class="govuk-summary-list__key">
-             |            Status
-             |        </dt>
-             |        <dd class="govuk-summary-list__value">
-             |            <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
-             |        </dd>
-             |    </div>
-             |
-             |    <div class="govuk-summary-list__row">
-             |        <dt class="govuk-summary-list__key">
-             |            Details
-             |        </dt>
-             |        <dd class="govuk-summary-list__value">
-             |            Require details message for draftMetadata.validation.details.$fileError
-             |        </dd>
-             |    </div>
-             |
-             |    <div class="govuk-summary-list__row">
-             |        <dt class="govuk-summary-list__key">
-             |            Action
-             |        </dt>
-             |        <dd class="govuk-summary-list__value">
-             |            Require action message for draftMetadata.validation.action.$fileError
-             |        </dd>
-             |    </div>
-             |</dl>""".stripMargin
-          )
+          pageAsString must include(detailsMessage)
+          pageAsString must include(actionMessage)
           pageAsString must include("""<p class="govuk-body">The report below contains details about issues found.</p>""")
           pageAsString must include(
             s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/draft-metadata/download-report">
@@ -194,16 +175,24 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
   "DraftMetadataChecksResultsController should render the error page with no error download for some errors" should {
     val draftMetadataStatuses = Table(
-      ("status", "fileError"),
-      (FailedValue.value, FileError.UNKNOWN)
+      ("status", "fileError", "detailsMessage", "actionMessage"),
+      (FailedValue.value, FileError.UNKNOWN, "Require details message for draftMetadata.validation.details.", "Require action message for draftMetadata.validation.action."),
+      (
+        CompletedWithIssuesValue.value,
+        FileError.UTF_8,
+        "The metadata file you uploaded was not a CSV.",
+        s"Ensure that you save your Excel file as file type &#x27;CSV UTF-8 (comma separated)&#x27;."
+      )
     )
-    forAll(draftMetadataStatuses) { (statusValue, fileError) =>
+    forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage) =>
       {
-        s"render the draftMetadataResults page when the status is $statusValue" in {
+        s"render the draftMetadataResults page when the status is $statusValue and error is $fileError" in {
           val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
+          when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
           val additionalMetadataEntryMethodPage = controller
             .draftMetadataChecksResultsPage(consignmentId)
             .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentReferenceResponse(wiremockServer)
           val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
@@ -222,36 +211,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |    Results of your metadata checks
              |</h1>""".stripMargin
           )
-          pageAsString must include(
-            s"""<dl class="govuk-summary-list">
-             |    <div class="govuk-summary-list__row">
-             |        <dt class="govuk-summary-list__key">
-             |            Status
-             |        </dt>
-             |        <dd class="govuk-summary-list__value">
-             |            <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
-             |        </dd>
-             |    </div>
-             |
-             |    <div class="govuk-summary-list__row">
-             |        <dt class="govuk-summary-list__key">
-             |            Details
-             |        </dt>
-             |        <dd class="govuk-summary-list__value">
-             |            Require details message for draftMetadata.validation.details.$fileError
-             |        </dd>
-             |    </div>
-             |
-             |    <div class="govuk-summary-list__row">
-             |        <dt class="govuk-summary-list__key">
-             |            Action
-             |        </dt>
-             |        <dd class="govuk-summary-list__value">
-             |            Require action message for draftMetadata.validation.action.$fileError
-             |        </dd>
-             |    </div>
-             |</dl>""".stripMargin
-          )
+          pageAsString must include(detailsMessage)
+          pageAsString must include(actionMessage)
         }
       }
     }
@@ -328,6 +289,26 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
 
-    new DraftMetadataChecksResultsController(securityComponents, keycloakConfiguration, consignmentService, applicationConfig, consignmentStatusService, draftMetaDataService)
+    val url: URL = getClass.getResource("file:///home/ian/nationalarchivesgithub/tdr-transfer-frontend/conf/messages")
+
+    val source = Source.fromFile("conf/messages")
+
+    val properties = new Properties()
+    properties.load(source.bufferedReader())
+    import scala.jdk.CollectionConverters._
+    val map = properties.asScala.toMap
+    val testMessages = Map(
+      "default" -> map
+    )
+    val messagesApi = new DefaultMessagesApi(testMessages)
+    new DraftMetadataChecksResultsController(
+      securityComponents,
+      keycloakConfiguration,
+      consignmentService,
+      applicationConfig,
+      consignmentStatusService,
+      draftMetaDataService,
+      messagesApi
+    )
   }
 }
