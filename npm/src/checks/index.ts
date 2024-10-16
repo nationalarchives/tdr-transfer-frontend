@@ -61,7 +61,7 @@ export class Checks {
               displayChecksCompletedBanner("file-checks")
             }
           } else {
-            //TODO: i think clearInterval(refreshPageIntervalId) if error yeah?
+            clearInterval(refreshPageIntervalId)
             return fileChecksProgress
           }
         },
