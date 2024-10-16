@@ -2,15 +2,15 @@ package controllers
 
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.RedirectUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc._
-import play.api.mvc.Results._
-import services.Statuses.{ClientChecksType, CompletedValue, ExportType, FailedValue, InProgressValue, SeriesType, TransferAgreementType, UploadType}
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, Statuses}
+import services.Statuses._
+import services._
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -25,6 +25,7 @@ class ConfirmTransferController @Inject() (
     val confirmTransferService: ConfirmTransferService,
     val consignmentExportService: ConsignmentExportService,
     val consignmentStatusService: ConsignmentStatusService,
+    val applicationConfig: ApplicationConfig,
     langs: Langs
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -70,8 +71,21 @@ class ConfirmTransferController @Inject() (
                 Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name)).uncache()
               }
             case None =>
-              getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
-                httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+              if (applicationConfig.blockSkipMetadataReview) {
+                val metadataReviewType = consignmentStatuses.find(_.statusType == MetadataReviewType.id)
+                if (metadataReviewType.isEmpty) {
+                  Future(Redirect(routes.AdditionalMetadataController.start(consignmentId)))
+                } else {
+                  getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
+                    RedirectUtils.redirectIfReviewNotCompleted(consignmentId, consignmentStatuses)(
+                      httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+                    )
+                  }
+                }
+              } else {
+                getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
+                  httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+                }
               }
             case _ =>
               throw new IllegalStateException(s"Unexpected Export status: $exportTransferStatus for consignment $consignmentId")
