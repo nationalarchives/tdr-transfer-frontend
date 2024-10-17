@@ -48,7 +48,7 @@ export class Checks {
           clearInterval(intervalId)
           window.location.reload()
         },
-          checksPageRefreshInterval
+        checksPageRefreshInterval
       )
 
       const intervalId: ReturnType<typeof setInterval> = setInterval(
