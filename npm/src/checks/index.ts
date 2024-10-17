@@ -33,10 +33,12 @@ export class Checks {
 
   updateFileCheckProgress: (
     isJudgmentUser: boolean,
-    goToNextPage: (formId: string) => void
+    goToNextPage: (formId: string) => void,
+    checksPageRefreshInterval: number
   ) => void | Error = (
     isJudgmentUser: boolean,
-    goToNextPage: (formId: string) => void
+    goToNextPage: (formId: string) => void,
+    checksPageRefreshInterval: number
   ) => {
     if (isJudgmentUser) {
       this.checkJudgmentTransferProgress(goToNextPage)
@@ -46,7 +48,7 @@ export class Checks {
           clearInterval(intervalId)
           window.location.reload()
         },
-        300000
+          checksPageRefreshInterval
       )
 
       const intervalId: ReturnType<typeof setInterval> = setInterval(
