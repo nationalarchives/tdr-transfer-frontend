@@ -100,7 +100,7 @@ export const renderModules = async () => {
         )
         //interval for page reload set at 90% of token validity period
         const checksPageRefreshInterval =
-            (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.9
+          (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.9
         const resultOrError = new checksModule.Checks().updateFileCheckProgress(
           isJudgmentUser,
           nextPageModule.goToNextPage,
