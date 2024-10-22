@@ -59,6 +59,7 @@ test(`clicking the submit button, without selecting a file, displays a warning m
   expect(mockDom.uploadingRecordsSection).toHaveAttribute("hidden")
   expect(mockDom.submitButton).not.toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).not.toHaveAttribute("disabled", "true")
+  expect(mockDom.topLevelFolderCheckBox).toHaveAttribute("hidden")
 })
 
 test("clicking the submit button, without selecting a file, displays a warning message to the user", async () => {
@@ -82,6 +83,7 @@ test("clicking the submit button, without selecting a file, displays a warning m
     mockDom.successAndRemovalMessageContainer!,
     false
   )
+  expect(mockDom.topLevelFolderCheckBox).toHaveAttribute("hidden")
 })
 
 test("input button updates the page with the file that has been selected, if that file is an .docx file", () => {
@@ -346,8 +348,8 @@ test("clicking the submit button, after selecting the file, disables the buttons
   expect(mockDom.submitButton).toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
   /*There is currently no way in Javascript to check if an event has been removed from an element,
-     therefore it is not possible to see if the submission code removed the drop event from the dropzone
-     */
+       therefore it is not possible to see if the submission code removed the drop event from the dropzone
+       */
 })
 
 test("clicking the submit button, after selecting a file, hides 'upload file' section and reveals progress bar", async () => {
@@ -418,6 +420,7 @@ test("removeSelectedItem function should hide the success message row and displa
     },
     false
   )
+  expect(mockDom.topLevelFolderCheckBox).toHaveAttribute("hidden")
 })
 
 test(
@@ -456,5 +459,6 @@ test(
     expect(
       mockDom.warningMessages.removedSelectionMessage.messageElement!
     ).toHaveAttribute("hidden", "true")
+    expect(mockDom.topLevelFolderCheckBox).not.toHaveAttribute("hidden")
   }
 )

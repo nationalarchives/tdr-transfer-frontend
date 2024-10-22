@@ -2,7 +2,8 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import errors.AuthorisationException
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -33,6 +34,7 @@ import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -158,6 +160,114 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/file-checks?uploadFailed=false")
     }
 
+    "redirect to the add additional metadata page with an authenticated user if the MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
+      val consignmentId = UUID.randomUUID()
+
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      mockGraphqlConsignmentSummaryResponse(dataString)
+
+      val confirmTransferPage = controller
+        .confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+
+      playStatus(confirmTransferPage) mustBe SEE_OTHER
+      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/additional-metadata")
+    }
+
+    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'InProgress' & blockSkipMetadataReview is 'true'" in {
+      val consignmentId = UUID.randomUUID()
+
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      mockGraphqlConsignmentSummaryResponse(dataString)
+
+      val confirmTransferPage = controller
+        .confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+
+      playStatus(confirmTransferPage) mustBe SEE_OTHER
+      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
+    }
+
+    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'CompletedWithIssues' & blockSkipMetadataReview is 'true'" in {
+      val consignmentId = UUID.randomUUID()
+
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", "CompletedWithIssues", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      mockGraphqlConsignmentSummaryResponse(dataString)
+
+      val confirmTransferPage = controller
+        .confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+
+      playStatus(confirmTransferPage) mustBe SEE_OTHER
+      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
+    }
+
+    "render the confirm transfer page with an authenticated user if the MetadataReview status is 'Completed' & blockSkipMetadataReview is 'true'" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", "Completed", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      mockGraphqlConsignmentSummaryResponse(dataString)
+
+      val confirmTransferPage = controller
+        .confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+
+      val confirmTransferPageAsString = contentAsString(confirmTransferPage)
+
+      playStatus(confirmTransferPage) mustBe OK
+      contentType(confirmTransferPage) mustBe Some("text/html")
+      checkConfirmTransferContent(confirmTransferPageAsString, consignmentSummaryResponse)
+    }
+
     "render the confirm transfer page with an authenticated user when all relevant statuses are 'Completed'" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
@@ -182,92 +292,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(confirmTransferPage) mustBe OK
       contentType(confirmTransferPage) mustBe Some("text/html")
-      confirmTransferPageAsString must include("<title>Confirm transfer - Transfer Digital Records - GOV.UK</title>")
-      confirmTransferPageAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-back-link">Back</a>""")
-      confirmTransferPageAsString must include("""<h1 class="govuk-heading-l">Confirm transfer</h1>""")
-
-      confirmTransferPageAsString must include(
-        """<div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
-          |    <div class="govuk-notification-banner__header">
-          |        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-          |            notification.savedProgress.title
-          |        </h2>
-          |    </div>
-          |    <div class="govuk-notification-banner__content">
-          |        <h3 class="govuk-notification-banner__heading">
-          |            notification.savedProgress.heading
-          |        </h3>
-          |        <p class="govuk-body">notification.savedProgress.metadataInfo</p>
-          |    </div>
-          |</div>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include("""<p class="govuk-body">Here is a summary of the records you have uploaded.</p>""")
-
-      confirmTransferPageAsString must include(
-        """                    <dt class="govuk-summary-list__key govuk-!-width-one-half">
-          |                        Series reference
-          |                    </dt>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        s"""                    <dd class="govuk-summary-list__value">
-           |                        ${consignmentSummaryResponse.seriesName.get}
-           |                    </dd>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        """                    <dt class="govuk-summary-list__key">
-          |                        Consignment reference
-          |                    </dt>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        s"""                    <dd class="govuk-summary-list__value">
-           |                        ${consignmentSummaryResponse.consignmentReference}
-           |                    </dd>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        s"""                    <dt class="govuk-summary-list__key">
-           |                        Transferring body
-           |                    </dt>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        s"""                    <dd class="govuk-summary-list__value">
-           |                        ${consignmentSummaryResponse.transferringBodyName.get}
-           |                    </dd>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        s"""                    <dt class="govuk-summary-list__key">
-           |                        Files uploaded for transfer
-           |                    </dt>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        s"""                    <dd class="govuk-summary-list__value">
-           |                        ${consignmentSummaryResponse.totalFiles} files&nbsp;uploaded
-           |                    </dd>""".stripMargin
-      )
-
-      confirmTransferPageAsString must include(
-        s"""<form action="/consignment/$consignmentId/confirm-transfer" method="POST" novalidate="">"""
-      )
-
-      confirmTransferPageAsString must include regex (
-        s"""<input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>"""
-      )
-
-      confirmTransferPageAsString must include(
-        s"""                    <div class="govuk-button-group">
-           |                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-           |                            Transfer your records
-           |                        </button>
-           |                    </div>""".stripMargin
-      )
-
+      checkConfirmTransferContent(confirmTransferPageAsString, consignmentSummaryResponse)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
       formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, Map())
     }
@@ -622,9 +647,21 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
+  private def getApplicationConfig(blockSkipMetadataReview: Boolean): ApplicationConfig = {
+    val config: Map[String, ConfigValue] = ConfigFactory
+      .load()
+      .withValue("featureAccessBlock.blockSkipMetadataReview", ConfigValueFactory.fromAnyRef(blockSkipMetadataReview))
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
+    new ApplicationConfig(Configuration.from(config))
+  }
+
   private def instantiateConfirmTransferController(
       securityComponents: SecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
+      blockSkipMetadataReview: Boolean = false
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
@@ -639,6 +676,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferService,
       exportService(app.configuration),
       consignmentStatusService,
+      getApplicationConfig(blockSkipMetadataReview),
       langs
     )
   }
@@ -711,6 +749,94 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
     transferAlreadyConfirmedPageAsString must include(
       s"""href="/$transferType/$consignmentId/transfer-complete">Continue""".stripMargin
+    )
+  }
+
+  private def checkConfirmTransferContent(confirmTransferPageAsString: String, consignmentSummaryResponse: gcs.GetConsignment) = {
+    confirmTransferPageAsString must include("<title>Confirm transfer - Transfer Digital Records - GOV.UK</title>")
+    confirmTransferPageAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-back-link">Back</a>""")
+    confirmTransferPageAsString must include("""<h1 class="govuk-heading-l">Confirm transfer</h1>""")
+
+    confirmTransferPageAsString must include(
+      """<div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+        |    <div class="govuk-notification-banner__header">
+        |        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+        |            notification.savedProgress.title
+        |        </h2>
+        |    </div>
+        |    <div class="govuk-notification-banner__content">
+        |        <h3 class="govuk-notification-banner__heading">
+        |            notification.savedProgress.heading
+        |        </h3>
+        |        <p class="govuk-body">notification.savedProgress.metadataInfo</p>
+        |    </div>
+        |</div>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include("""<p class="govuk-body">Here is a summary of the records you have uploaded.</p>""")
+
+    confirmTransferPageAsString must include(
+      """                    <dt class="govuk-summary-list__key govuk-!-width-one-half">
+        |                        Series reference
+        |                    </dt>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      s"""                    <dd class="govuk-summary-list__value">
+         |                        ${consignmentSummaryResponse.seriesName.get}
+         |                    </dd>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      """                    <dt class="govuk-summary-list__key">
+        |                        Consignment reference
+        |                    </dt>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      s"""                    <dd class="govuk-summary-list__value">
+         |                        ${consignmentSummaryResponse.consignmentReference}
+         |                    </dd>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      s"""                    <dt class="govuk-summary-list__key">
+         |                        Transferring body
+         |                    </dt>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      s"""                    <dd class="govuk-summary-list__value">
+         |                        ${consignmentSummaryResponse.transferringBodyName.get}
+         |                    </dd>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      s"""                    <dt class="govuk-summary-list__key">
+         |                        Files uploaded for transfer
+         |                    </dt>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      s"""                    <dd class="govuk-summary-list__value">
+         |                        ${consignmentSummaryResponse.totalFiles} files&nbsp;uploaded
+         |                    </dd>""".stripMargin
+    )
+
+    confirmTransferPageAsString must include(
+      s"""<form action="/consignment/$consignmentId/confirm-transfer" method="POST" novalidate="">"""
+    )
+
+    confirmTransferPageAsString must include regex (
+      s"""<input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>"""
+    )
+
+    confirmTransferPageAsString must include(
+      s"""                    <div class="govuk-button-group">
+         |                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+         |                            Transfer your records
+         |                        </button>
+         |                    </div>""".stripMargin
     )
   }
 }
