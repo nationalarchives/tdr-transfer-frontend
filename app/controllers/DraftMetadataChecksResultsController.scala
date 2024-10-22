@@ -6,7 +6,7 @@ import controllers.util.ExcelUtils
 import controllers.util.MetadataProperty.filePath
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
-import play.api.i18n.{I18nSupport, Messages}
+import play.api.i18n.{I18nSupport, Lang, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Request}
 import services.FileError.SCHEMA_VALIDATION
 import services.Statuses._
@@ -26,7 +26,8 @@ class DraftMetadataChecksResultsController @Inject() (
     val consignmentService: ConsignmentService,
     val applicationConfig: ApplicationConfig,
     val consignmentStatusService: ConsignmentStatusService,
-    val draftMetadataService: DraftMetadataService
+    val draftMetadataService: DraftMetadataService,
+    val messages: MessagesApi
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -73,18 +74,20 @@ class DraftMetadataChecksResultsController @Inject() (
     }
   }
 
-  private def actionMessage(fileError: FileError.FileError)(implicit messages: Messages): String = {
+  implicit val defaultLang: Lang = Lang.defaultLang
+
+  private def actionMessage(fileError: FileError.FileError): String = {
     val key = s"draftMetadata.validation.action.$fileError"
-    if (Messages.isDefinedAt(key))
-      Messages(key)
+    if (messages.isDefinedAt(key))
+      messages(key)
     else
       s"Require action message for $key"
   }
 
-  private def detailsMessage(fileError: FileError.FileError)(implicit messages: Messages): String = {
+  private def detailsMessage(fileError: FileError.FileError): String = {
     val key = s"draftMetadata.validation.details.$fileError"
-    if (Messages.isDefinedAt(key))
-      Messages(key)
+    if (messages.isDefinedAt(key))
+      messages(key)
     else
       s"Require details message for $key"
   }
