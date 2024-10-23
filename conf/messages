@@ -40,5 +40,7 @@ draftMetadata.validation.details.SCHEMA_VALIDATION=We found validation errors in
 draftMetadata.validation.action.SCHEMA_VALIDATION=Download the report below for details on individual validation errors.
 draftMetadata.validation.details.UTF_8=The metadata file was not a CSV in UTF-8 format.
 draftMetadata.validation.action.UTF_8=Ensure that you save your Excel file as file type ''CSV UTF-8 (comma separated)''.
+draftMetadata.validation.details.INVALID_CSV=The metadata file you uploaded was not a CSV.
+draftMetadata.validation.action.INVALID_CSV=Ensure that you save your Excel file as file type ''CSV UTF-8 (comma separated)''.
 draftMetadata.validation.details.VIRUS=A virus was found in your metadata file.
 draftMetadata.validation.action.VIRUS=Contact your internal IT support service.
