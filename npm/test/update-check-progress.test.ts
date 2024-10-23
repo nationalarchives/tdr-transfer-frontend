@@ -20,6 +20,20 @@ import { Checks } from "../src/checks"
 import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../src/checks/verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "../src/checks/display-checks-completed-banner"
 
+//stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
+const original = window.location;
+
+beforeAll(() => {
+  Object.defineProperty(window, 'location', {
+    configurable: true,
+    value: { reload: jest.fn() },
+  });
+});
+
+afterAll(() => {
+  Object.defineProperty(window, 'location', { configurable: true, value: original });
+});
+
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 jest.mock(
@@ -125,9 +139,9 @@ const mockDisplayChecksHaveCompletedBanner: () => void = () =>
 
 test("'updateFileCheckProgress' calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
-  await checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   jest.runOnlyPendingTimers()
-  expect(setInterval).toBeCalledTimes(1)
+  expect(setInterval).toBeCalledTimes(2)
 })
 
 test("'updateDraftMetadataValidationProgress' calls setInterval correctly", async () => {
@@ -153,7 +167,7 @@ test("'updateFileCheckProgress' shows a standard user, the notification banner a
 
   mockDisplayChecksHaveCompletedBanner()
 
-  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -220,7 +234,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   )
   mockDisplayChecksHaveCompletedBanner()
 
-  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -262,7 +276,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   )
   mockDisplayChecksHaveCompletedBanner()
 
-  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -298,7 +312,7 @@ test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all c
 
   mockTransferProgress("complete")
 
-  checks.updateFileCheckProgress(true, mockGoToNextPage)
+  checks.updateFileCheckProgress(true, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
   expect(mockGoToNextPage).toHaveBeenCalled()
@@ -311,7 +325,7 @@ test("'updateFileCheckProgress' does not call goToNextPage for a judgment user i
   )
   mockTransferProgress("inProgress")
 
-  checks.updateFileCheckProgress(true, mockGoToNextPage)
+  checks.updateFileCheckProgress(true, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
   expect(mockGoToNextPage).toHaveBeenCalled()
@@ -324,7 +338,7 @@ test("'updateFileCheckProgress' does not call goToNextPage for a judgment user i
   )
   mockTransferProgress("noData")
 
-  checks.updateFileCheckProgress(true, mockGoToNextPage)
+  checks.updateFileCheckProgress(true, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
   expect(mockGoToNextPage).not.toHaveBeenCalled()
