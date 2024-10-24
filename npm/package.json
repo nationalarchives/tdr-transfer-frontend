@@ -14,7 +14,7 @@
     "build-css": "npm-run-all add-stylesheet-dir sass-compile compress-css",
     "build:local": "npm-run-all copy-assets build-css build-ts:prod",
     "build": "npm-run-all copy-assets build-css build-ts:prod",
-    "lint": "eslint src -c .ts",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src --ext .ts",
     "stylelint": "npx stylelint **/*.scss",
     "test": "jest",
     "checks": "npm-run-all lint stylelint test",
@@ -43,8 +43,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.678.0",
     "@aws-sdk/lib-storage": "^3.556.0",
-    "@aws-sdk/querystring-builder": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
+    "@aws-sdk/querystring-builder": "^3.374.0",
     "@nationalarchives/file-information": "^1.0.625",
     "@nationalarchives/tdr-components": "1.0.43",
     "@nationalarchives/tdr-generated-graphql": "1.0.473",
@@ -62,6 +62,9 @@
     "webpack-cli": "^5.1.4"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.13.0",
+    "@smithy/types": "3.6.0",
     "@testing-library/jest-dom": "^6.6.2",
     "@types/jest": "^29.5.14",
     "@typescript-eslint/eslint-plugin": "^8.11.0",
@@ -73,6 +76,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jest": "^28.8.3",
     "eslint-plugin-prettier": "^5.2.1",
+    "globals": "^15.11.0",
     "husky": "^9.1.6",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
@@ -89,8 +93,7 @@
     "ts-loader": "^9.5.1",
     "typescript": "5.6.3",
     "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4",
-    "@smithy/types" : "3.6.0"
+    "webpack-cli": "^5.1.4"
   },
   "lint-staged": {
     "./**/*.{ts,md}": "eslint",
