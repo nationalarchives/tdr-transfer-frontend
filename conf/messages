@@ -44,3 +44,5 @@ draftMetadata.validation.details.INVALID_CSV=The metadata file you uploaded was 
 draftMetadata.validation.action.INVALID_CSV=Ensure that you save your Excel file as file type ''CSV UTF-8 (comma separated)''.
 draftMetadata.validation.details.VIRUS=A virus was found in your metadata file.
 draftMetadata.validation.action.VIRUS=Contact your internal IT support service.
+draftMetadata.validation.details.SCHEMA_REQUIRED=There was at least one missing column in your metadata file. The metadata file must contain specific column headers.
+draftMetadata.validation.action.SCHEMA_REQUIRED=Add the following column headers to your metadata file and re-load.
