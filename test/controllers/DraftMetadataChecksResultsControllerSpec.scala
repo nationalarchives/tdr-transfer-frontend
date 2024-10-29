@@ -180,7 +180,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         CompletedWithIssuesValue.value,
         FileError.UTF_8,
         "The metadata file was not a CSV in UTF-8 format.",
-        s"Ensure that you save your Excel file as file type &#x27;CSV UTF-8 (comma separated)&#x27;."
+        s"Ensure that you save your Excel file as file type 'CSV UTF-8 (comma separated)'."
       )
     )
     forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage) =>
