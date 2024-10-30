@@ -16,6 +16,7 @@ import play.api.i18n.DefaultMessagesApi
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status => playStatus, _}
+import services.FileError.FileError
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, FailedValue}
 import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, Error, ErrorFileData, FileError, ValidationErrors}
 import testUtils.FrontEndTestHelper
@@ -50,7 +51,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   "DraftMetadataChecksResultsController GET" should {
     "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
       val controller = instantiateController()
-      val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+      val additionalMetadataEntryMethodPage =
+        controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
@@ -62,7 +64,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
     "return forbidden for a TNA user" in {
       val controller = instantiateController(blockDraftMetadataUpload = false, keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
-      val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+      val additionalMetadataEntryMethodPage =
+        controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       playStatus(additionalMetadataEntryMethodPage) mustBe FORBIDDEN
@@ -174,20 +177,32 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
   "DraftMetadataChecksResultsController should render the error page with no error download for some errors" should {
     val draftMetadataStatuses = Table(
-      ("status", "fileError", "detailsMessage", "actionMessage"),
-      (FailedValue.value, FileError.UNKNOWN, "Require details message for draftMetadata.validation.details.", "Require action message for draftMetadata.validation.action."),
+      ("status", "fileError", "detailsMessage", "actionMessage", "affectedProperties"),
+      (FailedValue.value,
+        FileError.UNKNOWN,
+        "Require details message for draftMetadata.validation.details.",
+        "Require action message for draftMetadata.validation.action.",
+        Set[String]()
+      ),
       (
         CompletedWithIssuesValue.value,
         FileError.UTF_8,
         "The metadata file was not a CSV in UTF-8 format.",
-        s"Ensure that you save your Excel file as file type 'CSV UTF-8 (comma separated)'."
+        s"Ensure that you save your Excel file as file type 'CSV UTF-8 (comma separated)'.",
+        Set[String]()
+      ),
+      (
+        CompletedWithIssuesValue.value,
+        FileError.SCHEMA_REQUIRED,
+        "There was at least one missing column in your metadata file. The metadata file must contain specific column headers.",
+        "Add the following column headers to your metadata file and re-load.",
+        Set("Closure Status", "Description")
       )
     )
-    forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage) =>
+    forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage, affectedProperties) =>
       {
         s"render the draftMetadataResults page when the status is $statusValue and error is $fileError" in {
-          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
-          when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
+          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError, affectedProperties = affectedProperties)
           val additionalMetadataEntryMethodPage = controller
             .draftMetadataChecksResultsPage(consignmentId)
             .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
@@ -212,6 +227,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           )
           pageAsString must include(detailsMessage)
           pageAsString must include(actionMessage)
+          affectedProperties.foreach(p => pageAsString must include(s"<li>$p</li>"))
         }
       }
     }
@@ -224,10 +240,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         val error = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
         val metadata = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/aa/bb/faq"))
         val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("assetId", Set(error), metadata)))
-
-        when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(errorFileData))
-
-        val response = instantiateController().downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
+        val response = instantiateController(errorFileData = Some(errorFileData))
+          .downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
 
         val responseByteArray: ByteString = contentAsBytes(response)
         val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
@@ -279,14 +293,17 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
       blockDraftMetadataUpload: Boolean = true,
-      fileError: FileError.FileError = FileError.UNKNOWN
+      fileError: FileError.FileError = FileError.UNKNOWN,
+      affectedProperties: Set[String] = Set(),
+      errorFileData: Option[ErrorFileData] = None
   ): DraftMetadataChecksResultsController = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
+    val mockedErrorFileData = if (errorFileData.isDefined) { errorFileData.get } else mockErrorFileData(fileError, affectedProperties)
+    when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(mockedErrorFileData))
 
     val properties = new Properties()
     Using(Source.fromFile("conf/messages")) { source =>
@@ -308,5 +325,21 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       draftMetaDataService,
       messagesApi
     )
+  }
+
+  private def mockErrorFileData(fileError: FileError = FileError.UNKNOWN, affectedProperties: Set[String] = Set()): ErrorFileData = {
+    if (affectedProperties.nonEmpty) {
+      val validationErrors = {
+        val errors = affectedProperties.map(p => {
+          val convertedProperty = p.replaceAll(" ", "_").toLowerCase()
+          Error("SCHEMA_REQUIRED", p, "required", s"SCHEMA_REQUIRED.$convertedProperty.required")
+        })
+        ValidationErrors(UUID.randomUUID().toString, errors)
+      }
+      ErrorFileData(consignmentId, "", fileError, List(validationErrors))
+
+    } else {
+      ErrorFileData(consignmentId, "", fileError, List())
+    }
   }
 }
