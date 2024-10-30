@@ -178,7 +178,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   "DraftMetadataChecksResultsController should render the error page with no error download for some errors" should {
     val draftMetadataStatuses = Table(
       ("status", "fileError", "detailsMessage", "actionMessage", "affectedProperties"),
-      (FailedValue.value,
+      (
+        FailedValue.value,
         FileError.UNKNOWN,
         "Require details message for draftMetadata.validation.details.",
         "Require action message for draftMetadata.validation.action.",
@@ -302,7 +303,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val mockedErrorFileData = if (errorFileData.isDefined) { errorFileData.get } else mockErrorFileData(fileError, affectedProperties)
+    val mockedErrorFileData = if (errorFileData.isDefined) { errorFileData.get }
+    else mockErrorFileData(fileError, affectedProperties)
     when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(mockedErrorFileData))
 
     val properties = new Properties()
