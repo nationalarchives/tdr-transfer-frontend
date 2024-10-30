@@ -40,8 +40,9 @@ class DraftMetadataChecksResultsController @Inject() (
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
-        errorReport <- draftMetadataService.getErrorReport(consignmentId)
-        errorType = getErrorType(errorReport, consignmentStatuses)
+        draftMetadataStatus = consignmentStatuses.find(_.statusType == DraftMetadataType.id).map(_.value)
+        errorReport <- getErrorReport(draftMetadataStatus, consignmentId)
+        errorType = getErrorType(errorReport, draftMetadataStatus)
       } yield {
         val resultsPage = {
           // leaving original page for no errors
@@ -94,10 +95,11 @@ class DraftMetadataChecksResultsController @Inject() (
       s"Require details message for $key"
   }
 
-  private def getAffectedProperties(errorReport: ErrorFileData): Set[String] = {
-    if (errorReport.validationErrors.nonEmpty) {
-      errorReport.validationErrors.flatMap(_.errors.map(_.property)).toSet
-    } else Set()
+  private def getAffectedProperties(errorReport: Option[ErrorFileData]): Set[String] = {
+    errorReport match {
+      case Some(er) if er.validationErrors.nonEmpty => er.validationErrors.flatMap(_.errors.map(_.property)).toSet
+      case _ => Set()
+    }
   }
 
   private def isErrorReportAvailable(fileError: FileError.FileError): Boolean = {
@@ -107,13 +109,20 @@ class DraftMetadataChecksResultsController @Inject() (
     }
   }
 
-  private def getErrorType(errorReport: ErrorFileData, consignmentStatuses: List[GetConsignment.ConsignmentStatuses]): FileError.Value = {
-    val draftMetadataStatus = consignmentStatuses.find(_.statusType == DraftMetadataType.id).map(_.value)
+  private def getErrorReport(draftMetadataStatus: Option[String], consignmentId: UUID): Future[Option[ErrorFileData]] = {
+    draftMetadataStatus match {
+      case Some(s) if s == CompletedValue.value || s == FailedValue.value => Future.successful(None)
+      case Some(_)                                                        => draftMetadataService.getErrorReport(consignmentId).map(Some(_))
+      case None                                                           => Future.successful(None)
+    }
+  }
+
+  private def getErrorType(errorReport: Option[ErrorFileData], draftMetadataStatus: Option[String]): FileError.Value = {
     draftMetadataStatus match {
       case Some(s) if s == CompletedValue.value => FileError.NONE
       case Some(s) if s == FailedValue.value    => FileError.UNKNOWN
-      case Some(_) => errorReport.fileError
-      case _ => FileError.UNKNOWN
+      case Some(_) if errorReport.isDefined     => errorReport.get.fileError
+      case _                                    => FileError.UNKNOWN
     }
   }
 
