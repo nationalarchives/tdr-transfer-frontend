@@ -98,7 +98,7 @@ class DraftMetadataChecksResultsController @Inject() (
   private def getAffectedProperties(errorReport: Option[ErrorFileData]): Set[String] = {
     errorReport match {
       case Some(er) if er.validationErrors.nonEmpty => er.validationErrors.flatMap(_.errors.map(_.property)).toSet
-      case _ => Set()
+      case _                                        => Set()
     }
   }
 
