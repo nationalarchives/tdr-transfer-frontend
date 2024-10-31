@@ -1,4 +1,4 @@
-@(actionMessage: String, detailsMessage: String)(implicit request: RequestHeader, messages: Messages)
+@(actionMessage: String, detailsMessage: String, affectedProperties: Set[String] = Set())(implicit request: RequestHeader, messages: Messages)
 
 <h1 class="govuk-heading-l">
     Results of your metadata checks
@@ -31,7 +31,14 @@
             Action
         </dt>
         <dd class="govuk-summary-list__value">
-            @Html(actionMessage)
+            <p>@Html(actionMessage)</p>
+            @if(affectedProperties.nonEmpty) {
+                <ul class="govuk-list govuk-list--bullet">
+                    @for(property <- affectedProperties) {
+                        <li>@property</li>
+                    }
+                </ul>
+            }
         </dd>
     </div>
 </dl>
