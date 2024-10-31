@@ -100,7 +100,7 @@ class DraftMetadataChecksResultsController @Inject() (
       case Some(er)
           if er.fileError == FileError.SCHEMA_REQUIRED
             || er.fileError == FileError.DUPLICATE_HEADER =>
-        errorReport.get.validationErrors.flatMap(_.errors.map(_.property)).toSet
+        er.validationErrors.flatMap(_.errors.map(_.property)).toSet
       case _ => Set()
     }
   }
