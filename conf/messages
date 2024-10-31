@@ -43,4 +43,4 @@ draftMetadata.validation.action.UTF_8=Ensure that you save your Excel file as fi
 draftMetadata.validation.details.INVALID_CSV=The metadata file you uploaded was not a CSV.
 draftMetadata.validation.action.INVALID_CSV=Ensure that you save your Excel file as file type ''CSV UTF-8 (comma separated)''.
 draftMetadata.validation.details.VIRUS=A virus was found in your metadata file.
-draftMetadata.validation.action.VIRUS=Contact your internal IT support service.
+draftMetadata.validation.action.VIRUS=Please get in touch on <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a>, so that we can validate this before contacting your own internal support.
