@@ -37,8 +37,9 @@
                         <li><a href="#upload-records">Step 3: Upload your records</a></li>
                         <li><a href="#file-checks">Step 4: File checks</a></li>
                         <li><a href="#additional-metadata">Step 5: Add, edit or delete metadata</a></li>
-                        <li><a href="#download-metadata">Step 6: Download and review metadata</a></li>
-                        <li><a href="#confirm-transfer">Step 7: Confirm transfer</a></li>
+                        <li><a href="#submit-metadata">Step 6: Submit Metadata to be checked by experts at TNA</a></li>
+                        <li><a href="#download-metadata">Step 7: Download and review metadata</a></li>
+                        <li><a href="#confirm-transfer">Step 8: Confirm transfer</a></li>
                         <li><a href="#transfer-complete">Transfer complete</a></li>
                     </ul>
                     <li><a href="#transfer-history">View the progress of your transfers and transfer history</a></li>
@@ -408,7 +409,79 @@
                 Withhold the title or description without providing an alternative. For example: '[Title withheld]' and or '[description withheld]'.
             </p>
 
-            <h3 class="govuk-heading-s" id="download-metadata">Step 6: Download and review metadata</h3>
+            <h3 class="govuk-heading-s" id="submit-metadata">Step 6: Submitting your metadata to be reviewed by the Digital Archiving team</h3>
+            <p class="govuk-body">
+                Once you have added metadata to your uploaded records via Transfer Digital Records (TDR), you will be presented with the option to download and check the metadata TDR has captured against your records. This will include system metadata extracted by TDR from your uploaded records such as:
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>file path</li>
+                <li>file name</li>
+                <li>date last modified</li>
+            </ul>
+            <p class="govuk-body">
+                You can review this metadata by clicking on the grey ‘Download’ button and your metadata will be presented as a download in excel for you to view.
+            </p>
+            <p class="govuk-body">
+                Even if you did not provide any additional and/or closure metadata via TDR, you will still be presented with this option so that you can check the metadata which has been extracted. This gives you the opportunity to ensure the metadata is correct before you continue.
+            </p>
+            <img src="@routes.Assets.versioned("images/standard-review-metadata.png")" class="screenshots" alt="Download and review metadata page" />
+            <p class="govuk-body">
+                If you would like to make amendments to the metadata you have added, you can do this by clicking on the ‘Back’ link towards the top left corner of the page to return to the previous page to add ‘Record metadata’. Otherwise, select ‘Continue’ to proceed with your transfer.
+            </p>
+            <p class="govuk-body">
+                You will then be prompted to request a metadata review by our digital archiving team who will check the metadata we have captured for your records. This is to ensure that the metadata makes sense and provides meaning and context to your records so that they can be found by end users of Discovery.
+            </p>
+            <img src="@routes.Assets.versioned("images/standard-request-review.png")" class="screenshots" alt="Request a metadata review page" />
+            <p class="govuk-body">
+                After you submit your metadata for review, you will see that your metadata review is in progress.
+            </p>
+            <img src="@routes.Assets.versioned("images/standard-review-progress.png")" class="screenshots" alt="Metadata review in progress page" />
+            <p class="govuk-body">
+                You can only continue with the transfer once you receive an email notification with further instructions.  At this stage you will need to log out and wait for the notification (or you may initiate another transfer if you are transferring multiple consignments).
+            </p>
+            <p class="govuk-body">
+                Once your metadata has been reviewed, you will receive a notification depending on one of the following outcomes:
+            </p>
+            <ol class="govuk-body">
+                <li>If issues are found with your metadata:
+                    <p class="govuk-body">
+                        You will receive two emails.
+                    </p>
+                    <p class="govuk-body">
+                        One from a Digital Transfer Advisor with recommendations for making the necessary amendments before submitting for another review.
+                        Another email will be sent with a link to your in progress transfer. This can also be accessed by signing into Transfer Digital Records, selecting the ‘View Transfers’ button and finding the transfer with the corresponding consignment reference. You will see that issues were found with your metadata.
+                    </p>
+                    <img src="@routes.Assets.versioned("images/standard-view-transfers-page.png")" class="screenshots" alt="View transfers page" />
+                    <img src="@routes.Assets.versioned("images/standard-review-issues.png")" class="screenshots" alt="Issues found in metadata page" />
+                    <p class="govuk-body">
+                        Select ‘Continue’ to return to the ‘Record metadata’ page and address the issues with your metadata by selecting the record and updating the form.
+                    </p>
+                    <img src="@routes.Assets.versioned("images/standard-additional-metadata-short.png")" class="screenshots" alt="Additonal metadata page" />
+                    <p class="govuk-body">
+                        Once you have made the necessary changes, you will be prompted to repeat the steps described above to submit your metadata for review by the Digital Archiving team who will check it again and send you an email notification.
+                    </p>
+                </li>
+                <li>If issues are found with your metadata:
+                    <p class="govuk-body">
+                        If everything appears to be OK with your metadata:
+                    </p>
+                    <p class="govuk-body">
+                        You will receive an automated email confirming that you can proceed with your transfer. It will also contain a link to your in progress transfer.
+                    </p>
+                    <p class="govuk-body">
+                        The transfer can also be accessed by signing into Transfer Digital Records, selecting the ‘View Transfers’ button and finding the transfer with the corresponding consignment reference.
+                    </p>
+                    <p class="govuk-body">
+                        You will see a message confirming you can complete your transfer.
+                    </p>
+                    <img src="@routes.Assets.versioned("images/standard-review-success.png")" class="screenshots" alt="Metadata review successful page" />
+                    <p class="govuk-body">
+                        Select ‘Continue’ to carry on with submitting your records for transfer.
+                    </p>
+                </li>
+            </ol>
+
+            <h3 class="govuk-heading-s" id="download-metadata">Step 7: Download and review metadata</h3>
             <p class="govuk-body">
                 Once the metadata has been completed and automatically saved, you can download and review a .csv file which shows all the metadata added to your records.
             </p>
@@ -420,7 +493,7 @@
                 When you have finished adding and amending metadata, click ‘Next’ to proceed to the final step of the process.
             </p>
 
-            <h3 class="govuk-heading-s" id="confirm-transfer">Step 7: Confirm transfer</h3>
+            <h3 class="govuk-heading-s" id="confirm-transfer">Step 8: Confirm transfer</h3>
             <p class="govuk-body">
                 At the final stage of TDR, you will be asked to confirm the transfer. On this screen you will see a summary of the records you have uploaded.
                 You may leave at any time and return to your transfer from the ‘View transfers’ page.
