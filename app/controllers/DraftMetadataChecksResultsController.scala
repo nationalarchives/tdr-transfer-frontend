@@ -10,7 +10,7 @@ import play.api.i18n.{I18nSupport, Lang, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Request}
 import services.FileError.SCHEMA_VALIDATION
 import services.Statuses._
-import services.{FileError, _}
+import services._
 import viewsapi.Caching.preventCaching
 
 import java.time.LocalDateTime
@@ -40,7 +40,9 @@ class DraftMetadataChecksResultsController @Inject() (
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
-        errorType <- getErrorType(consignmentStatuses, consignmentId)
+        draftMetadataStatus = consignmentStatuses.find(_.statusType == DraftMetadataType.id).map(_.value)
+        errorReport <- getErrorReport(draftMetadataStatus, consignmentId)
+        errorType = getErrorType(errorReport, draftMetadataStatus)
       } yield {
         val resultsPage = {
           // leaving original page for no errors
@@ -64,7 +66,8 @@ class DraftMetadataChecksResultsController @Inject() (
                   reference,
                   request.token.name,
                   actionMessage(errorType),
-                  detailsMessage(errorType)
+                  detailsMessage(errorType),
+                  getAffectedProperties(errorReport)
                 )
             }
           }
@@ -92,6 +95,13 @@ class DraftMetadataChecksResultsController @Inject() (
       s"Require details message for $key"
   }
 
+  private def getAffectedProperties(errorReport: Option[ErrorFileData]): Set[String] = {
+    errorReport match {
+      case Some(er) if er.fileError == FileError.SCHEMA_REQUIRED => er.validationErrors.flatMap(_.errors.map(_.property)).toSet
+      case _                                                     => Set()
+    }
+  }
+
   private def isErrorReportAvailable(fileError: FileError.FileError): Boolean = {
     fileError match {
       case SCHEMA_VALIDATION => true
@@ -99,16 +109,20 @@ class DraftMetadataChecksResultsController @Inject() (
     }
   }
 
-  private def getErrorType(consignmentStatuses: List[GetConsignment.ConsignmentStatuses], consignmentId: UUID): Future[FileError.Value] = {
-    val draftMetadataStatus = consignmentStatuses.find(_.statusType == DraftMetadataType.id).map(_.value)
-    if (draftMetadataStatus.isDefined) {
-      draftMetadataStatus.get match {
-        case CompletedValue.value => Future.successful(FileError.NONE)
-        case FailedValue.value    => Future.successful(FileError.UNKNOWN)
-        case _                    => draftMetadataService.getErrorTypeFromErrorJson(consignmentId)
-      }
-    } else {
-      Future.successful(FileError.UNKNOWN)
+  private def getErrorReport(draftMetadataStatus: Option[String], consignmentId: UUID): Future[Option[ErrorFileData]] = {
+    draftMetadataStatus match {
+      case Some(s) if s == CompletedValue.value || s == FailedValue.value => Future.successful(None)
+      case Some(_)                                                        => draftMetadataService.getErrorReport(consignmentId).map(Some(_))
+      case None                                                           => Future.successful(None)
+    }
+  }
+
+  private def getErrorType(errorReport: Option[ErrorFileData], draftMetadataStatus: Option[String]): FileError.Value = {
+    draftMetadataStatus match {
+      case Some(s) if s == CompletedValue.value => FileError.NONE
+      case Some(s) if s == FailedValue.value    => FileError.UNKNOWN
+      case Some(_) if errorReport.isDefined     => errorReport.get.fileError
+      case _                                    => FileError.UNKNOWN
     }
   }
 

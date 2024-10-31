@@ -260,5 +260,29 @@ If you need to add a new query:
 * Run `sbt package publishLocal`
 * Set the version for `tdr-generated-graphql` in this projects build.sbt to be the snapshot version.
 
+## Draft Metadata Feature: Running and Testing Locally
+
+### Uploading from localhost
+
+When uploading a metadata csv from `localhost` ensure have a valid set of AWS credentials for the TDR integration environment, or other environment if connecting your localhost to a different TDR environment.
+
+### CSV UTF-8 on Linux Machines
+
+The draft metadata feature uses the BOM to check that the uploaded metadata CSV is UTF-8 encoded.
+
+For software such a Libre office the BOM is not added to CSV files and therefore any file uploaded from a Linux machine will fail this validation check.
+
+See here for further details: [Metadata CSV file UTF-8 Validation](https://github.com/nationalarchives/tdr-dev-documentation/blob/master/architecture-decision-records/0035-metadata-csv-utf-8-file-validation.md)
+
+To add the BOM to a CSV file run the following commands:
+
+```
+  printf '\xEF\xBB\xBF' > with_bom.txt
+  cat {file name of csv}.csv >> with_bom.txt
+  mv with_bom.txt {file name of csv}.csv
+```
+
+These commands need to be run each time the file is saved.
+
 ## Notes
 * Each environment has its own secret for the auth server. These cannot be generated inside AWS in any way and so it's difficult to get them into the Terraform scripts. At the moment, these are stored in a parameter store variable called /${env}/auth/secret although this may change.
