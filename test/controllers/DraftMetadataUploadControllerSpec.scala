@@ -136,6 +136,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
     "render error page when upload success but trigger fails" in {
       val uploadServiceMock = mock[UploadService]
+      setConsignmentReferenceResponse(wiremockServer)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
@@ -196,7 +197,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     val file = FilePart("upload", "hello.txt", Option("text/plain"), tempFile)
     val formData = MultipartFormData(dataParts = Map("" -> Seq("dummy data")), files = Seq(file), badParts = Seq())
 
-    val request = FakeRequest(POST, "/consignment/1234567/draft-metadata").withBody(formData).withHeaders(FakeHeaders())
+    val request = FakeRequest(POST, "/consignment/1234567/draft-metadata").withCSRFToken.withBody(formData).withHeaders(FakeHeaders())
 
     controller.saveDraftMetadata(UUID.randomUUID()).apply(request)
   }
