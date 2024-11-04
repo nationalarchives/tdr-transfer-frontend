@@ -8,6 +8,7 @@ import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
+import play.api.libs.Files
 import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.mvc.{MultipartFormData, Result}
@@ -117,17 +118,20 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       redirect.getOrElse(s"incorrect redirect $redirect") must include regex "/consignment/*.*/draft-metadata/checks"
     }
 
-    "render error page when upload unsuccessful" in {
+    "render error page when upload unsuccessful when no file uploaded" in {
       val uploadServiceMock = mock[UploadService]
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString))
-        .thenReturn(Future.failed(new RuntimeException("Upload failed")))
+      setConsignmentReferenceResponse(wiremockServer)
+      when(configuration.get[String]("draftMetadata.fileName")).thenReturn("wrong name")
+      val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
+
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.successful(true))
-      val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
+      val response = requestFileUploadWithoutFile(uploadServiceMock, draftMetadataServiceMock)
 
-      playStatus(response) mustBe 500
+      playStatus(response) mustBe 200
 
-      contentAsString(response) must include("Upload failed")
+      contentAsString(response) must include("There is a problem")
     }
 
     "render error page when upload success but trigger fails" in {
@@ -140,9 +144,9 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
-      playStatus(response) mustBe 500
+      playStatus(response) mustBe 200
 
-      contentAsString(response) must include("Trigger failed")
+      contentAsString(response) must include("There is a problem")
     }
   }
 
@@ -170,6 +174,15 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     )
   }
 
+  private def requestFileUploadWithoutFile(uploadServiceMock: UploadService, draftMetadataServiceMock: DraftMetadataService): Future[Result] = {
+    val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false, uploadService = uploadServiceMock, draftMetadataService = draftMetadataServiceMock)
+
+    val formData = MultipartFormData(dataParts = Map("" -> Seq("dummy data")), files = Seq.empty[FilePart[Files.TemporaryFile]], badParts = Seq())
+
+    val request = FakeRequest(POST, "/consignment/1234567/draft-metadata").withCSRFToken.withBody(formData).withHeaders(FakeHeaders())
+    controller.saveDraftMetadata(UUID.randomUUID()).apply(request)
+  }
+
   private def requestFileUpload(uploadServiceMock: UploadService, draftMetadataServiceMock: DraftMetadataService): Future[Result] = {
     val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false, uploadService = uploadServiceMock, draftMetadataService = draftMetadataServiceMock)
 
@@ -184,6 +197,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     val formData = MultipartFormData(dataParts = Map("" -> Seq("dummy data")), files = Seq(file), badParts = Seq())
 
     val request = FakeRequest(POST, "/consignment/1234567/draft-metadata").withBody(formData).withHeaders(FakeHeaders())
+
     controller.saveDraftMetadata(UUID.randomUUID()).apply(request)
   }
 }

@@ -1,0 +1,62 @@
+@import helper._
+@import views.html.partials._
+@import viewsapi.FrontEndInfo
+
+@import java.util.UUID
+@(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+
+@main("Upload a metadata CSV", name = name, backLink = Some(backLink(routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId).url, "How would you like to enter metadata?"))) {
+    <div id="metadata-file-upload" class="govuk-grid-row" >
+
+        <div class="govuk-grid-column-two-thirds">
+            <div class="govuk-error-summary" data-module="govuk-error-summary">
+                <div role="alert">
+                    <h2 class="govuk-error-summary__title">
+                        There is a problem
+                    </h2>
+                    <div class="govuk-error-summary__body">
+                        <ul class="govuk-list govuk-error-summary__list">
+                            <li>
+                                <a href="#file-selection">Select a CSV file to upload</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h1 class="govuk-heading-l">Upload a metadata CSV</h1>
+            <div class="govuk-body">
+                <p>In your CSV, include a header row for the column titles and one row for every record that requires metadata.</p>
+            </div>
+            <div>
+            @downloadMetadataLink(consignmentId, "Download metadata Excel template", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
+            </div>
+
+            <form action="@routes.DraftMetadataUploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >
+                @CSRF.formField
+                <div class="govuk-form-group govuk-form-group--error">
+                    @loggedOutErrorMessage("file-upload")
+                    @frontEndInputs(frontEndInfo)
+                    <label class="govuk-label govuk-!-font-weight-bold" for="file-selection">
+                        Select a CSV
+                    </label>
+
+                    <p id="file-upload-1-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">Error:</span> Select a CSV file to upload
+                    </p>
+
+                    <div >
+                        <input class="govuk-file-upload govuk-file-upload--error" type="file" id="file-selection" name="files"
+                        accept=".csv">
+                    </div>
+                 </div>
+                <div>
+                    <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                        Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+}
