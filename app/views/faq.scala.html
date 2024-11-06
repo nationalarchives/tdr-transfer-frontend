@@ -1,6 +1,6 @@
 @(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
 @defining("Frequently Asked Questions") { title =>
-  @main(title, isLoggedIn = isLoggedIn, name = name) {
+    @main(title, isLoggedIn = isLoggedIn, name = name) {
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 <h1 class="govuk-heading-l">@title</h1>
@@ -68,7 +68,8 @@
                 <h3 id="sign-in-email" class="govuk-heading-s">Which email should I use to sign-in?</h3>
                 <p class="govuk-body">
                     Use the email that you used to create your account. If your email address changes, send full details of the change to <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
-                    Further information on how to set up a new account can be found in the TDR<a class="govuk-link" href="@routes.HelpController.help()"> User Guide</a>.
+                    Further information on how to set up a new account can be found in the TDR<a class="govuk-link" href="@routes.HelpController.help()">
+                    User Guide</a>.
                 </p>
 
                 <h3 id="password-not-working" class="govuk-heading-s">My password does not work</h3>
@@ -175,8 +176,7 @@
                 <h3 id="other-languages" class="govuk-heading-s">
                     The records I wish to transfer are in another language (for example, Welsh)</h3>
                 <p class="govuk-body">
-                    TDR currently only accepts records that are in English and Welsh. If your records are in a different language, contact <a href="mailto:@Messages("nationalArchives.email")">
-                    @Messages("nationalArchives.email")</a> prior to transfer to discuss next steps.
+                    TDR currently only accepts records that are in English and Welsh. If your records are in a different language, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> prior to transfer to discuss next steps.
                 </p>
                 <p class="govuk-body">
                     The National Archives accepts records in any language.
@@ -210,7 +210,8 @@
                 <p class="govuk-body">
                     File format extensions can also be useful for determining file types, however this can be an unreliable approach, since they can be changed easily. Extensions are the end part of a filename that typically look similar to '.jpg' or '.docx'. They are often hidden by default, but can usually be made visible to help with determining file type. Speak with your local IT Support team if you require assistance with this.
                 </p>
-                <p class="govuk-body">Contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                <p class="govuk-body">
+                    Contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
                     if you are uncertain about the file formats you have selected for transfer.
                 </p>
 
@@ -278,8 +279,7 @@
                         A check performed to ensure files have not been corrupted as they move between your shared drive and TDR during the upload process. The data integrity check uses checksums which are like a digital fingerprint. For TDR we use SHA256.
                     </p>
                     <p class="govuk-body">
-                        More information can be found in the <a class="govuk-link" href="@routes.HelpController.help()#glossary">
-                        Glossary</a> of the TDR User Guide.
+                        More information can be found in the <a class="govuk-link" href="@routes.HelpController.help()#glossary">Glossary</a> of the TDR User Guide.
                     </p>
                 </ul>
 
@@ -344,7 +344,7 @@
                     <li>Withhold the title or description without providing an alternative. For example, you can replace with '[Title withheld]' and or '[description withheld]'</li>
                 </ul>
 
-                <h3 class="govuk-heading-s">Can I include Redacted records?</h3>
+                <h3 class="govuk-heading-s">Can I include redacted records?</h3>
                 <p class="govuk-body">
                     If redacted files are included within your transfer, to avoid failing checks, you must ensure that:
                 </p>
@@ -354,8 +354,33 @@
                     <li>There is no other file type with the same name in the same sub-folder as the parent and redacted version</li>
                 </ul>
                 <p class="govuk-body">
-                    If your redacted records cannot conform to the above, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>to arrange an alternative delivery method.
+                    If your redacted records cannot conform to the above, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> to arrange an alternative delivery method.
                 </p>
+
+                <h3 class="govuk-heading-s">What is a Digital Transfer Advisor (DTA)?</h3>
+                <p class="govuk-body">
+                    A Digital Transfer Advisor (DTA) is your point of contact at The National Archives (TNA) who can provide you with advice and guidance with your selected born digital public record transfer to TNA.
+                </p>
+
+                <h3 class="govuk-heading-s">What is the purpose of a metadata review?</h3>
+                <p class="govuk-body">
+                    This step involves submitting your metadata for review by experts at The National Archives. The purpose is to ensure the metadata you have submitted has met TNA's standards for processing. Completing this accurately will ensure that we capture the information we need to add contextual value to the records. The review also ensures necessary access/closure conditions are adhered to.
+                </p>
+                <p class="govuk-body">
+                    Records and metadata uploaded in TDR continue to be the responsibility of and owned by the transferring body. At the end of the preparation process, the transferring body agrees to transfer legal custody of the records and its metadata to The National Archives.
+                </p>
+
+                <h3 class="govuk-heading-s">
+                    Why do my records need to go through a metadata review when I have not provided any metadata?</h3>
+                <p class="govuk-body">
+                    TDR will automatically extract key technical metadata which becomes part of the catalogue entry for the record(s). This includes the filename, filepath, date last modified etc. and assumes some default values from the records you upload. Our digital archiving team will check that the dates extracted are still meaningful and that metadata provides context so that your records can be found and understood by our end users of Discovery. If this is not the case, they will get back to you with recommendations about ways to improve the metadata. This will help make your records easier to access by our Discovery users.
+                </p>
+
+                <h3 class="govuk-heading-s">How long will the metadata review take?</h3>
+                <p class="govuk-body">
+                    The Digital Archiving team will attempt to complete the review and notify you of the outcome at their earliest convenience. It is difficult to say how long it will take as this is dependant on the number of reviews in progress, the volume of records within a file and the complexity of the metadata. If you are concerned that the metadata review has been ‘in progress’ for a while, please send an email to <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> to get an update, quoting your consignment reference
+                </p>
+
                 <h3 class="govuk-heading-s">
                     Why do I need to transfer my records once I have already uploaded them to TDR?</h3>
                 <p class="govuk-body">
@@ -392,8 +417,7 @@
                 <h3 class="govuk-heading-s">
                     I have not received an email to notify me that my records are in the archive</h3>
                 <p class="govuk-body">
-                    We will notify you via email when your records have been transferred, preserved and released to the public. If you would like more information on this process contact <a href="mailto:@Messages("nationalArchives.email")">
-                @Messages("nationalArchives.email")</a>
+                    We will notify you via email when your records have been transferred, preserved and released to the public. If you would like more information on this process contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
                 </p>
 
                 <h3 class="govuk-heading-s">Can I view the progress of my transfers and their history?</h3>
