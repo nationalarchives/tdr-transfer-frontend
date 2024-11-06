@@ -198,6 +198,13 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         "There was at least one missing column in your metadata file. The metadata file must contain specific column headers.",
         "Add the following column headers to your metadata file and re-load.",
         Set("Closure Status", "Description")
+      ),
+      (
+        CompletedWithIssuesValue.value,
+        FileError.DUPLICATE_HEADER,
+        "There was at least one duplicate column in your metadata file.",
+        "Ensure there is only one of the following duplicated columns.",
+        Set("Closure Status", "Description")
       )
     )
     forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage, affectedProperties) =>
