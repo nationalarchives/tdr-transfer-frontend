@@ -6,9 +6,10 @@ import cats.effect.IO.fromOption
 import cats.effect.unsafe.implicits.global
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
+import play.api._
 import play.api.i18n.I18nSupport
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.{Action, AnyContent, MultipartFormData, Request, Result}
+import play.api.mvc._
 import services._
 import viewsapi.Caching.preventCaching
 
@@ -28,7 +29,8 @@ class DraftMetadataUploadController @Inject() (
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
-    with I18nSupport {
+    with I18nSupport
+    with Logging {
 
   def draftMetadataUploadPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     if (applicationConfig.blockDraftMetadataUpload) {
@@ -64,7 +66,13 @@ class DraftMetadataUploadController @Inject() (
 
       uploadDraftMetadata
         .recoverWith { case error =>
-          IO(InternalServerError(s"Unable to upload draft metadata to : $uploadBucket/$uploadKey: Error:" + error.getMessage + " stack" + error.getStackTrace.mkString))
+          val errorPage = for {
+            reference <- consignmentService.getConsignmentRef(consignmentId, token.bearerAccessToken)
+          } yield {
+            logger.error(error.getMessage, error)
+            Ok(views.html.draftmetadata.draftMetadataUploadError(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, token.bearerAccessToken.getValue)).uncache()
+          }
+          IO.fromFuture(IO(errorPage))
         }
         .unsafeToFuture()
   }
