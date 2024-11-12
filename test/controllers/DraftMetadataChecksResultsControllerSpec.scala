@@ -181,8 +181,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       (
         FailedValue.value,
         FileError.UNKNOWN,
-        "Require details message for draftMetadata.validation.details.",
-        "Require action message for draftMetadata.validation.action.",
+        "An unknown error was identified.",
+        "Please contact your Digital Transfer Advisor on <a href=\"mailto:tdr@nationalarchives.gov.uk\">tdr@nationalarchives.gov.uk</a> quoting the Consignment Reference.",
         Set[String]()
       ),
       (
@@ -239,61 +239,61 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         }
       }
     }
+  }
 
-    "downloadErrorReport" should {
-      "download the excel file with error data" in {
+  "downloadErrorReport" should {
+    "download the excel file with error data" in {
 
-        setConsignmentTypeResponse(wiremockServer, "standard")
-        setConsignmentReferenceResponse(wiremockServer)
-        val error = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
-        val metadata = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/aa/bb/faq"))
-        val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("assetId", Set(error), metadata)))
-        val response = instantiateController(errorFileData = Some(errorFileData))
-          .downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val error = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
+      val metadata = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/aa/bb/faq"))
+      val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("assetId", Set(error), metadata)))
+      val response = instantiateController(errorFileData = Some(errorFileData))
+        .downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
 
-        val responseByteArray: ByteString = contentAsBytes(response)
-        val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
-        val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
-        val ws: Sheet = wb.getFirstSheet
-        val rows: List[Row] = ws.read.asScala.toList
+      val responseByteArray: ByteString = contentAsBytes(response)
+      val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+      val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
+      val ws: Sheet = wb.getFirstSheet
+      val rows: List[Row] = ws.read.asScala.toList
 
-        rows.length must equal(2)
+      rows.length must equal(2)
 
-        rows.head.getCell(0).asString must equal("Filepath")
-        rows.head.getCell(1).asString must equal("Field")
-        rows.head.getCell(2).asString must equal("Value")
-        rows.head.getCell(3).asString must equal("Error Message")
+      rows.head.getCell(0).asString must equal("Filepath")
+      rows.head.getCell(1).asString must equal("Field")
+      rows.head.getCell(2).asString must equal("Value")
+      rows.head.getCell(3).asString must equal("Error Message")
 
-        rows(1).getCell(0).asString must equal("/aa/bb/faq")
-        rows(1).getCell(1).asString must equal("FOI exemption code")
-        rows(1).getCell(2).asString must equal("abcd")
-        rows(1).getCell(3).asString must equal("BASE_SCHEMA.foi_exmption_code.enum")
-      }
+      rows(1).getCell(0).asString must equal("/aa/bb/faq")
+      rows(1).getCell(1).asString must equal("FOI exemption code")
+      rows(1).getCell(2).asString must equal("abcd")
+      rows(1).getCell(3).asString must equal("BASE_SCHEMA.foi_exmption_code.enum")
+    }
 
-      "download the excel file without error data when the error type is not SCHEMA_VALIDATION" in {
+    "download the excel file without error data when the error type is not SCHEMA_VALIDATION" in {
 
-        setConsignmentTypeResponse(wiremockServer, "standard")
-        setConsignmentReferenceResponse(wiremockServer)
-        val error = Error("FILE_VALIDATION", "draftmetadata.csv", "INVALID_CSV", "")
-        val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.INVALID_CSV, List(ValidationErrors("assetId", Set(error), Nil)))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val error = Error("FILE_VALIDATION", "draftmetadata.csv", "INVALID_CSV", "")
+      val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.INVALID_CSV, List(ValidationErrors("assetId", Set(error), Nil)))
 
-        when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(errorFileData))
+      when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(errorFileData))
 
-        val response = instantiateController().downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
+      val response = instantiateController().downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
 
-        val responseByteArray: ByteString = contentAsBytes(response)
-        val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
-        val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
-        val ws: Sheet = wb.getFirstSheet
-        val rows: List[Row] = ws.read.asScala.toList
+      val responseByteArray: ByteString = contentAsBytes(response)
+      val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+      val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
+      val ws: Sheet = wb.getFirstSheet
+      val rows: List[Row] = ws.read.asScala.toList
 
-        rows.length must equal(1)
+      rows.length must equal(1)
 
-        rows.head.getCell(0).asString must equal("Filepath")
-        rows.head.getCell(1).asString must equal("Field")
-        rows.head.getCell(2).asString must equal("Value")
-        rows.head.getCell(3).asString must equal("Error Message")
-      }
+      rows.head.getCell(0).asString must equal("Filepath")
+      rows.head.getCell(1).asString must equal("Field")
+      rows.head.getCell(2).asString must equal("Value")
+      rows.head.getCell(3).asString must equal("Error Message")
     }
   }
 
