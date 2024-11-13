@@ -71,8 +71,7 @@ class DownloadMetadataController @Inject() (
         descriptionClosed,
         descriptionAlternate,
         language,
-        filenameTranslated,
-        fileUUID
+        filenameTranslated
       )
 
       val nameMap = displayProperties.filter(dp => columnOrder.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
