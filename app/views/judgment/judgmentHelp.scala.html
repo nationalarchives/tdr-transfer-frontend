@@ -13,8 +13,8 @@
             <li>
               <a href="#register-new-account">Registering for a new account</a>
               <ul class="govuk-list govuk-list--bullet">
-                <li><a href="#new-user-email">New user email</a></li>
-                <li><a href="#two-step-auth">Set up your OTP account for multi-factor authentication</a></li>
+                <li><a href="#new-user-email">Requesting a new account</a></li>
+                <li><a href="#two-step-auth">How to set up your OTP (one time password)</a></li>
                 <li><a href="#set-pass">Set your password</a></li>
               </ul>
             </li>
@@ -81,45 +81,72 @@
         </p>
 
         <h2 class="govuk-heading-m" id="register-new-account">Registering for a new account</h2>
-        <h3 class="govuk-heading-s" id="new-user-email">Part 1: New user email</h3>
+        <h3 class="govuk-heading-s" id="new-user-email">Part 1: Requesting a new account</h3>
         <ol class="govuk-body">
           <li>
-            If your department has not requested a new account registration for you, you can register for a new TDR account by emailing <a href="mailto:@Messages("nationalArchives.email")">
-            @Messages("nationalArchives.email")</a>
-            from your work email account. In the email you should ask to register as a new user, stating clearly your first name and surname. Allow up to two working days for your request to be processed. </li>
+            If your department has not already requested an account for you, you can register by emailing <a href="mailto:@Messages("nationalArchives.email")">
+            @Messages("nationalArchives.email")</a> from your work email. In your email, clearly state your first name and surname, and ask to register as a new user.
+              It may take up to 2 working days for your request to be processed.
+          </li>
           <li>
-            Once your account is validated, you will be sent an email with the subject <span class="govuk-!-font-weight-bold">"Register for your Transfer Digital Records (TDR) account - ACTION REQUIRED"</span> which contains important registration instructions.</li>
+            Once your account is ready, you'll receive an email with the subject <span class="govuk-!-font-weight-bold">"Register for your Transfer Digital Records (TDR) account - ACTION REQUIRED"</span>. This email will include important instructions on how to complete your registration.
+          </li>
           <li>
-            You will receive an email shortly after with the subject <span class="govuk-!-font-weight-bold">"Update Your Account"</span>, containing <span class="govuk-!-font-weight-bold">a link that expires after 12 hours.</span> Click the link before it expires to begin your registration. <em>If your link expires before you can use it, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> and request a new registration link.</em></li>
+            In addition, you’ll get another email with the subject <span class="govuk-!-font-weight-bold">"Update Your Account"</span>, which will contain a link. The link will expire in 12 hours, so click it as soon as possible to start your registration. If the link expires, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> to ask for a new one.
+          </li>
           <li>The registration link will take you to this page:</li>
           <img src="@routes.Assets.versioned("images/configure-otp-password-page.png")" class="screenshots" alt="Sign in page with a link to setup MFA and password" />
           <li>
-            Click on the <span class="govuk-!-font-weight-bold">"Configure OTP, Update Password"</span> link to set up your 'one-time password' (OTP) code, sometimes referred to as 'one-time PIN', to securely sign in using two-step authentication.</li>
+            The link will take you to a page where you need to click <span class="govuk-!-font-weight-bold">"Set up two-step authentication and update password"</span>. This will allow you to set up your OTP, which is also known as a 'one-time PIN'. You’ll need this to sign in securely with two-step authentication.
+          </li>
         </ol>
 
-        <h3 class="govuk-heading-s" id="why-otp">What is OTP and why do I need to use it?</h3>
+        <h3 class="govuk-heading-s" id="why-otp">What is two-step authentication and why do I need to use an OTP?</h3>
         <p class="govuk-body">
-          A 'one-time password' (OTP) code is a unique generated code that confirms who you are. An OTP code is generated in an authenticator app. Free authenticator apps can be downloaded onto your smartphone, such as Google Authenticator, Microsoft Authenticator, or FreeOTP. Other authenticators are available. Free-to-download apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store' for Android.
+          An OTP (one-time password) is a unique code that confirms your identity. It’s generated by an authenticator app on your smartphone. You can download free authenticator apps like Google Authenticator, Microsoft Authenticator, or FreeOTP. These apps are available on the App Store for iPhone, or Google Play for Android.
         </p>
         <p class="govuk-body">
-          To keep the service and your account secure, you must sign in to your account using an OTP in addition to your personal password.
+          To keep the service and your account secure, you must sign in to your TDR account using an OTP in addition to your personal password.
         </p>
 
-        <h3 class="govuk-heading-s" id="two-step-auth">Part 2: Two-step authentication</h3>
+        <h3 class="govuk-heading-s" id="two-step-auth">Part 2: How to set up your OTP (one time password)</h3>
         <p class="govuk-body">
-          Clicking the "Configure OTP, Update Password" link will take you to the <span class="govuk-!-font-weight-bold">"Configure multi-factor authentication"</span> page:
+          After clicking the "Configure OTP, Update Password" link, you’ll be taken to the <span class="govuk-!-font-weight-bold">"Configure two-steps authentication"</span> page.
         </p>
         <img src="@routes.Assets.versioned("images/set-up-mfa-page.png")" class="screenshots" alt="Form to setup multi factor authentication" />
-        <p class="govuk-body">First you must ensure you have installed an authenticator app onto your smartphone before proceeding.</p>
-        <p class="govuk-body">To set up your app for use with TDR, open your authenticator app on your mobile and create a new TDR account using the QR displayed on your screen</p>
-        <ul class="govuk-body">
-          <li>For Google Authenticator, click on the first option 'Scan a QR code'.</li>
-          <li>
-            For Microsoft Authenticator, first click on the '+' icon to add an account. You might need to click on the three little dots in the top right corner to have this option displayed. Then select "Other (Google, Facebook, etc.)" to access the QR scanner.
-          </li>
-          <li>For Free OTP, click on the QR code icon located in the top banner of your smartphone screen.</li>
-        </ul>
-        <p class="govuk-body">Scan the QR code displayed on your computer screen and your app will automatically create a unique OTP account to use with TDR. You should now see a 6-digit code that will refresh at regular intervals.</p>
+        <h3 class="govuk-heading-s">Step 1: Install an authenticator app</h3>
+        <p class="govuk-body">
+        Before you continue, make sure you have an authenticator app installed on your smartphone. You can use apps like Google Authenticator, Microsoft Authenticator, or FreeOTP.
+        </p>
+        <h3 class="govuk-heading-s">Step 2: Set up your authenticator app</h3>
+        <p class="govuk-body">
+          Open the authenticator app on your smartphone.
+        </p>
+        <p class="govuk-body">
+          Create a new account in the app by scanning the QR code displayed on your computer screen.
+        </p>
+        <p class="govuk-body">
+          For Google Authenticator: Choose "Scan a QR code".
+        </p>
+        <p class="govuk-body">
+          For Microsoft Authenticator: Tap the '+' icon to add a new account. If you can’t see this, tap the three dots in the top right corner. Then select "Other (Google, Facebook, etc.)" to open the QR scanner.
+        </p>
+        <p class="govuk-body">
+          For FreeOTP: Tap the QR code icon at the top of your screen.
+        </p>
+
+        <p class="govuk-body">
+          Once you’ve scanned the QR code, the app will create a unique account to use with TDR and display a 6-digit code that refreshes regularly.
+        </p>
+        <h3 class="govuk-heading-s">Step 3: Enter the code</h3>
+        <p class="govuk-body">
+          Enter the 6-digit code from your app into the "One-time code" box on your computer without spaces.
+          Make sure you enter the code before it refreshes (every 30 to 60 seconds).
+        </p>
+        <p class="govuk-body">
+          Click "Submit" before the code changes in the app.
+        </p>
+
         <p class="govuk-body">In the "One-time code" box, type in the six digits <u>without a space</u>, ensuring that you have enough time to complete this page before the code refreshes (usually every 30 to 60 seconds).</p>
         <p class="govuk-body">Click "Submit" <u>before</u> the code expires in the app.</p>
 
