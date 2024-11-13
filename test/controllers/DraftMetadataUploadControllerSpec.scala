@@ -15,7 +15,7 @@ import play.api.mvc.{MultipartFormData, Result}
 import play.api.test.CSRFTokenHelper._
 import play.api.test.Helpers.{status => playStatus, _}
 import play.api.test.{FakeHeaders, FakeRequest}
-import services.{ConsignmentService, DraftMetadataService, FileError, UploadService}
+import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, FileError, UploadService}
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import testUtils.FrontEndTestHelper
 
@@ -41,7 +41,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "DraftMetadataUploadControllerSpec GET" should {
+  "DraftMetadataUploadController GET" should {
     "render 'draft metadata upload' page when 'blockDraftMetadataUpload' set to 'false'" in {
 
       val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false)
@@ -101,12 +101,15 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
       playStatus(draftMetadataUploadPage) mustBe FORBIDDEN
     }
+  }
 
+  "DraftMetadataUploadController saveDraftMetadata" should {
     "redirect to draft metadata checks page when upload successful" in {
       val uploadServiceMock = mock[UploadService]
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
+      setUpdateConsignmentStatus(wiremockServer)
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.successful(true))
@@ -163,6 +166,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
     new DraftMetadataUploadController(
       securityComponents,
@@ -171,6 +175,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       consignmentService,
       uploadService,
       draftMetadataService,
+      consignmentStatusService,
       applicationConfig
     )
   }
