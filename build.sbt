@@ -27,17 +27,17 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.190",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.217",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.390",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.194",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.220",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.391",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.60",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.215",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.215",
-  "ch.qos.logback" % "logback-classic" % "1.5.11",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.221",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.221",
+  "ch.qos.logback" % "logback-classic" % "1.5.12",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.43.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.43.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.43.0",
+  "io.opentelemetry" % "opentelemetry-api" % "1.44.1",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.44.1",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.44.1",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.40.0",
@@ -48,8 +48,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.17.0"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.17.0"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.17.3"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.17.3"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
