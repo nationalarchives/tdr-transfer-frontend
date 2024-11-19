@@ -134,14 +134,14 @@ class DraftMetadataChecksResultsController @Inject() (
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         errorReport <- draftMetadataService.getErrorReport(consignmentId)
       } yield {
-        val orderingPrioritisingRowErrors: Ordering[Error] =
+        val errorPriorityOrdering: Ordering[Error] =
           Ordering.by[Error, (Boolean, String)](e => (!e.validationProcess.equals(s"$priorityErrorType"), e.validationProcess))
         val errorList = errorReport.fileError match {
           case SCHEMA_VALIDATION =>
             errorReport.validationErrors.flatMap { validationErrors =>
               val data = validationErrors.data.map(metadata => metadata.name -> metadata.value).toMap
               validationErrors.errors.toList
-                .sorted(orderingPrioritisingRowErrors)
+                .sorted(errorPriorityOrdering)
                 .map(error => List(validationErrors.assetId, error.property, data.getOrElse(error.property, ""), error.message))
             }
           case _ => Nil
