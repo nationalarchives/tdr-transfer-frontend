@@ -246,9 +246,9 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val error = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
+      val error = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exemption_code.enum")
       val metadata = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/aa/bb/faq"))
-      val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("assetId", Set(error), metadata)))
+      val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("/aa/bb/faq", Set(error), metadata)))
       val response = instantiateController(errorFileData = Some(errorFileData))
         .downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
 
@@ -261,14 +261,14 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       rows.length must equal(2)
 
       rows.head.getCell(0).asString must equal("Filepath")
-      rows.head.getCell(1).asString must equal("Field")
+      rows.head.getCell(1).asString must equal("Column")
       rows.head.getCell(2).asString must equal("Value")
       rows.head.getCell(3).asString must equal("Error Message")
 
       rows(1).getCell(0).asString must equal("/aa/bb/faq")
       rows(1).getCell(1).asString must equal("FOI exemption code")
       rows(1).getCell(2).asString must equal("abcd")
-      rows(1).getCell(3).asString must equal("BASE_SCHEMA.foi_exmption_code.enum")
+      rows(1).getCell(3).asString must equal("BASE_SCHEMA.foi_exemption_code.enum")
     }
 
     "download the excel file without error data when the error type is not SCHEMA_VALIDATION" in {
@@ -291,9 +291,44 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       rows.length must equal(1)
 
       rows.head.getCell(0).asString must equal("Filepath")
-      rows.head.getCell(1).asString must equal("Field")
+      rows.head.getCell(1).asString must equal("Column")
       rows.head.getCell(2).asString must equal("Value")
       rows.head.getCell(3).asString must equal("Error Message")
+    }
+
+    "download the excel file with row validation errors at the top where present" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val schemaError = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
+      val rowValidationError = Error("ROW_VALIDATION", "", "unknown", "This file was listed in your metadata file but does not match to one of your uploaded files")
+      val metadata = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/aa/bb/faq"))
+      val errorFileData =
+        ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("/aa/bb/faq", Set(schemaError, rowValidationError), metadata)))
+      val response = instantiateController(errorFileData = Some(errorFileData))
+        .downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
+
+      val responseByteArray: ByteString = contentAsBytes(response)
+      val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+      val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
+      val ws: Sheet = wb.getFirstSheet
+      val rows: List[Row] = ws.read.asScala.toList
+
+      rows.length must equal(3)
+
+      rows.head.getCell(0).asString must equal("Filepath")
+      rows.head.getCell(1).asString must equal("Column")
+      rows.head.getCell(2).asString must equal("Value")
+      rows.head.getCell(3).asString must equal("Error Message")
+
+      rows(1).getCell(0).asString must equal("/aa/bb/faq")
+      rows(1).getCell(1).asString must equal("")
+      rows(1).getCell(2).asString must equal("")
+      rows(1).getCell(3).asString must equal("This file was listed in your metadata file but does not match to one of your uploaded files")
+
+      rows(2).getCell(0).asString must equal("/aa/bb/faq")
+      rows(2).getCell(1).asString must equal("FOI exemption code")
+      rows(2).getCell(2).asString must equal("abcd")
+      rows(2).getCell(3).asString must equal("BASE_SCHEMA.foi_exmption_code.enum")
     }
   }
 
