@@ -5,11 +5,13 @@ import cats.effect.IO
 import cats.effect.IO.fromOption
 import cats.effect.unsafe.implicits.global
 import configuration.{ApplicationConfig, KeycloakConfiguration}
+import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api._
 import play.api.i18n.I18nSupport
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
+import services.Statuses.{DraftMetadataType, InProgressValue}
 import services._
 import viewsapi.Caching.preventCaching
 
@@ -26,6 +28,7 @@ class DraftMetadataUploadController @Inject() (
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val draftMetadataService: DraftMetadataService,
+    val consignmentStatusService: ConsignmentStatusService,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -54,8 +57,10 @@ class DraftMetadataUploadController @Inject() (
       val uploadFileName = applicationConfig.draftMetadataFileName
       val uploadKey = s"$consignmentId/$uploadFileName"
       val noDraftMetadataFileUploaded: String = "No meta data file provided"
+      val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value))
 
       def uploadDraftMetadata: IO[Result] = for {
+        _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)))
         firstFilePart <- fromOption(request.body.files.headOption)(new RuntimeException(noDraftMetadataFileUploaded))
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException(noDraftMetadataFileUploaded))
         draftMetadata <- fromOption(Using(scala.io.Source.fromFile(file.ref.getAbsoluteFile))(_.mkString).toOption)(new RuntimeException(noDraftMetadataFileUploaded))
