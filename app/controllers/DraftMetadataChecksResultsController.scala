@@ -4,11 +4,10 @@ import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.util.ExcelUtils
 import controllers.util.MetadataProperty.filePath
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.{I18nSupport, Lang, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Request}
-import services.FileError.{SCHEMA_VALIDATION, UTF_8, ROW_VALIDATION}
+import services.FileError.{FileError, ROW_VALIDATION, SCHEMA_VALIDATION, UTF_8}
 import services.Statuses._
 import services._
 import viewsapi.Caching.preventCaching
@@ -129,32 +128,33 @@ class DraftMetadataChecksResultsController @Inject() (
     }
   }
 
-  def downloadErrorReport(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    for {
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      errorReport <- draftMetadataService.getErrorReport(consignmentId)
-    } yield {
-      val orderingPrioritisingRowErrors: Ordering[Error] =
-        Ordering.by[Error, (Boolean, String)](e => (!e.validationProcess.equals(s"$ROW_VALIDATION"), e.validationProcess))
-      val errorList = errorReport.fileError match {
-        case SCHEMA_VALIDATION =>
-          errorReport.validationErrors.flatMap { validationErrors =>
-            val data = validationErrors.data.map(metadata => metadata.name -> metadata.value).toMap
-            validationErrors.errors.toList
-              .sorted(orderingPrioritisingRowErrors)
-              .map(error => List(validationErrors.assetId, error.property, data.getOrElse(error.property, ""), error.message))
-          }
-        case _ => Nil
+  def downloadErrorReport(consignmentId: UUID, priorityErrorType: FileError = ROW_VALIDATION): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      for {
+        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+        errorReport <- draftMetadataService.getErrorReport(consignmentId)
+      } yield {
+        val orderingPrioritisingRowErrors: Ordering[Error] =
+          Ordering.by[Error, (Boolean, String)](e => (!e.validationProcess.equals(s"$priorityErrorType"), e.validationProcess))
+        val errorList = errorReport.fileError match {
+          case SCHEMA_VALIDATION =>
+            errorReport.validationErrors.flatMap { validationErrors =>
+              val data = validationErrors.data.map(metadata => metadata.name -> metadata.value).toMap
+              validationErrors.errors.toList
+                .sorted(orderingPrioritisingRowErrors)
+                .map(error => List(validationErrors.assetId, error.property, data.getOrElse(error.property, ""), error.message))
+            }
+          case _ => Nil
+        }
+        val header: List[String] = List(filePath, "Column", "Value", "Error Message")
+        val excelFile = ExcelUtils.writeExcel(s"Error report for $reference", header :: errorList)
+        val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
+        val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
+        val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        Ok(excelFile)
+          .as(excelContentType)
+          .withHeaders("Content-Disposition" -> s"attachment; filename=ErrorReport-${reference}-$currentDateTime.xlsx")
       }
-      val header: List[String] = List(filePath, "Column", "Value", "Error Message")
-      val excelFile = ExcelUtils.writeExcel(s"Error report for $reference", header :: errorList)
-      val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
-      val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
-      val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      Ok(excelFile)
-        .as(excelContentType)
-        .withHeaders("Content-Disposition" -> s"attachment; filename=ErrorReport-${reference}-$currentDateTime.xlsx")
-    }
   }
 }
 
