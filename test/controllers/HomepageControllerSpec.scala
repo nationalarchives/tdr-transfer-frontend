@@ -146,7 +146,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
 
       val consignmentId = UUID.fromString("6c5756a9-dd7a-437c-9396-33b227e53768")
-      val addConsignment = AddConsignment(Option(consignmentId), None)
+      val addConsignment = AddConsignment(Option(consignmentId), None, "Consignment-Ref")
       val client = graphqlConfig.getClient[Data, Variables]()
       val dataString = client.GraphqlData(Option(Data(addConsignment))).asJson.printWith(Printer(dropNullValues = false, ""))
 
@@ -190,7 +190,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService)
 
       val consignmentId = UUID.fromString("6c5756a9-dd7a-437c-9396-33b227e53768")
-      val addConsignment = AddConsignment(Option(consignmentId), None)
+      val addConsignment = AddConsignment(Option(consignmentId), None, "Consignment-Ref")
       val client = graphqlConfig.getClient[Data, Variables]()
       val dataString = client.GraphqlData(Option(Data(addConsignment))).asJson.printWith(Printer(dropNullValues = false, ""))
 
