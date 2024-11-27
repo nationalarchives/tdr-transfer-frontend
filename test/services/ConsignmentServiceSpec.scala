@@ -136,7 +136,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val noUserTypeToken = mock[Token]
       when(noUserTypeToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId, "Consignment-Ref"))), Nil)
       val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
@@ -151,7 +151,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       when(standardUserToken.isStandardUser).thenReturn(true)
       when(standardUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId, "Consignment-Ref"))), Nil)
       val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
@@ -165,7 +165,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val judgmentUserToken: Token = mock[Token]
       when(judgmentUserToken.isJudgmentUser).thenReturn(true)
       when(judgmentUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), None))), Nil)
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), None, "Consignment-Ref"))), Nil)
       val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(None, "judgment")))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
@@ -176,7 +176,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     }
 
     "return the created consignment" in {
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId, "Consignment-Ref"))), Nil)
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))))
         .thenReturn(Future.successful(response))
 
