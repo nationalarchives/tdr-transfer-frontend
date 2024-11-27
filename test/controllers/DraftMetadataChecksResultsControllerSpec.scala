@@ -16,6 +16,7 @@ import play.api.i18n.DefaultMessagesApi
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status => playStatus, _}
+import services.FileError.FileError
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, FailedValue}
 import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, Error, ErrorFileData, FileError, ValidationErrors}
 import testUtils.FrontEndTestHelper
@@ -50,7 +51,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   "DraftMetadataChecksResultsController GET" should {
     "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
       val controller = instantiateController()
-      val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+      val additionalMetadataEntryMethodPage =
+        controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
@@ -62,7 +64,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
     "return forbidden for a TNA user" in {
       val controller = instantiateController(blockDraftMetadataUpload = false, keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
-      val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+      val additionalMetadataEntryMethodPage =
+        controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       playStatus(additionalMetadataEntryMethodPage) mustBe FORBIDDEN
@@ -174,20 +177,40 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
   "DraftMetadataChecksResultsController should render the error page with no error download for some errors" should {
     val draftMetadataStatuses = Table(
-      ("status", "fileError", "detailsMessage", "actionMessage"),
-      (FailedValue.value, FileError.UNKNOWN, "Require details message for draftMetadata.validation.details.", "Require action message for draftMetadata.validation.action."),
+      ("status", "fileError", "detailsMessage", "actionMessage", "affectedProperties"),
+      (
+        FailedValue.value,
+        FileError.UNKNOWN,
+        "An unknown error was identified.",
+        "Please contact your Digital Transfer Advisor on <a href=\"mailto:tdr@nationalarchives.gov.uk\">tdr@nationalarchives.gov.uk</a> quoting the Consignment Reference.",
+        Set[String]()
+      ),
       (
         CompletedWithIssuesValue.value,
         FileError.UTF_8,
-        "The metadata file you uploaded was not a CSV.",
-        s"Ensure that you save your Excel file as file type &#x27;CSV UTF-8 (comma separated)&#x27;."
+        "The metadata file was not a CSV in UTF-8 format.",
+        s"Ensure that you save your Excel file as file type 'CSV UTF-8 (comma separated)'.",
+        Set[String]()
+      ),
+      (
+        CompletedWithIssuesValue.value,
+        FileError.SCHEMA_REQUIRED,
+        "There was at least one missing column in your metadata file. The metadata file must contain specific column headers.",
+        "Add the following column headers to your metadata file and re-load.",
+        Set("Closure Status", "Description")
+      ),
+      (
+        CompletedWithIssuesValue.value,
+        FileError.DUPLICATE_HEADER,
+        "There was at least one duplicate column in your metadata file.",
+        "Ensure there is only one of the following duplicated columns.",
+        Set("Closure Status", "Description")
       )
     )
-    forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage) =>
+    forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage, affectedProperties) =>
       {
         s"render the draftMetadataResults page when the status is $statusValue and error is $fileError" in {
-          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
-          when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
+          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError, affectedProperties = affectedProperties)
           val additionalMetadataEntryMethodPage = controller
             .draftMetadataChecksResultsPage(consignmentId)
             .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
@@ -212,66 +235,65 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           )
           pageAsString must include(detailsMessage)
           pageAsString must include(actionMessage)
+          affectedProperties.foreach(p => pageAsString must include(s"<li>$p</li>"))
         }
       }
     }
+  }
 
-    "downloadErrorReport" should {
-      "download the excel file with error data" in {
+  "downloadErrorReport" should {
+    "download the excel file with error data" in {
 
-        setConsignmentTypeResponse(wiremockServer, "standard")
-        setConsignmentReferenceResponse(wiremockServer)
-        val error = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
-        val metadata = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/aa/bb/faq"))
-        val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("assetId", Set(error), metadata)))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val error = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
+      val metadata = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/aa/bb/faq"))
+      val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.SCHEMA_VALIDATION, List(ValidationErrors("assetId", Set(error), metadata)))
+      val response = instantiateController(errorFileData = Some(errorFileData))
+        .downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
 
-        when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(errorFileData))
+      val responseByteArray: ByteString = contentAsBytes(response)
+      val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+      val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
+      val ws: Sheet = wb.getFirstSheet
+      val rows: List[Row] = ws.read.asScala.toList
 
-        val response = instantiateController().downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
+      rows.length must equal(2)
 
-        val responseByteArray: ByteString = contentAsBytes(response)
-        val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
-        val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
-        val ws: Sheet = wb.getFirstSheet
-        val rows: List[Row] = ws.read.asScala.toList
+      rows.head.getCell(0).asString must equal("Filepath")
+      rows.head.getCell(1).asString must equal("Field")
+      rows.head.getCell(2).asString must equal("Value")
+      rows.head.getCell(3).asString must equal("Error Message")
 
-        rows.length must equal(2)
+      rows(1).getCell(0).asString must equal("/aa/bb/faq")
+      rows(1).getCell(1).asString must equal("FOI exemption code")
+      rows(1).getCell(2).asString must equal("abcd")
+      rows(1).getCell(3).asString must equal("BASE_SCHEMA.foi_exmption_code.enum")
+    }
 
-        rows.head.getCell(0).asString must equal("Filepath")
-        rows.head.getCell(1).asString must equal("Field")
-        rows.head.getCell(2).asString must equal("Value")
-        rows.head.getCell(3).asString must equal("Error Message")
+    "download the excel file without error data when the error type is not SCHEMA_VALIDATION" in {
 
-        rows(1).getCell(0).asString must equal("/aa/bb/faq")
-        rows(1).getCell(1).asString must equal("FOI exemption code")
-        rows(1).getCell(2).asString must equal("abcd")
-        rows(1).getCell(3).asString must equal("BASE_SCHEMA.foi_exmption_code.enum")
-      }
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val error = Error("FILE_VALIDATION", "draftmetadata.csv", "INVALID_CSV", "")
+      val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.INVALID_CSV, List(ValidationErrors("assetId", Set(error), Nil)))
 
-      "download the excel file without error data when the error type is not SCHEMA_VALIDATION" in {
+      when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(errorFileData))
 
-        setConsignmentTypeResponse(wiremockServer, "standard")
-        setConsignmentReferenceResponse(wiremockServer)
-        val error = Error("FILE_VALIDATION", "draftmetadata.csv", "INVALID_CSV", "")
-        val errorFileData = ErrorFileData(consignmentId, date = "2024-12-12", FileError.INVALID_CSV, List(ValidationErrors("assetId", Set(error), Nil)))
+      val response = instantiateController().downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
 
-        when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(errorFileData))
+      val responseByteArray: ByteString = contentAsBytes(response)
+      val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+      val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
+      val ws: Sheet = wb.getFirstSheet
+      val rows: List[Row] = ws.read.asScala.toList
 
-        val response = instantiateController().downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
+      rows.length must equal(1)
 
-        val responseByteArray: ByteString = contentAsBytes(response)
-        val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
-        val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
-        val ws: Sheet = wb.getFirstSheet
-        val rows: List[Row] = ws.read.asScala.toList
-
-        rows.length must equal(1)
-
-        rows.head.getCell(0).asString must equal("Filepath")
-        rows.head.getCell(1).asString must equal("Field")
-        rows.head.getCell(2).asString must equal("Value")
-        rows.head.getCell(3).asString must equal("Error Message")
-      }
+      rows.head.getCell(0).asString must equal("Filepath")
+      rows.head.getCell(1).asString must equal("Field")
+      rows.head.getCell(2).asString must equal("Value")
+      rows.head.getCell(3).asString must equal("Error Message")
     }
   }
 
@@ -279,14 +301,18 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
       blockDraftMetadataUpload: Boolean = true,
-      fileError: FileError.FileError = FileError.UNKNOWN
+      fileError: FileError.FileError = FileError.UNKNOWN,
+      affectedProperties: Set[String] = Set(),
+      errorFileData: Option[ErrorFileData] = None
   ): DraftMetadataChecksResultsController = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
+    val mockedErrorFileData = if (errorFileData.isDefined) { errorFileData.get }
+    else mockErrorFileData(fileError, affectedProperties)
+    when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(mockedErrorFileData))
 
     val properties = new Properties()
     Using(Source.fromFile("conf/messages")) { source =>
@@ -308,5 +334,21 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       draftMetaDataService,
       messagesApi
     )
+  }
+
+  private def mockErrorFileData(fileError: FileError = FileError.UNKNOWN, affectedProperties: Set[String] = Set()): ErrorFileData = {
+    if (affectedProperties.nonEmpty) {
+      val validationErrors = {
+        val errors = affectedProperties.map(p => {
+          val convertedProperty = p.replaceAll(" ", "_").toLowerCase()
+          Error("SCHEMA_REQUIRED", p, "required", s"SCHEMA_REQUIRED.$convertedProperty.required")
+        })
+        ValidationErrors(UUID.randomUUID().toString, errors)
+      }
+      ErrorFileData(consignmentId, "", fileError, List(validationErrors))
+
+    } else {
+      ErrorFileData(consignmentId, "", fileError, List())
+    }
   }
 }

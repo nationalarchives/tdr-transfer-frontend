@@ -38,5 +38,15 @@ notification.savedProgress.metadataInfo=Your records and any metadata you added 
 additionalMetadata.descriptive.sensitive=If the description of a record contains sensitive information, you must enter the full uncensored version on the Descriptive metadata page before entering an alternative description on the Closure metadata page.
 draftMetadata.validation.details.SCHEMA_VALIDATION=We found validation errors in the uploaded metadata.
 draftMetadata.validation.action.SCHEMA_VALIDATION=Download the report below for details on individual validation errors.
-draftMetadata.validation.details.UTF_8=The metadata file you uploaded was not a CSV.
+draftMetadata.validation.details.UTF_8=The metadata file was not a CSV in UTF-8 format.
 draftMetadata.validation.action.UTF_8=Ensure that you save your Excel file as file type ''CSV UTF-8 (comma separated)''.
+draftMetadata.validation.details.INVALID_CSV=The metadata file you uploaded was not a CSV.
+draftMetadata.validation.action.INVALID_CSV=Ensure that you save your Excel file as file type ''CSV UTF-8 (comma separated)''.
+draftMetadata.validation.details.VIRUS=A virus was found in your metadata file.
+draftMetadata.validation.action.VIRUS=Please get in touch on <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a>, so that we can validate this before contacting your own internal support.
+draftMetadata.validation.details.SCHEMA_REQUIRED=There was at least one missing column in your metadata file. The metadata file must contain specific column headers.
+draftMetadata.validation.action.SCHEMA_REQUIRED=Add the following column headers to your metadata file and re-load.
+draftMetadata.validation.details.DUPLICATE_HEADER=There was at least one duplicate column in your metadata file.
+draftMetadata.validation.action.DUPLICATE_HEADER=Ensure there is only one of the following duplicated columns.
+draftMetadata.validation.details.UNKNOWN=An unknown error was identified.
+draftMetadata.validation.action.UNKNOWN=Please contact your Digital Transfer Advisor on <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a> quoting the Consignment Reference.

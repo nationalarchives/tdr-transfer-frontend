@@ -17,7 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object FileError extends Enumeration {
   type FileError = Value
-  val UTF_8, INVALID_CSV, SCHEMA_REQUIRED, SCHEMA_VALIDATION, UNKNOWN, NONE = Value
+  val UTF_8, INVALID_CSV, DUPLICATE_HEADER, SCHEMA_REQUIRED, SCHEMA_VALIDATION, VIRUS, UNKNOWN, NONE = Value
 }
 
 case class Error(validationProcess: String, property: String, errorKey: String, message: String)
