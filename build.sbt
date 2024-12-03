@@ -31,8 +31,8 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.222",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.395",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.85",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.223",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.223",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.224",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.224",
   "ch.qos.logback" % "logback-classic" % "1.5.12",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.44.1",
@@ -48,8 +48,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.1"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.1"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.2"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
