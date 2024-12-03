@@ -1,20 +1,21 @@
 import Keycloak from "keycloak-js"
+import {IFrontEndInfo} from "../index";
 
 const timeoutDialog: HTMLDialogElement | null =
   document.querySelector(".timeout-dialog")
 
-export const initialiseSessionTimeout = async (): Promise<void> => {
+export const initialiseSessionTimeout: (frontEndInfo: IFrontEndInfo) => Promise<void> = async (frontEndInfo: IFrontEndInfo): Promise<void> => {
   const authModule = await import("./index")
   const errorHandlingModule = await import("../errorhandling")
-  const keycloak = await authModule.getKeycloakInstance()
+  const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
   const now: () => number = () => Math.round(new Date().getTime() / 1000)
   //Set timeToShowDialog to how many seconds from expiry you want the dialog log box to appear
   const timeToShowDialog = 300
-  await setInterval(async () => {
+  setInterval(async () => {
     if (!errorHandlingModule.isError(keycloak)) {
       const timeUntilExpire = keycloak.refreshTokenParsed!.exp! - now()
       if (timeUntilExpire < 0) {
-        keycloak.logout()
+        await keycloak.logout()
       } else if (timeUntilExpire < timeToShowDialog) {
         await showModal(keycloak)
       }
@@ -28,7 +29,7 @@ const showModal = async (keycloak: Keycloak): Promise<void> => {
   if (timeoutDialog && !timeoutDialog.open) {
     timeoutDialog.showModal()
     if (extendTimeout) {
-      await extendTimeout.addEventListener("click", async (ev) => {
+      extendTimeout.addEventListener("click", async (ev) => {
         ev.preventDefault()
         await refreshToken(keycloak)
       })
