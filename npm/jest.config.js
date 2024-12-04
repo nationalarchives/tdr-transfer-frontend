@@ -1,5 +1,5 @@
 module.exports = {
-  preset: "ts-jest",
+  // preset: "ts-jest",
   moduleNameMapper: {
     "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts",
     "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist",
@@ -12,5 +12,9 @@ module.exports = {
     API_URL: true,
     STAGE: "stage",
     REGION: "region"
+  },
+  transformIgnorePatterns: ["node_modules/(?!(keycloak-js)/)"],
+  transform: {
+    "^.+\\.[t|j]sx?$": "ts-jest"
   }
 }

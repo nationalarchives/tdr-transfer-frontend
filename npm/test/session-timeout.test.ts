@@ -1,5 +1,5 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
-import { createMockKeycloakInstance } from "./utils"
+import {createMockKeycloakInstance, frontendInfo} from "./utils"
 import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
 import "jest-fetch-mock"
 
@@ -53,7 +53,7 @@ const createMockKeycloak = (
 }
 const initialiseSessionTimer = async (now: Date) => {
   jest.setSystemTime(now)
-  await initialiseSessionTimeout()
+  await initialiseSessionTimeout(frontendInfo)
   jest.runOnlyPendingTimers()
 }
 

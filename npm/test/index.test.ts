@@ -13,7 +13,10 @@ const getFrontEndInfoHtml: () => string = () => {
     <input type="hidden" class="api-url">
     <input type="hidden" class="stage">
     <input type="hidden" class="region">
-    <input type="hidden" class="upload-url"
+    <input type="hidden" class="upload-url">
+    <input type="hidden" class="auth-url">
+    <input type="hidden" class="client-id">
+    <input type="hidden" class="realm">
   `.toString()
 }
 

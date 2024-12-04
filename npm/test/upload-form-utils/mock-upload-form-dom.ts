@@ -6,7 +6,7 @@ import {
 } from "./mock-files-and-folders"
 import { FileUploader } from "../../src/upload"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
-import { createMockKeycloakInstance } from "../utils"
+import {createMockKeycloakInstance, frontendInfo} from "../utils"
 import { IFrontEndInfo } from "../../src"
 import { ClientFileMetadataUpload } from "../../src/clientfilemetadataupload"
 import {
@@ -185,13 +185,6 @@ export class MockUploadFormDom {
       refreshTokenParsed,
       isJudgmentUser
     )
-
-    const frontendInfo: IFrontEndInfo = {
-      apiUrl: "",
-      region: "",
-      stage: "test",
-      uploadUrl: ""
-    }
     const uploadMetadata = new ClientFileMetadataUpload()
     return new FileUploader(
       uploadMetadata,
