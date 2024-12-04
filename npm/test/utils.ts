@@ -3,7 +3,7 @@ import {
   IKeycloakInstance,
   IKeycloakTokenParsed
 } from "../src/upload"
-import Mock = jest.Mock
+import {Mock, vi} from "vitest";
 
 const keycloakTokenParsed: { judgment_user?: boolean } = {}
 
@@ -13,7 +13,7 @@ export const createMockKeycloakInstance: (
   refreshTokenParsed?: KeycloakTokenParsed,
   isJudgmentUser?: boolean
 ) => IKeycloakInstance = (
-  updateToken = jest.fn(),
+  updateToken = vi.fn(),
   isTokenExpired = false,
   refreshTokenParsed,
   isJudgmentUser = false
@@ -24,24 +24,24 @@ export const createMockKeycloakInstance: (
   return {
     refreshTokenParsed,
     tokenParsed: keycloakTokenParsed as IKeycloakTokenParsed,
-    init: jest.fn(),
-    login: jest.fn(),
-    logout: jest.fn(),
-    register: jest.fn(),
-    accountManagement: jest.fn(),
-    createLoginUrl: jest.fn(),
-    createLogoutUrl: jest.fn(),
-    createRegisterUrl: jest.fn(),
-    createAccountUrl: jest.fn(),
+    init: vi.fn(),
+    login: vi.fn(),
+    logout: vi.fn(),
+    register: vi.fn(),
+    accountManagement: vi.fn(),
+    createLoginUrl: vi.fn(),
+    createLogoutUrl: vi.fn(),
+    createRegisterUrl: vi.fn(),
+    createAccountUrl: vi.fn(),
     isTokenExpired: () => {
       return isTokenExpired
     },
     updateToken,
-    clearToken: jest.fn(),
-    hasRealmRole: jest.fn(),
-    hasResourceRole: jest.fn(),
-    loadUserInfo: jest.fn(),
-    loadUserProfile: jest.fn(),
+    clearToken: vi.fn(),
+    hasRealmRole: vi.fn(),
+    hasResourceRole: vi.fn(),
+    loadUserInfo: vi.fn(),
+    loadUserProfile: vi.fn(),
     token: "fake-auth-token"
   } as IKeycloakInstance
 }

@@ -8,8 +8,9 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "moduleResolution": "node",
-    "strictFunctionTypes": true
+    "moduleResolution": "bundler",
+    "strictFunctionTypes": true,
+    "types": ["vitest/globals"]
   },
   "include": ["src/*"],
   "exclude": ["dist/**"]

@@ -16,7 +16,7 @@
     "build": "npm-run-all copy-assets build-css build-ts:prod",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src --ext .ts",
     "stylelint": "npx stylelint **/*.scss",
-    "test": "jest",
+    "test": "vitest",
     "checks": "npm-run-all lint stylelint test",
     "build-ts:prod": "webpack --mode production",
     "build-ts": "webpack --mode development --watch"
@@ -93,7 +93,11 @@
     "ts-loader": "^9.5.1",
     "typescript": "5.6.3",
     "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "vitest": "^2.1.8",
+    "vite": "^6.0.2",
+    "vitest-fetch-mock": "^0.4.2",
+    "cross-fetch": "^4.0.0"
   },
   "lint-staged": {
     "./**/*.{ts,md}": "eslint",

@@ -1,13 +1,15 @@
+import {vi} from "vitest";
+
 const mockFileInformation = {
-  extractFileMetadata: jest.fn()
+    extractFileMetadata: vi.fn()
 }
 
 import { IFileMetadata } from "@nationalarchives/file-information"
 import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { isError } from "../src/errorhandling"
 
-jest.mock("@nationalarchives/file-information", () => mockFileInformation)
-jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+vi.mock("@nationalarchives/file-information", () => mockFileInformation)
+vi.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 const mockMetadata1 = <IFileMetadata>{
   checksum: "checksum1",
@@ -22,7 +24,7 @@ const mockMetadata2 = <IFileMetadata>{
   lastModified: new Date()
 }
 
-beforeEach(() => jest.resetModules())
+beforeEach(() => vi.resetModules())
 
 test("extract function returns list of client file metadata", async () => {
   mockFileInformation.extractFileMetadata.mockImplementation(() => {
@@ -30,7 +32,7 @@ test("extract function returns list of client file metadata", async () => {
   })
 
   const extractMetadata = new ClientFileExtractMetadata()
-  const result = await extractMetadata.extract([], jest.fn())
+  const result = await extractMetadata.extract([], vi.fn())
   expect(isError(result)).toBe(false)
   if(!isError(result)) {
     expect(result).toHaveLength(2)
