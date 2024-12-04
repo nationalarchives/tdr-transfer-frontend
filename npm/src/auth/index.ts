@@ -1,10 +1,10 @@
 import Keycloak from "keycloak-js"
 import { IKeycloakTokenParsed } from "../upload"
-import {IFrontEndInfo} from "../index";
+import { IFrontEndInfo } from "../index"
 
-export const getKeycloakInstance: (frontEndInfo: IFrontEndInfo) => Promise<
-  Keycloak | Error
-> = async (frontEndInfo: IFrontEndInfo) => {
+export const getKeycloakInstance: (
+  frontEndInfo: IFrontEndInfo
+) => Promise<Keycloak | Error> = async (frontEndInfo: IFrontEndInfo) => {
   const keycloakInstance = new Keycloak({
     url: `${frontEndInfo.authUrl}`,
     realm: `${frontEndInfo.realm}`,

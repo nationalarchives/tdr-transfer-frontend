@@ -1,10 +1,12 @@
 import Keycloak from "keycloak-js"
-import {IFrontEndInfo} from "../index";
+import { IFrontEndInfo } from "../index"
 
 const timeoutDialog: HTMLDialogElement | null =
   document.querySelector(".timeout-dialog")
 
-export const initialiseSessionTimeout: (frontEndInfo: IFrontEndInfo) => Promise<void> = async (frontEndInfo: IFrontEndInfo): Promise<void> => {
+export const initialiseSessionTimeout: (
+  frontEndInfo: IFrontEndInfo
+) => Promise<void> = async (frontEndInfo: IFrontEndInfo): Promise<void> => {
   const authModule = await import("./index")
   const errorHandlingModule = await import("../errorhandling")
   const keycloak = await authModule.getKeycloakInstance(frontEndInfo)

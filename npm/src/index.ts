@@ -30,12 +30,19 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
   const uploadUrlElement: HTMLInputElement | null =
     document.querySelector(".upload-url")
   const authUrlElement: HTMLInputElement | null =
-      document.querySelector(".auth-url")
+    document.querySelector(".auth-url")
   const clientIdElement: HTMLInputElement | null =
-      document.querySelector(".client-id")
-  const realmElement: HTMLInputElement | null =
-      document.querySelector(".realm")
-  if (apiUrlElement && stageElement && regionElement && uploadUrlElement && authUrlElement && clientIdElement && realmElement) {
+    document.querySelector(".client-id")
+  const realmElement: HTMLInputElement | null = document.querySelector(".realm")
+  if (
+    apiUrlElement &&
+    stageElement &&
+    regionElement &&
+    uploadUrlElement &&
+    authUrlElement &&
+    clientIdElement &&
+    realmElement
+  ) {
     return {
       apiUrl: apiUrlElement.value,
       stage: stageElement.value,
