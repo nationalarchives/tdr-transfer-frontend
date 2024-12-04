@@ -4,6 +4,7 @@ import {
   IKeycloakTokenParsed
 } from "../src/upload"
 import Mock = jest.Mock
+import {IFrontEndInfo} from "../src";
 
 const keycloakTokenParsed: { judgment_user?: boolean } = {}
 
@@ -42,9 +43,20 @@ export const createMockKeycloakInstance: (
     hasResourceRole: jest.fn(),
     loadUserInfo: jest.fn(),
     loadUserProfile: jest.fn(),
-    token: "fake-auth-token"
+    token: "fake-auth-token",
+    didInitialize: true
   } as IKeycloakInstance
 }
 
 export const mockKeycloakInstance: IKeycloakInstance =
   createMockKeycloakInstance()
+
+export const frontendInfo: IFrontEndInfo = {
+  apiUrl: "",
+  region: "",
+  stage: "test",
+  uploadUrl: "https://example.com",
+  authUrl: "",
+  clientId: "",
+  realm: ""
+}

@@ -1,6 +1,6 @@
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
 enableFetchMocks()
-import {createMockKeycloakInstance} from "./utils";
+import {createMockKeycloakInstance, frontendInfo} from "./utils";
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 const keycloakMock = {
   __esModule: true,
@@ -79,7 +79,7 @@ test("Redirects user to login page and returns a new token if the user is not au
   keycloakMock.default.mockImplementation(
     () => new MockKeycloakUnauthenticated()
   )
-  const instance = await getKeycloakInstance()
+  const instance = await getKeycloakInstance(frontendInfo)
   expect(isError(instance)).toBe(false)
   if(!isError(instance)) {
     expect(instance.token).toEqual("fake-auth-login-token")
@@ -88,7 +88,7 @@ test("Redirects user to login page and returns a new token if the user is not au
 
 test("Returns a token if the user is logged in", async () => {
   keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
-  const instance: KeycloakInstance | Error = await getKeycloakInstance()
+  const instance: KeycloakInstance | Error = await getKeycloakInstance(frontendInfo)
   expect(isError(instance)).toBe(false)
   if(!isError(instance)) {
     expect(instance.token).toEqual("fake-auth-token")
@@ -97,7 +97,7 @@ test("Returns a token if the user is logged in", async () => {
 
 test("Returns an error if login attempt fails", async () => {
   keycloakMock.default.mockImplementation(() => new MockKeycloakError())
-  await expect(getKeycloakInstance()).resolves.toEqual(Error("There has been an error"))
+  await expect(getKeycloakInstance(frontendInfo)).resolves.toEqual(Error("There has been an error"))
 })
 
 test("Doesn't call refresh token if the token is not expired", async () => {
