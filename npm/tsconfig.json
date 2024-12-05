@@ -10,7 +10,6 @@
     "sourceMap": true,
     "moduleResolution": "Bundler",
     "strictFunctionTypes": true,
-    "allowJs": true,
     "paths": {
       "@nationalarchives/tdr-components": [
         "./node_modules/@nationalarchives/tdr-components/dist/index.d.ts"
