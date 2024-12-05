@@ -99,7 +99,7 @@ test("renderModules calls authorisation when dialog is present on page", async (
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 
-  document.body.innerHTML = '<a href="#" class="timeout-dialog">'
+  document.body.innerHTML = '<a href="#" class="timeout-dialog">' + getFrontEndInfoHtml()
 
   await renderModules()
   expect(keycloakInstance).toBeCalledTimes(1)
@@ -111,7 +111,7 @@ test("renderModules does not call authorisation when dialog box is not present o
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 
-  document.body.innerHTML = '<a href="#" class="not-timeout-dialog">'
+  document.body.innerHTML = '<a href="#" class="not-timeout-dialog">' + getFrontEndInfoHtml()
 
   await renderModules()
 
