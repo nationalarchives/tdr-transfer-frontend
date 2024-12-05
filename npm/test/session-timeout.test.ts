@@ -44,7 +44,7 @@ const createMockKeycloak = (
   updateToken: jest.Mock,
   isTokenExpired: boolean,
   refreshTokenParsed: KeycloakTokenParsed
-): Keycloak.KeycloakInstance => {
+): Keycloak => {
   return createMockKeycloakInstance(
     updateToken,
     isTokenExpired,
@@ -74,7 +74,7 @@ test("'initialiseSessionTimeout' should refresh tokens if the user clicks to ext
     exp: Math.round(now.getTime() / 1000) + 300
   }
 
-  const mockKeycloak: Keycloak.KeycloakInstance = createMockKeycloak(
+  const mockKeycloak: Keycloak = createMockKeycloak(
     mockUpdateToken,
     isTokenExpired,
     refreshTokenParsed
@@ -101,7 +101,7 @@ test("'initialiseSessionTimeout' should sign the user out if the session expires
     exp: Math.round(now.getTime() / 1000) - 300
   }
 
-  const mockKeycloak: Keycloak.KeycloakInstance = createMockKeycloak(
+  const mockKeycloak: Keycloak = createMockKeycloak(
     mockUpdateToken,
     isTokenExpired,
     refreshTokenParsed

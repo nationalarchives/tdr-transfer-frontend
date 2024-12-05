@@ -13,8 +13,8 @@ module.exports = {
     STAGE: "stage",
     REGION: "region"
   },
+  transformIgnorePatterns: ["<rootDir>/node_modules/(?!keycloak-js)/"],
   transform: {
     "^.+\\.[j]sx?$": "babel-jest"
-  },
-  transformIgnorePatterns: ["<rootDir>/node_modules/(?!keycloak-js)/"],
+  }
 }
