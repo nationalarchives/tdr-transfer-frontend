@@ -4,14 +4,14 @@ import { S3Upload } from "../s3upload"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFrontEndInfo } from "../index"
 import { isError } from "../errorhandling"
-import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
+import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
 import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
 import { IEntryWithPath } from "./form/get-files-from-drag-event"
 
-export interface IKeycloakInstance extends KeycloakInstance {
+export interface IKeycloakInstance extends Keycloak {
   tokenParsed: IKeycloakTokenParsed
 }
 
@@ -38,7 +38,7 @@ export class FileUploader {
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
     frontendInfo: IFrontEndInfo,
-    keycloak: KeycloakInstance,
+    keycloak: Keycloak,
     goToNextPage: (
       consignmentId: string,
       uploadFailed: String,

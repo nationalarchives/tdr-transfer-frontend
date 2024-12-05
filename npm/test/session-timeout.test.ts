@@ -1,5 +1,5 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
-import { createMockKeycloakInstance } from "./utils"
+import {createMockKeycloakInstance, frontendInfo} from "./utils"
 import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
 import "jest-fetch-mock"
 
@@ -44,7 +44,7 @@ const createMockKeycloak = (
   updateToken: jest.Mock,
   isTokenExpired: boolean,
   refreshTokenParsed: KeycloakTokenParsed
-): Keycloak.KeycloakInstance => {
+): Keycloak => {
   return createMockKeycloakInstance(
     updateToken,
     isTokenExpired,
@@ -53,7 +53,7 @@ const createMockKeycloak = (
 }
 const initialiseSessionTimer = async (now: Date) => {
   jest.setSystemTime(now)
-  await initialiseSessionTimeout()
+  await initialiseSessionTimeout(frontendInfo)
   jest.runOnlyPendingTimers()
 }
 
@@ -74,7 +74,7 @@ test("'initialiseSessionTimeout' should refresh tokens if the user clicks to ext
     exp: Math.round(now.getTime() / 1000) + 300
   }
 
-  const mockKeycloak: Keycloak.KeycloakInstance = createMockKeycloak(
+  const mockKeycloak: Keycloak = createMockKeycloak(
     mockUpdateToken,
     isTokenExpired,
     refreshTokenParsed
@@ -101,7 +101,7 @@ test("'initialiseSessionTimeout' should sign the user out if the session expires
     exp: Math.round(now.getTime() / 1000) - 300
   }
 
-  const mockKeycloak: Keycloak.KeycloakInstance = createMockKeycloak(
+  const mockKeycloak: Keycloak = createMockKeycloak(
     mockUpdateToken,
     isTokenExpired,
     refreshTokenParsed

@@ -98,7 +98,11 @@ class CheckPageForStaticElements() {
         """<input type="hidden" class="api-url" value="https://mock-api-url.com/graphql">
           |<input type="hidden" class="stage" value="mockStage">
           |<input type="hidden" class="region" value="mockRegion">
-          |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">""".stripMargin
+          |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">
+          |<input type="hidden" class="auth-url" value="https://mock-auth-url.com">
+          |<input type="hidden" class="client-id" value="mockClientId">
+          |<input type="hidden" class="realm" value="mockRealm">
+          |""".stripMargin
       )
     }
   }

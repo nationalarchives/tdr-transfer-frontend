@@ -1,12 +1,15 @@
 import Keycloak from "keycloak-js"
 import { IKeycloakTokenParsed } from "../upload"
+import { IFrontEndInfo } from "../index"
 
-export const getKeycloakInstance: () => Promise<
-  Keycloak.KeycloakInstance | Error
-> = async () => {
-  const keycloakInstance: Keycloak.KeycloakInstance = new Keycloak(
-    `${window.location.origin}/keycloak.json`
-  )
+export const getKeycloakInstance: (
+  frontEndInfo: IFrontEndInfo
+) => Promise<Keycloak | Error> = async (frontEndInfo: IFrontEndInfo) => {
+  const keycloakInstance = new Keycloak({
+    url: `${frontEndInfo.authUrl}`,
+    realm: `${frontEndInfo.realm}`,
+    clientId: `${frontEndInfo.clientId}`
+  })
   const errorHandlingModule = await import("../errorhandling")
   try {
     const authenticated = await keycloakInstance.init({
@@ -38,7 +41,7 @@ const isRefreshTokenExpired: (
 }
 
 export const scheduleTokenRefresh: (
-  keycloak: Keycloak.KeycloakInstance,
+  keycloak: Keycloak,
   cookiesUrl: string,
   idleSessionMinValiditySecs?: number
 ) => void = (keycloak, cookiesUrl, idleSessionMinValiditySecs = 60) => {
@@ -64,7 +67,7 @@ export const scheduleTokenRefresh: (
 }
 
 export const refreshOrReturnToken: (
-  keycloak: Keycloak.KeycloakInstance,
+  keycloak: Keycloak,
   tokenMinValidityInSecs?: number
 ) => Promise<string | Error> = async (
   keycloak,
@@ -74,7 +77,7 @@ export const refreshOrReturnToken: (
     if (isRefreshTokenExpired(keycloak.refreshTokenParsed)) {
       const errorHandlingModule = await import("../errorhandling")
       const error = new errorHandlingModule.LoggedOutError(
-        keycloak.createLoginUrl(),
+        await keycloak.createLoginUrl(),
         "Refresh token has expired: User is logged out"
       )
       errorHandlingModule.handleUploadError(error)

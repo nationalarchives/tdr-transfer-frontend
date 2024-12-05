@@ -12,7 +12,10 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
     get("consignmentapi.url"),
     get("environment"),
     get("region"),
-    get("upload.url")
+    get("upload.url"),
+    get("auth.url"),
+    get("auth.clientId"),
+    get("auth.realm")
   )
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")

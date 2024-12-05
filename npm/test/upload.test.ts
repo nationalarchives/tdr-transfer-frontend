@@ -9,7 +9,7 @@ import { FileUploader } from "../src/upload"
 import { createMockKeycloakInstance, mockKeycloakInstance } from "./utils"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
-import { KeycloakInstance } from "keycloak-js"
+import Keycloak from "keycloak-js"
 jest.mock("../src/clientfileprocessing")
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
@@ -138,7 +138,7 @@ test("upload function refreshes idle session", async () => {
 })
 
 
-function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
+function setUpFileUploader(mockKeycloak?: Keycloak): FileUploader {
   const keycloakInstance =
     mockKeycloak != undefined ? mockKeycloak : mockKeycloakInstance
 
@@ -147,7 +147,10 @@ function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
     apiUrl: "",
     region: "",
     stage: "test",
-    uploadUrl: "https://example.com"
+    uploadUrl: "https://example.com",
+    authUrl: "",
+    clientId: "",
+    realm: ""
   }
 
   return new FileUploader(
