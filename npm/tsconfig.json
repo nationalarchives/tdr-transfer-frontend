@@ -8,9 +8,14 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "Bundler",
     "strictFunctionTypes": true,
-    "allowJs": true
+    "allowJs": true,
+    "paths": {
+      "@nationalarchives/tdr-components": [
+        "./node_modules/@nationalarchives/tdr-components/dist/index.d.ts"
+      ]
+    }
   },
   "include": ["src/*"],
   "exclude": ["dist/**"]
