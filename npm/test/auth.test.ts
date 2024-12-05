@@ -1,6 +1,6 @@
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
 enableFetchMocks()
-import {createMockKeycloakInstance, frontendInfo} from "./utils";
+import {createMockKeycloakInstance, frontendInfo} from "./utils"
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 const keycloakMock = {
   __esModule: true,
