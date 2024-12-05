@@ -5,9 +5,8 @@ import {
   mockFileList
 } from "./mock-files-and-folders"
 import { FileUploader } from "../../src/upload"
-import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
+import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
 import {createMockKeycloakInstance, frontendInfo} from "../utils"
-import { IFrontEndInfo } from "../../src"
 import { ClientFileMetadataUpload } from "../../src/clientfilemetadataupload"
 import {
   IReader,
@@ -179,7 +178,7 @@ export class MockUploadFormDom {
       exp: Math.round(new Date().getTime() / 1000) + 60
     }
 
-    const mockKeycloakInstance: KeycloakInstance = createMockKeycloakInstance(
+    const mockKeycloakInstance: Keycloak = createMockKeycloakInstance(
       mockUpdateToken,
       isTokenExpired,
       refreshTokenParsed,
