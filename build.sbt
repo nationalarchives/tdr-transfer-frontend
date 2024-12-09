@@ -14,7 +14,7 @@ libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test
 
 val playVersion = "3.0.3"
-val playPac4jVersion = "12.0.0-PLAY3.0"
+val playPac4jVersion = "12.0.2-PLAY3.0"
 val pac4jVersion = "6.0.5"
 val sttpVersion = "2.3.0"
 
@@ -27,17 +27,17 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.194",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.222",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.196",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.223",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.395",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.84",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.224",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.224",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.87",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.225",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.225",
   "ch.qos.logback" % "logback-classic" % "1.5.12",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.44.1",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.44.1",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.44.1",
+  "io.opentelemetry" % "opentelemetry-api" % "1.45.0",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.45.0",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.45.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.41.0",
@@ -48,8 +48,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.1"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.1"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.2"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
