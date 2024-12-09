@@ -12,5 +12,9 @@ module.exports = {
     API_URL: true,
     STAGE: "stage",
     REGION: "region"
+  },
+  transformIgnorePatterns: ["<rootDir>/node_modules/(?!keycloak-js)/"],
+  transform: {
+    "^.+\\.[j]sx?$": "babel-jest"
   }
 }

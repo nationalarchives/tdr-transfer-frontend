@@ -1,6 +1,6 @@
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
 enableFetchMocks()
-import {createMockKeycloakInstance} from "./utils";
+import {createMockKeycloakInstance, frontendInfo} from "./utils"
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 const keycloakMock = {
   __esModule: true,
@@ -9,7 +9,7 @@ const keycloakMock = {
 }
 jest.mock("keycloak-js", () => keycloakMock)
 
-import {KeycloakInitOptions, KeycloakInstance, KeycloakTokenParsed} from "keycloak-js"
+import Keycloak, {KeycloakInitOptions, KeycloakTokenParsed} from "keycloak-js"
 import {refreshOrReturnToken, scheduleTokenRefresh} from "../src/auth"
 import { getKeycloakInstance } from "../src/auth"
 import { LoggedOutError } from "../src/errorhandling"
@@ -79,7 +79,7 @@ test("Redirects user to login page and returns a new token if the user is not au
   keycloakMock.default.mockImplementation(
     () => new MockKeycloakUnauthenticated()
   )
-  const instance = await getKeycloakInstance()
+  const instance = await getKeycloakInstance(frontendInfo)
   expect(isError(instance)).toBe(false)
   if(!isError(instance)) {
     expect(instance.token).toEqual("fake-auth-login-token")
@@ -88,7 +88,7 @@ test("Redirects user to login page and returns a new token if the user is not au
 
 test("Returns a token if the user is logged in", async () => {
   keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
-  const instance: KeycloakInstance | Error = await getKeycloakInstance()
+  const instance: Keycloak | Error = await getKeycloakInstance(frontendInfo)
   expect(isError(instance)).toBe(false)
   if(!isError(instance)) {
     expect(instance.token).toEqual("fake-auth-token")
@@ -97,13 +97,13 @@ test("Returns a token if the user is logged in", async () => {
 
 test("Returns an error if login attempt fails", async () => {
   keycloakMock.default.mockImplementation(() => new MockKeycloakError())
-  await expect(getKeycloakInstance()).resolves.toEqual(Error("There has been an error"))
+  await expect(getKeycloakInstance(frontendInfo)).resolves.toEqual(Error("There has been an error"))
 })
 
 test("Doesn't call refresh token if the token is not expired", async () => {
   const isTokenExpired = false
   const mockUpdateToken = jest.fn()
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired)
+  const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired)
 
   await refreshOrReturnToken(mockKeycloak)
 
@@ -113,7 +113,7 @@ test("Doesn't call refresh token if the token is not expired", async () => {
 test("Throws an error if the access token and refresh token have expired", async () => {
   const isTokenExpired = true
   const refreshTokenParsed = { exp: new Date().getTime() / 1000 - 1000 }
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(undefined, isTokenExpired, refreshTokenParsed)
+  const mockKeycloak: Keycloak = createMockKeycloakInstance(undefined, isTokenExpired, refreshTokenParsed)
 
   await expect(refreshOrReturnToken(mockKeycloak)).resolves.toEqual(
     new LoggedOutError("", "Refresh token has expired: User is logged out")
@@ -124,7 +124,7 @@ test("'scheduleTokenRefresh' should refresh tokens if refresh token will expire 
   const mockUpdateToken = jest.fn().mockImplementation((_: number) => new Promise((res, _) => res(true)))
   const isTokenExpired = true
   const refreshTokenParsed: KeycloakTokenParsed = { exp: Math.round(new Date().getTime() / 1000) + 60 }
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
+  const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
 
   jest.useFakeTimers()
   scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
@@ -137,7 +137,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if the access token has n
   const mockUpdateToken = jest.fn()
   const isTokenExpired = false
   const refreshTokenParsed: KeycloakTokenParsed = { exp: Math.round(new Date().getTime() / 1000) + 60 }
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
+  const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
 
   jest.useFakeTimers()
   scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
@@ -150,7 +150,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
   const mockUpdateToken = jest.fn()
   const isTokenExpired = true
   const noRefreshToken: any = undefined
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, noRefreshToken)
+  const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, noRefreshToken)
 
   jest.useFakeTimers()
   scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
@@ -163,7 +163,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
   const mockUpdateToken = jest.fn()
   const isTokenExpired = true
   const refreshTokenParsedNoExp = { }
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsedNoExp)
+  const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsedNoExp)
 
   jest.useFakeTimers()
   scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
@@ -173,7 +173,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
 
 test("'scheduleTokenRefresh' should call the cookies endpoint to refresh the signed cookies", async () => {
   fetchMock.mockResponse("ok")
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(jest.fn(), false, {exp: 1})
+  const mockKeycloak: Keycloak = createMockKeycloakInstance(jest.fn(), false, {exp: 1})
   const cookiesUrl = "https://example.com/cookies"
   jest.useFakeTimers()
   scheduleTokenRefresh(mockKeycloak, cookiesUrl)
