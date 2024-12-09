@@ -14,8 +14,11 @@ window.onload = async function () {
 export interface IFrontEndInfo {
   apiUrl: string
   uploadUrl: string
+  authUrl: string
   stage: string
   region: string
+  clientId: string
+  realm: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
@@ -26,12 +29,28 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
     document.querySelector(".region")
   const uploadUrlElement: HTMLInputElement | null =
     document.querySelector(".upload-url")
-  if (apiUrlElement && stageElement && regionElement && uploadUrlElement) {
+  const authUrlElement: HTMLInputElement | null =
+    document.querySelector(".auth-url")
+  const clientIdElement: HTMLInputElement | null =
+    document.querySelector(".client-id")
+  const realmElement: HTMLInputElement | null = document.querySelector(".realm")
+  if (
+    apiUrlElement &&
+    stageElement &&
+    regionElement &&
+    uploadUrlElement &&
+    authUrlElement &&
+    clientIdElement &&
+    realmElement
+  ) {
     return {
       apiUrl: apiUrlElement.value,
       stage: stageElement.value,
       region: regionElement.value,
-      uploadUrl: uploadUrlElement.value
+      uploadUrl: uploadUrlElement.value,
+      authUrl: authUrlElement.value,
+      clientId: clientIdElement.value,
+      realm: realmElement.value
     }
   } else {
     return Error("The front end information is missing")
@@ -63,7 +82,7 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     if (!errorHandlingModule.isError(frontEndInfo)) {
       const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance()
+      const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
         const metadataUploadModule = await import("./clientfilemetadataupload")
         const clientFileProcessing =
@@ -91,7 +110,7 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     if (!errorHandlingModule.isError(frontEndInfo)) {
       const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance()
+      const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
         const isJudgmentUser = keycloak.tokenParsed?.judgment_user
         const checksModule = await import("./checks")
@@ -122,7 +141,7 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     if (!errorHandlingModule.isError(frontEndInfo)) {
       const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance()
+      const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
         const checksModule = await import("./checks")
         const resultOrError =
@@ -139,8 +158,12 @@ export const renderModules = async () => {
   }
 
   if (timeoutDialog) {
+    const frontEndInfo = getFrontEndInfo()
     const sessionTimeoutModule = await import("./auth/session-timeout")
-    await sessionTimeoutModule.initialiseSessionTimeout()
+    const errorHandlingModule = await import("./errorhandling")
+    if (!errorHandlingModule.isError(frontEndInfo)) {
+      await sessionTimeoutModule.initialiseSessionTimeout(frontEndInfo)
+    }
   }
   if (fileSelectionTree) {
     const trees: NodeListOf<HTMLUListElement> =
