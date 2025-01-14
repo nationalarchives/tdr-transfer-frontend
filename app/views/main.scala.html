@@ -10,23 +10,19 @@
 
 <!DOCTYPE html>
 <html lang="en" class="govuk-template">
-    <head>
-        @if(hasError) {
-            <title>Error: @title - Transfer Digital Records - GOV.UK</title>
-        } else {
-            <title>@title - Transfer Digital Records - GOV.UK</title>
-        }
+<head>
+    @if(hasError) {
+      <title>Error: @title - Transfer Digital Records - GOV.UK</title>
+    } else {
+      <title>@title - Transfer Digital Records - GOV.UK</title>
+    }
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/ico" href="@routes.Assets.versioned("images/favicon.ico")">
-    <script @{
-        CSPNonce.attr
-    } src="@routes.Assets.versioned("javascripts/all.js")" type="text/javascript"></script>
-    <script @{
-        CSPNonce.attr
-    } src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
+    <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/all.js")" type="text/javascript"></script>
+    <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
 
     </head>
     <body class="govuk-template__body js-enabled">
@@ -98,16 +94,15 @@
                 <p class="govuk-phase-banner__content">
                     <strong class="govuk-tag govuk-phase-banner__content__tag">BETA</strong>
                     @if(isLoggedIn) {
-                        @if(isJudgmentUser) {
+                        @if(isJudgmentUser){
                             @feedbackLink("https://www.smartsurvey.co.uk/s/5YDPSA/")
-                        } else {
+                        }else{
                             @feedbackLink("https://www.smartsurvey.co.uk/s/tdr-feedback/")
                         }
-                    } else {
+                    }else {
                         <span class="govuk-phase-banner__text">
                             This is a new service – your feedback will help us to improve it. Please
-                            <a class="govuk-link" target="_blank" rel="noreferrer noopener" href="/contact">
-                                get in touch (opens in new tab).</a>
+                            <a class="govuk-link" target="_blank" rel="noreferrer noopener" href="/contact"> get in touch (opens in new tab).</a>
                         </span>
                     }
                 </p>
@@ -115,24 +110,23 @@
             @backLink.getOrElse("")
 
             <main class="govuk-main-wrapper " id="main-content" role="main">
-            @content
+                @content
             </main>
         </div>
 
         @if(isLoggedIn) {
-            <dialog class="timeout-dialog">
-                <div>
-                    <h2 class="govuk-heading-m">You have been inactive for more than 55 minutes.</h2>
-                    <p class="govuk-body">
-                        If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
-                </div>
-                <div class="govuk-button-group">
-                    <button id="extend-timeout" class="govuk-button" role="button">
-                        Keep me signed in
-                    </button>
-                    <a class="govuk-link" href="/sign-out">Sign me out</a>
-                </div>
-            </dialog>
+        <dialog class="timeout-dialog">
+            <div>
+                <h2 class="govuk-heading-m">You have been inactive for more than 55 minutes.</h2>
+                <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
+            </div>
+            <div class="govuk-button-group">
+                <button id="extend-timeout" class="govuk-button" role="button">
+                    Keep me signed in
+                </button>
+                <a class="govuk-link" href="/sign-out">Sign me out</a>
+            </div>
+        </dialog>
         }
 
         <footer class="govuk-footer " role="contentinfo">
@@ -173,12 +167,12 @@
                             </li>
                             <li class="govuk-footer__inline-list-item">
                                 <a class="govuk-footer__link" target="_blank" href="@routes.CookiesController.cookies()">
-                                    Cookies
+                                  Cookies
                                 </a>
                             </li>
                             <li class="govuk-footer__inline-list-item">
                                 <a class="govuk-footer__link" target="_blank" href="@routes.AccessibilityController.accessibilityStatement()">
-                                    Accessibility statement
+                                      Accessibility statement
                                 </a>
                             </li>
                         </ul>
@@ -188,13 +182,11 @@
                         </svg>
                         <span class="govuk-footer__licence-description">
                             All content is available under the
-                            <a class="govuk-footer__link" target="_blank" href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" rel="license">
-                                Open Government Licence v3.0</a>, except where otherwise stated
+                            <a class="govuk-footer__link" target="_blank" href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" rel="license">Open Government Licence v3.0</a>, except where otherwise stated
                         </span>
                     </div>
                     <div class="govuk-footer__meta-item">
-                        <a class="govuk-footer__link govuk-footer__copyright-logo" target="_blank" href="https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/">
-                            © Crown copyright</a>
+                        <a class="govuk-footer__link govuk-footer__copyright-logo" target="_blank" href="https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/">© Crown copyright</a>
                     </div>
                 </div>
             </div>
