@@ -8,7 +8,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
-scalaVersion := "2.13.15"
+scalaVersion := "2.13.16"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test
@@ -27,17 +27,17 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.201",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.224",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.203",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.225",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.400",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.91",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.229",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.229",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.93",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.230",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.230",
   "ch.qos.logback" % "logback-classic" % "1.5.16",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.45.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.45.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.45.0",
+  "io.opentelemetry" % "opentelemetry-api" % "1.46.0",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.46.0",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.46.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.42.0",
