@@ -61,7 +61,9 @@ class DraftMetadataUploadController @Inject() (
       val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value))
 
       def uploadDraftMetadata: IO[Result] = for {
-        _ <- IO(logger.info(s"User:${token.userId} uploaded the draft metadata file '${userUploadedFile.map(_.filename).getOrElse(uploadFileName)}' for consignment:$consignmentId"))
+        _ <- IO(
+          logger.info(s"User:${token.userId} uploaded the draft metadata file '${userUploadedFile.map(_.filename).getOrElse(uploadFileName)}' for consignment:$consignmentId")
+        )
         _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)))
         firstFilePart <- fromOption(userUploadedFile)(new RuntimeException(noDraftMetadataFileUploaded))
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException(noDraftMetadataFileUploaded))
