@@ -1,5 +1,6 @@
 package services
 
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.ApplicationConfig
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, anyString}
@@ -11,7 +12,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.{ConfigLoader, Configuration}
 import software.amazon.awssdk.core.ResponseBytes
-import software.amazon.awssdk.services.s3.model.{GetObjectRequest, GetObjectResponse}
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,6 +33,10 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       val downloadService = mock[DownloadService]
       val response = mock[WSResponse]
       val argumentCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val token = mock[Token]
+      val bearerAccessTokenMock = mock[BearerAccessToken]
+      when(bearerAccessTokenMock.getValue).thenReturn("token")
+      when(token.bearerAccessToken).thenReturn(bearerAccessTokenMock)
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
       when(wsClient.url(argumentCaptor.capture())).thenReturn(request)
       when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
@@ -38,7 +44,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(request.post[String]("{}")).thenReturn(Future(response))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
       val consignmentId = UUID.randomUUID()
-      service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").futureValue
+      service.triggerDraftMetadataValidator(consignmentId, uploadFileName, token).futureValue
       argumentCaptor.getValue should equal(s"http://localhost/draft-metadata/validate/$consignmentId/$uploadFileName")
     }
 
@@ -49,6 +55,10 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       val response = mock[WSResponse]
       val applicationConfig = mock[ApplicationConfig]
       val downloadService = mock[DownloadService]
+      val token = mock[Token]
+      val bearerAccessTokenMock = mock[BearerAccessToken]
+      when(bearerAccessTokenMock.getValue).thenReturn("token")
+      when(token.bearerAccessToken).thenReturn(bearerAccessTokenMock)
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
       when(wsClient.url(any[String])).thenReturn(request)
       when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
@@ -56,7 +66,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(request.post[String]("{}")).thenReturn(Future(response))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
       val consignmentId = UUID.randomUUID()
-      val triggerResponse = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").futureValue
+      val triggerResponse = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, token).futureValue
       triggerResponse should equal(true)
     }
 
@@ -67,6 +77,10 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       val response = mock[WSResponse]
       val applicationConfig = mock[ApplicationConfig]
       val downloadService = mock[DownloadService]
+      val token = mock[Token]
+      val bearerAccessTokenMock = mock[BearerAccessToken]
+      when(bearerAccessTokenMock.getValue).thenReturn("token")
+      when(token.bearerAccessToken).thenReturn(bearerAccessTokenMock)
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
       when(wsClient.url(any[String])).thenReturn(request)
       when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
@@ -74,7 +88,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(request.post[String]("{}")).thenReturn(Future(response))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
       val consignmentId = UUID.randomUUID()
-      val exception = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").failed.futureValue
+      val exception = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, token).failed.futureValue
       exception.getMessage should equal(s"Call to draft metadata validator failed API has returned a non 200 response for consignment $consignmentId")
     }
   }
