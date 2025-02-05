@@ -18,6 +18,7 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, FileError, UploadService}
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import testUtils.FrontEndTestHelper
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.io.{BufferedWriter, File, FileWriter}
 import java.util.UUID
@@ -112,7 +113,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setUpdateConsignmentStatus(wiremockServer)
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.successful(true))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 303
@@ -129,7 +130,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.successful(true))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
       val response = requestFileUploadWithoutFile(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200
@@ -145,7 +146,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200
