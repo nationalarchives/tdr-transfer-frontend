@@ -55,17 +55,16 @@ class DraftMetadataUploadController @Inject() (
       val token = request.asInstanceOf[Request[AnyContent]].token
       val uploadBucket = s"${applicationConfig.draft_metadata_s3_bucket_name}"
       val uploadFileName = applicationConfig.draftMetadataFileName
-      val userUploadedFile = request.body.files.headOption
       val uploadKey = s"$consignmentId/$uploadFileName"
       val noDraftMetadataFileUploaded: String = "No meta data file provided"
       val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value))
 
       def uploadDraftMetadata: IO[Result] = for {
         _ <- IO(
-          logger.info(s"User:${token.userId} uploaded the draft metadata file '${userUploadedFile.map(_.filename).getOrElse(uploadFileName)}' for consignment:$consignmentId")
+          logger.info(s"User:${token.userId} uploaded the draft metadata file for consignment:$consignmentId")
         )
         _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)))
-        firstFilePart <- fromOption(userUploadedFile)(new RuntimeException(noDraftMetadataFileUploaded))
+        firstFilePart <- fromOption(request.body.files.headOption)(new RuntimeException(noDraftMetadataFileUploaded))
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException(noDraftMetadataFileUploaded))
         draftMetadata <- fromOption(Using(scala.io.Source.fromFile(file.ref.getAbsoluteFile))(_.mkString).toOption)(new RuntimeException(noDraftMetadataFileUploaded))
         _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadata)))
