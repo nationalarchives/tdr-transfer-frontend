@@ -9,6 +9,7 @@ import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logging}
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
+import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.validation.Metadata
 
 import java.nio.charset.StandardCharsets
@@ -30,11 +31,12 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
 
   implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)
 
-  def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: String): Future[Boolean] = {
+  def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: Token): Future[Boolean] = {
+    logger.info(s"Draft metadata validator was triggered by ${token.userId} for consignment:$consignmentId")
     val url = s"${configuration.get[String]("metadatavalidation.baseUrl")}/draft-metadata/validate/$consignmentId/$uploadFileName"
     wsClient
       .url(url)
-      .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
+      .addHttpHeaders(("Authorization", token.bearerAccessToken.getValue), ("Content-Type", "application/json"))
       .post("{}")
       .flatMap(r =>
         r.status match {
