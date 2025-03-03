@@ -27,20 +27,20 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.211",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.230",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.401",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.98",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.231",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.231",
-  "ch.qos.logback" % "logback-classic" % "1.5.16",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.214",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.232",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.402",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.104",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.233",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.233",
+  "ch.qos.logback" % "logback-classic" % "1.5.17",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.45.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.45.0",
   "io.opentelemetry" % "opentelemetry-sdk" % "1.45.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.42.0",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.44.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.41.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.15.2" % Test,
@@ -48,14 +48,14 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.2"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.3"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.3"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.1.0"
 
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.4"
 libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.4"
