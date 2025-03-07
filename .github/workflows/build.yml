@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - TDRD-688-fix-metadata-upload-page
 jobs:
   pre-deploy:
     uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@main
