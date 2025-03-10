@@ -76,7 +76,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     when(configuration.get[String]("s3.endpoint")).thenReturn("http://localhost:9009")
 
     new UploadService(graphQlConfig, applicationConfig)
-      .uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A", s3AsyncClient)
+      .uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A".getBytes, s3AsyncClient)
 
     putObjectRequestCaptor.getValue.bucket() shouldBe "test-draft-metadata-bucket"
     putObjectRequestCaptor.getValue.key() shouldBe "draft-metadata.csv"
@@ -90,7 +90,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     when(configuration.get[String]("s3.endpoint")).thenReturn("http://localhost:9009")
 
     val response = new UploadService(graphQlConfig, applicationConfig)
-      .uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A", s3AsyncClient)
+      .uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A".getBytes, s3AsyncClient)
       .failed
       .futureValue
     response.getMessage shouldBe "Failed to upload"

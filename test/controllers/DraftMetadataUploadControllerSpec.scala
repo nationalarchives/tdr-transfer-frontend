@@ -109,7 +109,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       val uploadServiceMock = mock[UploadService]
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
       setUpdateConsignmentStatus(wiremockServer)
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
@@ -127,7 +127,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn("wrong name")
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
@@ -143,7 +143,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
