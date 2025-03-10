@@ -15,10 +15,10 @@ import services.Statuses.{DraftMetadataType, InProgressValue}
 import services._
 import viewsapi.Caching.preventCaching
 
+import java.io.{BufferedInputStream, FileInputStream}
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Using
 
 @Singleton
 class DraftMetadataUploadController @Inject() (
@@ -66,8 +66,8 @@ class DraftMetadataUploadController @Inject() (
         _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)))
         firstFilePart <- fromOption(request.body.files.headOption)(new RuntimeException(noDraftMetadataFileUploaded))
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException(noDraftMetadataFileUploaded))
-        draftMetadata <- fromOption(Using(scala.io.Source.fromFile(file.ref.getAbsoluteFile))(_.mkString).toOption)(new RuntimeException(noDraftMetadataFileUploaded))
-        _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadata)))
+        draftMetadataBytes = new BufferedInputStream(new FileInputStream(file.ref.getAbsoluteFile)).readAllBytes()
+        _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadataBytes)))
         _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, uploadFileName, token) })
         successPage <- IO(play.api.mvc.Results.Redirect(successPage))
       } yield successPage

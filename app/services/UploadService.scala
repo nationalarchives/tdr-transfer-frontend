@@ -30,12 +30,11 @@ class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration, v
     sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data => data.addFilesAndMetadata)
   }
 
-  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String): Future[PutObjectResponse] = {
-    uploadDraftMetadata(bucket, key, draftMetadata, s3Async(s3Endpoint))
+  def uploadDraftMetadata(bucket: String, key: String, bytes: Array[Byte]): Future[PutObjectResponse] = {
+    uploadDraftMetadata(bucket, key, bytes, s3Async(s3Endpoint))
   }
 
-  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String, s3AsyncClient: S3AsyncClient): Future[PutObjectResponse] = {
-    val bytes = draftMetadata.getBytes
+  def uploadDraftMetadata(bucket: String, key: String, bytes: Array[Byte], s3AsyncClient: S3AsyncClient): Future[PutObjectResponse] = {
     val publisher: ByteBuffersAsyncRequestBody = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
     s3AsyncClient.putObject(PutObjectRequest.builder.bucket(bucket).key(key).build, publisher).asScala
   }
