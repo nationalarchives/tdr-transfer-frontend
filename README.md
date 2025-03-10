@@ -54,9 +54,58 @@ development environment for the other TDR services.
 
 When you log into the site, you will need to log in as a user from the Integration environment.
 
-#### Troubleshooting
+### Troubleshooting
 
-### java.io.IOException
+#### Third Party Cookies Blocked
+
+In the context of running on `localhost` Keycloak cookies used on certain pages are consider "third party" and are blocked on most browsers even when browser settings specifically allow third party cookies.
+
+Keycloak is returning cookies with `SameSite=Lax` which is blocked by browsers. See here for a full explanation: https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies
+
+Affected pages:
+* Standard Upload Page: `http://localhost:9000/consignment/{consignment id}/upload`;
+* Judgment Upload Page: `http://localhost:9000/consignment/{consignment id}/judgment/:consignmentId/upload`;
+* Draft Metadata Upload Page: `http://localhost:9000/consignment/{consignment id}/draft-metadata/upload`
+
+To access these pages the following JavaScript should be changed (this will lead to a loss of functionality on these pages)
+
+##### Standard Upload Page / Judgment Upload Page
+
+* `/npm/src/auth/index.ts`:
+
+Change this line:
+
+```
+const authenticated = await keycloakInstance.init({
+      onLoad: "check-sso",
+      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
+    })
+```
+
+To this: `const authenticated = true`
+
+This will allow access to the page, but will not be able to upload via `localhost`
+
+##### Draft Metadata Upload Page
+
+* `/npm/src/index.ts`:
+
+Comment out the following code:
+
+```
+  if (timeoutDialog) {
+     const frontEndInfo = getFrontEndInfo()
+     const sessionTimeoutModule = await import("./auth/session-timeout")
+     const errorHandlingModule = await import("./errorhandling")
+     if (!errorHandlingModule.isError(frontEndInfo)) {
+       await sessionTimeoutModule.initialiseSessionTimeout(frontEndInfo)
+     }
+  }
+```
+
+Can still upload from this page, but no longer get warning the session is about to timeout.
+
+#### java.io.IOException
 
 If you encounter the following error when trying to run in Intellij:
 
@@ -71,14 +120,20 @@ To resolve this, you need to create a sym link with the install version of npm. 
 
 [auth-admin]: https://auth.tdr-integration.nationalarchives.gov.uk/auth/admin
 
-### Incognito mode
+#### Incognito mode
+
+**NOTE**: this no longer works but retain for historical reasons. See section: [Third Party Cookies Blocked](#Third-Party-Cookies-Blocked)
+
 If you are using the AWS integration environment, uploads to S3 go through upload.tdr-integration.nationalarchives.gov.uk If you try to upload using incognito/private browsing, the upload will fail. This is because the browser blocks third party cookies by default in incognito mode. To allow the cookies, you can add an exception for the url *upload.tdr-integration.nationalarchives.gov.uk*
 
 [Instructions for Chrome](https://support.google.com/chrome/answer/95647?hl=en-GB&co=GENIE.Platform%3DDesktop#zippy=%2Callow-or-block-cookies-for-a-specific-site)
 
 [Instructions for firefox](https://support.mozilla.org/en-US/kb/third-party-cookies-firefox-tracking-protection#w_enable-third-party-cookies-for-specific-sites)
 
-### Firefox state partitioning
+#### Firefox state partitioning
+
+**NOTE**: this no longer works but retain for historical reasons. See section: [Third Party Cookies Blocked](#Third-Party-Cookies-Blocked)
+
 You may get this error when running locally in Firefox
 
 `Partitioned cookie or storage access was provided to "https://auth..." because it is loaded in the third party context and dynamic state partitioning is enabled.`  
