@@ -16,7 +16,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1
 val playVersion = "3.0.3"
 val playPac4jVersion = "12.0.2-PLAY3.0"
 val pac4jVersion = "6.0.5"
-val sttpVersion = "2.3.0"
+val sttpVersion = "3.10.3"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -24,9 +24,9 @@ libraryDependencies ++= Seq(
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
   "io.circe" %% "circe-core" % "0.14.10",
   "io.circe" %% "circe-generic" % "0.14.10",
-  "com.softwaremill.sttp.client" %% "core" % sttpVersion,
-  "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
-  "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
+  "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
+  "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
+  "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.217",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.234",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.402",

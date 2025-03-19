@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar.mock
-import sttp.client.HttpError
+import sttp.client3.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -50,6 +50,6 @@ class FileStatusServiceSpec extends AnyFlatSpec {
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
     val results = new FileStatusService(graphQlConfig).addMultipleFileStatuses(input, token)
-    results.failed.futureValue shouldBe a[HttpError]
+    results.failed.futureValue shouldBe a[HttpError[_]]
   }
 }
