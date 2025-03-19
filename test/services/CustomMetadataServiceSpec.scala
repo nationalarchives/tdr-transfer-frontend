@@ -17,7 +17,7 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.{a, convertToAnyShouldWrapper, equal}
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.HttpError
+import sttp.client3.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
@@ -140,7 +140,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     when(customMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    customMetadataService.getCustomMetadata(consignmentId, token).failed.futureValue shouldBe a[HttpError]
+    customMetadataService.getCustomMetadata(consignmentId, token).failed.futureValue shouldBe a[HttpError[_]]
   }
 
   "customMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
@@ -170,7 +170,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     when(addBulkMetadataClient.getResult(token, abfm.document, Option(variables)))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[HttpError]
+    customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[HttpError[_]]
   }
 
   "saveMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
@@ -200,7 +200,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1"), consignmentId).failed.futureValue shouldBe a[HttpError]
+    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1"), consignmentId).failed.futureValue shouldBe a[HttpError[_]]
   }
 
   "deleteMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
