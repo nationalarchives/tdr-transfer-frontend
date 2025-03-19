@@ -17,7 +17,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.HttpError
+import sttp.client3.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
@@ -92,9 +92,9 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[HttpError]
+    val transferAgreement = transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[HttpError[_]]
 
-    transferAgreement shouldBe a[HttpError]
+    transferAgreement shouldBe a[HttpError[_]]
   }
 
   "addTransferAgreementPart1" should "throw an AuthorisationException if the API returns an auth error" in {
@@ -136,9 +136,9 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPart2.getResult(token, atac.document, Some(atac.Variables(transferAgreementPart2Input))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreementPart2 = transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).failed.futureValue.asInstanceOf[HttpError]
+    val transferAgreementPart2 = transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).failed.futureValue.asInstanceOf[HttpError[_]]
 
-    transferAgreementPart2 shouldBe a[HttpError]
+    transferAgreementPart2 shouldBe a[HttpError[_]]
   }
 
   "addTransferAgreementPart2" should "throw an AuthorisationException if the API returns an auth error" in {
