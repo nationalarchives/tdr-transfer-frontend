@@ -16,7 +16,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1
 val playVersion = "3.0.3"
 val playPac4jVersion = "12.0.2-PLAY3.0"
 val pac4jVersion = "6.0.5"
-val sttpVersion = "2.3.0"
+val sttpVersion = "3.10.3"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -24,15 +24,15 @@ libraryDependencies ++= Seq(
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
   "io.circe" %% "circe-core" % "0.14.10",
   "io.circe" %% "circe-generic" % "0.14.10",
-  "com.softwaremill.sttp.client" %% "core" % sttpVersion,
-  "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
-  "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.214",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.232",
+  "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
+  "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
+  "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.217",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.234",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.402",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.104",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.233",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.233",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.110",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.235",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.235",
   "ch.qos.logback" % "logback-classic" % "1.5.17",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.45.0",
@@ -40,10 +40,10 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-sdk" % "1.45.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.44.0",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.45.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.41.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.15.2" % Test,
+  "org.mockito" % "mockito-core" % "5.16.1" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
