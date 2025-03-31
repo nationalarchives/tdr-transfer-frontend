@@ -46,7 +46,7 @@ export class S3Upload {
     userId: string | undefined,
     iTdrFilesWithPath: ITdrFileWithPath[],
     callback: TProgressFunction,
-    stage: string
+    stage: string,
   ) => Promise<IUploadResult | Error> = async (
     consignmentId,
     userId,
@@ -128,7 +128,8 @@ export class S3Upload {
       Key: key,
       Bucket: this.uploadUrl,
       ACL: "bucket-owner-read",
-      Body: fileWithPath.file
+      Body: fileWithPath.file,
+      ChecksumAlgorithm: 'SHA256'
     }
 
     const progress = new Upload({ client: this.client, params })

@@ -300,8 +300,10 @@ test("multiple file uploads return the correct params and should call addFileSta
     expect(putObjectParams).toEqual({
       Key: `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileId}`,
       Bucket: "tdr-fake-url.com/fake",
+      ChecksumAlgorithm: "SHA256",
       ACL: "bucket-owner-read",
       Body: tdrFileWithPath.bits
+
     })
   })
 })
