@@ -15,7 +15,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.HttpError
+import sttp.client3.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -61,7 +61,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfte
     when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(bodyName))))
       .thenReturn(Future.failed(new HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    seriesService.getSeriesForUser(token).failed.futureValue shouldBe a[HttpError]
+    seriesService.getSeriesForUser(token).failed.futureValue shouldBe a[HttpError[_]]
   }
 
   "getSeriesForUser" should "throw an AuthorisationException if the API returns an auth error" in {

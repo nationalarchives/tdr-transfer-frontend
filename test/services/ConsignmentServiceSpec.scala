@@ -32,7 +32,7 @@ import org.scalatest.prop.Tables.Table
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import services.ConsignmentService.StatusTag
-import sttp.client.HttpError
+import sttp.client3.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -117,7 +117,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.consignmentExists(consignmentId, bearerAccessToken)
-      results.failed.futureValue shouldBe a[HttpError]
+      results.failed.futureValue shouldBe a[HttpError[_]]
     }
 
     "throw an AuthorisationException if the API returns an auth error" in {
@@ -191,7 +191,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
       val results = consignmentService.createConsignment(seriesId, token)
 
-      results.failed.futureValue shouldBe a[HttpError]
+      results.failed.futureValue shouldBe a[HttpError[_]]
     }
 
     "throw an AuthorisationException if the API returns an auth error" in {
@@ -234,7 +234,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
     val getConsignmentDetails = consignmentService.getConsignmentFolderInfo(consignmentId, bearerAccessToken).failed.futureValue
 
-    getConsignmentDetails shouldBe a[HttpError]
+    getConsignmentDetails shouldBe a[HttpError[_]]
   }
 
   "return an empty object if there are no consignment details" in {
@@ -364,7 +364,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken, None, None, None)
-      results.failed.futureValue shouldBe a[HttpError]
+      results.failed.futureValue shouldBe a[HttpError[_]]
     }
   }
 
@@ -530,7 +530,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.getConsignments(1, 100, consignmentFilter, bearerAccessToken)
-      results.failed.futureValue shouldBe a[HttpError]
+      results.failed.futureValue shouldBe a[HttpError[_]]
     }
   }
 
