@@ -15,7 +15,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.HttpError
+import sttp.client3.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
@@ -79,9 +79,9 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalTransferConfirmationInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[HttpError]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[HttpError[_]]
 
-    transferConfirmation shouldBe a[HttpError]
+    transferConfirmation shouldBe a[HttpError[_]]
   }
 
   "addFinalTransferConfirmation" should "throw an AuthorisationException if the API returns an auth error" in {
@@ -121,9 +121,9 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalJudgmentTransferConfirmationInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[HttpError]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[HttpError[_]]
 
-    transferConfirmation shouldBe a[HttpError]
+    transferConfirmation shouldBe a[HttpError[_]]
   }
 
   "addFinalJudgmentTransferConfirmation" should "throw an AuthorisationException if the API returns an auth error" in {
