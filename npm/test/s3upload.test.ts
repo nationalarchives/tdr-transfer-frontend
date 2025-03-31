@@ -303,7 +303,6 @@ test("multiple file uploads return the correct params and should call addFileSta
       ChecksumAlgorithm: "SHA256",
       ACL: "bucket-owner-read",
       Body: tdrFileWithPath.bits
-
     })
   })
 })
