@@ -15,7 +15,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.HttpError
+import sttp.client3.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
@@ -219,7 +219,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(displayPropertiesClient.getResult(token, dp.document, Some(dp.Variables(consignmentId))))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).failed.futureValue shouldBe a[HttpError]
+    displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).failed.futureValue shouldBe a[HttpError[_]]
   }
 
   "getDisplayProperties" should "throw an AuthorisationException if the API returns an auth error" in {

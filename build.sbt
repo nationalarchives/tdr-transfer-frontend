@@ -16,7 +16,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1
 val playVersion = "3.0.3"
 val playPac4jVersion = "12.0.2-PLAY3.0"
 val pac4jVersion = "6.0.5"
-val sttpVersion = "2.3.0"
+val sttpVersion = "3.10.3"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
