@@ -165,7 +165,9 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           )
           pageAsString must include(detailsMessage)
           pageAsString must include(actionMessage)
-          pageAsString must include("""<p class="govuk-body">The report below contains detailed errors with reference to the file path and column title, which caused the error.</p>""")
+          pageAsString must include(
+            """<p class="govuk-body">The report below contains detailed errors with reference to the file path and column title, which caused the error.</p>"""
+          )
           pageAsString must include(
             """<div class="da-alert da-alert--default">
               |    <div class="da-alert__content">
