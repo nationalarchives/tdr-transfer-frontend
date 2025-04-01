@@ -165,7 +165,20 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           )
           pageAsString must include(detailsMessage)
           pageAsString must include(actionMessage)
-          pageAsString must include("""<p class="govuk-body">The report below contains details about issues found.</p>""")
+          pageAsString must include("""<p class="govuk-body">The report below contains detailed errors with reference to the file path and column title, which caused the error.</p>""")
+          pageAsString must include(
+            """<div class="da-alert da-alert--default">
+              |    <div class="da-alert__content">
+              |        <h2 class="da-alert__heading da-alert__heading--s">
+              |            Leaving and returning to this transfer
+              |        </h2>
+              |        <p>
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
+              |        </p>
+              |    </div>
+              |</div>
+              |""".stripMargin
+          )
           pageAsString must include(
             s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/draft-metadata/download-report">
                |    <span aria-hidden="true" class="tna-button-icon">
@@ -243,6 +256,19 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           pageAsString must include(detailsMessage)
           pageAsString must include(actionMessage)
           affectedProperties.foreach(p => pageAsString must include(s"<li>$p</li>"))
+          pageAsString must include(
+            """<div class="da-alert da-alert--default">
+              |    <div class="da-alert__content">
+              |        <h2 class="da-alert__heading da-alert__heading--s">
+              |            Leaving and returning to this transfer
+              |        </h2>
+              |        <p>
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
+              |        </p>
+              |    </div>
+              |</div>
+              |""".stripMargin
+          )
         }
       }
     }
