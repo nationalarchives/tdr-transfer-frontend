@@ -97,6 +97,9 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |            </h1>""".stripMargin
       )
       pageAsString must include(
+        s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported with no errors.</p>"""
+      )
+      pageAsString must include(
         s"""          <dl class="govuk-summary-list">
             |                <div class="govuk-summary-list__row">
             |                    <dt class="govuk-summary-list__key">
@@ -109,6 +112,10 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
             |                    </dd>
             |                </div>
             |            </dl>""".stripMargin
+      )
+      pageAsString must include(
+        s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=/consignment/$consignmentId/draft-metadata/upload>
+          |                upload a metadata CSV</a>, otherwise continue with your transfer.</p>""".stripMargin
       )
       pageAsString must include(
         s"""            <div class="govuk-button-group">
