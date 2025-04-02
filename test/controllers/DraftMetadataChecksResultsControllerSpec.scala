@@ -97,7 +97,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |            </h1>""".stripMargin
       )
       pageAsString must include(
-        s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported with no errors.</p>"""
+        s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported.</p>"""
       )
       pageAsString must include(
         s"""          <dl class="govuk-summary-list">
