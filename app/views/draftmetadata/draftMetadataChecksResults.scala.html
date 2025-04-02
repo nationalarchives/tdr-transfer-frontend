@@ -10,7 +10,7 @@
             <h1 class="govuk-heading-l">
                 Results of your metadata checks
             </h1>
-            <p class="govuk-body">Your CSV has been successfully uploaded and the metadata has been imported.</p>
+            <p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported.</p>
             <dl class="govuk-summary-list">
                 <div class="govuk-summary-list__row">
                     <dt class="govuk-summary-list__key">
@@ -23,6 +23,8 @@
                     </dd>
                 </div>
             </dl>
+            <p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=@routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)>
+                upload a metadata CSV</a>, otherwise continue with your transfer.</p>
             <div class="govuk-button-group">
                 <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
                     Next
