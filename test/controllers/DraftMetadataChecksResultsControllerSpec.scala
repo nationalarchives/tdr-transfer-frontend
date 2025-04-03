@@ -174,7 +174,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
               |        <h2 class="da-alert__heading da-alert__heading--s">
               |            Leaving and returning to this transfer
               |        </h2>
-              |        <p>
+              |        <p class="govuk-body">
               |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
               |        </p>
               |    </div>
@@ -182,7 +182,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
               |""".stripMargin
           )
           pageAsString must include(
-            s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/draft-metadata/download-report">
+            s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/draft-metadata/download-report">
                |    <span aria-hidden="true" class="tna-button-icon">
                |        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
                |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>
@@ -264,7 +264,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
               |        <h2 class="da-alert__heading da-alert__heading--s">
               |            Leaving and returning to this transfer
               |        </h2>
-              |        <p>
+              |        <p class="govuk-body">
               |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
               |        </p>
               |    </div>
