@@ -31,7 +31,7 @@
             Action
         </dt>
         <dd class="govuk-summary-list__value">
-            <p>@Html(actionMessage)</p>
+            @Html(actionMessage)
             @if(affectedProperties.nonEmpty) {
                 <ul class="govuk-list govuk-list--bullet">
                     @for(property <- affectedProperties) {
