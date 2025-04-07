@@ -3,25 +3,52 @@
 @import viewsapi.FrontEndInfo
 
 @import java.util.UUID
+@import services.Details
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload a metadata CSV", name = name, backLink = Some(backLink(routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId).url, "How would you like to enter metadata?"))) {
+@main("Upload a metadata CSV", name = name, backLink = Some(backLink(routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId).url, "Prepare your metadata"))) {
     <div id="metadata-file-upload" class="govuk-grid-row" >
 
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">Upload a metadata CSV</h1>
             <div class="govuk-body">
-                <p>In your CSV, include a header row for the column titles and one row for every record that requires metadata.</p>
+                <p class="govuk-body">Upload a <abbr title="Comma Separated Values">CSV</abbr> containing the record metadata.</p>
+                @details(
+                    Details(
+                        detailsSummary = "How to save an Excel file as CSV",
+                        detailsText =
+                            """
+                               When you have finished entering metadata:
+                               <ol class="govuk-list govuk-list--number">
+                                 <li>Save your file as Excel first (File > Save) before you save as CSV</li>
+                                 <li>From the ‘Save as type’ dropdown, choose CSV UTF-8 (Comma delimited) (*.csv)</li>
+                                 <li>Click Save</li>
+                                 <li>Close the file, you are ready to upload</li>
+                               </ol>
+                               If you need to make more changes to metadata, we recommend that you open the Excel file you saved first, make changes, and then save again as CSV. Opening a CSV file in Excel can cause formats to be converted.
+                           """
+                    )
+                )
             </div>
-            <div>
-                @downloadMetadataLink(consignmentId, "Download metadata Excel template", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
+@*            <div>*@
+@*                @downloadMetadataLink(consignmentId, "Download metadata Excel template", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)*@
+@*            </div>*@
+            <p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>
+            <div class="govuk-warning-text">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text">
+                    <span class="govuk-warning-text__assistive">Warning</span>
+                    We can only accept metadata in a <abbr title="Comma Separated Values">CSV</abbr> UTF-8 file format.
+                </strong>
             </div>
 
             <div class="govuk-form-group">
                 <div id="selection-area">
                     @loggedOutErrorMessage("file-upload")
                     @frontEndInputs(frontEndInfo)
-                    <h2 class="govuk-heading-m">Select a CSV</h2>
+                    <label class="govuk-label" for="file-selection">
+                        Select a CSV
+                    </label>
                     <form action="@routes.DraftMetadataUploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >
                         @CSRF.formField
                         <div >

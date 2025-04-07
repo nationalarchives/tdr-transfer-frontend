@@ -57,6 +57,28 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       playStatus(draftMetadataUploadPage) mustBe OK
       contentType(draftMetadataUploadPage) mustBe Some("text/html")
       pageAsString must include("<title>Upload a metadata CSV - Transfer Digital Records - GOV.UK</title>")
+      //Include a check for the back button
+
+      pageAsString must include("""<p class="govuk-body">Upload a <abbr title="Comma Separated Values">CSV</abbr> containing the record metadata.</p>""")
+      pageAsString must include("""<details class="govuk-details govuk-!-margin-bottom-2" data-module="govuk-details">
+                                  |  <summary class="govuk-details__summary">
+                                  |    <span class="govuk-details__summary-text">How to save an Excel file as CSV</span>
+                                  |  </summary>""".stripMargin)
+      pageAsString must include("""<li>Save your file as Excel first (File > Save) before you save as CSV</li>
+                                  |                                 <li>From the ‘Save as type’ dropdown, choose CSV UTF-8 (Comma delimited) (*.csv)</li>
+                                  |                                 <li>Click Save</li>
+                                  |                                 <li>Close the file, you are ready to upload</li>""".stripMargin)
+      pageAsString must include("""<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>""")
+      pageAsString must include("""<div class="govuk-warning-text">
+                                  |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                                  |                <strong class="govuk-warning-text__text">
+                                  |                    <span class="govuk-warning-text__assistive">Warning</span>
+                                  |                    We can only accept metadata in a <abbr title="Comma Separated Values">CSV</abbr> UTF-8 file format.
+                                  |                </strong>
+                                  |            </div>""".stripMargin)
+      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+                                  |                                Upload
+                                  |                            </button>""".stripMargin)
     }
 
     "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
