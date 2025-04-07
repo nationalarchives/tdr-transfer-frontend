@@ -97,6 +97,9 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |            </h1>""".stripMargin
       )
       pageAsString must include(
+        s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported.</p>"""
+      )
+      pageAsString must include(
         s"""          <dl class="govuk-summary-list">
             |                <div class="govuk-summary-list__row">
             |                    <dt class="govuk-summary-list__key">
@@ -109,6 +112,10 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
             |                    </dd>
             |                </div>
             |            </dl>""".stripMargin
+      )
+      pageAsString must include(
+        s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=/consignment/$consignmentId/draft-metadata/upload>
+          |                upload a metadata CSV</a>, otherwise continue with your transfer.</p>""".stripMargin
       )
       pageAsString must include(
         s"""            <div class="govuk-button-group">
@@ -158,9 +165,24 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           )
           pageAsString must include(detailsMessage)
           pageAsString must include(actionMessage)
-          pageAsString must include("""<p class="govuk-body">The report below contains details about issues found.</p>""")
           pageAsString must include(
-            s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/draft-metadata/download-report">
+            """<p class="govuk-body">The report below contains detailed errors with reference to the file path and column title, which caused the error.</p>"""
+          )
+          pageAsString must include(
+            """<div class="da-alert da-alert--default">
+              |    <div class="da-alert__content">
+              |        <h2 class="da-alert__heading da-alert__heading--s">
+              |            Leaving and returning to this transfer
+              |        </h2>
+              |        <p class="govuk-body">
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
+              |        </p>
+              |    </div>
+              |</div>
+              |""".stripMargin
+          )
+          pageAsString must include(
+            s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/draft-metadata/download-report">
                |    <span aria-hidden="true" class="tna-button-icon">
                |        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
                |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>
@@ -236,6 +258,19 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           pageAsString must include(detailsMessage)
           pageAsString must include(actionMessage)
           affectedProperties.foreach(p => pageAsString must include(s"<li>$p</li>"))
+          pageAsString must include(
+            """<div class="da-alert da-alert--default">
+              |    <div class="da-alert__content">
+              |        <h2 class="da-alert__heading da-alert__heading--s">
+              |            Leaving and returning to this transfer
+              |        </h2>
+              |        <p class="govuk-body">
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
+              |        </p>
+              |    </div>
+              |</div>
+              |""".stripMargin
+          )
         }
       }
     }
