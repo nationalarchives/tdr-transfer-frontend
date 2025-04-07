@@ -57,8 +57,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       playStatus(draftMetadataUploadPage) mustBe OK
       contentType(draftMetadataUploadPage) mustBe Some("text/html")
       pageAsString must include("<title>Upload a metadata CSV - Transfer Digital Records - GOV.UK</title>")
-      //Include a check for the back button
-
+      pageAsString must include(s"""<a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-back-link">Prepare your metadata</a>""")
       pageAsString must include("""<p class="govuk-body">Upload a <abbr title="Comma Separated Values">CSV</abbr> containing the record metadata.</p>""")
       pageAsString must include("""<details class="govuk-details govuk-!-margin-bottom-2" data-module="govuk-details">
                                   |  <summary class="govuk-details__summary">
@@ -68,7 +67,9 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
                                   |                                 <li>From the ‘Save as type’ dropdown, choose CSV UTF-8 (Comma delimited) (*.csv)</li>
                                   |                                 <li>Click Save</li>
                                   |                                 <li>Close the file, you are ready to upload</li>""".stripMargin)
-      pageAsString must include("""<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>""")
+      pageAsString must include(
+        """<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>"""
+      )
       pageAsString must include("""<div class="govuk-warning-text">
                                   |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
                                   |                <strong class="govuk-warning-text__text">
