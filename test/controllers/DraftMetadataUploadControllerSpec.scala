@@ -64,7 +64,8 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
                                   |    <span class="govuk-details__summary-text">How to save an Excel file as CSV</span>
                                   |  </summary>""".stripMargin)
       pageAsString must include("""<li>Save your file as Excel first (File > Save) before you save as CSV</li>
-                                  |                                 <li>From the ‘Save as type’ dropdown, choose CSV UTF-8 (Comma delimited) (*.csv)</li>
+                                  |                                 <li>Click File > Save As
+                                  |                                 <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
                                   |                                 <li>Click Save</li>
                                   |                                 <li>Close the file, you are ready to upload</li>""".stripMargin)
       pageAsString must include(

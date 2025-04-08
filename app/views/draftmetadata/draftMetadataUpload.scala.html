@@ -21,7 +21,8 @@
                                When you have finished entering metadata:
                                <ol class="govuk-list govuk-list--number">
                                  <li>Save your file as Excel first (File > Save) before you save as CSV</li>
-                                 <li>From the ‘Save as type’ dropdown, choose CSV UTF-8 (Comma delimited) (*.csv)</li>
+                                 <li>Click File > Save As
+                                 <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
                                  <li>Click Save</li>
                                  <li>Close the file, you are ready to upload</li>
                                </ol>
@@ -30,9 +31,7 @@
                     )
                 )
             </div>
-@*            <div>*@
-@*                @downloadMetadataLink(consignmentId, "Download metadata Excel template", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)*@
-@*            </div>*@
+
             <p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>
             <div class="govuk-warning-text">
                 <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
