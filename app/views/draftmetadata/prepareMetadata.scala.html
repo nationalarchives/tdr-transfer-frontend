@@ -2,6 +2,8 @@
 @import views.html.partials._
 
 @import java.util.UUID
+@import views.html.helper.CSRF
+@import views.html.helper.form
 @(consignmentId: UUID, consignmentRef: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("Prepare your metadata", backLink = Some(backLink(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url, "Results of your checks"))) {
@@ -64,11 +66,13 @@
 
             <p class="govuk-body">Once you have completed your metadata spreadsheet continue to upload a CSV.</p>
 
-            <div class="govuk-button-group">
-                <a href="@routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-!-margin-top-4" data-module="govuk-button">
+
+            @form(routes.PrepareMetadataController.prepareMetadataSubmit(consignmentId), (Symbol("novalidate"), "")) {
+                @CSRF.formField
+                <button type="submit" role="button" draggable="false" class="govuk-button govuk-!-margin-top-4" data-module="govuk-button">
                     Continue
-                </a>
-            </div>
+                </button>
+            }
 
             @details(Details(
                 detailsSummary = "I don't need to provide any metadata",

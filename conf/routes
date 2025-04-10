@@ -29,6 +29,7 @@ POST        /consignment/:consignmentId/file-check-progress                     
 GET         /consignment/:consignmentId/file-checks                                                      controllers.FileChecksController.fileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])
 GET         /consignment/:consignmentId/file-checks-results                                              controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/draft-metadata/prepare-metadata                                  controllers.PrepareMetadataController.prepareMetadata(consignmentId: java.util.UUID)
+POST        /consignment/:consignmentId/draft-metadata/prepare-metadata                                  controllers.PrepareMetadataController.prepareMetadataSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/draft-metadata/upload                                            controllers.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/draft-metadata/upload                                            controllers.DraftMetadataUploadController.saveDraftMetadata(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/draft-metadata/checks                                            controllers.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId: java.util.UUID)
