@@ -16,7 +16,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1
 val playVersion = "3.0.3"
 val playPac4jVersion = "12.0.2-PLAY3.0"
 val pac4jVersion = "6.0.5"
-val sttpVersion = "3.10.3"
+val sttpVersion = "3.11.0"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -30,7 +30,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.221",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.236",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.406",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.120",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.122",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.245",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.245",
   "ch.qos.logback" % "logback-classic" % "1.5.18",
