@@ -9,7 +9,7 @@ import services.ConsignmentService
 import java.util.UUID
 import javax.inject.Inject
 
-class PrepareMetadataController @Inject()(
+class PrepareMetadataController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService
