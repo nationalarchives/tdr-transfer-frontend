@@ -10,6 +10,7 @@ import services.{ConsignmentService, ConsignmentStatusService}
 
 import java.util.UUID
 import javax.inject.Inject
+import scala.concurrent.Future
 
 class PrepareMetadataController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
@@ -29,7 +30,10 @@ class PrepareMetadataController @Inject() (
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
       draftMetadataStatus = consignmentStatusService.getStatusValues(consignmentStatuses, DraftMetadataType).values.headOption.flatten
-      _ = if (draftMetadataStatus.isEmpty) consignmentStatusService.addConsignmentStatus(consignmentId, DraftMetadataType.id, InProgressValue.value, token)
+      _ <- draftMetadataStatus match {
+        case Some(_) => Future.successful(())
+        case None    => consignmentStatusService.addConsignmentStatus(consignmentId, DraftMetadataType.id, InProgressValue.value, token)
+      }
     } yield Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId))
   }
 }
