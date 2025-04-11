@@ -117,7 +117,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setAddConsignmentStatusResponse(wiremockServer: WireMockServer, consignmentId: UUID = UUID.randomUUID(), statusType: StatusType = SeriesType, statusValue: StatusValue = InProgressValue): StubMapping = {
+  def setAddConsignmentStatusResponse(
+      wiremockServer: WireMockServer,
+      consignmentId: UUID = UUID.randomUUID(),
+      statusType: StatusType = SeriesType,
+      statusValue: StatusValue = InProgressValue
+  ): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[acs.Data, acs.Variables]()
     val dataString = client
       .GraphqlData(Option(acs.Data(AddConsignmentStatus(UUID.randomUUID(), consignmentId, statusType.id, statusValue.value, ZonedDateTime.now(), None))))
