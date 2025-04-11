@@ -29,12 +29,7 @@ class PrepareMetadataController @Inject() (
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
       draftMetadataStatus = consignmentStatusService.getStatusValues(consignmentStatuses, DraftMetadataType).values.headOption.flatten
-      _ <-
-        if (draftMetadataStatus.isEmpty) {
-          consignmentStatusService.addConsignmentStatus(consignmentId, DraftMetadataType.id, InProgressValue.value, token)
-        } else {
-          consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value)), token)
-        }
+      _ = if (draftMetadataStatus.isEmpty) consignmentStatusService.addConsignmentStatus(consignmentId, DraftMetadataType.id, InProgressValue.value, token)
     } yield Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId))
   }
 }
