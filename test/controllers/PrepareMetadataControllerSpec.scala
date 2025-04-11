@@ -100,8 +100,10 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
 
       status(request) shouldBe SEE_OTHER
       redirectLocation(request) shouldBe Some(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId).url)
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
-        .withRequestBody(containing("addConsignmentStatus")))
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("addConsignmentStatus"))
+      )
     }
   }
 
