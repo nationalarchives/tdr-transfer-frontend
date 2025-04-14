@@ -49,10 +49,11 @@ class DownloadMetadataController @Inject() (
     val metadataConfiguration = ConfigUtils.loadConfiguration
     val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
     val propertyTypeEvaluator = metadataConfiguration.getPropertyType
+    val downloadType = "ClientTemplate"
 
     for {
       metadata: getConsignmentFilesMetadata.GetConsignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
-      downloadProperties <- Future.successful(metadataConfiguration.downloadProperties("ClientTemplate").sortBy(_._2).map(downloadProperty => downloadProperty._1))
+      downloadProperties <- Future.successful(metadataConfiguration.downloadProperties(downloadType).sortBy(_._2).map(downloadProperty => downloadProperty._1))
       excelFile <- Future.successful(ExcelUtils.createExcelFile(metadata.consignmentReference, metadata, downloadProperties, tdrFileHeaderMapper, propertyTypeEvaluator))
     } yield {
       Ok(excelFile)
