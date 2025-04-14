@@ -21,8 +21,6 @@ class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val customMetadataService: CustomMetadataService,
-    val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val applicationConfig: ApplicationConfig
 ) extends TokenSecurity
@@ -49,12 +47,13 @@ class DownloadMetadataController @Inject() (
     if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded metadata for consignmentId: $consignmentId")
 
     val metadataConfiguration = ConfigUtils.loadConfiguration
-    val tdrFileHeader = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
+    val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
+    val propertyTypeEvaluator = metadataConfiguration.getPropertyType
 
     for {
       metadata: getConsignmentFilesMetadata.GetConsignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
       downloadProperties <- Future.successful(metadataConfiguration.downloadProperties("ClientTemplate").sortBy(_._2).map(downloadProperty => downloadProperty._1))
-      excelFile <- Future.successful(ExcelUtils.createExcelFile(metadata.consignmentReference, metadata, downloadProperties, tdrFileHeader, metadataConfiguration.getPropertyType))
+      excelFile <- Future.successful(ExcelUtils.createExcelFile(metadata.consignmentReference, metadata, downloadProperties, tdrFileHeaderMapper, propertyTypeEvaluator))
     } yield {
       Ok(excelFile)
         .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")

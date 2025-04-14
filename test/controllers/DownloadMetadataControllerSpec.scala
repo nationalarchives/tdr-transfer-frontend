@@ -92,22 +92,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
         val uuid1 = UUID.randomUUID().toString
         val uuid2 = UUID.randomUUID().toString
-        val displayProperties = List(
-          displayProperty(fileUUID, "UUID"),
-          displayProperty(fileName, "Filename"),
-          displayProperty(clientSideOriginalFilepath, "Filepath"),
-          displayProperty(clientSideFileLastModifiedDate, "Date last modified", DataType.DateTime),
-          displayProperty(end_date, "Date of the record", DataType.DateTime),
-          displayProperty(description, "Description")
-        )
-        val customProperties = List(
-          customMetadata(fileUUID, "UUID"),
-          customMetadata(fileName, "FileName"),
-          customMetadata(clientSideOriginalFilepath, "Filepath"),
-          customMetadata(clientSideFileLastModifiedDate, "Date last modified"),
-          customMetadata(end_date, ""),
-          customMetadata(description, "")
-        )
+
         val metadataFileOne = List(
           FileMetadata(fileUUID, uuid1),
           FileMetadata(fileName, "FileName1"),
@@ -129,7 +114,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
         )
 
-        val wb: ReadableWorkbook = getFileFromController(customProperties, files, displayProperties, userType)
+        val wb: ReadableWorkbook = getFileFromController(files, userType)
         val ws: Sheet = wb.getFirstSheet
         val rows: List[Row] = ws.read.asScala.toList
 
@@ -172,8 +157,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          customMetadataService,
-          displayPropertiesService,
           getInvalidKeycloakConfiguration,
           applicationConfig
         )
@@ -239,8 +222,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          customMetadataService,
-          displayPropertiesService,
           getInvalidKeycloakConfiguration,
           applicationConfig
         )
@@ -251,9 +232,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def getFileFromController(
-      customProperties: List[cm.CustomMetadata],
       files: List[Files],
-      displayProperties: List[dp.DisplayProperties],
       userType: String
   ): ReadableWorkbook = {
     mockFileMetadataResponse(files)
@@ -283,8 +262,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       consignmentService,
       consignmentStatusService,
-      customMetadataService,
-      displayPropertiesService,
       keycloakConfiguration,
       getApplicationConfig(blockMetadataReview)
     )
