@@ -257,8 +257,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       userType: String
   ): ReadableWorkbook = {
     mockFileMetadataResponse(files)
-    mockCustomMetadataResponse(customProperties)
-    mockDisplayPropertiesResponse(displayProperties)
 
     val consignmentId = UUID.randomUUID()
     val controller = createController("standard", userType.some)
@@ -289,32 +287,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       displayPropertiesService,
       keycloakConfiguration,
       getApplicationConfig(blockMetadataReview)
-    )
-  }
-
-  private def mockDisplayPropertiesResponse(displayProperties: List[dp.DisplayProperties]) = {
-    val client: GraphQLClient[dp.Data, dp.Variables] = new GraphQLConfiguration(app.configuration).getClient[dp.Data, dp.Variables]()
-    val customMetadataResponse: dp.Data = dp.Data(displayProperties)
-    val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("displayProperties"))
-        .willReturn(okJson(dataString))
-    )
-  }
-
-  private def mockCustomMetadataResponse(customProperties: List[cm.CustomMetadata]) = {
-    val client: GraphQLClient[cm.Data, cm.Variables] = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
-    val customMetadataResponse: cm.Data = cm.Data(customProperties)
-    val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("customMetadata"))
-        .willReturn(okJson(dataString))
     )
   }
 
