@@ -2,13 +2,9 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.util.MetadataProperty._
 import controllers.util.{ExcelUtils, RedirectUtils}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
-import graphql.codegen.types.DataType
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
