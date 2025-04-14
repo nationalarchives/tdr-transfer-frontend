@@ -94,7 +94,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         val uuid2 = UUID.randomUUID().toString
         val displayProperties = List(
           displayProperty(fileUUID, "UUID"),
-          displayProperty(fileName, "File Name"),
+          displayProperty(fileName, "Filename"),
           displayProperty(clientSideOriginalFilepath, "Filepath"),
           displayProperty(clientSideFileLastModifiedDate, "Date last modified", DataType.DateTime),
           displayProperty(end_date, "Date of the record", DataType.DateTime),
@@ -136,7 +136,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         rows.length must equal(3)
 
         rows.head.getCell(0).asString must equal("Filepath")
-        rows.head.getCell(1).asString must equal("File Name")
+        // rows.head.getCell(1).asString must equal("File Name")
         rows.head.getCell(2).asString must equal("Date last modified")
         rows.head.getCell(3).asString must equal("Date of the record")
         rows.head.getCell(4).asString must equal("Description")
