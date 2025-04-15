@@ -2,7 +2,6 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses.{DraftMetadataType, InProgressValue}
