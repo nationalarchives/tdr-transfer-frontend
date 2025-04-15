@@ -16,11 +16,14 @@ object ExcelUtils {
       fileMetadata: getConsignmentFilesMetadata.GetConsignment,
       downloadProperties: List[String],
       tdrFileHeader: String => String,
-      propertyType: String => String
+      propertyType: String => String,
+      sortColumn: String
   ): Array[Byte] = {
     val header = downloadProperties.map(colOrderSchemaPropertyName => tdrFileHeader(colOrderSchemaPropertyName))
     val dataTypes: List[String] = downloadProperties.map(propertyType)
-    val fileMetadataRows: List[List[Any]] = createExcelRowData(fileMetadata.files, downloadProperties)
+    val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value.toUpperCase))
+    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadProperties)
+
     ExcelUtils.writeExcel(s"Metadata for $consignmentRef", header :: fileMetadataRows, dataTypes)
   }
 
@@ -58,11 +61,10 @@ object ExcelUtils {
 
   }
 
-  private def createExcelRowData(fileMetadata: List[Files], downloadProperties: List[String]): List[List[Any]] = {
+  private def createExcelRowData(sortedMetaData: List[Files], downloadProperties: List[String]): List[List[Any]] = {
     val metadataConfiguration = ConfigUtils.loadConfiguration
     val tdrDataLoadHeader = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
 
-    val sortedMetaData = fileMetadata.sortBy(_.fileMetadata.find(_.name == "ClientSideOriginalFilepath").map(_.value.toUpperCase))
     sortedMetaData.map { file =>
       {
         val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
