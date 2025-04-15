@@ -21,5 +21,4 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    rebase-strategy: "auto"
-    versioning-strategy: "increase"
+    versioning-strategy: increase
