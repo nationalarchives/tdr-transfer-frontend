@@ -18,7 +18,8 @@ import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
-import graphql.codegen.types.{AddConsignmentInput, ConsignmentFilters, FileFilters, FileMetadataFilters}
+import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
+import graphql.codegen.types._
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -56,6 +57,8 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val getConsignmentPaginatedFilesClient = mock[GraphQLClient[gcpf.Data, gcpf.Variables]]
   private val getConsignmentFilesClient = mock[GraphQLClient[gcf.Data, gcf.Variables]]
   private val getConsignmentsClient = mock[GraphQLClient[gcs.Data, gcs.Variables]]
+  private val updateDraftMetadataFileNameClient = mock[GraphQLClient[ucsdmfn.Data, ucsdmfn.Variables]]
+
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
@@ -65,6 +68,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   when(graphQlConfig.getClient[gcpf.Data, gcpf.Variables]()).thenReturn(getConsignmentPaginatedFilesClient)
   when(graphQlConfig.getClient[gcf.Data, gcf.Variables]()).thenReturn(getConsignmentFilesClient)
   when(graphQlConfig.getClient[gcs.Data, gcs.Variables]()).thenReturn(getConsignmentsClient)
+  when(graphQlConfig.getClient[ucsdmfn.Data, ucsdmfn.Variables]()).thenReturn(updateDraftMetadataFileNameClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -561,6 +565,39 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     "return false if all files are open" in {
       val files = generateMetadata(3, "File", "Open")
       consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(false)
+    }
+  }
+
+  "updateDraftMetadataFileName" should {
+    val accessToken = token.bearerAccessToken
+    val fileName = "a file name.csv"
+    val input = UpdateClientSideDraftMetadataFileNameInput(consignmentId, fileName)
+
+    def mockAPIFailedResponse: OngoingStubbing[Future[GraphQlResponse[ucsdmfn.Data]]] =
+      when(updateDraftMetadataFileNameClient.getResult(accessToken, ucsdmfn.document, Some(ucsdmfn.Variables(input))))
+        .thenReturn(Future.failed(new Exception("API failure")))
+
+    "update the persisted draft metadata file name" in {
+      val expectedResponse = GraphQlResponse(Some(ucsdmfn.Data(Some(1))), Nil)
+      when(updateDraftMetadataFileNameClient.getResult(accessToken, ucsdmfn.document, Some(ucsdmfn.Variables(input))))
+        .thenReturn(Future.successful(expectedResponse))
+
+      val response = consignmentService.updateDraftMetadataFileName(consignmentId, fileName, accessToken).futureValue
+      response shouldBe 1
+    }
+
+    "return an error when the API has an error" in {
+      when(updateDraftMetadataFileNameClient.getResult(accessToken, ucsdmfn.document, Some(ucsdmfn.Variables(input))))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+      val response = consignmentService.updateDraftMetadataFileName(consignmentId, fileName, accessToken)
+      response.failed.futureValue shouldBe a[HttpError[_]]
+    }
+
+    "return the an error if the API fails" in {
+      mockAPIFailedResponse
+      val error = consignmentService.updateDraftMetadataFileName(consignmentId, fileName, accessToken).failed.futureValue
+      error.getMessage should be("API failure")
     }
   }
 }

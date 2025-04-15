@@ -516,12 +516,12 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
           |          </ul>""".stripMargin.replace("<Spaces>", "            ")
       )
       page must include(
-        """<details class="govuk-details govuk-!-margin-bottom-2" data-module="govuk-details">
+        """<details class="govuk-details">
           |  <summary class="govuk-details__summary">
           |    <span class="govuk-details__summary-text">Records with sensitive descriptions</span>
           |  </summary>
           |  <div class="govuk-details__text">
-          |    <p class="govuk-body">additionalMetadata.descriptive.sensitive</p>
+          |    additionalMetadata.descriptive.sensitive
           |  </div>""".stripMargin
       )
     }
