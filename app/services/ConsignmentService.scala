@@ -20,6 +20,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
 import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
@@ -48,6 +49,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
   private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfmr.Data, gcfmr.Variables]()
   private val getConsignmentDetailsForReviewClient = graphqlConfiguration.getClient[gcdfmr.Data, gcdfmr.Variables]()
+  private val updateDraftMetadataFileNameClient = graphqlConfiguration.getClient[ucsdmfn.Data, ucsdmfn.Variables]()
 
   def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables = gfcp.Variables(consignmentId)
@@ -208,6 +210,13 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
     val variables = new gcdfmr.Variables(consignmentId)
     sendApiRequest(getConsignmentDetailsForReviewClient, gcdfmr.document, token, variables)
       .map(data => data.getConsignment.get)
+  }
+
+  def updateDraftMetadataFileName(consignmentId: UUID, fileName: String, token: BearerAccessToken): Future[Int] = {
+    val input = UpdateClientSideDraftMetadataFileNameInput(consignmentId, fileName)
+    val variables = new ucsdmfn.Variables(input)
+    sendApiRequest(updateDraftMetadataFileNameClient, ucsdmfn.document, token, variables)
+      .map(data => data.updateClientSideDraftMetadataFileName.get)
   }
 
   private def getFileFilters(metadataType: Option[String], fileIds: Option[List[UUID]], additionalProperties: Option[List[String]]): Option[FileFilters] = {

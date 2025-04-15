@@ -18,6 +18,7 @@ import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
+import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
@@ -436,6 +437,18 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("displayProperties"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  def setUpdateClientSideFileNameResponse(wireMockServer: WireMockServer): Unit = {
+    val client: GraphQLClient[ucsdmfn.Data, ucsdmfn.Variables] = new GraphQLConfiguration(app.configuration).getClient[ucsdmfn.Data, ucsdmfn.Variables]()
+    val data: client.GraphqlData = client.GraphqlData(Some(ucsdmfn.Data(Some(1))))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wireMockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("updateClientSideDraftMetadataFileName"))
         .willReturn(okJson(dataString))
     )
   }

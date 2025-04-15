@@ -1,6 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
@@ -112,6 +113,11 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
       setUpdateConsignmentStatus(wiremockServer)
 
+      val consignmentServiceMock = mock[ConsignmentService]
+      when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
+        .thenReturn(Future.successful(1))
+      setUpdateClientSideFileNameResponse(wiremockServer)
+
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
@@ -147,6 +153,26 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
+      val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
+
+      playStatus(response) mustBe 200
+
+      contentAsString(response) must include("There is a problem")
+    }
+
+    "render error page when upload successful but file name update fails" in {
+      val uploadServiceMock = mock[UploadService]
+      setConsignmentReferenceResponse(wiremockServer)
+      val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
+      when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]]))
+        .thenReturn(Future.successful(putObjectResponse))
+
+      val consignmentServiceMock = mock[ConsignmentService]
+      when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
+        .thenReturn(Future.failed(new RuntimeException("File name update failed")))
+
+      val draftMetadataServiceMock = mock[DraftMetadataService]
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200
