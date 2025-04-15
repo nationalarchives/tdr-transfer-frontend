@@ -1,0 +1,97 @@
+@import services.Details
+@import views.html.partials._
+
+@import java.util.UUID
+@import views.html.helper.CSRF
+@import views.html.helper.form
+@(consignmentId: UUID, consignmentRef: String)(implicit request: RequestHeader, messages: Messages)
+
+@main("Prepare your metadata", backLink = Some(backLink(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url, "Results of your checks"))) {
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds-from-desktop">
+            <h2 class="govuk-heading-l">Prepare your metadata</h2>
+
+            <p class="govuk-body">As part of a digital transfer to The National Archives your consignment of records must be transferred with metadata to assist preservation and make them easier to find in Discovery, the public catalogue.</p>
+
+            <p class="govuk-body">Metadata can be added to your records by uploading a <abbr title="Comma Separated Values">CSV</abbr>.</p>
+
+            <div class="da-alert da-alert--error da-alert--with-icon govuk-!-margin-top-4 govuk-!-margin-bottom-4">
+                <div class="da-alert__icon">
+                    <div aria-hidden="true"><svg class="da-icon da-icon--xl" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" focusable="false" fill="currentColor" role="img" title="da-icon-warning">
+                        <g clip-path="url(#a)">
+                            <path d="M11.5 0C17.851 0 23 5.149 23 11.5S17.851 23 11.5 23 0 17.851 0 11.5 5.149 0 11.5 0Zm0 2.3a9.2 9.2 0 1 0 0 18.4 9.2 9.2 0 0 0 0-18.4Z"></path>
+                            <path d="M11.5 4c-.208 0-.414.046-.605.135-.19.09-.362.221-.502.385-.141.164-.248.358-.315.568-.066.21-.09.434-.072.655l.6 7.01a.982.982 0 0 0 .293.613.87.87 0 0 0 .602.246.87.87 0 0 0 .602-.246.982.982 0 0 0 .293-.612l.598-7.011a1.697 1.697 0 0 0-.072-.654 1.623 1.623 0 0 0-.314-.568 1.506 1.506 0 0 0-.502-.385A1.421 1.421 0 0 0 11.5 4Zm0 14c.35 0 .684-.148.93-.41.246-.263.385-.619.385-.99s-.139-.727-.385-.99a1.274 1.274 0 0 0-.93-.41c-.348 0-.682.148-.928.41a1.448 1.448 0 0 0-.385.99c0 .371.138.727.385.99.246.262.58.41.929.41Z"></path>
+                        </g>
+                        <defs>
+                            <clipPath>
+                                <path fill="#fff" d="M0 0h23v23H0z"></path>
+                            </clipPath>
+                        </defs>
+                    </svg></div>
+                </div>
+                <div class="da-alert__content">
+                    <p class="govuk-body">Closed records must be approved by the advisory council before transfer. You must provide metadata about closed records.</p>
+                </div>
+            </div>
+
+            <h2 class="govuk-heading-m">Download your metadata template</h2>
+
+            <p class="govuk-body">Download an Excel template that contains pre-populated metadata. The metadata values in the template were either extracted from your records or set by default. See 'Quick Guide' tab in template for guidance.</p>
+
+            @downloadMetadataLink(consignmentId, "Download metadata template (Excel)", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
+
+            <h2 class="govuk-heading-m">Saving your spreadsheet as a CSV</h2>
+            <p class="govuk-body">Once you have completed your metadata template, you will need to save it as a <abbr title="Comma Separated Values">CSV</abbr> file before you upload it to TDR.</p>
+
+            @details(
+                Details(
+                    detailsSummary = "How to save an Excel file as CSV",
+                    detailsText =
+                        """
+                           When you have finished entering metadata:
+                           <ol class="govuk-list govuk-list--number">
+                             <li>Save your file as Excel first (File > Save) before you save as CSV</li>
+                             <li>Click File > Save As
+                             <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
+                             <li>Click Save</li>
+                             <li>Close the file, you are ready to upload</li>
+                           </ol>
+                           If you need to make more changes to metadata, we recommend that you open the Excel file you saved first, make changes, and then save again as CSV. Opening a CSV file in Excel can cause formats to be converted.
+                       """
+                )
+            )
+
+            @daAlert(heading = "Leaving and returning to this transfer", content = Html(s"You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='${routes.ViewTransfersController.viewConsignments(1)}'>View transfers</a>."))
+
+            <p class="govuk-body">Once you have completed your metadata spreadsheet continue to upload a CSV.</p>
+
+
+            @form(routes.PrepareMetadataController.prepareMetadataSubmit(consignmentId), (Symbol("novalidate"), "")) {
+                @CSRF.formField
+                <button type="submit" role="button" draggable="false" class="govuk-button govuk-!-margin-top-4" data-module="govuk-button">
+                    Continue
+                </button>
+            }
+
+            @details(Details(
+                detailsSummary = "I don't need to provide any metadata",
+                detailsText =
+                    s"""
+                        Transfers will need additional metadata unless:
+                        <ul class="govuk-list govuk-list--bullet">
+                          <li>All dates last modified are accurate</li>
+                          <li>All filenames are descriptive</li>
+                          <li>All records are Open</li>
+                          <li>All records are in English</li>
+                        </ul>
+                        <a href="${routes.DownloadMetadataController.downloadMetadataPage(consignmentId)}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                            I don't need to provide any metadata
+                        </a>
+                    """
+                )
+            )
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+}
