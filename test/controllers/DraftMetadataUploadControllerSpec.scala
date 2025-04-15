@@ -60,7 +60,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       pageAsString must include("<title>Upload a metadata CSV - Transfer Digital Records - GOV.UK</title>")
       pageAsString must include(s"""<a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-back-link">Prepare your metadata</a>""")
       pageAsString must include("""<p class="govuk-body">Upload a <abbr title="Comma Separated Values">CSV</abbr> containing the record metadata.</p>""")
-      pageAsString must include("""<details class="govuk-details govuk-!-margin-bottom-2" data-module="govuk-details">
+      pageAsString must include("""<details class="govuk-details">
                                   |  <summary class="govuk-details__summary">
                                   |    <span class="govuk-details__summary-text">How to save an Excel file as CSV</span>
                                   |  </summary>""".stripMargin)
