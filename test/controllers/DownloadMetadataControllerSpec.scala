@@ -182,7 +182,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
       )
       responseAsString must include(s"""<a class="govuk-button" href="/consignment/$consignmentId/confirm-transfer"""")
-      responseAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/entry-method"""")
+      responseAsString must include(s"""<a href="/consignment/$consignmentId/draft-metadata/prepare-metadata"""")
     }
 
     "load the download metadata page with the image, download link, next button and back button when 'blockMetadataReview' set to false" in {
