@@ -223,10 +223,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       parentFolder: Option[String] = None,
       consignmentReference: String = "TEST-TDR-2021-GB",
       parentFolderId: Option[UUID] = None,
+      clientSideDraftMetadataFileName: Option[String] = None,
       consignmentStatuses: List[gcd.GetConsignment.ConsignmentStatuses]
   ): StubMapping = {
     val folderOrNull = parentFolder.map(folder => s""" "$folder" """).getOrElse("null")
     val folderIdOrNull = parentFolderId.map(id => s""" "$id" """).getOrElse("null")
+    val fileNameOrNull = clientSideDraftMetadataFileName.map(fn => s""" "$fn" """).getOrElse("null")
     val dataString =
       s"""{"data": {"getConsignment": {
          |"consignmentReference": "$consignmentReference",
@@ -234,6 +236,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
          | "parentFolderId": $folderIdOrNull,
          | "userid" : "${UUID.randomUUID()}",
          | "seriesid": "${UUID.randomUUID()}",
+         | "clientSideDraftMetadataFileName": $fileNameOrNull,
          | "consignmentStatuses": ${consignmentStatuses.asJson.printWith(Printer.noSpaces)}
          | }}} """.stripMargin
 
