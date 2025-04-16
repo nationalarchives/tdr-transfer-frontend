@@ -58,7 +58,8 @@ class DraftMetadataChecksResultsController @Inject() (
                   request.token.name,
                   actionMessage(errorType),
                   detailsMessage(errorType),
-                  uploadedFileName
+                  uploadedFileName,
+                  DraftMetadataProgress("Issues found", "orange")
                 )
             } else {
               views.html.draftmetadata
@@ -69,7 +70,8 @@ class DraftMetadataChecksResultsController @Inject() (
                   actionMessage(errorType),
                   detailsMessage(errorType),
                   getAffectedProperties(errorReport),
-                  uploadedFileName
+                  uploadedFileName,
+                  DraftMetadataProgress("Issues found", "orange")
                 )
             }
           }

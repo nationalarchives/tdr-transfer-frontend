@@ -98,26 +98,28 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported.</p>"""
       )
       pageAsString must include(
-        s"""          <dl class="govuk-summary-list">
-            |                <div class="govuk-summary-list__row">
-            |                    <dt class="govuk-summary-list__key">
-            |                        Status
-            |                    </dt>
-            |                    <dd class="govuk-summary-list__value">
-            |                        <strong class="govuk-tag govuk-tag--${DraftMetadataProgress("IMPORTED", "blue").colour}">
-            |                            ${DraftMetadataProgress("IMPORTED", "blue").value}
-            |                        </strong>
-            |                    </dd>
-            |                </div>
-            |                <div class="govuk-summary-list__row">
-            |                    <dt class="govuk-summary-list__key">
-            |                        Uploaded file
-            |                    </dt>
-            |                    <dd class="govuk-summary-list__value">
-            |                        <code>$uploadedFileName</code>
-            |                    </dd>
-            |                </div>
-            |            </dl>""".stripMargin
+        s"""            <dl class="govuk-summary-list">
+           |
+           |<div class="govuk-summary-list__row">
+           |    <dt class="govuk-summary-list__key">
+           |        Status
+           |    </dt>
+           |    <dd class="govuk-summary-list__value">
+           |        <strong class="govuk-tag govuk-tag--blue">
+           |        IMPORTED
+           |        </strong>
+           |    </dd>
+           |</div>
+           |<div class="govuk-summary-list__row">
+           |    <dt class="govuk-summary-list__key">
+           |        Uploaded file
+           |    </dt>
+           |    <dd class="govuk-summary-list__value">
+           |        <code>file name.csv</code>
+           |    </dd>
+           |</div>
+           |
+           |            </dl>""".stripMargin
       )
       pageAsString must include(
         s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=/consignment/$consignmentId/draft-metadata/upload>
