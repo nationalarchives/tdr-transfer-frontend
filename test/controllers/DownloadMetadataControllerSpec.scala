@@ -148,8 +148,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
@@ -213,8 +211,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
@@ -250,8 +246,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-    val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
