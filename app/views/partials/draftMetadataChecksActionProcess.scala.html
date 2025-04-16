@@ -1,4 +1,6 @@
-@(actionMessage: String, detailsMessage: String, affectedProperties: Set[String] = Set())(implicit request: RequestHeader, messages: Messages)
+@import views.html.partials._
+
+@(actionMessage: String, detailsMessage: String, affectedProperties: Set[String] = Set(), uploadedFileName: String, draftMetadataProgress: DraftMetadataProgress)(implicit request: RequestHeader, messages: Messages)
 
 <h1 class="govuk-heading-l">
     Results of your metadata checks
@@ -8,15 +10,7 @@
 <p class="govuk-body"></p>
 
 <dl class="govuk-summary-list">
-    <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
-            Status
-        </dt>
-        <dd class="govuk-summary-list__value">
-            <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
-        </dd>
-    </div>
-
+    @draftMetadataResultDetails(draftMetadataProgress, uploadedFileName)
     <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
             Details
