@@ -2,7 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment => gcs}
+import graphql.codegen.GetConsignment.getConsignment.{GetConsignment => gc}
 import org.apache.pekko.util.ByteString
 import org.dhatim.fastexcel.reader.{ReadableWorkbook, Row, Sheet}
 import org.mockito.ArgumentMatchers.any
@@ -23,7 +23,6 @@ import testUtils.FrontEndTestHelper
 import uk.gov.nationalarchives.tdr.validation.Metadata
 
 import java.io.ByteArrayInputStream
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.{Properties, UUID}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
@@ -79,12 +78,11 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         .draftMetadataChecksResultsPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
-      val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
       val consignmentStatuses = List(
-        gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, CompletedValue.value, someDateTime, None)
+        gc.ConsignmentStatuses(DraftMetadataType.id, CompletedValue.value)
       )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      val uploadedFileName = "file name.csv"
+      setConsignmentDetailsResponse(wiremockServer, consignmentStatuses = consignmentStatuses, clientSideDraftMetadataFileName = Some(uploadedFileName))
 
       val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
 
@@ -109,6 +107,14 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
             |                        <strong class="govuk-tag govuk-tag--${DraftMetadataProgress("IMPORTED", "blue").colour}">
             |                            ${DraftMetadataProgress("IMPORTED", "blue").value}
             |                        </strong>
+            |                    </dd>
+            |                </div>
+            |                <div class="govuk-summary-list__row">
+            |                    <dt class="govuk-summary-list__key">
+            |                        Uploaded file
+            |                    </dt>
+            |                    <dd class="govuk-summary-list__value">
+            |                        <code>$uploadedFileName</code>
             |                    </dd>
             |                </div>
             |            </dl>""".stripMargin
@@ -146,12 +152,11 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
             .draftMetadataChecksResultsPage(consignmentId)
             .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
           setConsignmentTypeResponse(wiremockServer, "standard")
-          setConsignmentReferenceResponse(wiremockServer)
-          val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+          val uploadedFileName = "file name.csv"
           val consignmentStatuses = List(
-            gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, statusValue, someDateTime, None)
+            gc.ConsignmentStatuses(DraftMetadataType.id, statusValue)
           )
-          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+          setConsignmentDetailsResponse(wiremockServer, consignmentStatuses = consignmentStatuses, clientSideDraftMetadataFileName = Some(uploadedFileName))
 
           val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
 
@@ -238,12 +243,11 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
             .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
 
           setConsignmentTypeResponse(wiremockServer, "standard")
-          setConsignmentReferenceResponse(wiremockServer)
-          val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+          val uploadedFileName = "file name.csv"
           val consignmentStatuses = List(
-            gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, statusValue, someDateTime, None)
+            gc.ConsignmentStatuses(DraftMetadataType.id, statusValue)
           )
-          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+          setConsignmentDetailsResponse(wiremockServer, consignmentStatuses = consignmentStatuses, clientSideDraftMetadataFileName = Some(uploadedFileName))
 
           val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
 
@@ -400,7 +404,6 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       keycloakConfiguration,
       consignmentService,
       applicationConfig,
-      consignmentStatusService,
       draftMetaDataService,
       messagesApi
     )

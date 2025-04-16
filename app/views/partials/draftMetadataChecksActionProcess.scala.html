@@ -1,4 +1,4 @@
-@(actionMessage: String, detailsMessage: String, affectedProperties: Set[String] = Set())(implicit request: RequestHeader, messages: Messages)
+@(actionMessage: String, detailsMessage: String, affectedProperties: Set[String] = Set(), uploadedFileName: String)(implicit request: RequestHeader, messages: Messages)
 
 <h1 class="govuk-heading-l">
     Results of your metadata checks
@@ -14,6 +14,15 @@
         </dt>
         <dd class="govuk-summary-list__value">
             <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
+        </dd>
+    </div>
+
+    <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+            Uploaded file
+        </dt>
+        <dd class="govuk-summary-list__value">
+            <code>@uploadedFileName</code>
         </dd>
     </div>
 
