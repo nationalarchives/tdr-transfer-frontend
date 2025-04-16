@@ -98,9 +98,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported.</p>"""
       )
       pageAsString must include(
-        s"""            <dl class="govuk-summary-list">
-           |
-           |<div class="govuk-summary-list__row">
+        s"""<div class="govuk-summary-list__row">
            |    <dt class="govuk-summary-list__key">
            |        Status
            |    </dt>
@@ -117,9 +115,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
            |    <dd class="govuk-summary-list__value">
            |        <code>file name.csv</code>
            |    </dd>
-           |</div>
-           |
-           |            </dl>""".stripMargin
+           |</div>""".stripMargin
       )
       pageAsString must include(
         s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=/consignment/$consignmentId/draft-metadata/upload>
