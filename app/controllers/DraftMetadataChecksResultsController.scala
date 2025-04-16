@@ -24,7 +24,6 @@ class DraftMetadataChecksResultsController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
     val applicationConfig: ApplicationConfig,
-    val consignmentStatusService: ConsignmentStatusService,
     val draftMetadataService: DraftMetadataService,
     val messages: MessagesApi
 )(implicit val ec: ExecutionContext)
@@ -37,9 +36,11 @@ class DraftMetadataChecksResultsController @Inject() (
     } else {
       val token = request.token.bearerAccessToken
       for {
-        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
-        draftMetadataStatus = consignmentStatuses.find(_.statusType == DraftMetadataType.id).map(_.value)
+        consignmentDetails <- consignmentService.getConsignmentDetails(consignmentId, token)
+        reference = consignmentDetails.consignmentReference
+        statuses = consignmentDetails.consignmentStatuses
+        uploadedFileName = consignmentDetails.clientSideDraftMetadataFileName.getOrElse("Not Available")
+        draftMetadataStatus = statuses.find(_.statusType == DraftMetadataType.id).map(_.value)
         errorReport <- getErrorReport(draftMetadataStatus, consignmentId)
         errorType = getErrorType(errorReport, draftMetadataStatus)
       } yield {
@@ -47,7 +48,7 @@ class DraftMetadataChecksResultsController @Inject() (
           // leaving original page for no errors
           if (errorType == FileError.NONE) {
             views.html.draftmetadata
-              .draftMetadataChecksResults(consignmentId, reference, DraftMetadataProgress("IMPORTED", "blue"), request.token.name)
+              .draftMetadataChecksResults(consignmentId, reference, DraftMetadataProgress("IMPORTED", "blue"), request.token.name, uploadedFileName)
           } else {
             if (isErrorReportAvailable(errorType)) {
               views.html.draftmetadata
@@ -56,7 +57,8 @@ class DraftMetadataChecksResultsController @Inject() (
                   reference,
                   request.token.name,
                   actionMessage(errorType),
-                  detailsMessage(errorType)
+                  detailsMessage(errorType),
+                  uploadedFileName
                 )
             } else {
               views.html.draftmetadata
@@ -66,7 +68,8 @@ class DraftMetadataChecksResultsController @Inject() (
                   request.token.name,
                   actionMessage(errorType),
                   detailsMessage(errorType),
-                  getAffectedProperties(errorReport)
+                  getAffectedProperties(errorReport),
+                  uploadedFileName
                 )
             }
           }
