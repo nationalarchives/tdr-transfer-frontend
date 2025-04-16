@@ -49,7 +49,7 @@ class DownloadMetadataController @Inject() (
     val metadataConfiguration = ConfigUtils.loadConfiguration
     val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
     val propertyTypeEvaluator = metadataConfiguration.getPropertyType
-    val downloadType = "ClientTemplate"
+    val downloadType = "MetadataDownloadTemplate"
     val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
 
     for {
