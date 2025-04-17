@@ -18,7 +18,7 @@
             If we find any issues with your metadata we will send guidance to <strong>@email</strong>.
           </div>
 
-          <p class="govuk-body">Once you have submitted your metadata for review we recommend you don't make further changes to your metadata CSV.  If you need to make any changes before submitting a review <a href="@routes.AdditionalMetadataController.start(consignmentId)" class="govuk-link">return to Record metadata</a> to edit the metadata.</p>
+          <p class="govuk-body">Once you have submitted your metadata for review we recommend you don't make further changes to your metadata CSV.  If you need to make any changes before submitting a review <a href="@routes.PrepareMetadataController.prepareMetadata(consignmentId)" class="govuk-link">return to Record metadata</a> to edit the metadata.</p>
 
           @form(routes.RequestMetadataReviewController.submitMetadataForReview(consignmentId), (Symbol("novalidate"), "")) {
             @CSRF.formField
