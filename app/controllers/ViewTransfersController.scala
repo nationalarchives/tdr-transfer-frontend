@@ -90,8 +90,6 @@ class ViewTransfersController @Inject() (
         UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
       case s if s.containsStatuses(MetadataReviewType) && !applicationConfig.blockMetadataReview =>
         UserAction(InProgress.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
-      case s if s.containsStatuses(DraftMetadataType) =>
-        UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
       case s if additionalMetadataEntered(s) =>
         UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
@@ -124,7 +122,8 @@ class ViewTransfersController @Inject() (
   }
 
   private def additionalMetadataEntered(statuses: List[ConsignmentStatuses]): Boolean = {
-    val additionalMetadataStatuses = statuses.filter(s => s.statusType == DescriptiveMetadataType.id || s.statusType == ClosureMetadataType.id).map(_.value)
+    val additionalMetadataStatuses =
+      statuses.filter(s => s.statusType == DescriptiveMetadataType.id || s.statusType == ClosureMetadataType.id || s.statusType == DraftMetadataType.id).map(_.value)
     !additionalMetadataStatuses.forall(_ == NotEnteredValue.value)
   }
 
