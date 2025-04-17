@@ -3,19 +3,17 @@ package controllers
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.util.{ExcelUtils, RedirectUtils}
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.validation.utils.ConfigUtils
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.Future
 
 class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
@@ -51,13 +49,13 @@ class DownloadMetadataController @Inject() (
     val propertyTypeEvaluator = metadataConfiguration.getPropertyType
     val downloadType = "MetadataDownloadTemplate"
     val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
+    case class DownloadProperty(name: String, order: Int)
 
     for {
-      metadata: getConsignmentFilesMetadata.GetConsignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
-      downloadProperties <- Future.successful(metadataConfiguration.downloadProperties(downloadType).sortBy(_._2).map(downloadProperty => downloadProperty._1))
-      excelFile <- Future.successful(
-        ExcelUtils.createExcelFile(metadata.consignmentReference, metadata, downloadProperties, tdrFileHeaderMapper, propertyTypeEvaluator, fileSortColumn)
-      )
+      metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
+      downloadProperties = metadataConfiguration.downloadProperties(downloadType).map(downloadProperty => DownloadProperty(downloadProperty._1, downloadProperty._2))
+      orderedDownloadNames = downloadProperties.sortBy(_.order).map(downloadProperty => downloadProperty.name)
+      excelFile = ExcelUtils.createExcelFile(metadata.consignmentReference, metadata, orderedDownloadNames, tdrFileHeaderMapper, propertyTypeEvaluator, fileSortColumn)
     } yield {
       Ok(excelFile)
         .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
