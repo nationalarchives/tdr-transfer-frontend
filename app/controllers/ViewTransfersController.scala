@@ -90,8 +90,10 @@ class ViewTransfersController @Inject() (
         UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
       case s if s.containsStatuses(MetadataReviewType) && !applicationConfig.blockMetadataReview =>
         UserAction(InProgress.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
+      case s if s.containsStatuses(DraftMetadataType) =>
+        UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
       case s if additionalMetadataEntered(s) =>
-        UserAction(InProgress.value, routes.AdditionalMetadataController.start(consignmentId).url, Resume.value)
+        UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
         toFileChecksAction(s, judgmentType, consignmentId)
       case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
