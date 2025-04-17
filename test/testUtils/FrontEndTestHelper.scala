@@ -18,6 +18,7 @@ import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
+import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
@@ -117,10 +118,15 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setAddConsignmentStatusResponse(wiremockServer: WireMockServer): StubMapping = {
+  def setAddConsignmentStatusResponse(
+      wiremockServer: WireMockServer,
+      consignmentId: UUID = UUID.randomUUID(),
+      statusType: StatusType = SeriesType,
+      statusValue: StatusValue = InProgressValue
+  ): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[acs.Data, acs.Variables]()
     val dataString = client
-      .GraphqlData(Option(acs.Data(AddConsignmentStatus(UUID.randomUUID(), UUID.randomUUID(), SeriesType.id, InProgressValue.value, ZonedDateTime.now(), None))))
+      .GraphqlData(Option(acs.Data(AddConsignmentStatus(UUID.randomUUID(), consignmentId, statusType.id, statusValue.value, ZonedDateTime.now(), None))))
       .asJson
       .printWith(Printer.noSpaces)
     wiremockServer.stubFor(
@@ -217,10 +223,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       parentFolder: Option[String] = None,
       consignmentReference: String = "TEST-TDR-2021-GB",
       parentFolderId: Option[UUID] = None,
+      clientSideDraftMetadataFileName: Option[String] = None,
       consignmentStatuses: List[gcd.GetConsignment.ConsignmentStatuses]
   ): StubMapping = {
     val folderOrNull = parentFolder.map(folder => s""" "$folder" """).getOrElse("null")
     val folderIdOrNull = parentFolderId.map(id => s""" "$id" """).getOrElse("null")
+    val fileNameOrNull = clientSideDraftMetadataFileName.map(fn => s""" "$fn" """).getOrElse("null")
     val dataString =
       s"""{"data": {"getConsignment": {
          |"consignmentReference": "$consignmentReference",
@@ -228,6 +236,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
          | "parentFolderId": $folderIdOrNull,
          | "userid" : "${UUID.randomUUID()}",
          | "seriesid": "${UUID.randomUUID()}",
+         | "clientSideDraftMetadataFileName": $fileNameOrNull,
          | "consignmentStatuses": ${consignmentStatuses.asJson.printWith(Printer.noSpaces)}
          | }}} """.stripMargin
 
@@ -431,6 +440,18 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("displayProperties"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  def setUpdateClientSideFileNameResponse(wireMockServer: WireMockServer): Unit = {
+    val client: GraphQLClient[ucsdmfn.Data, ucsdmfn.Variables] = new GraphQLConfiguration(app.configuration).getClient[ucsdmfn.Data, ucsdmfn.Variables]()
+    val data: client.GraphqlData = client.GraphqlData(Some(ucsdmfn.Data(Some(1))))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wireMockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("updateClientSideDraftMetadataFileName"))
         .willReturn(okJson(dataString))
     )
   }
@@ -1147,7 +1168,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     }.toList
 
   def downloadLinkHTML(consignmentId: UUID): String = {
-    val linkHTML: String = s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
+    val linkHTML: String = s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
                               |    <span aria-hidden="true" class="tna-button-icon">
                               |        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
                               |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>
