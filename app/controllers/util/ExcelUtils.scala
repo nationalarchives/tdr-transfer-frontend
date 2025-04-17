@@ -1,13 +1,13 @@
 package controllers.util
 
+import controllers.util.DateUtils.covertToLocalDateOrString
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.dhatim.fastexcel.{Workbook, Worksheet}
 import uk.gov.nationalarchives.tdr.validation.utils.ConfigUtils
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime}
+import java.time.LocalDate
 
 object ExcelUtils {
 
@@ -73,7 +73,7 @@ object ExcelUtils {
             .get(tdrDataLoadHeader(colOrderSchemaPropertyName))
             .map { fileMetadataValue =>
               metadataConfiguration.getPropertyType(colOrderSchemaPropertyName) match {
-                case "date"    => extractDate(fileMetadataValue)
+                case "date"    => covertToLocalDateOrString(fileMetadataValue)
                 case "boolean" => if (fileMetadataValue == "true") "Yes" else "No"
                 case "integer" => Integer.valueOf(fileMetadataValue)
                 case _         => fileMetadataValue
@@ -82,19 +82,6 @@ object ExcelUtils {
             .getOrElse("")
         }
       }
-    }
-  }
-
-  private def extractDate(date: String): Any = {
-    val regex = """\d{4}([-]|[.])\d{2}\1\d{2}(T\d{2}:\d{2}:\d{2}([.]\d{1,3})?)?""".r
-    val slashRegex = """\d{4}/\d{2}/\d{2}""".r
-    val parseFormatterTimeStamp = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
-    date match {
-      case regex(_*) =>
-        LocalDateTime.parse(date, parseFormatterTimeStamp).toLocalDate
-      case slashRegex(_*) =>
-        LocalDateTime.parse(date.replaceAll("/", "-") + "T00:00:00", parseFormatterTimeStamp).toLocalDate
-      case _ => date
     }
   }
 
