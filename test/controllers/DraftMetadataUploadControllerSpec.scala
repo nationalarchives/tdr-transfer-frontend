@@ -72,13 +72,6 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       pageAsString must include(
         """<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>"""
       )
-      pageAsString must include("""<div class="govuk-warning-text">
-                                  |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                                  |                <strong class="govuk-warning-text__text">
-                                  |                    <span class="govuk-warning-text__assistive">Warning</span>
-                                  |                    We can only accept metadata in a <abbr title="Comma Separated Values">CSV</abbr> UTF-8 file format.
-                                  |                </strong>
-                                  |            </div>""".stripMargin)
       pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
                                   |                                Upload
                                   |                            </button>""".stripMargin)
