@@ -57,8 +57,8 @@ scalacOptions ++= Seq("-language:implicitConversions")
 libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.2.0"
 
-libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.4"
-libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.4"
+libraryDependencies += "org.dhatim" % "fastexcel" % "0.19.0"
+libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.19.0"
 
 excludeDependencies ++= Seq(
   ExclusionRule(organization = "com.typesafe.akka"),
