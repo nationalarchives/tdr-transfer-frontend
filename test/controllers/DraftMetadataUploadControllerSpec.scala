@@ -1,6 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
@@ -57,6 +58,23 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       playStatus(draftMetadataUploadPage) mustBe OK
       contentType(draftMetadataUploadPage) mustBe Some("text/html")
       pageAsString must include("<title>Upload a metadata CSV - Transfer Digital Records - GOV.UK</title>")
+      pageAsString must include(s"""<a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-back-link">Prepare your metadata</a>""")
+      pageAsString must include("""<p class="govuk-body">Upload a <abbr title="Comma Separated Values">CSV</abbr> containing the record metadata.</p>""")
+      pageAsString must include("""<details class="govuk-details">
+                                  |  <summary class="govuk-details__summary">
+                                  |    <span class="govuk-details__summary-text">How to save an Excel file as CSV</span>
+                                  |  </summary>""".stripMargin)
+      pageAsString must include("""<li>Save your file as Excel first (File > Save) before you save as CSV</li>
+                                  |                                 <li>Click File > Save As
+                                  |                                 <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
+                                  |                                 <li>Click Save</li>
+                                  |                                 <li>Close the file, you are ready to upload</li>""".stripMargin)
+      pageAsString must include(
+        """<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>"""
+      )
+      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+                                  |                                Upload
+                                  |                            </button>""".stripMargin)
     }
 
     "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
@@ -112,6 +130,11 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
       setUpdateConsignmentStatus(wiremockServer)
 
+      val consignmentServiceMock = mock[ConsignmentService]
+      when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
+        .thenReturn(Future.successful(1))
+      setUpdateClientSideFileNameResponse(wiremockServer)
+
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
@@ -147,6 +170,26 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
+      val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
+
+      playStatus(response) mustBe 200
+
+      contentAsString(response) must include("There is a problem")
+    }
+
+    "render error page when upload successful but file name update fails" in {
+      val uploadServiceMock = mock[UploadService]
+      setConsignmentReferenceResponse(wiremockServer)
+      val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
+      when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]]))
+        .thenReturn(Future.successful(putObjectResponse))
+
+      val consignmentServiceMock = mock[ConsignmentService]
+      when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
+        .thenReturn(Future.failed(new RuntimeException("File name update failed")))
+
+      val draftMetadataServiceMock = mock[DraftMetadataService]
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200
