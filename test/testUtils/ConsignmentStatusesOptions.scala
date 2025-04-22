@@ -283,7 +283,7 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataNotEntered,
         includeDefaultStatuses = false
       ),
-      "/additional-metadata",
+      "/draft-metadata/prepare-metadata",
       "In Progress",
       "Resume transfer"
     ),
@@ -293,7 +293,7 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataIncomplete,
         includeDefaultStatuses = false
       ),
-      "/additional-metadata",
+      "/draft-metadata/prepare-metadata",
       "In Progress",
       "Resume transfer"
     ),
@@ -303,7 +303,7 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataComplete,
         includeDefaultStatuses = false
       ),
-      "/additional-metadata",
+      "/draft-metadata/prepare-metadata",
       "In Progress",
       "Resume transfer"
     ),
@@ -313,7 +313,7 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataNotEntered ++ closureMetadataIncomplete,
         includeDefaultStatuses = false
       ),
-      "/additional-metadata",
+      "/draft-metadata/prepare-metadata",
       "In Progress",
       "Resume transfer"
     ),
@@ -323,7 +323,7 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataNotEntered ++ closureMetadataComplete,
         includeDefaultStatuses = false
       ),
-      "/additional-metadata",
+      "/draft-metadata/prepare-metadata",
       "In Progress",
       "Resume transfer"
     ),
@@ -333,7 +333,7 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataComplete ++ closureMetadataComplete,
         includeDefaultStatuses = false
       ),
-      "/additional-metadata",
+      "/draft-metadata/prepare-metadata",
       "In Progress",
       "Resume transfer"
     ),
