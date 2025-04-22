@@ -48,5 +48,7 @@ draftMetadata.validation.details.SCHEMA_REQUIRED=There was at least one missing 
 draftMetadata.validation.action.SCHEMA_REQUIRED=Add the following column headers to your metadata file and re-load.
 draftMetadata.validation.details.DUPLICATE_HEADER=There was at least one duplicate column in your metadata file.
 draftMetadata.validation.action.DUPLICATE_HEADER=Ensure there is only one of the following duplicated columns.
+draftMetadata.validation.details.ADDITIONAL_HEADER=There was at least one column that we are not expecting. Please only include columns provided in the template file.
+draftMetadata.validation.action.ADDITIONAL_HEADER=The following columns could not be recognised, please remove them from your file and re-load.
 draftMetadata.validation.details.UNKNOWN=An unknown error was identified.
 draftMetadata.validation.action.UNKNOWN=Please contact your Digital Transfer Advisor on <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a> quoting the Consignment Reference.

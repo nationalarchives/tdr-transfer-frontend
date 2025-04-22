@@ -1,13 +1,33 @@
 package controllers.util
 
-import org.dhatim.fastexcel.{Workbook, Worksheet}
+import controllers.util.DateUtils.covertToLocalDateOrString
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
-import graphql.codegen.types.DataType
+import org.dhatim.fastexcel.{Workbook, Worksheet}
+import uk.gov.nationalarchives.tdr.validation.utils.ConfigUtils
+
 import java.time.LocalDate
 
 object ExcelUtils {
 
-  def writeExcel(worksheetName: String, rows: List[List[Any]], dataTypes: List[DataType] = Nil): Array[Byte] = {
+  def createExcelFile(
+      consignmentRef: String,
+      fileMetadata: getConsignmentFilesMetadata.GetConsignment,
+      downloadProperties: List[String],
+      tdrFileHeader: String => String,
+      propertyType: String => String,
+      sortColumn: String
+  ): Array[Byte] = {
+    val header = downloadProperties.map(colOrderSchemaPropertyName => tdrFileHeader(colOrderSchemaPropertyName))
+    val dataTypes: List[String] = downloadProperties.map(propertyType)
+    val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value.toUpperCase))
+    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadProperties)
+
+    ExcelUtils.writeExcel(s"Metadata for $consignmentRef", header :: fileMetadataRows, dataTypes)
+  }
+
+  def writeExcel(worksheetName: String, rows: List[List[Any]], dataTypes: List[String] = Nil): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
     val ws: Worksheet = wb.newWorksheet(worksheetName)
@@ -30,8 +50,8 @@ object ExcelUtils {
 
     for ((dataType, colNo) <- dataTypes.zipWithIndex) {
       dataType match {
-        case DataType.DateTime => ws.range(1, colNo, rows.tail.length, colNo).style.format("yyyy-MM-dd").set()
-        case _                 =>
+        case "date" => ws.range(1, colNo, rows.tail.length, colNo).style.format("yyyy-MM-dd").set()
+        case _      =>
       }
     }
 
@@ -39,6 +59,30 @@ object ExcelUtils {
 
     xlBas.toByteArray
 
+  }
+
+  private def createExcelRowData(sortedMetaData: List[Files], downloadProperties: List[String]): List[List[Any]] = {
+    val metadataConfiguration = ConfigUtils.loadConfiguration
+    val tdrDataLoadHeader = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
+
+    sortedMetaData.map { file =>
+      {
+        val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
+        downloadProperties.map { colOrderSchemaPropertyName =>
+          groupedMetadata
+            .get(tdrDataLoadHeader(colOrderSchemaPropertyName))
+            .map { fileMetadataValue =>
+              metadataConfiguration.getPropertyType(colOrderSchemaPropertyName) match {
+                case "date"    => covertToLocalDateOrString(fileMetadataValue)
+                case "boolean" => if (fileMetadataValue == "true") "Yes" else "No"
+                case "integer" => Integer.valueOf(fileMetadataValue)
+                case _         => fileMetadataValue
+              }
+            }
+            .getOrElse("")
+        }
+      }
+    }
   }
 
 }
