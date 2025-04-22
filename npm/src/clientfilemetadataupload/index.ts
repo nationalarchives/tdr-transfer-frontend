@@ -89,8 +89,8 @@ export class ClientFileMetadataUpload {
   }
 
   createMetadataInputsAndFileMap(allFileMetadata: IFileMetadata[]): {
-    metadataInputs: ClientSideMetadataInput[]
-    matchFileMap: Map<number, IFileWithPath>
+    metadataInputs: ClientSideMetadataInput[];
+    matchFileMap: Map<String, IFileWithPath>
   } {
     return allFileMetadata.reduce(
       (result, metadata: IFileMetadata, matchId) => {
@@ -99,13 +99,13 @@ export class ClientFileMetadataUpload {
         //Ensure file paths stored in database are consistent
         const pathWithoutSlash = path.startsWith("/") ? path.substring(1) : path
         const filePath = pathWithoutSlash ? pathWithoutSlash : file.name
-        result.matchFileMap.set(matchId, { file, path: filePath })
+        result.matchFileMap.set(matchId.toString(), { file, path: filePath })
         const metadataInput: ClientSideMetadataInput = {
           originalPath: filePath,
           checksum,
           lastModified: lastModified.getTime(),
           fileSize: size,
-          matchId
+          matchId: matchId.toString()
         }
         result.metadataInputs.push(metadataInput)
 
@@ -113,7 +113,7 @@ export class ClientFileMetadataUpload {
       },
       {
         metadataInputs: <ClientSideMetadataInput[]>[],
-        matchFileMap: new Map<number, IFileWithPath>()
+        matchFileMap: new Map<String, IFileWithPath>()
       }
     )
   }
