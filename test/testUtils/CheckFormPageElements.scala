@@ -54,7 +54,7 @@ class CheckFormPageElements() {
       |            Description
       |        </label>""",
     """<span class="govuk-details__summary-text">A details summary</span>""",
-    """<div class="govuk-details__text"><p class="govuk-body">A details text</p></div>""",
+    """<div class="govuk-details__text">A details text</div>""",
     """    <div id="inputtextarea-description-hint" class="govuk-hint">
       |        This description will be visible on Discovery and help explain the content of your file(s).
       |    </div>""",

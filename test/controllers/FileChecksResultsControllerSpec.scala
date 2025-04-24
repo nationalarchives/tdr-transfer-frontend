@@ -83,7 +83,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
            |                    <p class="govuk-body">You can leave and return to this upload at any time from the <a class="govuk-notification-banner__link" href="/view-transfers">View transfers</a> page.</p>""".stripMargin
 
       val buttonToProgress: String =
-        s"""            <a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/entry-method" role="button" draggable="false" data-module="govuk-button">
+        s"""            <a class="govuk-button" href="/consignment/$consignmentId/draft-metadata/prepare-metadata" role="button" draggable="false" data-module="govuk-button">
            |                Next
            |            </a>""".stripMargin
 

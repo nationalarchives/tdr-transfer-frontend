@@ -138,7 +138,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
       metadataReviewStatusPageAsString must include(
         s"""
            |<div class="govuk-button-group">
-           |    <a class="govuk-button" href="/consignment/$consignmentId/additional-metadata" role="button" draggable="false" data-module="govuk-button">
+           |    <a class="govuk-button" href="/consignment/$consignmentId/draft-metadata/prepare-metadata" role="button" draggable="false" data-module="govuk-button">
            |        Continue
            |    </a>
            |</div>""".stripMargin
