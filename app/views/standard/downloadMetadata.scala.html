@@ -5,7 +5,7 @@
 @import views.html.partials.downloadMetadataLink
 @(consignmentId: UUID, consignmentRef: String, name: String, blockMetadataReview: Boolean)(implicit messages: Messages, request: RequestHeader)
 
-@main("Download and review metadata", name = name, backLink = Some(backLink(routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId).url, "Back")) ) {
+@main("Download and review metadata", name = name, backLink = Some(backLink(routes.PrepareMetadataController.prepareMetadata(consignmentId).url, "Back")) ) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">

@@ -68,6 +68,7 @@ class DraftMetadataUploadController @Inject() (
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException(noDraftMetadataFileUploaded))
         draftMetadataBytes = new BufferedInputStream(new FileInputStream(file.ref.getAbsoluteFile)).readAllBytes()
         _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadataBytes)))
+        _ <- IO.fromFuture(IO { consignmentService.updateDraftMetadataFileName(consignmentId, file.filename, token.bearerAccessToken) })
         _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, uploadFileName, token) })
         successPage <- IO(play.api.mvc.Results.Redirect(successPage))
       } yield successPage
