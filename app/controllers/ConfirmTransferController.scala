@@ -71,7 +71,7 @@ class ConfirmTransferController @Inject() (
                 Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name)).uncache()
               }
             case None =>
-              //TODO: remove this feature block
+              // TODO: remove this feature block
               if (applicationConfig.blockSkipMetadataReview) {
                 val metadataReviewType = consignmentStatuses.find(_.statusType == MetadataReviewType.id)
                 if (metadataReviewType.isEmpty) {
