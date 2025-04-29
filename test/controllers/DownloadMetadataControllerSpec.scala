@@ -25,7 +25,7 @@ import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
