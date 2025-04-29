@@ -47,6 +47,8 @@ object ConsignmentStatusesOptions {
   private val closureMetadataNotEntered: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> NotEnteredValue)
   private val closureMetadataIncomplete: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> IncompleteValue)
   private val closureMetadataComplete: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> CompletedValue)
+  private val draftMetadataCompletedWithIssues: Map[StatusType, StatusValue] = Map(DraftMetadataType -> CompletedWithIssuesValue)
+  private val draftMetadataCompleted: Map[StatusType, StatusValue] = Map(DraftMetadataType -> CompletedValue)
   private val metadataReviewInProgress: Map[StatusType, StatusValue] = Map(MetadataReviewType -> InProgressValue)
   private val metadataReviewCompleted: Map[StatusType, StatusValue] = Map(MetadataReviewType -> CompletedValue)
   private val metadataReviewCompletedWithIssues: Map[StatusType, StatusValue] = Map(MetadataReviewType -> CompletedWithIssuesValue)
@@ -334,6 +336,26 @@ object ConsignmentStatusesOptions {
         includeDefaultStatuses = false
       ),
       "/draft-metadata/prepare-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "draft metadata completed with issues",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataComplete ++ closureMetadataComplete ++ draftMetadataCompletedWithIssues,
+        includeDefaultStatuses = false
+      ),
+      "/draft-metadata/checks-results",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "draft metadata completed",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataComplete ++ closureMetadataComplete ++ draftMetadataCompleted,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata/download-metadata",
       "In Progress",
       "Resume transfer"
     ),
