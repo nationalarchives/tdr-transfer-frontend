@@ -64,40 +64,6 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
     }
   }
 
-  def verifyAdditionalFormElements(htmlAsString: String): Unit = {
-    htmlAsString must include("""
-        |    <div class="govuk-radios__conditional" id="conditional-inputradio-TitleClosed-yes">
-        |        <div class="govuk-form-group">
-        |            <label class="govuk-label" for="inputradio-TitleClosed-TitleAlternate-yes">
-        |                Alternative Title
-        |""".stripMargin)
-
-    htmlAsString must include(
-      """<input class="govuk-input govuk-input govuk-input--width-20" id="inputradio-TitleClosed-TitleAlternate-yes" name="inputradio-TitleClosed-TitleAlternate-yes" type="text" value="inputtext-TitleAlternate-TitleAlternate value" />""".stripMargin
-    )
-    htmlAsString must include("""<div class="govuk-input__suffix">.docx</div>""".stripMargin)
-
-    htmlAsString must include("""
-        |    <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="8000">
-        |        <div class="govuk-radios__conditional" id="conditional-inputradio-DescriptionClosed-yes">
-        |            <label class="govuk-label" for="inputradio-DescriptionClosed-DescriptionAlternate-yes">
-        |                Description Alternate
-        |""".stripMargin)
-
-    htmlAsString must include(
-      """            <textarea class="govuk-textarea govuk-js-character-count"
-        |            id="inputradio-DescriptionClosed-DescriptionAlternate-yes"
-        |            name="inputradio-DescriptionClosed-DescriptionAlternate-yes"
-        |            rows="5"
-        |            aria-describedby="inputradio-DescriptionClosed-DescriptionAlternate-yes-info">inputtext-DescriptionAlternate-DescriptionAlternate value</textarea>""".stripMargin
-    )
-    htmlAsString must include(
-      """            <div id="inputradio-DescriptionClosed-DescriptionAlternate-yes-info" class="govuk-hint govuk-character-count__message">
-        |                You can enter up to 8000 characters
-        |            </div>""".stripMargin
-    )
-  }
-
   private def generateOptionStatus(option: MockInputOption, selectedValue: String): OptionStatus = {
     val optionWasSubmittedAndValueWasEnteredOrSelected = selectedValue != "OptionNotSubmitted" && selectedValue.nonEmpty
     val valueHasBeenEntered: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && option.value == ""
@@ -140,13 +106,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
 
     option.fieldType match {
       case "inputCheckbox"    => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
-      case "inputDate"        => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
-      case "inputmultiselect" => addValuesToMultiSelectAttributes(selected, valueEnteredOrSelected, option.id, option.name)
       case "inputDropdown"    => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
-      case "inputNumeric"     => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
-      case "inputRadio"       => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
-      case "inputText"        => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
-      case "inputTextArea"    => addValuesToTextAreaAttributes(option.id, option.rows, option.name, valueEnteredOrSelected, option.placeholder, option.wrap, option.maxLength)
     }
   }
 
@@ -166,34 +126,6 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
        |                $label""".stripMargin
   }
 
-  private def addValuesToDateAttributes(id: String, name: String, value: String, placeholder: String, hasDependency: Boolean, submitAttempted: Boolean): String = {
-
-    val doesNotHaveDependencyAndValueIsEmpty = !hasDependency && value.isEmpty
-    val inputBoxShouldBeRed = submitAttempted && doesNotHaveDependencyAndValueIsEmpty
-
-    s"""                    <input class="govuk-input
-       |                                  govuk-date-input__input
-       |                                  govuk-input--width-${if (placeholder.length > 2) 3 else 2}
-       |                                  ${if (inputBoxShouldBeRed) "govuk-input--error" else ""}"
-       |                           id="$id"
-       |                           name="$name"
-       |                           value="$value"
-       |                           type="number"
-       |                           inputmode="numeric"
-       |                           placeholder="$placeholder"
-       |                           maxlength="${placeholder.length}"
-       |                    >""".stripMargin
-  }
-
-  private def addValuesToMultiSelectAttributes(selected: Boolean, values: String, id: String, name: String): String = {
-
-    val status = if (selected) """checked""" else ""
-    s"""                    <li class="govuk-checkboxes__item">
-         |                        <input class="govuk-checkboxes__input" id="$id" name="$name" type="checkbox" value="${values}" $status>
-         |                        <label class="govuk-label govuk-checkboxes__label" for="$id">${values}</label>
-         |                    </li>""".stripMargin
-  }
-
   private def addValuesToDropdownAttributes(selected: Boolean, value: String, label: String, placeholder: String): String = {
     if (placeholder.nonEmpty) {
       val selectedStatus = if (selected) "selected" else ""
@@ -203,52 +135,6 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
       val selectedStatus = if (selected) """selected="selected" """ else ""
       s"""                <option ${selectedStatus}value="$value">$label</option>""".stripMargin
     }
-  }
-
-  private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String, submitAttempted: Boolean): String = {
-    val (width, inputType, inputMode) = fieldType match {
-      case "inputNumeric" => ("govuk-input--width-5", "number", "numeric")
-      case "inputText"    => ("", "text", "text")
-    }
-    s"""        <input
-       |            class="govuk-input $width ${if (submitAttempted && value.isEmpty) "govuk-input--error" else ""}"
-       |            id="$id"
-       |            name="$name"
-       |            type="$inputType"
-       |            value="$value"
-       |            placeholder="$placeholder"
-       |            inputmode="$inputMode"
-       |        >""".stripMargin
-  }
-
-  private def addValuesToTextAreaAttributes(id: String, rows: String, name: String, value: String, placeholder: String, wrap: String, maxLength: String): String = {
-    s"""<textarea class="govuk-textarea govuk-js-character-count "
-       |         rows="$rows"
-       |         id="$id"
-       |         name="$name"
-       |         placeholder="$placeholder"
-       |         wrap="$wrap"
-       |         aria-describedby="$name-hint $name-info">$value</textarea>
-       |    </div>
-       |    <div id="$name-info" class="govuk-hint govuk-character-count__message">
-       |        You can enter up to $maxLength characters
-       |    </div>
-       |</div>""".stripMargin
-  }
-
-  private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
-    val selectedStatus = if (selected) "checked" else ""
-    s"""                <input
-      |                        class="govuk-radios__input"
-      |                        id="$id"
-      |                        name="$name"
-      |                        type="radio"
-      |                        value="$value"
-      |                        data-aria-controls="conditional-$name-$value"
-      |........................
-      |                        $selectedStatus
-      |                        required
-      |                    />""".stripMargin.replace("........................", "                        ")
   }
 
   private def checkPageForElements(
