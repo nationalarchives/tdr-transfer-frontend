@@ -1,9 +1,9 @@
-@import services.Details
 @import views.html.partials._
 
 @import java.util.UUID
 @import views.html.helper.CSRF
 @import views.html.helper.form
+@import controllers.util.Details
 @(consignmentId: UUID, consignmentRef: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("Prepare your metadata", backLink = Some(backLink(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url, "Results of your checks"))) {

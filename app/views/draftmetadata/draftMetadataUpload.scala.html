@@ -3,7 +3,7 @@
 @import viewsapi.FrontEndInfo
 
 @import java.util.UUID
-@import services.Details
+@import controllers.util.Details
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Upload a metadata CSV", name = name, backLink = Some(backLink(routes.PrepareMetadataController.prepareMetadata(consignmentId).url, "Prepare your metadata"))) {
     <div id="metadata-file-upload" class="govuk-grid-row" >
