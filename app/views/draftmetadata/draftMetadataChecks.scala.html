@@ -12,7 +12,17 @@
                     @frontEndInputs(frontEndInfo)
                 <h1 class="govuk-heading-l">Checking your metadata</h1>
                 <input id="consignmentId" type="hidden" value="@consignmentId">
-                <p class="govuk-body">Please wait while we check your metadata against the uploaded records. This may take a few minutes.</p>
+                <p class="govuk-body">Please wait while we check your metadata.</p>
+                <p class="govuk-body">The following checks are now being performed:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>Virus scanning</li>
+                    <li>File format is CSV (UTF-8)</li>
+                    <li>Metadata matches uploaded records</li>
+                    <li>Missing or extra metadata columns</li>
+                    <li>Data validation, including date formatting</li>
+                    <li>Functional / Business rule validation, eg. closure requirements</li>
+                </ul>
+                <p class="govuk-body">This may take a few minutes. If your consignment has a large number of records it may take longer.</p>
                 <div class="govuk-notification-banner" id="draft-metadata-checks-completed-banner" tabindex="-1" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" hidden>
                     <div class="govuk-notification-banner__header">
                         <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
