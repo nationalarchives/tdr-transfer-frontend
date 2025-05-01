@@ -160,7 +160,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/file-checks?uploadFailed=false")
     }
 
-    "redirect to the add additional metadata page with an authenticated user if the MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
+    "redirect to the prepare your metadata page with an authenticated user if the MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
       val consignmentId = UUID.randomUUID()
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
@@ -183,7 +183,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
 
       playStatus(confirmTransferPage) mustBe SEE_OTHER
-      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/additional-metadata")
+      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/draft-metadata/prepare-metadata")
     }
 
     "redirect to the review progress page with an authenticated user if the MetadataReview status is 'InProgress' & blockSkipMetadataReview is 'true'" in {
