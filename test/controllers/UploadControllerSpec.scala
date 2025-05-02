@@ -672,9 +672,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val fileId = UUID.randomUUID()
-      val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, 1) :: Nil
+      val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, "1") :: Nil
       val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(consignmentId, clientSideMetadataInput, Some(Nil))
-      val data = client.GraphqlData(Option(addFilesAndMetadata.Data(List(AddFilesAndMetadata(fileId, 0)))), Nil)
+      val data = client.GraphqlData(Option(addFilesAndMetadata.Data(List(AddFilesAndMetadata(fileId, "0")))), Nil)
       val dataString = data.asJson.noSpaces
 
       wiremockServer.stubFor(
@@ -704,7 +704,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val metadataResponse = decode[List[AddFilesAndMetadata]](response).toOption
       metadataResponse.isDefined must be(true)
       metadataResponse.get.head.fileId must be(fileId)
-      metadataResponse.get.head.matchId mustBe 0
+      metadataResponse.get.head.matchId mustBe "0"
 
       wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
     }
@@ -752,7 +752,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         fileStatusService,
         backendChecksService
       )
-      val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, 1) :: Nil
+      val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, "1") :: Nil
       val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil))
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
