@@ -89,7 +89,7 @@ export class ClientFileMetadataUpload {
   }
 
   createMetadataInputsAndFileMap(allFileMetadata: IFileMetadata[]): {
-    metadataInputs: ClientSideMetadataInput[];
+    metadataInputs: ClientSideMetadataInput[]
     matchFileMap: Map<String, IFileWithPath>
   } {
     return allFileMetadata.reduce(
