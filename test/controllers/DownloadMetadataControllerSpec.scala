@@ -110,8 +110,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           FileMetadata(description, "")
         )
         val files = List(
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil),
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne, Nil),
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo, Nil)
         )
 
         val wb: ReadableWorkbook = getFileFromController(files, userType)
@@ -120,11 +120,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
         rows.length must equal(3)
 
-        rows.head.getCell(0).asString must equal("Filepath")
-        rows.head.getCell(1).asString must equal("Filename")
-        rows.head.getCell(2).asString must equal("Date last modified")
-        rows.head.getCell(3).asString must equal("Date of the record")
-        rows.head.getCell(4).asString must equal("Description")
+        rows.head.getCell(0).asString must equal("filepath")
+        rows.head.getCell(1).asString must equal("filename")
+        rows.head.getCell(2).asString must equal("date last modified")
+        rows.head.getCell(3).asString must equal("date of the record")
+        rows.head.getCell(4).asString must equal("description")
 
         rows(1).getCell(0).asString must equal("test/path1")
         rows(1).getCell(1).asString must equal("FileName1")
