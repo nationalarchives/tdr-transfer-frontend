@@ -5,29 +5,33 @@ import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.dhatim.fastexcel.{Workbook, Worksheet}
-import uk.gov.nationalarchives.tdr.validation.utils.ConfigUtils
+import uk.gov.nationalarchives.tdr.validation.utils.ConfigUtils.DownloadFileDisplayProperties
 
 import java.time.LocalDate
 
 object ExcelUtils {
 
+  val NonEditableColour: String = "CCCCCC"
+
   def createExcelFile(
       consignmentRef: String,
       fileMetadata: getConsignmentFilesMetadata.GetConsignment,
-      downloadProperties: List[String],
-      tdrFileHeader: String => String,
+      downloadFileDisplayProperties: List[DownloadFileDisplayProperties],
+      keyToTdrFileHeader: String => String,
+      keyToTdrDataLoadHeader: String => String,
       propertyType: String => String,
       sortColumn: String
   ): Array[Byte] = {
-    val header = downloadProperties.map(colOrderSchemaPropertyName => tdrFileHeader(colOrderSchemaPropertyName))
-    val dataTypes: List[String] = downloadProperties.map(propertyType)
+    val colProperties: List[ColumnProperty] =
+      downloadFileDisplayProperties.map(displayProperty => ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))
+    val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => propertyType(dp.key))
     val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value.toUpperCase))
-    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadProperties)
+    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, propertyType, keyToTdrDataLoadHeader)
 
-    ExcelUtils.writeExcel(s"Metadata for $consignmentRef", header :: fileMetadataRows, dataTypes)
+    ExcelUtils.writeExcel(s"Metadata for $consignmentRef", colProperties, colProperties.map(x => x.header) :: fileMetadataRows, dataTypes)
   }
 
-  def writeExcel(worksheetName: String, rows: List[List[Any]], dataTypes: List[String] = Nil): Array[Byte] = {
+  def writeExcel(worksheetName: String, columnProperties: List[ColumnProperty] = List.empty, rows: List[List[Any]], dataTypes: List[String] = Nil): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
     val ws: Worksheet = wb.newWorksheet(worksheetName)
@@ -46,7 +50,13 @@ object ExcelUtils {
       }
     }
 
-    ws.range(0, 0, 0, rows.head.length - 1).style().bold().set()
+    columnProperties.zipWithIndex.foreach { case (colProperty, colNo) =>
+      if (!colProperty.editable && colProperty.fillColour.nonEmpty) {
+        ws.range(0, 0, 0, rows.head.length - 1).style().fillColor(colProperty.fillColour.get).set()
+      }
+    }
+
+    ws.range(0, 0, 0, rows.head.length - 1).style().bold().fillColor(NonEditableColour).set()
 
     for ((dataType, colNo) <- dataTypes.zipWithIndex) {
       dataType match {
@@ -61,18 +71,20 @@ object ExcelUtils {
 
   }
 
-  private def createExcelRowData(sortedMetaData: List[Files], downloadProperties: List[String]): List[List[Any]] = {
-    val metadataConfiguration = ConfigUtils.loadConfiguration
-    val tdrDataLoadHeader = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
-
+  private def createExcelRowData(
+      sortedMetaData: List[Files],
+      downloadProperties: List[DownloadFileDisplayProperties],
+      keyToPropertyType: String => String,
+      keyToTdrDataLoadHeader: String => String
+  ): List[List[Any]] = {
     sortedMetaData.map { file =>
       {
         val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
-        downloadProperties.map { colOrderSchemaPropertyName =>
+        downloadProperties.map(x => x.key).map { colOrderSchemaPropertyName =>
           groupedMetadata
-            .get(tdrDataLoadHeader(colOrderSchemaPropertyName))
+            .get(keyToTdrDataLoadHeader(colOrderSchemaPropertyName))
             .map { fileMetadataValue =>
-              metadataConfiguration.getPropertyType(colOrderSchemaPropertyName) match {
+              keyToPropertyType(colOrderSchemaPropertyName) match {
                 case "date"    => covertToLocalDateOrString(fileMetadataValue)
                 case "boolean" => if (fileMetadataValue == "true") "Yes" else "No"
                 case "integer" => Integer.valueOf(fileMetadataValue)
@@ -84,5 +96,7 @@ object ExcelUtils {
       }
     }
   }
+
+  case class ColumnProperty(header: String, editable: Boolean, fillColour: Option[String])
 
 }
