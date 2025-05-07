@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.224",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.240",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.241",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.410",
   "uk.gov.nationalarchives" % "da-metadata-schema_3" % "0.0.56",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.133",
@@ -49,8 +49,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.3"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.3"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.4"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.4"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
