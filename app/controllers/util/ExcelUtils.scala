@@ -5,7 +5,7 @@ import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.dhatim.fastexcel.{Workbook, Worksheet}
-import uk.gov.nationalarchives.tdr.validation.utils.ConfigUtils.DownloadFileDisplayProperties
+import uk.gov.nationalarchives.tdr.validation.utils.ConfigUtils.DownloadFileDisplayProperty
 
 import java.time.LocalDate
 
@@ -16,7 +16,7 @@ object ExcelUtils {
   def createExcelFile(
       consignmentRef: String,
       fileMetadata: getConsignmentFilesMetadata.GetConsignment,
-      downloadFileDisplayProperties: List[DownloadFileDisplayProperties],
+      downloadFileDisplayProperties: List[DownloadFileDisplayProperty],
       keyToTdrFileHeader: String => String,
       keyToTdrDataLoadHeader: String => String,
       keyToPropertyType: String => String,
@@ -73,7 +73,7 @@ object ExcelUtils {
 
   private def createExcelRowData(
       sortedMetaData: List[Files],
-      downloadProperties: List[DownloadFileDisplayProperties],
+      downloadProperties: List[DownloadFileDisplayProperty],
       keyToPropertyType: String => String,
       keyToTdrDataLoadHeader: String => String
   ): List[List[Any]] = {

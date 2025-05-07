@@ -53,7 +53,7 @@ class DownloadMetadataController @Inject() (
 
     for {
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
-      downloadDisplayProperties = metadataConfiguration.downloadProperties(downloadType).sortBy(_.columnIndex)
+      downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType).sortBy(_.columnIndex)
       excelFile = ExcelUtils.createExcelFile(
         metadata.consignmentReference,
         metadata,
