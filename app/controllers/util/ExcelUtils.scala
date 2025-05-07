@@ -19,14 +19,14 @@ object ExcelUtils {
       downloadFileDisplayProperties: List[DownloadFileDisplayProperties],
       keyToTdrFileHeader: String => String,
       keyToTdrDataLoadHeader: String => String,
-      propertyType: String => String,
+      keyToPropertyType: String => String,
       sortColumn: String
   ): Array[Byte] = {
     val colProperties: List[ColumnProperty] =
       downloadFileDisplayProperties.map(displayProperty => ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))
-    val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => propertyType(dp.key))
+    val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => keyToPropertyType(dp.key))
     val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value.toUpperCase))
-    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, propertyType, keyToTdrDataLoadHeader)
+    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, keyToPropertyType, keyToTdrDataLoadHeader)
 
     ExcelUtils.writeExcel(s"Metadata for $consignmentRef", colProperties, colProperties.map(x => x.header) :: fileMetadataRows, dataTypes)
   }
@@ -52,7 +52,7 @@ object ExcelUtils {
 
     columnProperties.zipWithIndex.foreach { case (colProperty, colNo) =>
       if (!colProperty.editable && colProperty.fillColour.nonEmpty) {
-        ws.range(0, 0, 0, rows.head.length - 1).style().fillColor(colProperty.fillColour.get).set()
+        ws.range(0, colNo, rows.length - 1, colNo).style().fillColor(colProperty.fillColour.get).set()
       }
     }
 
