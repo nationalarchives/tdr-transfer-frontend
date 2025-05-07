@@ -37,7 +37,16 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   private val configuration: Configuration = mock[Configuration]
   private val expectedTitle: String = "<title>Checking your metadata - Transfer Digital Records - GOV.UK</title>"
   private val expectedHeading: String = """<h1 class="govuk-heading-l">Checking your metadata</h1>"""
-  private val expectedInstruction: String = """<p class="govuk-body">Please wait while we check your metadata against the uploaded records. This may take a few minutes.</p>"""
+  private val expectedInstruction: String = """<p class="govuk-body">Please wait while we check your metadata.</p>"""
+  private val expectedChecks: String = """<ul class="govuk-list govuk-list--bullet">
+                                         |                    <li>Virus scanning</li>
+                                         |                    <li>File format is CSV (UTF-8)</li>
+                                         |                    <li>Metadata matches uploaded records</li>
+                                         |                    <li>Missing or extra metadata columns</li>
+                                         |                    <li>Data validation, including date formatting</li>
+                                         |                    <li>Functional / Business rule validation, eg. closure requirements</li>
+                                         |                </ul>""".stripMargin
+  private val expectedBody: String = """<p class="govuk-body">This may take a few minutes. If your consignment has a large number of records it may take longer.</p>"""
   private val expectedInput: String = s"""<input id="consignmentId" type="hidden" value="${consignmentId}">"""
 
   val expectedNotificationBanner =
@@ -168,6 +177,8 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
       pageAsString must include(expectedTitle)
       pageAsString must include(expectedHeading)
       pageAsString must include(expectedInstruction)
+      pageAsString must include(expectedChecks)
+      pageAsString must include(expectedBody)
       pageAsString must include(expectedInput)
       pageAsString must include(expectedNotificationBanner)
       pageAsString must include(expectedFormAction)

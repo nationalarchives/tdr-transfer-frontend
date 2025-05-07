@@ -62,8 +62,8 @@ test("startUpload returns error if the http status is not OK", async () => {
 
 test("saveClientFileMetadata uploads client file metadata", async () => {
   fetchMock.mockResponse(JSON.stringify([
-    { fileId: "0", matchId: 0 },
-    { fileId: "1", matchId: 1 }
+    { fileId: "0", matchId: "0" },
+    { fileId: "1", matchId: "1" }
   ]))
 
   const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
@@ -127,7 +127,7 @@ test("createMetadataInputsAndFileMap returns metadata inputs and file map", () =
 
   expect(matchFileMap.size).toEqual(2)
   for (let i = 0; i < metadataInputs.length; i += 1) {
-    expect(matchFileMap.get(i)?.file).toEqual(metadata[i].file)
+    expect(matchFileMap.get(i.toString())?.file).toEqual(metadata[i].file)
   }
 })
 
