@@ -56,7 +56,7 @@ object ExcelUtils {
       }
     }
 
-    ws.range(0, 0, 0, rows.head.length - 1).style().bold().fillColor(NonEditableColour).set()
+    ws.range(0, 0, 0, rows.head.length - 1).style().bold().set()
 
     for ((dataType, colNo) <- dataTypes.zipWithIndex) {
       dataType match {
