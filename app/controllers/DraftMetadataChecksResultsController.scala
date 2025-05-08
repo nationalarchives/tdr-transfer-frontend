@@ -153,7 +153,7 @@ class DraftMetadataChecksResultsController @Inject() (
           case _ => Nil
         }
         val header: List[String] = List(filePath, "Column", "Value", "Error Message")
-        val excelFile = ExcelUtils.writeExcel(s"Error report for $reference", header :: errorList)
+        val excelFile = ExcelUtils.writeExcel(s"Error report for $reference", List.empty, header :: errorList)
         val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
         val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
         val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
