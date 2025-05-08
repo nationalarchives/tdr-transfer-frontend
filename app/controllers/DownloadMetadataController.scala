@@ -46,16 +46,23 @@ class DownloadMetadataController @Inject() (
 
     val metadataConfiguration = ConfigUtils.loadConfiguration
     val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
+    val tdrDataLoadHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
     val propertyTypeEvaluator = metadataConfiguration.getPropertyType
     val downloadType = "MetadataDownloadTemplate"
     val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
-    case class DownloadProperty(name: String, order: Int)
 
     for {
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
-      downloadProperties = metadataConfiguration.downloadProperties(downloadType).map(downloadProperty => DownloadProperty(downloadProperty._1, downloadProperty._2))
-      orderedDownloadNames = downloadProperties.sortBy(_.order).map(downloadProperty => downloadProperty.name)
-      excelFile = ExcelUtils.createExcelFile(metadata.consignmentReference, metadata, orderedDownloadNames, tdrFileHeaderMapper, propertyTypeEvaluator, fileSortColumn)
+      downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType).sortBy(_.columnIndex)
+      excelFile = ExcelUtils.createExcelFile(
+        metadata.consignmentReference,
+        metadata,
+        downloadDisplayProperties,
+        tdrFileHeaderMapper,
+        tdrDataLoadHeaderMapper,
+        propertyTypeEvaluator,
+        fileSortColumn
+      )
     } yield {
       Ok(excelFile)
         .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
