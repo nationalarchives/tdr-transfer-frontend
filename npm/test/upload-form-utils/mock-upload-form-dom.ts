@@ -67,7 +67,7 @@ export class MockUploadFormDom {
   }
 
   dataTransferItemFields = {
-    fullPath: "something", // add this to the fileEntry and directoryEntry object
+    fullPath: "/test/something", // add this to the fileEntry and directoryEntry object
     file: (success: any) => success(getDummyFile()),
     kind: "",
     type: "",
