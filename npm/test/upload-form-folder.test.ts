@@ -399,11 +399,17 @@ test("clicking the submit button, after selecting a folder, disables the buttons
     [getDummyFolder()],
     mockDom.dataTransferItem
   )
+
+  const mockFn = jest.fn();
+  mockDom.form.folderUploader = mockFn
+
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
 
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
+
+  expect(mockFn).toHaveBeenCalledWith([{"file": {"lastModified": 2147483647, "name": "Mock File", "size": 3008, "type": "pdf", "webkitRelativePath": "Parent_Folder"}, "path": "/test/something"}, {"file": {"lastModified": 2147483647, "name": "Mock File", "size": 3008, "type": "pdf", "webkitRelativePath": "Parent_Folder"}, "path": "/test/something"}], {"consignmentId": "ee948bcd-ebe3-4dfd-8928-2b2c9c586b40", "includeTopLevelFolder": undefined, "parentFolder": "test"});
 
   expect(mockDom.submitButton).toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
