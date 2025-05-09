@@ -288,7 +288,7 @@ export class UploadForm {
     const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
     const relativePath: string = firstItem.path
     const parts = relativePath.split(/[\\/]/).filter(Boolean)
-    return parts.length > 0 ? parts[0] : null
+    return parts.length > 0 ? parts[0] : ""
   }
 
   private static showUploadingRecordsPage() {
