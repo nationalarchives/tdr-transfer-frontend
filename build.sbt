@@ -28,12 +28,12 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.225",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.241",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.242",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.410",
   "uk.gov.nationalarchives" % "da-metadata-schema_3" % "0.0.56",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.136",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.261",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.261",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.263",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.263",
   "ch.qos.logback" % "logback-classic" % "1.5.18",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.49.0",
@@ -49,8 +49,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.18.4"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.4"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.0"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.0"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
