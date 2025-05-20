@@ -19,11 +19,11 @@
                             """
                                When you have finished entering metadata:
                                <ol class="govuk-list govuk-list--number">
-                                 <li>Save your file as Excel first (File > Save) before you save as CSV</li>
-                                 <li>Click File > Save As
-                                 <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
-                                 <li>Click Save</li>
-                                 <li>Close the file, you are ready to upload</li>
+                                  <li>Save your file as Excel first (File > Save) before you save as CSV</li>
+                                  <li>Click File > Save As</li>
+                                  <li>From the 'Save as type' dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
+                                  <li>Click Save</li>
+                                  <li>Close the file, you are ready to upload</li>
                                </ol>
                                If you need to make more changes to metadata, we recommend that you open the Excel file you saved first, make changes, and then save again as CSV. Opening a CSV file in Excel can cause formats to be converted.
                            """
@@ -38,17 +38,20 @@
                     @loggedOutErrorMessage("file-upload")
                     @frontEndInputs(frontEndInfo)
                     <label class="govuk-label" for="file-selection">
-                        Select a CSV
+                        Select a CSV file
                     </label>
+                    <div id="file-selection-hint" class="govuk-hint">
+                        File must be in CSV format
+                    </div>
                     <form action="@routes.DraftMetadataUploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >
                         @CSRF.formField
                         <div >
                             <input class="govuk-file-upload" type="file" id="file-selection" name="files"
-                            accept=".csv">
+                            accept=".csv" aria-describedby="file-selection-hint">
                         </div>
                         <br>
                         <div>
-                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button" >
                                 Upload
                             </button>
                         </div>
