@@ -6,6 +6,7 @@
 @main("Results of CSV Checks", name = name) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">Results of CSV Checks</h1>
             @draftMetadataChecksActionProcess(actionMessage, detailsMessage, uploadedFileName = uploadedFileName, draftMetadataProgress = draftMetadataProgress)
 
             <p class="govuk-body">The report below contains detailed errors with reference to the file path and column title, which caused the error.</p>
@@ -13,13 +14,10 @@
             @downloadMetadataLink(consignmentId, "Download error report", routes.DraftMetadataChecksResultsController.downloadErrorReport(consignmentId).url)
             <p class="govuk-body">Once you have addressed the errors, you can re-upload the metadata file.</p>
 
-            @daAlert(heading = "Leaving and returning to this transfer", content = Html(s"You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='${routes.ViewTransfersController.viewConsignments(1)}'>View transfers</a>."))
-
-            <div class="govuk-button-group">
-                <a class="govuk-button" href="@{
-                    routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)
-                }" role="button" draggable="false" data-module="govuk-button">Re-upload metadata</a>
-            </div>
+           @daAlert(heading = "Leaving and returning to this transfer", content = Html(s"You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='${routes.ViewTransfersController.viewConsignments(1)}' aria-label='View all transfers page'>View transfers</a>."))
+           <div class="govuk-button-group">
+                            <a class="govuk-button" href="@{routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)}" role="button" draggable="false" data-module="govuk-button">Re-upload metadata</a>
+                        </div>
 
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
