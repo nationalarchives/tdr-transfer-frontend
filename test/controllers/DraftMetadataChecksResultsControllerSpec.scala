@@ -103,7 +103,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
            |        Status
            |    </dt>
            |    <dd class="govuk-summary-list__value">
-           |        <strong class="govuk-tag govuk-tag--blue">
+           |        <strong class="govuk-tag govuk-tag--blue" aria-label="Status: IMPORTED">
            |        IMPORTED
            |        </strong>
            |    </dd>
@@ -113,13 +113,13 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
            |        Uploaded file
            |    </dt>
            |    <dd class="govuk-summary-list__value">
-           |        <code>file name.csv</code>
+           |        <code aria-label="Uploaded file name">file name.csv</code>
            |    </dd>
            |</div>""".stripMargin
       )
       pageAsString must include(
-        s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=/consignment/$consignmentId/draft-metadata/upload>
-          |                upload a metadata CSV</a>, otherwise continue with your transfer.</p>""".stripMargin
+        s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href="/consignment/$consignmentId/draft-metadata/upload">
+           |                                upload a metadata CSV</a>, otherwise continue with your transfer.</p>""".stripMargin
       )
       pageAsString must include(
         s"""            <div class="govuk-button-group">
@@ -178,7 +178,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
               |            Leaving and returning to this transfer
               |        </h2>
               |        <p class="govuk-body">
-              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers' aria-label='View all transfers page'>View transfers</a>.
               |        </p>
               |    </div>
               |</div>
@@ -267,7 +267,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
               |            Leaving and returning to this transfer
               |        </h2>
               |        <p class="govuk-body">
-              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers' aria-label='View transfers page for all your consignments'>View transfers</a>.
               |        </p>
               |    </div>
               |</div>
