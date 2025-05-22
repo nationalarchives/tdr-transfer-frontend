@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.46.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.46.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.17.0" % Test,
+  "org.mockito" % "mockito-core" % "5.18.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
