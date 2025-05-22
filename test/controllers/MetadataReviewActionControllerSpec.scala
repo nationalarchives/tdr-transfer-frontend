@@ -19,13 +19,11 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses.{
-  ClosureMetadataType,
   CompletedValue,
   CompletedWithIssuesValue,
-  DescriptiveMetadataType,
   DraftMetadataType,
   InProgressValue,
-  IncompleteValue,
+  IncompleteValue, // todo remove this
   MetadataReviewType
 }
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
@@ -165,19 +163,19 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
           .withRequestBody(containing("CompletedWithIssues"))
       )
 
-      wiremockServer.verify(
-        postRequestedFor(urlEqualTo("/graphql"))
-          .withRequestBody(containing("updateConsignmentStatus"))
-          .withRequestBody(containing("DescriptiveMetadata"))
-          .withRequestBody(containing("InProgress"))
-      )
+//      wiremockServer.verify(
+//        postRequestedFor(urlEqualTo("/graphql"))
+//          .withRequestBody(containing("updateConsignmentStatus"))
+//          .withRequestBody(containing("DescriptiveMetadata"))
+//          .withRequestBody(containing("InProgress"))
+//      )
 
-      wiremockServer.verify(
-        postRequestedFor(urlEqualTo("/graphql"))
-          .withRequestBody(containing("updateConsignmentStatus"))
-          .withRequestBody(containing("ClosureMetadata"))
-          .withRequestBody(containing("InProgress"))
-      )
+//      wiremockServer.verify(
+//        postRequestedFor(urlEqualTo("/graphql"))
+//          .withRequestBody(containing("updateConsignmentStatus"))
+//          .withRequestBody(containing("ClosureMetadata"))
+//          .withRequestBody(containing("InProgress"))
+//      )
 
       wiremockServer.verify(
         postRequestedFor(urlEqualTo("/graphql"))
@@ -255,8 +253,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val result = consignmentStatusUpdates(formData)
 
       result mustBe Seq(
-        (DescriptiveMetadataType.id, InProgressValue.value),
-        (ClosureMetadataType.id, InProgressValue.value),
         (DraftMetadataType.id, InProgressValue.value),
         (MetadataReviewType.id, CompletedWithIssuesValue.value)
       )

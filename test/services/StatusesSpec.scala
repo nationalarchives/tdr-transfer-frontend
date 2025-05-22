@@ -30,12 +30,6 @@ class StatusesSpec extends AnyWordSpec with MockitoSugar {
       Statuses.ServerFFIDType.id should equal("ServerFFID")
       Statuses.ServerFFIDType.nonJudgmentStatus shouldBe false
 
-      Statuses.DescriptiveMetadataType.id should equal("DescriptiveMetadata")
-      Statuses.DescriptiveMetadataType.nonJudgmentStatus shouldBe true
-
-      Statuses.ClosureMetadataType.id should equal("ClosureMetadata")
-      Statuses.ClosureMetadataType.nonJudgmentStatus shouldBe true
-
       Statuses.ConfirmTransferType.id should equal("ConfirmTransfer")
       Statuses.ConfirmTransferType.nonJudgmentStatus shouldBe true
 
@@ -68,8 +62,6 @@ class StatusesSpec extends AnyWordSpec with MockitoSugar {
       Statuses.toStatusType("ServerAntivirus") shouldBe ServerAntivirusType
       Statuses.toStatusType("ServerChecksum") shouldBe ServerChecksumType
       Statuses.toStatusType("ServerFFID") shouldBe ServerFFIDType
-      Statuses.toStatusType("DescriptiveMetadata") shouldBe DescriptiveMetadataType
-      Statuses.toStatusType("ClosureMetadata") shouldBe ClosureMetadataType
       Statuses.toStatusType("ConfirmTransfer") shouldBe ConfirmTransferType
       Statuses.toStatusType("Export") shouldBe ExportType
       Statuses.toStatusType("someRandomValue") shouldBe UnrecognisedType
