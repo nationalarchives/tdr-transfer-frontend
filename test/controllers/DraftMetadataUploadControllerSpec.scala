@@ -65,14 +65,14 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
                                   |    <span class="govuk-details__summary-text">How to save an Excel file as CSV</span>
                                   |  </summary>""".stripMargin)
       pageAsString must include("""<li>Save your file as Excel first (File > Save) before you save as CSV</li>
-                                  |                                 <li>Click File > Save As
-                                  |                                 <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
+                                  |                                 <li>Click File > Save As</li>
+                                  |                                 <li>From the 'Save as type' dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
                                   |                                 <li>Click Save</li>
                                   |                                 <li>Close the file, you are ready to upload</li>""".stripMargin)
       pageAsString must include(
         """<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>"""
       )
-      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                                   |                                Upload
                                   |                            </button>""".stripMargin)
     }

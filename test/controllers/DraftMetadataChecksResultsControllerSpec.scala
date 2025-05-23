@@ -118,8 +118,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
            |</div>""".stripMargin
       )
       pageAsString must include(
-        s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=/consignment/$consignmentId/draft-metadata/upload>
-          |                upload a metadata CSV</a>, otherwise continue with your transfer.</p>""".stripMargin
+        s"""<p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href="/consignment/$consignmentId/draft-metadata/upload">
+           |                                upload a metadata CSV</a>, otherwise continue with your transfer.</p>""".stripMargin
       )
       pageAsString must include(
         s"""            <div class="govuk-button-group">
