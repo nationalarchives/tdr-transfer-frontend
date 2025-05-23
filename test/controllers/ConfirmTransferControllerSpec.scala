@@ -160,11 +160,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/file-checks?uploadFailed=false")
     }
 
-    "redirect to the prepare your metadata page with an authenticated user if the MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
+    "redirect to the prepare your metadata page with an authenticated user if the MetadataReview status is not present" in {
       val consignmentId = UUID.randomUUID()
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val consignmentStatuses = List(
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
@@ -186,11 +186,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/draft-metadata/prepare-metadata")
     }
 
-    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'InProgress' & blockSkipMetadataReview is 'true'" in {
+    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'InProgress'" in {
       val consignmentId = UUID.randomUUID()
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val consignmentStatuses = List(
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
@@ -213,11 +213,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
     }
 
-    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'CompletedWithIssues' & blockSkipMetadataReview is 'true'" in {
+    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'CompletedWithIssues'" in {
       val consignmentId = UUID.randomUUID()
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val consignmentStatuses = List(
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
@@ -240,9 +240,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
     }
 
-    "render the confirm transfer page with an authenticated user if the MetadataReview status is 'Completed' & blockSkipMetadataReview is 'true'" in {
+    "render the confirm transfer page with an authenticated user if the MetadataReview status is 'Completed'" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val consignmentStatuses = List(
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
@@ -275,7 +275,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None)
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", "Completed", someDateTime, None)
       )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
@@ -344,7 +346,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None)
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", "Completed", someDateTime, None)
       )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
@@ -647,21 +651,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
-  private def getApplicationConfig(blockSkipMetadataReview: Boolean): ApplicationConfig = {
-    val config: Map[String, ConfigValue] = ConfigFactory
-      .load()
-      .withValue("featureAccessBlock.blockSkipMetadataReview", ConfigValueFactory.fromAnyRef(blockSkipMetadataReview))
-      .entrySet()
-      .asScala
-      .map(e => e.getKey -> e.getValue)
-      .toMap
-    new ApplicationConfig(Configuration.from(config))
-  }
-
   private def instantiateConfirmTransferController(
       securityComponents: SecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockSkipMetadataReview: Boolean = false
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
@@ -676,7 +668,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferService,
       exportService(app.configuration),
       consignmentStatusService,
-      getApplicationConfig(blockSkipMetadataReview),
       langs
     )
   }

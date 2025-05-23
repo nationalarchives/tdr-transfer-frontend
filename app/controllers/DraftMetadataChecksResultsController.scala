@@ -23,7 +23,6 @@ class DraftMetadataChecksResultsController @Inject() (
     val controllerComponents: SecurityComponents,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val applicationConfig: ApplicationConfig,
     val draftMetadataService: DraftMetadataService,
     val messages: MessagesApi
 )(implicit val ec: ExecutionContext)
@@ -31,54 +30,51 @@ class DraftMetadataChecksResultsController @Inject() (
     with I18nSupport {
 
   def draftMetadataChecksResultsPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (applicationConfig.blockDraftMetadataUpload) {
-      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
-    } else {
-      val token = request.token.bearerAccessToken
-      for {
-        consignmentDetails <- consignmentService.getConsignmentDetails(consignmentId, token)
-        reference = consignmentDetails.consignmentReference
-        statuses = consignmentDetails.consignmentStatuses
-        uploadedFileName = consignmentDetails.clientSideDraftMetadataFileName.getOrElse("Not Available")
-        draftMetadataStatus = statuses.find(_.statusType == DraftMetadataType.id).map(_.value)
-        errorReport <- getErrorReport(draftMetadataStatus, consignmentId)
-        errorType = getErrorType(errorReport, draftMetadataStatus)
-      } yield {
-        val resultsPage = {
-          // leaving original page for no errors
-          if (errorType == FileError.NONE) {
+    val token = request.token.bearerAccessToken
+    for {
+      consignmentDetails <- consignmentService.getConsignmentDetails(consignmentId, token)
+      reference = consignmentDetails.consignmentReference
+      statuses = consignmentDetails.consignmentStatuses
+      uploadedFileName = consignmentDetails.clientSideDraftMetadataFileName.getOrElse("Not Available")
+      draftMetadataStatus = statuses.find(_.statusType == DraftMetadataType.id).map(_.value)
+      errorReport <- getErrorReport(draftMetadataStatus, consignmentId)
+      errorType = getErrorType(errorReport, draftMetadataStatus)
+    } yield {
+      val resultsPage = {
+        // leaving original page for no errors
+        if (errorType == FileError.NONE) {
+          views.html.draftmetadata
+            .draftMetadataChecksResults(consignmentId, reference, DraftMetadataProgress("IMPORTED", "blue"), request.token.name, uploadedFileName)
+        } else {
+          if (isErrorReportAvailable(errorType)) {
             views.html.draftmetadata
-              .draftMetadataChecksResults(consignmentId, reference, DraftMetadataProgress("IMPORTED", "blue"), request.token.name, uploadedFileName)
+              .draftMetadataChecksWithErrorDownload(
+                consignmentId,
+                reference,
+                request.token.name,
+                actionMessage(errorType),
+                detailsMessage(errorType),
+                uploadedFileName,
+                DraftMetadataProgress("Issues found", "orange")
+              )
           } else {
-            if (isErrorReportAvailable(errorType)) {
-              views.html.draftmetadata
-                .draftMetadataChecksWithErrorDownload(
-                  consignmentId,
-                  reference,
-                  request.token.name,
-                  actionMessage(errorType),
-                  detailsMessage(errorType),
-                  uploadedFileName,
-                  DraftMetadataProgress("Issues found", "orange")
-                )
-            } else {
-              views.html.draftmetadata
-                .draftMetadataChecksErrorsNoDownload(
-                  consignmentId,
-                  reference,
-                  request.token.name,
-                  actionMessage(errorType),
-                  detailsMessage(errorType),
-                  getAffectedProperties(errorReport),
-                  uploadedFileName,
-                  DraftMetadataProgress("Issues found", "orange")
-                )
-            }
+            views.html.draftmetadata
+              .draftMetadataChecksErrorsNoDownload(
+                consignmentId,
+                reference,
+                request.token.name,
+                actionMessage(errorType),
+                detailsMessage(errorType),
+                getAffectedProperties(errorReport),
+                uploadedFileName,
+                DraftMetadataProgress("Issues found", "orange")
+              )
           }
         }
-        Ok(resultsPage).uncache()
       }
+      Ok(resultsPage).uncache()
     }
+
   }
 
   implicit val defaultLang: Lang = Lang.defaultLang

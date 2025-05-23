@@ -18,20 +18,15 @@ class RequestMetadataReviewController @Inject() (
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
     val keycloakConfiguration: KeycloakConfiguration,
-    val applicationConfig: ApplicationConfig,
     val messagingService: MessagingService
 ) extends TokenSecurity {
 
   def requestMetadataReviewPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (applicationConfig.blockMetadataReview) {
-      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
-    } else {
-      consignmentService
-        .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        .map { ref =>
-          Ok(views.html.standard.requestMetadataReview(consignmentId, ref, request.token.name, request.token.email))
-        }
-    }
+    consignmentService
+      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      .map { ref =>
+        Ok(views.html.standard.requestMetadataReview(consignmentId, ref, request.token.name, request.token.email))
+      }
   }
 
   def submitMetadataForReview(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>

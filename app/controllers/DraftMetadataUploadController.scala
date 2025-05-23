@@ -36,15 +36,11 @@ class DraftMetadataUploadController @Inject() (
     with Logging {
 
   def draftMetadataUploadPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (applicationConfig.blockDraftMetadataUpload) {
-      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
-    } else {
-      for {
-        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      } yield {
-        Ok(views.html.draftmetadata.draftMetadataUpload(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.bearerAccessToken.getValue))
-          .uncache()
-      }
+    for {
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      Ok(views.html.draftmetadata.draftMetadataUpload(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.bearerAccessToken.getValue))
+        .uncache()
     }
   }
 
