@@ -105,8 +105,8 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
   ): String = {
 
     option.fieldType match {
-      case "inputCheckbox"    => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
-      case "inputDropdown"    => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
+      case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
+      case "inputDropdown" => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
     }
   }
 
