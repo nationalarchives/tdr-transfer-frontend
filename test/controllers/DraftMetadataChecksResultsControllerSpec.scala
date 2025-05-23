@@ -103,7 +103,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
            |        Status
            |    </dt>
            |    <dd class="govuk-summary-list__value">
-           |        <strong class="govuk-tag govuk-tag--blue" aria-label="Status: IMPORTED">
+           |        <strong class="govuk-tag govuk-tag--blue">
            |        IMPORTED
            |        </strong>
            |    </dd>
@@ -113,7 +113,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
            |        Uploaded file
            |    </dt>
            |    <dd class="govuk-summary-list__value">
-           |        <code aria-label="Uploaded file name">file name.csv</code>
+           |        <code>file name.csv</code>
            |    </dd>
            |</div>""".stripMargin
       )
