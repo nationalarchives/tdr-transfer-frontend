@@ -38,16 +38,13 @@
                     @loggedOutErrorMessage("file-upload")
                     @frontEndInputs(frontEndInfo)
                     <label class="govuk-label" for="file-selection">
-                        Select a CSV file
+                        Select a CSV
                     </label>
-                    <div id="file-selection-hint" class="govuk-hint">
-                        File must be in CSV format
-                    </div>
                     <form action="@routes.DraftMetadataUploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >
                         @CSRF.formField
                         <div >
                             <input class="govuk-file-upload" type="file" id="file-selection" name="files"
-                            accept=".csv" aria-describedby="file-selection-hint">
+                            accept=".csv">
                         </div>
                         <br>
                         <div>

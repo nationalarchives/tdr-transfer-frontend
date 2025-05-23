@@ -178,7 +178,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
               |            Leaving and returning to this transfer
               |        </h2>
               |        <p class="govuk-body">
-              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers' aria-label='View all transfers page'>View transfers</a>.
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
               |        </p>
               |    </div>
               |</div>
@@ -267,7 +267,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
               |            Leaving and returning to this transfer
               |        </h2>
               |        <p class="govuk-body">
-              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers' aria-label='View transfers page for all your consignments'>View transfers</a>.
+              |            You can sign out and return to continue working on this transfer at any time from <a class='govuk-link' href='/view-transfers'>View transfers</a>.
               |        </p>
               |    </div>
               |</div>

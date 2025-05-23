@@ -37,7 +37,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   private val configuration: Configuration = mock[Configuration]
   private val expectedTitle: String = "<title>Checking your metadata - Transfer Digital Records - GOV.UK</title>"
   private val expectedHeading: String = """<h1 class="govuk-heading-l">Checking your metadata</h1>"""
-  private val expectedInstruction: String = """<p class="govuk-body" aria-live="polite">Please wait while we check your metadata.</p>"""
+  private val expectedInstruction: String = """<p class="govuk-body">Please wait while we check your metadata.</p>"""
   private val expectedChecks: String = """<ul class="govuk-list govuk-list--bullet">
                                          |                <li>Virus scanning</li>
                                          |                <li>File format is CSV (UTF-8)</li>

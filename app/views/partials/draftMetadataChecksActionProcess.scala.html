@@ -25,7 +25,7 @@
         <dd class="govuk-summary-list__value">
             @Html(actionMessage)
             @if(affectedProperties.nonEmpty) {
-                <ul class="govuk-list govuk-list--bullet" aria-live="polite">
+                <ul class="govuk-list govuk-list--bullet">
                     @for(property <- affectedProperties) {
                         <li>@property</li>
                     }
