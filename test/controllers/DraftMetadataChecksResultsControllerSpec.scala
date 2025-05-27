@@ -369,6 +369,43 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "DraftMetadataChecksResultsController accessibility" should {
+    "have no axe-core accessibility violations on the results page" in {
+      val controller = instantiateController(blockDraftMetadataUpload = false)
+      val additionalMetadataEntryMethodPage = controller
+        .draftMetadataChecksResultsPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val consignmentStatuses = List(
+        gc.ConsignmentStatuses(DraftMetadataType.id, CompletedValue.value)
+      )
+      val uploadedFileName = "file name.csv"
+      setConsignmentDetailsResponse(wiremockServer, consignmentStatuses = consignmentStatuses, clientSideDraftMetadataFileName = Some(uploadedFileName))
+
+      val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
+
+      // Write HTML to a temporary file
+      val tmpFile = java.io.File.createTempFile("tdr-accessibility-", ".html")
+      val writer = new java.io.PrintWriter(tmpFile)
+      writer.write(pageAsString)
+      writer.close()
+
+      // Run axe-core CLI on the file
+      // Make sure axe-core is installed: npm install --prefix npm --save-dev axe-core
+      val axeCommand = Seq("npx", "--prefix", "npm", "axe", tmpFile.getAbsolutePath, "--exit", "0")
+      val axeResult = axeCommand.!!
+
+      // Optionally print the result for debugging
+      println(axeResult)
+
+      // Assert no violations
+      axeResult must not include "\"violations\":["
+
+      // Clean up
+      tmpFile.delete()
+    }
+  }
+
   private def instantiateController(
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
