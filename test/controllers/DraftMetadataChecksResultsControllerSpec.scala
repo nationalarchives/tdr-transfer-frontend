@@ -394,7 +394,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       // Run axe-core CLI on the file
       // Make sure axe-core is installed: npm install --prefix npm --save-dev axe-core
       val axeCommand = Seq("npx", "--prefix", "npm", "axe", tmpFile.getAbsolutePath, "--exit", "0")
-      val axeResult = axeCommand.!!
+      val axeResult = Process(axeCommand).!!
 
       // Optionally print the result for debugging
       println(axeResult)
