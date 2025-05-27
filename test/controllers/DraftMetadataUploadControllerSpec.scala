@@ -72,7 +72,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       pageAsString must include(
         """<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>"""
       )
-      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                                   |                                Upload
                                   |                            </button>""".stripMargin)
     }
