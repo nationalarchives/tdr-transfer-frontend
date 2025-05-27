@@ -147,7 +147,7 @@ function setUpFileUploader(mockKeycloak?: Keycloak): FileUploader {
     apiUrl: "",
     region: "",
     stage: "test",
-    uploadUrl: "https://example.com",
+    uploadUrl: "http://localhost",
     authUrl: "",
     clientId: "",
     realm: ""

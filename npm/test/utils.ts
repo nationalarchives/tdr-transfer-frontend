@@ -55,7 +55,7 @@ export const frontendInfo: IFrontEndInfo = {
   apiUrl: "",
   region: "",
   stage: "test",
-  uploadUrl: "https://example.com",
+  uploadUrl: "http://localhost",
   authUrl: "",
   clientId: "",
   realm: ""

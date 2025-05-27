@@ -127,7 +127,7 @@ test("'scheduleTokenRefresh' should refresh tokens if refresh token will expire 
   const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
+  scheduleTokenRefresh(mockKeycloak, "http://localhost/cookies")
   jest.runAllTimers()
 
   expect(mockUpdateToken).toHaveBeenCalled()
@@ -140,7 +140,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if the access token has n
   const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
+  scheduleTokenRefresh(mockKeycloak, "http://localhost/cookies")
   jest.runAllTimers()
 
   expect(mockUpdateToken).not.toHaveBeenCalled()
@@ -153,7 +153,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
   const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, noRefreshToken)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
+  scheduleTokenRefresh(mockKeycloak, "http://localhost/cookies")
   jest.runAllTimers()
 
   expect(mockUpdateToken).not.toHaveBeenCalled()
@@ -166,7 +166,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
   const mockKeycloak: Keycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsedNoExp)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
+  scheduleTokenRefresh(mockKeycloak, "http://localhost/cookies")
   jest.runAllTimers()
   expect(mockUpdateToken).not.toHaveBeenCalled()
 })
@@ -174,7 +174,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
 test("'scheduleTokenRefresh' should call the cookies endpoint to refresh the signed cookies", async () => {
   fetchMock.mockResponse("ok")
   const mockKeycloak: Keycloak = createMockKeycloakInstance(jest.fn(), false, {exp: 1})
-  const cookiesUrl = "https://example.com/cookies"
+  const cookiesUrl = "http://localhost/cookies"
   jest.useFakeTimers()
   scheduleTokenRefresh(mockKeycloak, cookiesUrl)
   jest.runAllTimers()
