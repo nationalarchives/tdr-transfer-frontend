@@ -59,7 +59,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       contentType(draftMetadataUploadPage) mustBe Some("text/html")
       pageAsString must include("<title>Upload a metadata CSV - Transfer Digital Records - GOV.UK</title>")
       pageAsString must include(s"""<a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-back-link">Prepare your metadata</a>""")
-      pageAsString must include("""<p class="govuk-body">Upload a <abbr title="Comma Separated Values">CSV</abbr> containing the record metadata.</p>""")
+      pageAsString must include("""<p class="govuk-body">Upload a <abbr title="Comma Separated Values (spreadsheet data format)">CSV</abbr> containing the record metadata.</p>""")
       pageAsString must include("""<details class="govuk-details">
                                   |  <summary class="govuk-details__summary">
                                   |    <span class="govuk-details__summary-text">How to save an Excel file as CSV</span>
@@ -72,7 +72,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       pageAsString must include(
         """<p class="govuk-body">Once uploaded, we will check your metadata for errors. There will be a chance to review and re-upload the metadata before completing the transfer.</p>"""
       )
-      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+      pageAsString must include("""<button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                                   |                                Upload
                                   |                            </button>""".stripMargin)
     }

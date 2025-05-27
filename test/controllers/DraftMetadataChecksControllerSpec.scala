@@ -65,7 +65,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   val expectedFormAction =
     """
       |                <form action="/consignment/b5bbe4d6-01a7-4305-99ef-9fce4a67917a/draft-metadata/checks-results">
-      |                    <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button govuk-button--disabled" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled">
+      |                    <button type="submit" id="draft-metadata-checks-continue" class="govuk-button govuk-button--disabled" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled">
       |                Continue
       |                    </button>
       |                    <p class="govuk-visually-hidden" id="reason-disabled">

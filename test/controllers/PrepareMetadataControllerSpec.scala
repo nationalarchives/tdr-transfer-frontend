@@ -45,6 +45,7 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
       contentType(prepareMetadataPage) mustBe Some("text/html")
 
       prepareMetadataPageAsString must include(s"""<a href="/consignment/$consignmentId/file-checks-results" class="govuk-back-link">Results of your checks</a>""")
+      prepareMetadataPageAsString must include("""<h1 class="govuk-heading-l">Prepare your metadata</h1>""")
       prepareMetadataPageAsString must include("""<h2 class="govuk-heading-m">Download your metadata template</h2>""")
       prepareMetadataPageAsString must include(
         s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
@@ -61,7 +62,7 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
                                                  |        </h2>""".stripMargin)
       prepareMetadataPageAsString must include(s"""<form action="/consignment/$consignmentId/draft-metadata/prepare-metadata" method="POST" novalidate="">""")
       prepareMetadataPageAsString must include(
-        s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+        s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-button govuk-button--secondary" data-module="govuk-button">
                                                  |                            I don't need to provide any metadata
                                                  |                        </a>""".stripMargin
       )

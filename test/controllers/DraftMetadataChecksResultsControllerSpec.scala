@@ -95,7 +95,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |            </h1>""".stripMargin
       )
       pageAsString must include(
-        s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values">CSV</abbr> has been successfully imported.</p>"""
+        s"""<p class="govuk-body">The metadata in your uploaded <abbr title="Comma Separated Values (spreadsheet data format)">CSV</abbr> has been successfully imported.</p>"""
       )
       pageAsString must include(
         s"""<div class="govuk-summary-list__row">
@@ -123,7 +123,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       )
       pageAsString must include(
         s"""            <div class="govuk-button-group">
-             |                <a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+             |                <a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-button" data-module="govuk-button" aria-label="Continue to next step">
              |                    Next
              |                </a>
              |            </div>""".stripMargin
