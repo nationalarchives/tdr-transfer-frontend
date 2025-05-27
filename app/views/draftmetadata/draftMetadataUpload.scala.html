@@ -42,13 +42,12 @@
                     </label>
                     <form action="@routes.DraftMetadataUploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >
                         @CSRF.formField
-                        <div >
-                            <input class="govuk-file-upload" type="file" id="file-selection" name="files"
-                            accept=".csv">
+                        <div>
+                            <input class="govuk-file-upload" type="file" id="file-selection" name="files" accept=".csv" aria-required="true">
                         </div>
                         <br>
                         <div>
-                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                                 Upload
                             </button>
                         </div>

@@ -40,18 +40,16 @@
                     <label class="govuk-label govuk-!-font-weight-bold" for="file-selection">
                         Select a CSV
                     </label>
-
                     <p id="file-upload-1-error" class="govuk-error-message">
                         <span class="govuk-visually-hidden">Error:</span> Select a CSV file to upload
                     </p>
-
                     <div >
                         <input class="govuk-file-upload govuk-file-upload--error" type="file" id="file-selection" name="files"
-                        accept=".csv">
+                        accept=".csv" aria-required="true" aria-describedby="file-upload-1-error">
                     </div>
                  </div>
                 <div>
-                    <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                    <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                         Upload
                     </button>
                 </div>
