@@ -385,20 +385,18 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
       val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
 
-      // Remove all <script>...</script> tags to disable JS execution in accessibility test
-      val pageWithoutScripts = pageAsString.replaceAll("(?s)<script.*?>.*?</script>", "")
-
-      // Write HTML to a temporary file
       val tmpFile = java.io.File.createTempFile("tdr-accessibility-", ".html")
       val writer = new java.io.PrintWriter(tmpFile)
-      writer.write(pageWithoutScripts)
+      writer.write(pageAsString)
       writer.close()
 
       // Run axe-core CLI on the file
       // Make sure axe-core is installed: npm install --prefix npm --save-dev @axe-core/cli
-      val axeCommand = Seq("npx", "--prefix", "npm", "axe", tmpFile.getAbsolutePath, "--exit", "0")
-      val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
-      val axeResult = Process(axeCommand, None, env).!!
+      val axeCommand = Seq("npx", "--prefix", "npm", "axe", "file://"+tmpFile.getAbsolutePath)
+      //val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
+      println(axeCommand)
+      //val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
+      val axeResult = Process(axeCommand, None).!!
 
       // Optionally print the result for debugging
       println(axeResult)
