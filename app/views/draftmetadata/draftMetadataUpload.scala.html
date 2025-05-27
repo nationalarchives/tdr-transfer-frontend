@@ -11,7 +11,7 @@
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">Upload a metadata CSV</h1>
             <div class="govuk-body">
-                <p class="govuk-body">Upload a <abbr title="Comma Separated Values">CSV</abbr> containing the record metadata.</p>
+                <p class="govuk-body">Upload a <abbr title="Comma Separated Values (spreadsheet data format)">CSV</abbr> containing the record metadata.</p>
                 @details(
                     Details(
                         detailsSummary = "How to save an Excel file as CSV",
@@ -38,17 +38,20 @@
                     @loggedOutErrorMessage("file-upload")
                     @frontEndInputs(frontEndInfo)
                     <label class="govuk-label" for="file-selection">
-                        Select a CSV
+                        Select a CSV file
                     </label>
+                    <div class="govuk-hint" id="file-selection-hint">
+                        File must be in CSV format
+                    </div>
                     <form action="@routes.DraftMetadataUploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >
                         @CSRF.formField
                         <div >
                             <input class="govuk-file-upload" type="file" id="file-selection" name="files"
-                            accept=".csv">
+                            accept=".csv" aria-describedby="file-selection-hint">
                         </div>
                         <br>
                         <div>
-                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                                 Upload
                             </button>
                         </div>

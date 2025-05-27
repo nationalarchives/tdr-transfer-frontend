@@ -38,8 +38,11 @@
                     @loggedOutErrorMessage("file-upload")
                     @frontEndInputs(frontEndInfo)
                     <label class="govuk-label govuk-!-font-weight-bold" for="file-selection">
-                        Select a CSV
+                        Select a CSV file
                     </label>
+                    <div class="govuk-hint" id="file-selection-hint">
+                        File must be in CSV format
+                    </div>
 
                     <p id="file-upload-1-error" class="govuk-error-message">
                         <span class="govuk-visually-hidden">Error:</span> Select a CSV file to upload
@@ -47,11 +50,11 @@
 
                     <div >
                         <input class="govuk-file-upload govuk-file-upload--error" type="file" id="file-selection" name="files"
-                        accept=".csv">
+                        accept=".csv" aria-describedby="file-selection-hint file-upload-1-error">
                     </div>
                  </div>
                 <div>
-                    <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                    <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                         Upload
                     </button>
                 </div>

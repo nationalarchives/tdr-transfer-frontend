@@ -10,15 +10,15 @@
 
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds-from-desktop">
-            <h2 class="govuk-heading-l">Prepare your metadata</h2>
+            <h1 class="govuk-heading-l">Prepare your metadata</h1>
 
             <p class="govuk-body">As part of a digital transfer to The National Archives your consignment of records must be transferred with metadata to assist preservation and make them easier to find in Discovery, the public catalogue.</p>
 
-            <p class="govuk-body">Metadata can be added to your records by uploading a <abbr title="Comma Separated Values">CSV</abbr>.</p>
+            <p class="govuk-body">Metadata can be added to your records by uploading a <abbr title="Comma Separated Values (spreadsheet data format)">CSV</abbr>.</p>
 
             <div class="da-alert da-alert--error da-alert--with-icon govuk-!-margin-top-4 govuk-!-margin-bottom-4">
                 <div class="da-alert__icon">
-                    <div aria-hidden="true"><svg class="da-icon da-icon--xl" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" focusable="false" fill="currentColor" role="img" title="da-icon-warning">
+                    <div aria-hidden="true"><svg class="da-icon da-icon--xl" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" focusable="false" fill="currentColor" aria-hidden="true">
                         <g clip-path="url(#a)">
                             <path d="M11.5 0C17.851 0 23 5.149 23 11.5S17.851 23 11.5 23 0 17.851 0 11.5 5.149 0 11.5 0Zm0 2.3a9.2 9.2 0 1 0 0 18.4 9.2 9.2 0 0 0 0-18.4Z"></path>
                             <path d="M11.5 4c-.208 0-.414.046-.605.135-.19.09-.362.221-.502.385-.141.164-.248.358-.315.568-.066.21-.09.434-.072.655l.6 7.01a.982.982 0 0 0 .293.613.87.87 0 0 0 .602.246.87.87 0 0 0 .602-.246.982.982 0 0 0 .293-.612l.598-7.011a1.697 1.697 0 0 0-.072-.654 1.623 1.623 0 0 0-.314-.568 1.506 1.506 0 0 0-.502-.385A1.421 1.421 0 0 0 11.5 4Zm0 14c.35 0 .684-.148.93-.41.246-.263.385-.619.385-.99s-.139-.727-.385-.99a1.274 1.274 0 0 0-.93-.41c-.348 0-.682.148-.928.41a1.448 1.448 0 0 0-.385.99c0 .371.138.727.385.99.246.262.58.41.929.41Z"></path>
@@ -69,7 +69,7 @@
 
             @form(routes.PrepareMetadataController.prepareMetadataSubmit(consignmentId), (Symbol("novalidate"), "")) {
                 @CSRF.formField
-                <button type="submit" role="button" draggable="false" class="govuk-button govuk-!-margin-top-4" data-module="govuk-button">
+                <button type="submit" draggable="false" class="govuk-button govuk-!-margin-top-4" data-module="govuk-button">
                     Continue
                 </button>
             }
@@ -85,7 +85,7 @@
                           <li>All records are Open</li>
                           <li>All records are in English</li>
                         </ul>
-                        <a href="${routes.DownloadMetadataController.downloadMetadataPage(consignmentId)}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                        <a href="${routes.DownloadMetadataController.downloadMetadataPage(consignmentId)}" class="govuk-button govuk-button--secondary" data-module="govuk-button">
                             I don't need to provide any metadata
                         </a>
                     """
