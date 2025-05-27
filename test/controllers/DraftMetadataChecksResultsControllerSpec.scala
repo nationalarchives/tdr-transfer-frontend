@@ -27,6 +27,7 @@ import java.util.{Properties, UUID}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 import scala.jdk.CollectionConverters.IterableHasAsScala
+import scala.sys.process._
 import scala.util.Using
 
 class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
