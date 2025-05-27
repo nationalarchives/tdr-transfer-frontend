@@ -392,10 +392,10 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
       // Run axe-core CLI on the file
       // Make sure axe-core is installed: npm install --prefix npm --save-dev @axe-core/cli
-      val axeCommand = Seq("npx", "--prefix", "npm", "axe", "file://"+tmpFile.getAbsolutePath)
-      //val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
+      val axeCommand = Seq("npx", "--prefix", "npm", "axe", "file://" + tmpFile.getAbsolutePath)
+      // val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
       println(axeCommand)
-      //val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
+      // val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
       val axeResult = Process(axeCommand, None).!!
 
       // Optionally print the result for debugging
