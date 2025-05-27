@@ -385,10 +385,13 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
       val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
 
+      // Remove all <script>...</script> tags to disable JS execution in accessibility test
+      val pageWithoutScripts = pageAsString.replaceAll("(?s)<script.*?>.*?</script>", "")
+
       // Write HTML to a temporary file
       val tmpFile = java.io.File.createTempFile("tdr-accessibility-", ".html")
       val writer = new java.io.PrintWriter(tmpFile)
-      writer.write(pageAsString)
+      writer.write(pageWithoutScripts)
       writer.close()
 
       // Run axe-core CLI on the file
