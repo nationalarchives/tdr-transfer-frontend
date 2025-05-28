@@ -123,7 +123,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       )
       pageAsString must include(
         s"""            <div class="govuk-button-group">
-             |                <a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-button" data-module="govuk-button" aria-label="Continue to next step">
+             |                <a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-button" data-module="govuk-button">
              |                    Next
              |                </a>
              |            </div>""".stripMargin
