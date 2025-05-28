@@ -53,7 +53,7 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
       prepareMetadataPageAsString must include("""<h2 class="govuk-heading-m">Saving your spreadsheet as a CSV</h2>""")
       prepareMetadataPageAsString must include("""<span class="govuk-details__summary-text">How to save an Excel file as CSV</span>""")
       prepareMetadataPageAsString must include("""                             <li>Save your file as Excel first (File > Save) before you save as CSV</li>
-                                                 |                             <li>Click File > Save As
+                                                 |                             <li>Click File > Save As</li>
                                                  |                             <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
                                                  |                             <li>Click Save</li>
                                                  |                             <li>Close the file, you are ready to upload</li>""".stripMargin)
