@@ -57,7 +57,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
       |                        </h2>
       |                    </div>
       |                    <div class="govuk-notification-banner__content">
-      |                        <p class="govuk-notification-banner__heading">Your metadata has been checked.</p>
+      |                        <h3 class="govuk-notification-banner__heading">Your metadata has been checked.</h3>
       |                        <p class="govuk-body">Please click 'Continue' to see your results.</p>
       |                    </div>
       |""".stripMargin
@@ -65,7 +65,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   val expectedFormAction =
     """
       |                <form action="/consignment/b5bbe4d6-01a7-4305-99ef-9fce4a67917a/draft-metadata/checks-results">
-      |                    <button type="submit" id="draft-metadata-checks-continue" class="govuk-button govuk-button--disabled" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled">
+      |                    <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button govuk-button--disabled" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled">
       |                Continue
       |                    </button>
       |                    <p class="govuk-visually-hidden" id="reason-disabled">
