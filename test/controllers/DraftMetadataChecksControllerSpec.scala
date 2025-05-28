@@ -57,7 +57,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
       |                        </h2>
       |                    </div>
       |                    <div class="govuk-notification-banner__content">
-      |                        <h3 class="govuk-notification-banner__heading">Your metadata has been checked.</h3>
+      |                        <p class="govuk-notification-banner__heading">Your metadata has been checked.</p>
       |                        <p class="govuk-body">Please click 'Continue' to see your results.</p>
       |                    </div>
       |""".stripMargin
