@@ -11,9 +11,6 @@ object Statuses {
 
   object StatusValue {
     def apply(id: String): StatusValue = id match {
-      case EnteredValue.value             => EnteredValue
-      case NotEnteredValue.value          => NotEnteredValue
-      case IncompleteValue.value          => IncompleteValue
       case CompletedWithIssuesValue.value => CompletedWithIssuesValue
       case CompletedValue.value           => CompletedValue
       case InProgressValue.value          => InProgressValue
@@ -79,12 +76,6 @@ object Statuses {
     val id: String = "MetadataReview"
     val nonJudgmentStatus: Boolean = true
   }
-
-  case object EnteredValue extends StatusValue { val value: String = "Entered" }
-
-  case object NotEnteredValue extends StatusValue { val value: String = "NotEntered" }
-
-  case object IncompleteValue extends StatusValue { val value: String = "Incomplete" }
 
   case object CompletedValue extends StatusValue { val value: String = "Completed" }
 

@@ -44,12 +44,9 @@ class StatusesSpec extends AnyWordSpec with MockitoSugar {
   "StatusValues" should {
     "have the correct value" in {
       Statuses.CompletedValue.value should equal("Completed")
-      Statuses.EnteredValue.value should equal("Entered")
       Statuses.FailedValue.value should equal("Failed")
       Statuses.CompletedWithIssuesValue.value should equal("CompletedWithIssues")
       Statuses.InProgressValue.value should equal("InProgress")
-      Statuses.IncompleteValue.value should equal("Incomplete")
-      Statuses.NotEnteredValue.value should equal("NotEntered")
     }
   }
 

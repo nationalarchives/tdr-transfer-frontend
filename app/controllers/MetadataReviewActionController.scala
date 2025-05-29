@@ -12,14 +12,7 @@ import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.{
-  CompletedValue,
-  CompletedWithIssuesValue,
-  DraftMetadataType,
-  InProgressValue,
-  IncompleteValue, // todo Probably can remove this
-  MetadataReviewType
-}
+import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
 import java.util.UUID

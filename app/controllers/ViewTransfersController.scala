@@ -130,14 +130,6 @@ class ViewTransfersController @Inject() (
     UserAction(ContactUs.value, s"mailto:%s?subject=Ref: $consignmentRef - Issue With Transfer", ContactUs.value)
   }
 
-  // todo remove the use of DescriptiveMetadataType, ClosureMetadataType and DraftMetadataType probably delete all but DraftMetadataType,
-  // we should also rejig so it doesn't look for NotEnteredValue as that should be removed. Maybe check draftMetadata value has InProgress
-  private def additionalMetadataEntered(statuses: List[ConsignmentStatuses]): Boolean = {
-    val additionalMetadataStatuses =
-      statuses.filter(_.statusType == DraftMetadataType.id).map(_.value)
-    !additionalMetadataStatuses.forall(_ == NotEnteredValue.value)
-  }
-
   private def toFileChecksAction(statuses: List[ConsignmentStatuses], judgmentType: Boolean, consignmentId: UUID): UserAction = {
     val checksUrl = if (judgmentType) {
       routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url

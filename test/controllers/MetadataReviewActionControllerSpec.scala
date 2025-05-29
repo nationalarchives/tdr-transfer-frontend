@@ -18,14 +18,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.{
-  CompletedValue,
-  CompletedWithIssuesValue,
-  DraftMetadataType,
-  InProgressValue,
-  IncompleteValue, // todo remove this
-  MetadataReviewType
-}
+import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -162,20 +155,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
           .withRequestBody(containing("MetadataReview"))
           .withRequestBody(containing("CompletedWithIssues"))
       )
-
-//      wiremockServer.verify(
-//        postRequestedFor(urlEqualTo("/graphql"))
-//          .withRequestBody(containing("updateConsignmentStatus"))
-//          .withRequestBody(containing("DescriptiveMetadata"))
-//          .withRequestBody(containing("InProgress"))
-//      )
-
-//      wiremockServer.verify(
-//        postRequestedFor(urlEqualTo("/graphql"))
-//          .withRequestBody(containing("updateConsignmentStatus"))
-//          .withRequestBody(containing("ClosureMetadata"))
-//          .withRequestBody(containing("InProgress"))
-//      )
 
       wiremockServer.verify(
         postRequestedFor(urlEqualTo("/graphql"))
