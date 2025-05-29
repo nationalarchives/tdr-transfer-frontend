@@ -156,7 +156,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       }
       guidanceItems.zipWithIndex.foreach { case (guidanceItem, idx) =>
         val rowNumber = idx + 1
-        println(s"Row number: $rowNumber, Guidance item: $guidanceItem")
         val examplePropertyType = keyToPropertyType(guidanceItem.property)
         rows(rowNumber).getCell(0).asString must equal(tdrFileHeaderMapper(guidanceItem.property))
         rows(rowNumber).getCell(1).asString must equal(guidanceItem.details)
