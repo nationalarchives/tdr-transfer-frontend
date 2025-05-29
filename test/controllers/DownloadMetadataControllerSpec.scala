@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration}
+import controllers.util.GuidanceUtils.ALL_COLUMNS
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
@@ -14,6 +15,7 @@ import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
 import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType.{DateTime, Text}
 import graphql.codegen.types.PropertyType.Supplied
+import io.circe
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
@@ -28,6 +30,8 @@ import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeo
 import services.{ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
+import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
+import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.{GuidanceItem, loadGuidanceFile}
 
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
@@ -106,6 +110,34 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
       }
     })
+
+    s"generate the expected quick guide worksheet" in {
+      val wb: ReadableWorkbook = getFileFromController(List.empty[Files], "standard")
+      val ws: Sheet = wb.getSheet(1).get
+      val rows: List[Row] = ws.read.asScala.toList
+      val metadataConfiguration = ConfigUtils.loadConfiguration
+      val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
+      val keyToPropertyType = metadataConfiguration.getPropertyType
+
+      val guidanceItems: Seq[GuidanceItem] = loadGuidanceFile.toOption.getOrElse(Seq.empty)
+
+      ALL_COLUMNS.zipWithIndex.foreach { case (colType, colNumber) =>
+        rows.head.getCell(colNumber).asString must equal(colType.header)
+      }
+      guidanceItems.zipWithIndex.foreach { case (guidanceItem, idx) =>
+        val rowNumber = idx + 1
+        val examplePropertyType = keyToPropertyType(guidanceItem.property)
+        rows(rowNumber).getCell(0).asString must equal(tdrFileHeaderMapper(guidanceItem.property))
+        rows(rowNumber).getCell(1).asString must equal(guidanceItem.details)
+        rows(rowNumber).getCell(2).asString must equal(guidanceItem.format)
+        rows(rowNumber).getCell(3).asString must equal(guidanceItem.tdrRequirement)
+        examplePropertyType match {
+          case "date" if guidanceItem.example != "N/A" =>
+            rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal(guidanceItem.example)
+          case _ => rows(rowNumber).getCell(4).asString() must equal(guidanceItem.example)
+        }
+      }
+    }
 
     "return forbidden for a judgment user" in {
       val controller = createController("judgment")
