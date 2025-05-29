@@ -230,54 +230,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  // TODO: This isn't being used, what was the allDescendants endpoint for?
-  def setAllDescendantIdsResponse(
-      wiremockServer: WireMockServer,
-      selectedDescendants: List[UUID] = List(),
-      deselectedDescendants: List[UUID] = List(),
-      folderDescendants: List[UUID] = List()
-  ): StubMapping = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[getAllDescendantIds.Data, getAllDescendantIds.Variables]()
-
-    val selectedResponse = new getAllDescendantIds.Data(selectedDescendants.map(id => AllDescendants(id, Some("File"))))
-    val selectedData: client.GraphqlData = client.GraphqlData(Some(selectedResponse))
-    val selectedDataString: String = selectedData.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    val deselectedResponse = new getAllDescendantIds.Data(deselectedDescendants.map(id => AllDescendants(id, Some("File"))))
-    val deselectedData: client.GraphqlData = client.GraphqlData(Some(deselectedResponse))
-    val deselectedDataString: String = deselectedData.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    val folderResponse = new getAllDescendantIds.Data(folderDescendants.map(id => AllDescendants(id, Some("File"))))
-    val folderData: client.GraphqlData = client.GraphqlData(Some(folderResponse))
-    val folderDataString: String = folderData.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .inScenario("allDescendants")
-        .withRequestBody(containing("getAllDescendantIds"))
-        .willReturn(okJson(selectedDataString))
-        .willSetStateTo("selectedDescendants")
-    )
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .inScenario("allDescendants")
-        .whenScenarioStateIs("selectedDescendants")
-        .withRequestBody(containing("getAllDescendantIds"))
-        .willReturn(okJson(deselectedDataString))
-        .willSetStateTo("deselectedDescendants")
-    )
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .inScenario("allDescendants")
-        .whenScenarioStateIs("deselectedDescendants")
-        .withRequestBody(containing("getAllDescendantIds"))
-        .willReturn(okJson(folderDataString))
-        .willSetStateTo("folderDescendants")
-    )
-  }
-
   def setGetConsignmentsForMetadataReviewResponse(wiremockServer: WireMockServer): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfmr.Data, gcfmr.Variables]()
     val consignment =
