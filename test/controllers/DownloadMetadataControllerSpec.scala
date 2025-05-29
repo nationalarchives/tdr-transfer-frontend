@@ -150,7 +150,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val keyToPropertyType = metadataConfiguration.getPropertyType
 
       val guidanceItems: Seq[GuidanceItem] = loadGuidanceFile.toOption.get
-      
+
       ALL_COLUMNS.zipWithIndex.foreach { case (colType, colNumber) =>
         rows.head.getCell(colNumber).asString must equal(colType.header)
       }
@@ -158,14 +158,14 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         val rowNumber = idx + 1
         println(s"Row number: $rowNumber, Guidance item: $guidanceItem")
         val examplePropertyType = keyToPropertyType(guidanceItem.property)
-        rows(rowNumber).getCell(0).asString must equal (tdrFileHeaderMapper(guidanceItem.property))
-        rows(rowNumber).getCell(1).asString must equal (guidanceItem.details)
-        rows(rowNumber).getCell(2).asString must equal (guidanceItem.format)
-        rows(rowNumber).getCell(3).asString must equal (guidanceItem.tdrRequirement)
+        rows(rowNumber).getCell(0).asString must equal(tdrFileHeaderMapper(guidanceItem.property))
+        rows(rowNumber).getCell(1).asString must equal(guidanceItem.details)
+        rows(rowNumber).getCell(2).asString must equal(guidanceItem.format)
+        rows(rowNumber).getCell(3).asString must equal(guidanceItem.tdrRequirement)
         examplePropertyType match {
-          case "date" if guidanceItem.example != "N/A" => 
-            rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal (guidanceItem.example)
-          case _ => rows(rowNumber).getCell(4).asString() must equal (guidanceItem.example)
+          case "date" if guidanceItem.example != "N/A" =>
+            rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal(guidanceItem.example)
+          case _ => rows(rowNumber).getCell(4).asString() must equal(guidanceItem.example)
         }
       }
     }

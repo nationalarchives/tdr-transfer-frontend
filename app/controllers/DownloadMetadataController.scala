@@ -51,7 +51,7 @@ class DownloadMetadataController @Inject() (
     val propertyTypeEvaluator = metadataConfiguration.getPropertyType
     val downloadType = "MetadataDownloadTemplate"
     val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
-    
+
     for {
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
       downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType).sortBy(_.columnIndex)

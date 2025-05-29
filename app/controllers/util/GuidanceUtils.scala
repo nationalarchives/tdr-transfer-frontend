@@ -8,17 +8,19 @@ object GuidanceUtils {
   private val TYPICAL_CHARACTER_HEIGHT = 15.00
   private val DEFAULT_FONT_COLOR = "000000"
   private val SYSTEM_ROW_FONT_COLOR = "A1A1A1"
-  
+
   def approximatedRowHeight(
-    guidanceItem: GuidanceItem, 
-    keyToTdrHeader: String => String, 
-    keyToPropertyType: String => String
+      guidanceItem: GuidanceItem,
+      keyToTdrHeader: String => String,
+      keyToPropertyType: String => String
   ): Double = {
     val maxRequiredHeight = ALL_COLUMNS.map { colType =>
-      colType.maxColumnWidth.map { columnWidth =>
-        val cellValue = colType.value(keyToTdrHeader, keyToPropertyType)(guidanceItem).toString
-        Math.ceil(cellValue.length.toDouble / columnWidth) * TYPICAL_CHARACTER_HEIGHT
-      }.getOrElse(1.0)
+      colType.maxColumnWidth
+        .map { columnWidth =>
+          val cellValue = colType.value(keyToTdrHeader, keyToPropertyType)(guidanceItem).toString
+          Math.ceil(cellValue.length.toDouble / columnWidth) * TYPICAL_CHARACTER_HEIGHT
+        }
+        .getOrElse(1.0)
     }.max
     maxRequiredHeight
   }
@@ -28,10 +30,10 @@ object GuidanceUtils {
     val maxColumnWidth: Option[Double] = None
     def columnLevelFormatting: StyleSetter => Unit = _ => ()
     def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => Any
-    def systemPropertyFormatting(guidanceItem: GuidanceItem): StyleSetter => Unit = ss => 
-        if (guidanceItem.format == "Do not modify") 
-          ss.fontColor(SYSTEM_ROW_FONT_COLOR).set() 
-        else ss.fontColor(DEFAULT_FONT_COLOR).set()
+    def systemPropertyFormatting(guidanceItem: GuidanceItem): StyleSetter => Unit = ss =>
+      if (guidanceItem.format == "Do not modify")
+        ss.fontColor(SYSTEM_ROW_FONT_COLOR).set()
+      else ss.fontColor(DEFAULT_FONT_COLOR).set()
     def formatDataType(keyToPropertyType: String => String, guidanceItem: GuidanceItem): StyleSetter => Unit = _ => ()
   }
 

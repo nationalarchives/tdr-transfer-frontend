@@ -30,16 +30,25 @@ object ExcelUtils {
     val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => keyToPropertyType(dp.key))
     val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value.toUpperCase))
     val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, keyToPropertyType, keyToTdrDataLoadHeader)
-    ExcelUtils.writeExcel(s"Metadata for $consignmentRef", colProperties, colProperties.map(x => x.header) :: fileMetadataRows, dataTypes, guidanceItems, keyToTdrFileHeader, keyToPropertyType)
+    ExcelUtils.writeExcel(
+      s"Metadata for $consignmentRef",
+      colProperties,
+      colProperties.map(x => x.header) :: fileMetadataRows,
+      dataTypes,
+      guidanceItems,
+      keyToTdrFileHeader,
+      keyToPropertyType
+    )
   }
 
   def writeExcel(
-    worksheetName: String, columnProperties: List[ColumnProperty] = List.empty, 
-    rows: List[List[Any]], 
-    dataTypes: List[String] = Nil,
-    guidanceItems: Seq[GuidanceItem] = Seq.empty,
-    keyToTdrFileHeader: String => String = identity,
-    keyToPropertyType: String => String = identity,
+      worksheetName: String,
+      columnProperties: List[ColumnProperty] = List.empty,
+      rows: List[List[Any]],
+      dataTypes: List[String] = Nil,
+      guidanceItems: Seq[GuidanceItem] = Seq.empty,
+      keyToTdrFileHeader: String => String = identity,
+      keyToPropertyType: String => String = identity
   ): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
@@ -81,10 +90,10 @@ object ExcelUtils {
   }
 
   private def buildGuidanceWorksheet(
-    wb: Workbook,
-    guidanceItems: Seq[GuidanceItem],
-    keyToTdrFileHeader: String => String,
-    keyToPropertyType: String => String
+      wb: Workbook,
+      guidanceItems: Seq[GuidanceItem],
+      keyToTdrFileHeader: String => String,
+      keyToPropertyType: String => String
   ): Unit = {
     val guidanceWorksheet: Worksheet = wb.newWorksheet("Quick guide")
     guidanceWorksheet.freezePane(0, 1)
@@ -98,13 +107,13 @@ object ExcelUtils {
   }
 
   private def writeGuidanceItems(
-    keyToTdrFileHeader: String => String, 
-    keyToPropertyType: String => String, 
-    guidanceWorksheet: Worksheet, 
-    colType: GuidanceColumnWriter, 
-    columnNumber: Int, 
-    gi: GuidanceItem,
-    rowNumber: Int
+      keyToTdrFileHeader: String => String,
+      keyToPropertyType: String => String,
+      guidanceWorksheet: Worksheet,
+      colType: GuidanceColumnWriter,
+      columnNumber: Int,
+      gi: GuidanceItem,
+      rowNumber: Int
   ): Unit = {
     setCellValue(
       worksheet = guidanceWorksheet,
@@ -127,11 +136,10 @@ object ExcelUtils {
   private def setCellValue(worksheet: Worksheet, value: Any, rowNo: Int, colNo: Int): Unit = {
     value match {
       case value: LocalDate => worksheet.value(rowNo, colNo, value)
-      case value: Integer => worksheet.value(rowNo, colNo, value)
-      case value => worksheet.value(rowNo, colNo, value.toString)
+      case value: Integer   => worksheet.value(rowNo, colNo, value)
+      case value            => worksheet.value(rowNo, colNo, value.toString)
     }
   }
-  
 
   private def createExcelRowData(
       sortedMetaData: List[Files],
@@ -156,13 +164,12 @@ object ExcelUtils {
 
   def convertValue(propertyType: String, fileMetadataValue: String, convertBoolean: Boolean = true): Any = {
     propertyType match {
-      case "date" => covertToLocalDateOrString(fileMetadataValue)
+      case "date"                      => covertToLocalDateOrString(fileMetadataValue)
       case "boolean" if convertBoolean => if (fileMetadataValue == "true") "Yes" else "No"
-      case "integer" => Integer.valueOf(fileMetadataValue)
-      case _ => fileMetadataValue
+      case "integer"                   => Integer.valueOf(fileMetadataValue)
+      case _                           => fileMetadataValue
     }
   }
-  
-  
+
   case class ColumnProperty(header: String, editable: Boolean, fillColour: Option[String])
 }
