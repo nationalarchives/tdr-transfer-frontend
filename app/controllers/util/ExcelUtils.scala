@@ -1,6 +1,6 @@
 package controllers.util
 
-import controllers.util.DateUtils.covertToLocalDateOrString
+import controllers.util.DateUtils.convertToLocalDateOrString
 import controllers.util.GuidanceUtils.{ALL_COLUMNS, GuidanceColumnWriter, approximatedRowHeight}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
@@ -164,7 +164,7 @@ object ExcelUtils {
 
   def convertValue(propertyType: String, fileMetadataValue: String, convertBoolean: Boolean = true): Any = {
     propertyType match {
-      case "date"                      => covertToLocalDateOrString(fileMetadataValue)
+      case "date"                      => convertToLocalDateOrString(fileMetadataValue)
       case "boolean" if convertBoolean => if (fileMetadataValue == "true") "Yes" else "No"
       case "integer"                   => Integer.valueOf(fileMetadataValue)
       case _                           => fileMetadataValue

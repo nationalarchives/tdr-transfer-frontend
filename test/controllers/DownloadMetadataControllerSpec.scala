@@ -149,7 +149,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
       val keyToPropertyType = metadataConfiguration.getPropertyType
 
-      val guidanceItems: Seq[GuidanceItem] = loadGuidanceFile.toOption.get
+      val guidanceItems: Seq[GuidanceItem] = loadGuidanceFile.toOption.getOrElse(Seq.empty)
 
       ALL_COLUMNS.zipWithIndex.foreach { case (colType, colNumber) =>
         rows.head.getCell(colNumber).asString must equal(colType.header)
