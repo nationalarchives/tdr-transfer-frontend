@@ -101,12 +101,12 @@ object ExcelUtils {
       formatHeaderAndSetColumnWidth(guidanceWorksheet, colType, columnNumber)
       guidanceItems.zipWithIndex.foreach { case (gi, idx) =>
         guidanceWorksheet.rowHeight(idx + 1, approximatedRowHeight(gi, keyToTdrFileHeader, keyToPropertyType))
-        writeGuidanceItems(keyToTdrFileHeader, keyToPropertyType, guidanceWorksheet, colType, columnNumber, gi, idx + 1)
+        writeColumnCell(keyToTdrFileHeader, keyToPropertyType, guidanceWorksheet, colType, columnNumber, gi, idx + 1)
       }
     }
   }
 
-  private def writeGuidanceItems(
+  private def writeColumnCell(
       keyToTdrFileHeader: String => String,
       keyToPropertyType: String => String,
       guidanceWorksheet: Worksheet,
