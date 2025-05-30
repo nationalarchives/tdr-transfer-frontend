@@ -33,7 +33,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
   "ExcelUtils covertToLocalDateOrString" should {
     "correctly parse yyyy-MM-dd Date" in {
-      val date = DateUtils.covertToLocalDateOrString("2023-10-01")
+      val date = DateUtils.convertToLocalDateOrString("2023-10-01")
       date match {
         case localDate: LocalDate => localDate.toString shouldBe "2023-10-01"
         case _                    => fail("Date parsing failed")
@@ -41,7 +41,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "correctly parse yyyy/MM/dd Date" in {
-      val date = DateUtils.covertToLocalDateOrString("2023/10/01")
+      val date = DateUtils.convertToLocalDateOrString("2023/10/01")
       date match {
         case localDate: LocalDate => localDate.toString shouldBe "2023-10-01"
         case _                    => fail("Date parsing failed")
@@ -49,7 +49,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "correctly parse 2021-02-03T10:33:30.414 Date" in {
-      val date = DateUtils.covertToLocalDateOrString("2021-02-03T10:33:30.414")
+      val date = DateUtils.convertToLocalDateOrString("2021-02-03T10:33:30.414")
       date match {
         case localDate: LocalDate => localDate.toString shouldBe "2021-02-03"
         case _                    => fail("Date parsing failed")
@@ -57,7 +57,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "correctly parse 2023-06-19 16:30:00 Date" in {
-      val date = DateUtils.covertToLocalDateOrString("2023-06-19 16:30:00")
+      val date = DateUtils.convertToLocalDateOrString("2023-06-19 16:30:00")
       date match {
         case localDate: LocalDate => localDate.toString shouldBe "2023-06-19"
         case _                    => fail("Date parsing failed")
@@ -65,7 +65,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "correctly parse unknown date format dd-mm-yyyy to String" in {
-      val date = DateUtils.covertToLocalDateOrString("12-10-2021")
+      val date = DateUtils.convertToLocalDateOrString("12-10-2021")
       date match {
         case unknownDate: String => unknownDate shouldBe "12-10-2021"
         case _                   => fail("Date parsing failed")

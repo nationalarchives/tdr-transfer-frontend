@@ -191,7 +191,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
                |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>
                |        </svg>
                |    </span>
-               |    Download report
+               |    Download error report
                |</a>
                |""".stripMargin
           )
@@ -221,7 +221,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         CompletedWithIssuesValue.value,
         FileError.SCHEMA_REQUIRED,
         "There was at least one missing column in your metadata file. The metadata file must contain specific column headers.",
-        "Add the following column headers to your metadata file and re-load.",
+        "Add the following column headers to your metadata file and re-upload.",
         Set("Closure Status", "Description")
       ),
       (
