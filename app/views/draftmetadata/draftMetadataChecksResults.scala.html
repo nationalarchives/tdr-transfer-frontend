@@ -14,8 +14,8 @@
             <dl class="govuk-summary-list">
                 @draftMetadataResultDetails(draftMetadataProgress, uploadedFileName)
             </dl>
-            <p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href=@routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)>
-                upload a metadata CSV</a>, otherwise continue with your transfer.</p>
+           <p class="govuk-body">If you need to make any changes to your metadata you can return to <a class="govuk-link" href="@routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)">
+                                upload a metadata CSV</a>, otherwise continue with your transfer.</p>
             <div class="govuk-button-group">
                 <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
                     Next
