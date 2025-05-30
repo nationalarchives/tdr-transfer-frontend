@@ -48,21 +48,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   }
 
   "DraftMetadataChecksResultsController GET" should {
-    "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
-      val controller = instantiateController()
-      val additionalMetadataEntryMethodPage =
-        controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-
-      val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
-
-      playStatus(additionalMetadataEntryMethodPage) mustBe OK
-      contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
-      pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
-    }
-
     "return forbidden for a TNA user" in {
-      val controller = instantiateController(blockDraftMetadataUpload = false, keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
+      val controller = instantiateController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
       val additionalMetadataEntryMethodPage =
         controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -73,7 +60,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
 
   "DraftMetadataChecksResultsController should render the page with the correct status" should {
     s"render the draftMetadataResults page when the status is completed" in {
-      val controller = instantiateController(blockDraftMetadataUpload = false)
+      val controller = instantiateController()
       val additionalMetadataEntryMethodPage = controller
         .draftMetadataChecksResultsPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
@@ -145,7 +132,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage) =>
       {
         s"render the draftMetadataResults page when the status is $statusValue" in {
-          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
+          val controller = instantiateController(fileError = fileError)
           val additionalMetadataEntryMethodPage = controller
             .draftMetadataChecksResultsPage(consignmentId)
             .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
@@ -235,7 +222,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     forAll(draftMetadataStatuses) { (statusValue, fileError, detailsMessage, actionMessage, affectedProperties) =>
       {
         s"render the draftMetadataResults page when the status is $statusValue and error is $fileError" in {
-          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError, affectedProperties = affectedProperties)
+          val controller = instantiateController(fileError = fileError, affectedProperties = affectedProperties)
           val additionalMetadataEntryMethodPage = controller
             .draftMetadataChecksResultsPage(consignmentId)
             .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
@@ -372,16 +359,12 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   private def instantiateController(
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockDraftMetadataUpload: Boolean = true,
       fileError: FileError.FileError = FileError.UNKNOWN,
       affectedProperties: Set[String] = Set(),
       errorFileData: Option[ErrorFileData] = None
   ): DraftMetadataChecksResultsController = {
-    when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
-    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val mockedErrorFileData = if (errorFileData.isDefined) { errorFileData.get }
     else mockErrorFileData(fileError, affectedProperties)
     when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(mockedErrorFileData))
@@ -401,7 +384,6 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       securityComponents,
       keycloakConfiguration,
       consignmentService,
-      applicationConfig,
       draftMetaDataService,
       messagesApi
     )

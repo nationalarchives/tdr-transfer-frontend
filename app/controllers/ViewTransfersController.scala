@@ -9,7 +9,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.C
 import graphql.codegen.types.ConsignmentFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.ConsignmentService
+import services.{ConsignmentService, Statuses}
 import services.Statuses._
 
 import java.util.UUID
@@ -88,14 +88,10 @@ class ViewTransfersController @Inject() (
       case s if s.containsStatuses(ExportType) => toExportAction(s.find(_.statusType == ExportType.id).get, judgmentType, consignmentId, consignmentRef)
       case s if s.statusValue(ConfirmTransferType).contains(CompletedValue.value) =>
         UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
-      case s if s.containsStatuses(MetadataReviewType) && !applicationConfig.blockMetadataReview =>
+      case s if s.containsStatuses(MetadataReviewType) =>
         UserAction(InProgress.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
-      case s if s.statusValue(DraftMetadataType).contains(CompletedValue.value) =>
-        UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
-      case s if s.statusValue(DraftMetadataType).contains(CompletedWithIssuesValue.value) =>
-        UserAction(InProgress.value, routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, Resume.value)
-      case s if additionalMetadataEntered(s) =>
-        UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
+      case s if s.containsStatuses(DraftMetadataType) =>
+        toDraftMetadataAction(s.find(_.statusType == DraftMetadataType.id).get, consignmentId)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
         toFileChecksAction(s, judgmentType, consignmentId)
       case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
@@ -105,6 +101,15 @@ class ViewTransfersController @Inject() (
         toSeriesAction(s.find(_.statusType == SeriesType.id).get, consignmentId)
       case s if s.isEmpty => toStartAction(consignmentId, judgmentType)
       case _              => toContactUsAction(consignmentRef)
+    }
+  }
+
+  private def toDraftMetadataAction(status: ConsignmentStatuses, consignmentId: UUID) = {
+    status.value match {
+      case CompletedValue.value => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
+      case CompletedWithIssuesValue.value =>
+        UserAction(InProgress.value, routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, Resume.value)
+      case _ => UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
     }
   }
 
@@ -123,12 +128,6 @@ class ViewTransfersController @Inject() (
 
   private def toContactUsAction(consignmentRef: String): UserAction = {
     UserAction(ContactUs.value, s"mailto:%s?subject=Ref: $consignmentRef - Issue With Transfer", ContactUs.value)
-  }
-
-  private def additionalMetadataEntered(statuses: List[ConsignmentStatuses]): Boolean = {
-    val additionalMetadataStatuses =
-      statuses.filter(s => s.statusType == DescriptiveMetadataType.id || s.statusType == ClosureMetadataType.id || s.statusType == DraftMetadataType.id).map(_.value)
-    !additionalMetadataStatuses.forall(_ == NotEnteredValue.value)
   }
 
   private def toFileChecksAction(statuses: List[ConsignmentStatuses], judgmentType: Boolean, consignmentId: UUID): UserAction = {

@@ -12,16 +12,7 @@ import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.{
-  ClosureMetadataType,
-  CompletedValue,
-  CompletedWithIssuesValue,
-  DescriptiveMetadataType,
-  DraftMetadataType,
-  InProgressValue,
-  IncompleteValue,
-  MetadataReviewType
-}
+import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
 import java.util.UUID
@@ -136,11 +127,7 @@ object MetadataReviewActionController {
     val metadataReviewStatusUpdate = (MetadataReviewType.id, formData.statusId)
     val metadataStatusResets =
       if (formData.statusId == CompletedWithIssuesValue.value)
-        Seq(
-          (DescriptiveMetadataType.id, InProgressValue.value),
-          (ClosureMetadataType.id, InProgressValue.value),
-          (DraftMetadataType.id, InProgressValue.value)
-        )
+        Seq((DraftMetadataType.id, InProgressValue.value))
       else Seq.empty
     metadataStatusResets :+ metadataReviewStatusUpdate
   }

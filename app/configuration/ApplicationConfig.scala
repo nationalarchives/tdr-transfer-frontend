@@ -20,12 +20,6 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
 
-  val blockDraftMetadataUpload: Boolean = configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")
-
-  val blockMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockMetadataReview")
-
-  val blockSkipMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockSkipMetadataReview")
-
   val metadataValidationBaseUrl: String = configuration.get[String]("metadatavalidation.baseUrl")
 
   val s3Endpoint: String = configuration.get[String]("s3.endpoint")

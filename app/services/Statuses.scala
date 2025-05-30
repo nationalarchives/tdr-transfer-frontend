@@ -11,9 +11,6 @@ object Statuses {
 
   object StatusValue {
     def apply(id: String): StatusValue = id match {
-      case EnteredValue.value             => EnteredValue
-      case NotEnteredValue.value          => NotEnteredValue
-      case IncompleteValue.value          => IncompleteValue
       case CompletedWithIssuesValue.value => CompletedWithIssuesValue
       case CompletedValue.value           => CompletedValue
       case InProgressValue.value          => InProgressValue
@@ -70,16 +67,6 @@ object Statuses {
     val nonJudgmentStatus: Boolean = false
   }
 
-  case object DescriptiveMetadataType extends StatusType {
-    val id: String = "DescriptiveMetadata"
-    val nonJudgmentStatus: Boolean = true
-  }
-
-  case object ClosureMetadataType extends StatusType {
-    val id: String = "ClosureMetadata"
-    val nonJudgmentStatus: Boolean = true
-  }
-
   case object DraftMetadataType extends StatusType {
     val id: String = "DraftMetadata"
     val nonJudgmentStatus: Boolean = true
@@ -89,12 +76,6 @@ object Statuses {
     val id: String = "MetadataReview"
     val nonJudgmentStatus: Boolean = true
   }
-
-  case object EnteredValue extends StatusValue { val value: String = "Entered" }
-
-  case object NotEnteredValue extends StatusValue { val value: String = "NotEntered" }
-
-  case object IncompleteValue extends StatusValue { val value: String = "Incomplete" }
 
   case object CompletedValue extends StatusValue { val value: String = "Completed" }
 
@@ -106,20 +87,18 @@ object Statuses {
 
   def toStatusType(statusType: String): StatusType = {
     statusType match {
-      case ExportType.id              => ExportType
-      case ConfirmTransferType.id     => ConfirmTransferType
-      case ServerFFIDType.id          => ServerFFIDType
-      case ServerChecksumType.id      => ServerChecksumType
-      case ServerAntivirusType.id     => ServerAntivirusType
-      case ClientChecksType.id        => ClientChecksType
-      case UploadType.id              => UploadType
-      case TransferAgreementType.id   => TransferAgreementType
-      case SeriesType.id              => SeriesType
-      case DescriptiveMetadataType.id => DescriptiveMetadataType
-      case ClosureMetadataType.id     => ClosureMetadataType
-      case DraftMetadataType.id       => DraftMetadataType
-      case MetadataReviewType.id      => MetadataReviewType
-      case _                          => UnrecognisedType
+      case ExportType.id            => ExportType
+      case ConfirmTransferType.id   => ConfirmTransferType
+      case ServerFFIDType.id        => ServerFFIDType
+      case ServerChecksumType.id    => ServerChecksumType
+      case ServerAntivirusType.id   => ServerAntivirusType
+      case ClientChecksType.id      => ClientChecksType
+      case UploadType.id            => UploadType
+      case TransferAgreementType.id => TransferAgreementType
+      case SeriesType.id            => SeriesType
+      case DraftMetadataType.id     => DraftMetadataType
+      case MetadataReviewType.id    => MetadataReviewType
+      case _                        => UnrecognisedType
     }
   }
 }

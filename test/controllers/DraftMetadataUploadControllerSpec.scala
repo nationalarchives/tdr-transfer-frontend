@@ -46,7 +46,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   "DraftMetadataUploadController GET" should {
     "render 'draft metadata upload' page when 'blockDraftMetadataUpload' set to 'false'" in {
 
-      val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false)
+      val controller = instantiateDraftMetadataUploadController()
       val draftMetadataUploadPage = controller
         .draftMetadataUploadPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
@@ -77,20 +77,8 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
                                   |                            </button>""".stripMargin)
     }
 
-    "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
-      val controller = instantiateDraftMetadataUploadController()
-      val draftMetadataUploadPage = controller.draftMetadataUploadPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-
-      val pageAsString = contentAsString(draftMetadataUploadPage)
-
-      playStatus(draftMetadataUploadPage) mustBe OK
-      contentType(draftMetadataUploadPage) mustBe Some("text/html")
-      pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
-    }
-
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = instantiateDraftMetadataUploadController(securityComponents = getUnauthorisedSecurityComponents, blockDraftMetadataUpload = false)
+      val controller = instantiateDraftMetadataUploadController(securityComponents = getUnauthorisedSecurityComponents)
 
       val draftMetadataUploadPage = controller
         .draftMetadataUploadPage(consignmentId)
@@ -103,7 +91,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "return forbidden if the pages are accessed by a judgment user" in {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
-      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidJudgmentUserKeycloakConfiguration, blockDraftMetadataUpload = false)
+      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidJudgmentUserKeycloakConfiguration)
       val draftMetadataUploadPage = controller
         .draftMetadataUploadPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
@@ -114,7 +102,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "return forbidden for a TNA user" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration(), blockDraftMetadataUpload = false)
+      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
       val draftMetadataUploadPage = controller
         .draftMetadataUploadPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
@@ -201,11 +189,9 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   private def instantiateDraftMetadataUploadController(
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockDraftMetadataUpload: Boolean = true,
       uploadService: UploadService = mock[UploadService],
       draftMetadataService: DraftMetadataService = mock[DraftMetadataService]
   ): DraftMetadataUploadController = {
-    when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
     when(draftMetadataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(FileError.NONE))
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -225,7 +211,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   }
 
   private def requestFileUploadWithoutFile(uploadServiceMock: UploadService, draftMetadataServiceMock: DraftMetadataService): Future[Result] = {
-    val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false, uploadService = uploadServiceMock, draftMetadataService = draftMetadataServiceMock)
+    val controller = instantiateDraftMetadataUploadController(uploadService = uploadServiceMock, draftMetadataService = draftMetadataServiceMock)
 
     val formData = MultipartFormData(dataParts = Map("" -> Seq("dummy data")), files = Seq.empty[FilePart[Files.TemporaryFile]], badParts = Seq())
 
@@ -234,7 +220,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   }
 
   private def requestFileUpload(uploadServiceMock: UploadService, draftMetadataServiceMock: DraftMetadataService): Future[Result] = {
-    val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false, uploadService = uploadServiceMock, draftMetadataService = draftMetadataServiceMock)
+    val controller = instantiateDraftMetadataUploadController(uploadService = uploadServiceMock, draftMetadataService = draftMetadataServiceMock)
 
     val csvUploadFile = new File("test_metadata_upload.csv")
     val fileWriter = new BufferedWriter(new FileWriter(csvUploadFile))

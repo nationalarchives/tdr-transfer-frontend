@@ -18,16 +18,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.{
-  ClosureMetadataType,
-  CompletedValue,
-  CompletedWithIssuesValue,
-  DescriptiveMetadataType,
-  DraftMetadataType,
-  InProgressValue,
-  IncompleteValue,
-  MetadataReviewType
-}
+import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -168,20 +159,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(
         postRequestedFor(urlEqualTo("/graphql"))
           .withRequestBody(containing("updateConsignmentStatus"))
-          .withRequestBody(containing("DescriptiveMetadata"))
-          .withRequestBody(containing("InProgress"))
-      )
-
-      wiremockServer.verify(
-        postRequestedFor(urlEqualTo("/graphql"))
-          .withRequestBody(containing("updateConsignmentStatus"))
-          .withRequestBody(containing("ClosureMetadata"))
-          .withRequestBody(containing("InProgress"))
-      )
-
-      wiremockServer.verify(
-        postRequestedFor(urlEqualTo("/graphql"))
-          .withRequestBody(containing("updateConsignmentStatus"))
           .withRequestBody(containing("DraftMetadata"))
           .withRequestBody(containing("InProgress"))
       )
@@ -255,8 +232,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val result = consignmentStatusUpdates(formData)
 
       result mustBe Seq(
-        (DescriptiveMetadataType.id, InProgressValue.value),
-        (ClosureMetadataType.id, InProgressValue.value),
         (DraftMetadataType.id, InProgressValue.value),
         (MetadataReviewType.id, CompletedWithIssuesValue.value)
       )

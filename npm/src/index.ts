@@ -65,7 +65,6 @@ export const renderModules = async () => {
   )
   const draftMetadataValidationContainer: HTMLDivElement | null =
     document.querySelector(".draft-metadata-validation-progress")
-  const fileSelectionTree = document.querySelector(".tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
   const multiSelectSearch = document.querySelector(".tna-multi-select-search")
@@ -165,14 +164,7 @@ export const renderModules = async () => {
       await sessionTimeoutModule.initialiseSessionTimeout(frontEndInfo)
     }
   }
-  if (fileSelectionTree) {
-    const trees: NodeListOf<HTMLUListElement> =
-      document.querySelectorAll("[role=tree]")
-    trees.forEach((tree) => {
-      const nestedNavigation = new NestedNavigation(tree)
-      nestedNavigation.initialiseFormListeners(InputType.radios)
-    })
-  }
+
   if (multiSelectSearch) {
     const rootElement: HTMLElement | null = document.querySelector(
       "[data-module=multi-select-search]"

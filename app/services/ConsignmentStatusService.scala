@@ -2,14 +2,14 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment, Variables}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.types.ConsignmentStatusInput
 import services.ApiErrorHandling._
-import services.Statuses.{NotEnteredValue, StatusType, StatusValue}
+import services.Statuses.{FailedValue, StatusType, StatusValue}
 
 import java.util.UUID
 import javax.inject.Inject
@@ -61,5 +61,5 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
 
 object ConsignmentStatusService {
   def statusValue(statusType: StatusType): Seq[ConsignmentStatuses] => StatusValue =
-    _.find(_.statusType == statusType.id).map(cs => StatusValue(cs.value)).getOrElse(NotEnteredValue)
+    _.find(_.statusType == statusType.id).map(cs => StatusValue(cs.value)).getOrElse(FailedValue)
 }

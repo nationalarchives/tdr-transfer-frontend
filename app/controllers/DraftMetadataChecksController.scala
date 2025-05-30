@@ -19,22 +19,17 @@ class DraftMetadataChecksController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val frontEndInfoConfiguration: ApplicationConfig,
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService,
-    val applicationConfig: ApplicationConfig
+    val consignmentStatusService: ConsignmentStatusService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
 
   def draftMetadataChecksPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (applicationConfig.blockDraftMetadataUpload) {
-      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
-    } else {
-      for {
-        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      } yield {
-        Ok(views.html.draftmetadata.draftMetadataChecks(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name))
-          .uncache()
-      }
+    for {
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      Ok(views.html.draftmetadata.draftMetadataChecks(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+        .uncache()
     }
   }
 
