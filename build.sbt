@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.229",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.243",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.244",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.412",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.63",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.142",
