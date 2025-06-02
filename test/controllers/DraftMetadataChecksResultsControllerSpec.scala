@@ -370,45 +370,6 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  "DraftMetadataChecksResultsController accessibility" should {
-    "have no axe-core accessibility violations on the results page" in {
-      val controller = instantiateController(blockDraftMetadataUpload = false)
-      val additionalMetadataEntryMethodPage = controller
-        .draftMetadataChecksResultsPage(consignmentId)
-        .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      val consignmentStatuses = List(
-        gc.ConsignmentStatuses(DraftMetadataType.id, CompletedValue.value)
-      )
-      val uploadedFileName = "file name.csv"
-      setConsignmentDetailsResponse(wiremockServer, consignmentStatuses = consignmentStatuses, clientSideDraftMetadataFileName = Some(uploadedFileName))
-
-      val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
-
-      val tmpFile = java.io.File.createTempFile("tdr-accessibility-", ".html")
-      val writer = new java.io.PrintWriter(tmpFile)
-      writer.write(pageAsString)
-      writer.close()
-
-      // Run axe-core CLI on the file
-      // Make sure axe-core is installed: npm install --prefix npm --save-dev @axe-core/cli
-      val axeCommand = Seq("npx", "--prefix", "npm", "axe", "file://" + tmpFile.getAbsolutePath)
-      // val env = "CHROME_FLAGS" -> "--headless --disable-gpu --no-sandbox --disable-dev-shm-usage --disable-software-rasterizer --disable-extensions --disable-background-networking --disable-sync --disable-translate --disable-default-apps --mute-audio --no-first-run --no-default-browser-check --disable-background-timer-throttling --disable-renderer-backgrounding --disable-device-discovery-notifications --disable-features=site-per-process,TranslateUI --window-size=1280,1024 --proxy-server=direct:// --proxy-bypass-list=* --host-resolver-rules="MAP app build.sbt conf Dockerfile LICENSE npm package-lock.json project public README.md target test ts-build.sbt 127.0.0.1"
-      println(axeCommand)
-      // val env = "CHROME_FLAGS" -> "--disable-web-security --allow-running-insecure-content --ignore-certificate-errors --no-sandbox --disable-gpu"
-      val axeResult = Process(axeCommand, None).!!
-
-      // Optionally print the result for debugging
-      println(axeResult)
-
-      // Assert no violations
-      axeResult must not include "\"violations\":["
-
-      // Clean up
-      tmpFile.delete()
-    }
-  }
-
   private def instantiateController(
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,

@@ -89,35 +89,34 @@
         </header>
 
         <div class="govuk-width-container">
-
-            <div class="govuk-phase-banner">
-                <p class="govuk-phase-banner__content">
-                    <strong class="govuk-tag govuk-phase-banner__content__tag">BETA</strong>
-                    @if(isLoggedIn) {
-                        @if(isJudgmentUser){
-                            @feedbackLink("https://www.smartsurvey.co.uk/s/5YDPSA/")
-                        }else{
-                            @feedbackLink("https://www.smartsurvey.co.uk/s/tdr-feedback/")
-                        }
-                    }else {
-                        <span class="govuk-phase-banner__text">
-                            This is a new service – your feedback will help us to improve it. Please
-                            <a class="govuk-link" target="_blank" rel="noreferrer noopener" href="/contact"> get in touch (opens in new tab).</a>
-                        </span>
-                    }
-                </p>
-            </div>
-            @backLink.getOrElse("")
-
             <main class="govuk-main-wrapper " id="main-content" role="main">
+                <div class="govuk-phase-banner">
+                    <p class="govuk-phase-banner__content">
+                        <strong class="govuk-tag govuk-phase-banner__content__tag">BETA</strong>
+                        @if(isLoggedIn) {
+                            @if(isJudgmentUser){
+                                @feedbackLink("https://www.smartsurvey.co.uk/s/5YDPSA/")
+                            }else{
+                                @feedbackLink("https://www.smartsurvey.co.uk/s/tdr-feedback/")
+                            }
+                        }else {
+                            <span class="govuk-phase-banner__text">
+                                This is a new service – your feedback will help us to improve it. Please
+                                <a class="govuk-link" target="_blank" rel="noreferrer noopener" href="/contact"> get in touch (opens in new tab).</a>
+                            </span>
+                        }
+                    </p>
+                </div>
+                @backLink.getOrElse("")
+
                 @content
             </main>
         </div>
 
         @if(isLoggedIn) {
-        <dialog class="timeout-dialog">
-            <div>
-                <h2 class="govuk-heading-m">You have been inactive for more than 55 minutes.</h2>
+            <dialog class="timeout-dialog" role="dialog" aria-modal="true" aria-labelledby="timeout-heading">
+                <div>
+                    <h2 class="govuk-heading-m" id="timeout-heading">You have been inactive for more than 55 minutes.</h2>
                 <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
             </div>
             <div class="govuk-button-group">
