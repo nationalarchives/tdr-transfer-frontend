@@ -10,7 +10,7 @@ object DateUtils {
     dateTime.withZoneSameInstant(ZoneId.of("Europe/London")).format(formatter)
   }
 
-  def covertToLocalDateOrString(date: String): Any = {
+  def convertToLocalDateOrString(date: String): Any = {
     val regex = """\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?""".r
     val slashRegex = """\d{4}/\d{2}/\d{2}""".r
     val hyphenRegex = """\d{4}-\d{2}-\d{2}""".r
