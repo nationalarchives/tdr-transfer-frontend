@@ -3,7 +3,7 @@
 @import views.html.partials.notificationBanner
 @import views.html.partials.backLink
 @import views.html.partials.downloadMetadataLink
-@(consignmentId: UUID, consignmentRef: String, name: String, blockMetadataReview: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Download and review metadata", name = name, backLink = Some(backLink(routes.PrepareMetadataController.prepareMetadata(consignmentId).url, "Back")) ) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -22,15 +22,9 @@
         @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
       </div>
       <div class="govuk-button-group">
-      @if(blockMetadataReview) {
-          <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
-            Next
-          </a>
-        } else {
-          <a href="@routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-            Continue
-          </a>
-        }
+        <a href="@routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          Continue
+        </a>
       </div>
 
     </div>

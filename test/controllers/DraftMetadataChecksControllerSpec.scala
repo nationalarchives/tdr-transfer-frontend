@@ -144,18 +144,6 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   }
 
   "DraftMetadataChecksController GET '/draft-metadata/checks'" should {
-    "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
-      val controller = instantiateController(blockDraftMetadataUpload = true)
-      val page = controller.draftMetadataChecksPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks").withCSRFToken)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-
-      val pageAsString = contentAsString(page)
-
-      playStatus(page) mustBe OK
-      contentType(page) mustBe Some("text/html")
-      pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
-    }
-
     "render 'draft metadata checks' page correctly'" in {
       val inProgressDataAsString = progressData("Completed")
 
@@ -212,16 +200,13 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
 
   private def instantiateController(
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockDraftMetadataUpload: Boolean = false
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ): DraftMetadataChecksController = {
-    when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
-    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-    new DraftMetadataChecksController(securityComponents, keycloakConfiguration, frontEndInfoConfiguration, consignmentService, consignmentStatusService, applicationConfig)
+    new DraftMetadataChecksController(securityComponents, keycloakConfiguration, frontEndInfoConfiguration, consignmentService, consignmentStatusService)
   }
 
   private def progressData(draftMetadataStatusValue: String, consignmentId: UUID = consignmentId): String = {
