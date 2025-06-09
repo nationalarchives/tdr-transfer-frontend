@@ -1,15 +1,11 @@
 package services
 
-import com.google.common.collect.Ordering.natural
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.{closureType, fileType}
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
-import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
-import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
-import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.FileStatuses
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
@@ -25,7 +21,6 @@ import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
 import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
 import services.ApiErrorHandling._
-import services.ConsignmentService.{File, StatusTag}
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
@@ -43,7 +38,6 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignmentFolderDetailsClient = graphqlConfiguration.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()
   private val getConsignmentSummaryClient = graphqlConfiguration.getClient[getConsignmentSummary.Data, getConsignmentSummary.Variables]()
   private val getConsignmentReferenceClient = graphqlConfiguration.getClient[getConsignmentReference.Data, getConsignmentReference.Variables]()
-  private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
@@ -152,42 +146,6 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.getConsignment.get.consignmentReference)
   }
 
-  def getConsignmentFilesData(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentFiles.GetConsignment] = {
-    val variables: getConsignmentFiles.Variables = new getConsignmentFiles.Variables(consignmentId)
-
-    sendApiRequest(getConsignmentFilesClient, getConsignmentFiles.document, token, variables)
-      .map(data => data.getConsignment.get)
-  }
-
-  def getAllConsignmentFiles(consignmentId: UUID, token: BearerAccessToken, metadataType: String): Future[File] = {
-    val variables: getConsignmentFiles.Variables = new getConsignmentFiles.Variables(consignmentId)
-
-    sendApiRequest(getConsignmentFilesClient, getConsignmentFiles.document, token, variables)
-      .map(data => data.getConsignment.toList.flatMap(_.files))
-      .map {
-        def sortByName(l: File, r: File): Boolean = natural().compare(l.name, r.name) < 0
-
-        files =>
-          val grouped = files.groupBy(_.parentId)
-          val parent = files.find(_.parentId.isEmpty).getOrElse(throw new Exception(s"Parent ID not found for consignment $consignmentId"))
-          def getChildren(parentId: UUID): List[File] = {
-            val files: List[Files] = grouped.getOrElse(Option(parentId), Nil)
-            files.map(file => {
-              val statusTag = getStatusTag(metadataType, file.fileStatuses)
-              if (grouped.contains(Option(file.fileId))) {
-                val children = getChildren(file.fileId)
-                File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName), statusTag)
-              } else {
-                File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil, statusTag)
-              }
-            })
-          }
-          val children = getChildren(parent.fileId).sortWith(sortByName)
-          val statusTag = getStatusTag(metadataType, parent.fileStatuses)
-          File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children, statusTag)
-      }
-  }
-
   def updateSeriesIdOfConsignment(consignmentId: UUID, seriesId: UUID, token: BearerAccessToken): Future[Boolean] = {
     val updateConsignmentSeriesIdInput = UpdateConsignmentSeriesIdInput(consignmentId, seriesId)
     val variables = new updateConsignmentSeriesId.Variables(updateConsignmentSeriesIdInput)
@@ -227,20 +185,6 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       case Some(value)         => throw new IllegalArgumentException(s"Invalid metadata type: $value")
     }
     Option(FileFilters(Option("File"), fileIds, None, metadataTypeFilter))
-  }
-
-  private def getStatusTag(metadataType: String, fileStatuses: List[FileStatuses]): Option[StatusTag] = {
-
-    if (metadataType == "closure") {
-      fileStatuses.collectFirst {
-        case FileStatuses("ClosureMetadata", "Completed")  => StatusTag("closed", "blue")
-        case FileStatuses("ClosureMetadata", "Incomplete") => StatusTag("incomplete", "red")
-      }
-    } else {
-      fileStatuses.collectFirst { case FileStatuses("DescriptiveMetadata", "Completed") =>
-        StatusTag("entered", "blue")
-      }
-    }
   }
 }
 object ConsignmentService {
