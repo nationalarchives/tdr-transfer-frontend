@@ -45,6 +45,7 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
       contentType(prepareMetadataPage) mustBe Some("text/html")
 
       prepareMetadataPageAsString must include(s"""<a href="/consignment/$consignmentId/file-checks-results" class="govuk-back-link">Results of your checks</a>""")
+      prepareMetadataPageAsString must include("""<h2 class="govuk-heading-l">Prepare your metadata</h2>""")
       prepareMetadataPageAsString must include("""<h2 class="govuk-heading-m">Download your metadata template</h2>""")
       prepareMetadataPageAsString must include(
         s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
@@ -52,7 +53,7 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
       prepareMetadataPageAsString must include("""<h2 class="govuk-heading-m">Saving your spreadsheet as a CSV</h2>""")
       prepareMetadataPageAsString must include("""<span class="govuk-details__summary-text">How to save an Excel file as CSV</span>""")
       prepareMetadataPageAsString must include("""                             <li>Save your file as Excel first (File > Save) before you save as CSV</li>
-                                                 |                             <li>Click File > Save As
+                                                 |                             <li>Click File > Save As</li>
                                                  |                             <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
                                                  |                             <li>Click Save</li>
                                                  |                             <li>Close the file, you are ready to upload</li>""".stripMargin)
@@ -61,7 +62,7 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
                                                  |        </h2>""".stripMargin)
       prepareMetadataPageAsString must include(s"""<form action="/consignment/$consignmentId/draft-metadata/prepare-metadata" method="POST" novalidate="">""")
       prepareMetadataPageAsString must include(
-        s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+        s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-button govuk-button--secondary" data-module="govuk-button">
                                                  |                            I don't need to provide any metadata
                                                  |                        </a>""".stripMargin
       )
