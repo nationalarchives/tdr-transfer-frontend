@@ -20,8 +20,7 @@ class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val keycloakConfiguration: KeycloakConfiguration,
-    val applicationConfig: ApplicationConfig
+    val keycloakConfiguration: KeycloakConfiguration
 ) extends TokenSecurity
     with Logging {
 
@@ -31,7 +30,7 @@ class DownloadMetadataController @Inject() (
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
     } yield {
       RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
-        Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name, applicationConfig.blockMetadataReview))
+        Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name))
       )
     }
   }

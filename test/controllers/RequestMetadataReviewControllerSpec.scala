@@ -71,20 +71,6 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
     }
 
-    "render page not found error when 'blockMetadataReview' set to 'true'" in {
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, blockMetadataReview = true)
-      val content = controller
-        .requestMetadataReviewPage(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request"))
-
-      val requestMetadataReviewPageAsString = contentAsString(content)
-
-      playStatus(content) mustBe OK
-      contentType(content) mustBe Some("text/html")
-      requestMetadataReviewPageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
-    }
-
     "return forbidden if the page is accessed by a judgment user" in {
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
@@ -144,14 +130,11 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
   private def instantiateRequestMetadataReviewController(
       securityComponents: SecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockMetadataReview: Boolean = false
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ) = {
-    when(configuration.get[Boolean]("featureAccessBlock.blockMetadataReview")).thenReturn(blockMetadataReview)
-    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    new RequestMetadataReviewController(securityComponents, consignmentService, consignmentStatusService, keycloakConfiguration, applicationConfig, messagingService)
+    new RequestMetadataReviewController(securityComponents, consignmentService, consignmentStatusService, keycloakConfiguration, messagingService)
   }
 }
