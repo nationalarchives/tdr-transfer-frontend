@@ -13,7 +13,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
-import services.Statuses.{SeriesType, UnrecognisedType}
+import services.Statuses.UnrecognisedType
 import testUtils.{CheckPageForStaticElements, ConsignmentStatusesOptions, FrontEndTestHelper}
 
 import java.time.format.DateTimeFormatter

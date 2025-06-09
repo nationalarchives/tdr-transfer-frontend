@@ -3,26 +3,18 @@ package controllers
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
-import configuration.{ApplicationConfig, GraphQLConfiguration}
+import configuration.GraphQLConfiguration
 import controllers.util.GuidanceUtils.ALL_COLUMNS
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
-import graphql.codegen.types.DataType
-import graphql.codegen.types.DataType.{DateTime, Text}
-import graphql.codegen.types.PropertyType.Supplied
-import io.circe
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import org.apache.pekko.util.ByteString
 import org.dhatim.fastexcel.reader._
 import org.scalatest.prop.TableFor1
-import play.api.Configuration
 import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest

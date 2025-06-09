@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{ApplicationConfig, KeycloakConfiguration}
+import configuration.KeycloakConfiguration
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
@@ -11,7 +11,6 @@ import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.Future
 
 class RequestMetadataReviewController @Inject() (
     val controllerComponents: SecurityComponents,

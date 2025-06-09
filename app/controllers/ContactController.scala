@@ -2,10 +2,10 @@ package controllers
 
 import auth.UnprotectedPageController
 import org.pac4j.play.scala.SecurityComponents
+import play.api.i18n.I18nSupport
+import play.api.mvc.{Action, AnyContent, Request}
 
 import javax.inject.{Inject, Singleton}
-import play.api.i18n.I18nSupport
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Request}
 
 @Singleton
 class ContactController @Inject() (securityComponents: SecurityComponents) extends UnprotectedPageController(securityComponents) with I18nSupport {

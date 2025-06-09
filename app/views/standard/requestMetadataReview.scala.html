@@ -1,8 +1,7 @@
-@import views.html.helper.form
-@import views.html.helper.CSRF
+@import views.html.helper.{CSRF, form}
+@import views.html.partials.{backLink, transferReference}
+
 @import java.util.UUID
-@import views.html.partials.transferReference
-@import views.html.partials.backLink
 @(consignmentId: UUID, consignmentRef: String, name: String, email: String)(implicit messages: Messages, request: RequestHeader)
 
 @defining("Submit a metadata review") { title =>

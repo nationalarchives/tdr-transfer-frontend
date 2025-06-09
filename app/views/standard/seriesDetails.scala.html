@@ -1,10 +1,8 @@
+@import controllers.util.DropdownField
 @import helper._
-@import viewsapi.FormFunctions._
-@import views.html.partials.{errorSummary, transferReference}
+@import views.html.partials.{errorSummary, inputDropdown, transferReference}
 
 @import java.util.UUID
-@import controllers.util.DropdownField
-@import views.html.partials.inputDropdown
 @(consignmentId: UUID, consignmentRef: String, dropdownField: DropdownField, name: String)(implicit request: RequestHeader,
 messages: Messages)
 @defining("Choose a series reference") { title =>
