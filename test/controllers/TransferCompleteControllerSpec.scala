@@ -11,7 +11,6 @@ import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.{ConsignmentService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
-import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 

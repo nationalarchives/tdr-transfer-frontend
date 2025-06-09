@@ -1,8 +1,6 @@
+@import views.html.partials.{backLink, downloadMetadataLink, notificationBanner, transferReference}
+
 @import java.util.UUID
-@import views.html.partials.transferReference
-@import views.html.partials.notificationBanner
-@import views.html.partials.backLink
-@import views.html.partials.downloadMetadataLink
 @(consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Download and review metadata", name = name, backLink = Some(backLink(routes.PrepareMetadataController.prepareMetadata(consignmentId).url, "Back")) ) {

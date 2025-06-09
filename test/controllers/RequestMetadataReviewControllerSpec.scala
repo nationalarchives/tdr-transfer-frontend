@@ -2,16 +2,16 @@ package controllers
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import org.mockito.Mockito.{times, verify, when}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import org.mockito.Mockito.{times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
-import play.api.Play.materializer
 import play.api.Configuration
+import play.api.Play.materializer
 import play.api.http.Status.OK
+import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
-import play.api.test.CSRFTokenHelper._
 import services.MessagingService.MetadataReviewRequestEvent
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}

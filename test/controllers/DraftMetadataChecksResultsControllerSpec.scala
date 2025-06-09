@@ -1,7 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignment.getConsignment.{GetConsignment => gc}
 import org.apache.pekko.util.ByteString
 import org.dhatim.fastexcel.reader.{ReadableWorkbook, Row, Sheet}
@@ -18,7 +18,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status => playStatus, _}
 import services.FileError.FileError
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, FailedValue}
-import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, Error, ErrorFileData, FileError, ValidationErrors}
+import services.{ConsignmentService, DraftMetadataService, Error, ErrorFileData, FileError, ValidationErrors}
 import testUtils.FrontEndTestHelper
 import uk.gov.nationalarchives.tdr.validation.Metadata
 

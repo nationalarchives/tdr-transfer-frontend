@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{ApplicationConfig, KeycloakConfiguration}
+import configuration.KeycloakConfiguration
 import controllers.util.ExcelUtils
 import controllers.util.MetadataProperty.filePath
 import org.pac4j.play.scala.SecurityComponents

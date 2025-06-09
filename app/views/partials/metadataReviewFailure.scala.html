@@ -1,7 +1,6 @@
-@import java.util.UUID
-@import views.html.helper.form
-@import views.html.helper.CSRF
 @import views.html.partials.downloadMetadataLink
+
+@import java.util.UUID
 
 @(consignmentId: UUID, email: String)(implicit request: RequestHeader)
 <div class="da-alert da-alert--error da-alert--with-icon">
