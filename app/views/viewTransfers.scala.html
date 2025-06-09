@@ -1,7 +1,5 @@
-@import views.html.partials.warningMessage
-@import views.html.partials.backLink
-@import views.html.helper.CSRF
-@import views.html.helper.form
+@import views.html.helper.{CSRF, form}
+@import views.html.partials.{backLink, warningMessage}
 @(consignments: List[ConsignmentTransfers], currentPage: Int, totalPages: Int, name: String, email: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 @nationalArchivesEmailAddress = @{if(isJudgmentUser) Messages("nationalArchives.judgmentsEmail") else Messages("nationalArchives.email")}
 

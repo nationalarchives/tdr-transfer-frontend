@@ -7,20 +7,10 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
-import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentStatus
 import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
-import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
-import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
-import graphql.codegen.GetAllDescendants.getAllDescendantIds
-import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
-import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
-import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
-import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
@@ -31,14 +21,9 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{ConsignmentStatuses => ecs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview, getConsignmentsForMetadataReview => gcfmr}
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
+import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
-import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
-import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -82,7 +67,6 @@ import viewsapi.FrontEndInfo
 
 import java.io.File
 import java.net.URI
-import java.sql.Timestamp
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global

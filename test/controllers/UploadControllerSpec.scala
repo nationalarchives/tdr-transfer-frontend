@@ -24,7 +24,6 @@ import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.Configuration
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, InProgressValue, StatusValue}
