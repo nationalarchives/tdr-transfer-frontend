@@ -155,7 +155,7 @@ class DraftMetadataChecksResultsController @Inject() (
         val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         Ok(excelFile)
           .as(excelContentType)
-          .withHeaders("Content-Disposition" -> s"attachment; filename=ErrorReport-${reference}-$currentDateTime.xlsx")
+          .withHeaders("Content-Disposition" -> s"attachment; filename=ErrorReport-$reference-$currentDateTime.xlsx")
       }
   }
 }

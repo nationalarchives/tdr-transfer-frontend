@@ -52,18 +52,20 @@ class CheckPageForStaticElements() {
         |                                        Sign out
         |                                    </a>""".stripMargin
     )
-    page must include("""    <dialog class="timeout-dialog">
-                         |            <div>
-                         |                <h2 class="govuk-heading-m">You have been inactive for more than 55 minutes.</h2>
-                         |                <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
-                         |            </div>
-                         |            <div class="govuk-button-group">
-                         |                <button id="extend-timeout" class="govuk-button" role="button">
-                         |                    Keep me signed in
-                         |                </button>
-                         |                <a class="govuk-link" href="/sign-out">Sign me out</a>
-                         |            </div>
-                         |        </dialog>""".stripMargin)
+    page must include(
+      """    <dialog class="timeout-dialog" role="dialog" aria-modal="true" aria-labelledby="timeout-heading">
+        |                <div>
+        |                    <h2 class="govuk-heading-m" id="timeout-heading">You have been inactive for more than 55 minutes.</h2>
+        |                <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
+        |            </div>
+        |            <div class="govuk-button-group">
+        |                <button id="extend-timeout" class="govuk-button" role="button">
+        |                    Keep me signed in
+        |                </button>
+        |                <a class="govuk-link" href="/sign-out">Sign me out</a>
+        |            </div>
+        |        </dialog>""".stripMargin
+    )
     if (userType == "judgment" || userType == "tna") {
       page must not include ("View transfers")
     }

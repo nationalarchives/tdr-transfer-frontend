@@ -6,7 +6,7 @@
 @import controllers.util.Details
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Upload a metadata CSV", name = name, backLink = Some(backLink(routes.PrepareMetadataController.prepareMetadata(consignmentId).url, "Prepare your metadata"))) {
-    <div id="metadata-file-upload" class="govuk-grid-row" >
+    <div id="metadata-file-upload" class="govuk-grid-row">
 
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">Upload a metadata CSV</h1>
@@ -20,8 +20,8 @@
                                When you have finished entering metadata:
                                <ol class="govuk-list govuk-list--number">
                                  <li>Save your file as Excel first (File > Save) before you save as CSV</li>
-                                 <li>Click File > Save As
-                                 <li>From the ‘Save as type’ dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
+                                 <li>Click File > Save As</li>
+                                 <li>From the 'Save as type' dropdown, choose <span class="govuk-!-font-weight-bold">CSV UTF-8 (Comma delimited) (*.csv)</span></li>
                                  <li>Click Save</li>
                                  <li>Close the file, you are ready to upload</li>
                                </ol>
@@ -48,7 +48,7 @@
                         </div>
                         <br>
                         <div>
-                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
+                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button">
                                 Upload
                             </button>
                         </div>
