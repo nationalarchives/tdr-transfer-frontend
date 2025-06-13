@@ -56,7 +56,7 @@ disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.2.0"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.3.0"
 
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.19.0"
 libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.19.0"
