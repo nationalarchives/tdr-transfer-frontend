@@ -1,7 +1,6 @@
 package controllers
 
 import auth.TokenSecurity
-import com.typesafe.config.Config
 import configuration.KeycloakConfiguration
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
@@ -9,7 +8,7 @@ import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class HomepageController @Inject() (

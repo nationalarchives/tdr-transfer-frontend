@@ -1,16 +1,14 @@
 package services
 
-import java.util.UUID
-
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import ApiErrorHandling._
-import javax.inject.Inject
-import play.api.{Configuration, Logging}
-import play.api.libs.ws.{WSClient, WSResponse}
 import graphql.codegen.UpdateTransferInitiated.updateTransferInitiated._
-import uk.gov.nationalarchives.tdr.error.HttpException
+import play.api.libs.ws.WSClient
+import play.api.{Configuration, Logging}
+import services.ApiErrorHandling._
 
+import java.util.UUID
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentExportService @Inject() (val ws: WSClient, val configuration: Configuration, graphQLConfiguration: GraphQLConfiguration)(implicit

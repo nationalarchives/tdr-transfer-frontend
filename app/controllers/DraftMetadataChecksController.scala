@@ -2,16 +2,16 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
+import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services._
 import viewsapi.Caching.preventCaching
-import io.circe.syntax._
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class DraftMetadataChecksController @Inject() (

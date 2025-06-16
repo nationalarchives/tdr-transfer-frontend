@@ -9,7 +9,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.C
 import graphql.codegen.types.ConsignmentFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, Statuses}
+import services.ConsignmentService
 import services.Statuses._
 
 import java.util.UUID

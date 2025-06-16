@@ -3,15 +3,14 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-
-import play.api.Play.materializer
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Configuration
+import play.api.Play.materializer
+import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
-import play.api.test.CSRFTokenHelper._
-import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
+import services.{ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}

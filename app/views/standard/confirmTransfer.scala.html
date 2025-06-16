@@ -1,10 +1,8 @@
-@import java.util.UUID
-@import viewsapi.FormFunctions._
 @import helper.{inputRadioGroup => _, _}
-@import views.html.partials.{errorSummary, inputSingleCheckbox}
+@import views.html.partials.{backLink, errorSummary, inputSingleCheckbox, notificationBanner}
+@import viewsapi.FormFunctions._
 
-@import views.html.partials.notificationBanner
-@import views.html.partials.backLink
+@import java.util.UUID
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData], name: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("Confirm transfer", name = name, backLink = Some(backLink(routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, "Back"))) {
