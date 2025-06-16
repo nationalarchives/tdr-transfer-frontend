@@ -54,7 +54,7 @@ class MetadataReviewActionController @Inject() (
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
             consignmentStatusService.updateConsignmentStatus(
-              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue)),
+              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None),
               request.token.bearerAccessToken
             )
           }

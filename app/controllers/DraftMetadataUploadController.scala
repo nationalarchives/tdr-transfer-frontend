@@ -53,7 +53,7 @@ class DraftMetadataUploadController @Inject() (
       val uploadFileName = applicationConfig.draftMetadataFileName
       val uploadKey = s"$consignmentId/$uploadFileName"
       val noDraftMetadataFileUploaded: String = "No meta data file provided"
-      val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value))
+      val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value), None)
 
       def uploadDraftMetadata: IO[Result] = for {
         _ <- IO(
