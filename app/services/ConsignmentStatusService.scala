@@ -38,7 +38,7 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
   }
 
   def addConsignmentStatus(consignmentId: UUID, statusType: String, statusValue: String, token: BearerAccessToken): Future[acs.AddConsignmentStatus] = {
-    val variables = new acs.Variables(ConsignmentStatusInput(consignmentId, statusType, Some(statusValue)))
+    val variables = new acs.Variables(ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None))
     sendApiRequest(addConsignmentStatusClient, acs.document, token, variables).map(_.addConsignmentStatus)
   }
 

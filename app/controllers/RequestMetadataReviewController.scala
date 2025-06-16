@@ -37,7 +37,7 @@ class RequestMetadataReviewController @Inject() (
         if (statusesToValue.isEmpty) {
           consignmentStatusService.addConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value, token)
         } else {
-          consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(InProgressValue.value)), token)
+          consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(InProgressValue.value), None), token)
         }
       summary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, token)
     } yield {
