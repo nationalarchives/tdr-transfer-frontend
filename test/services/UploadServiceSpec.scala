@@ -51,7 +51,7 @@ class UploadServiceSpec extends AnyFlatSpec {
       .thenReturn(graphQlClientForAddFilesAndMetadata)
 
     val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, "1") :: Nil
-    val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil))
+    val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil), None)
     val input = afam.AddFilesAndMetadata(UUID.randomUUID(), "0")
 
     val graphQlResponse =
