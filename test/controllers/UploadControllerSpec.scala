@@ -672,7 +672,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val fileId = UUID.randomUUID()
       val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, "1") :: Nil
-      val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(consignmentId, clientSideMetadataInput, Some(Nil))
+      val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(consignmentId, clientSideMetadataInput, Some(Nil), None)
       val data = client.GraphqlData(Option(addFilesAndMetadata.Data(List(AddFilesAndMetadata(fileId, "0")))), Nil)
       val dataString = data.asJson.noSpaces
 
@@ -752,7 +752,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         backendChecksService
       )
       val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, "1") :: Nil
-      val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil))
+      val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil), None)
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
           .withRequestBody(containing("addFilesAndMetadata"))
