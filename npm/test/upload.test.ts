@@ -81,7 +81,7 @@ test("upload function will redirect to the file checks page with uploadFailed se
     includeTopLevelFolder: false
   })
 
-  expect(mockGoToFileChecksPage).lastCalledWith("12345", "true", false)
+  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith("12345", "true", false)
 
   mockGoToFileChecksPage.mockRestore()
 })
@@ -97,7 +97,7 @@ test("upload function redirects to the file checks page with uploadFailed set to
     includeTopLevelFolder: false
   })
 
-  expect(mockGoToFileChecksPage).lastCalledWith("12345", "false", false)
+  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith("12345", "false", false)
 
   mockGoToFileChecksPage.mockRestore()
 })
