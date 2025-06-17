@@ -24,14 +24,12 @@ import { displayChecksCompletedBanner } from "../src/checks/display-checks-compl
 const original = window.location;
 
 beforeAll(() => {
-  Object.defineProperty(window, 'location', {
-    configurable: true,
-    value: { reload: jest.fn() },
-  });
+  delete window.location
+  window.location = { reload: jest.fn() } as any
 });
 
 afterAll(() => {
-  Object.defineProperty(window, 'location', { configurable: true, value: original });
+  window.location = original as any
 });
 
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
