@@ -1,24 +1,14 @@
 package services
 
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import configuration.GraphQLConfiguration
-import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment, Variables}
-import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
-import graphql.codegen.types.ConsignmentStatusInput
-import services.ApiErrorHandling._
+import services.DynamoService.ConsignmentStatuses
 import services.Statuses.{FailedValue, StatusType, StatusValue}
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse
 
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
-  private val getConsignmentStatusClient = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
-  private val addConsignmentStatusClient = graphqlConfiguration.getClient[acs.Data, acs.Variables]()
-  private val updateConsignmentStatusClient = graphqlConfiguration.getClient[ucs.Data, ucs.Variables]()
+class ConsignmentStatusService @Inject() (val dynamoService: DynamoService)(implicit val ec: ExecutionContext) {
 
   def getStatusValues(statuses: List[ConsignmentStatuses], statusTypes: StatusType*): Map[StatusType, Option[String]] = {
     statusTypes
@@ -29,33 +19,23 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
       .toMap
   }
 
-  def getConsignmentStatuses(consignmentId: UUID, token: BearerAccessToken): Future[List[ConsignmentStatuses]] = {
-    val variables = new Variables(consignmentId)
-    sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment.map(_.consignmentStatuses)).map {
-      case Some(value) => value
-      case _           => Nil
-    }
+  def getConsignmentStatuses(consignmentId: UUID): Future[List[ConsignmentStatuses]] = {
+    dynamoService.getConsignment(consignmentId).map(_.consignmentStatuses)
   }
 
-  def addConsignmentStatus(consignmentId: UUID, statusType: String, statusValue: String, token: BearerAccessToken): Future[acs.AddConsignmentStatus] = {
-    val variables = new acs.Variables(ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None))
-    sendApiRequest(addConsignmentStatusClient, acs.document, token, variables).map(_.addConsignmentStatus)
+  def addConsignmentStatus(consignmentId: UUID, statusType: String, statusValue: String): Future[UpdateItemResponse] = {
+    dynamoService.setFieldToValue(consignmentId, s"status_$statusType", statusValue)
   }
 
-  def updateConsignmentStatus(consignmentStatusInput: ConsignmentStatusInput, token: BearerAccessToken): Future[Int] = {
-    val variables = ucs.Variables(consignmentStatusInput)
-    sendApiRequest(updateConsignmentStatusClient, ucs.document, token, variables).map(data => {
-      data.updateConsignmentStatus match {
-        case Some(response) => response
-        case None           => throw new RuntimeException(s"No data returned when updating the consignment status for ${consignmentStatusInput.consignmentId}")
-      }
-    })
+  def updateConsignmentStatus(consignmentId: UUID, statusType: String, statusValue: String): Future[Int] = {
+    dynamoService.setFieldToValue(consignmentId, s"status_$statusType", statusValue).map(_.sdkHttpResponse().statusCode())
   }
 
-  def consignmentStatusSeries(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment]] = {
-    val variables = new Variables(consignmentId)
-    sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment)
+  def consignmentStatusSeries(consignmentId: UUID): Future[Option[ConsignmentStatuses]] = {
+    getConsignmentStatuses(consignmentId).map(_.find(_.statusType == "Series"))
   }
+
+  def getSeries(consignmentId: UUID): Future[Option[String]] = dynamoService.getConsignment(consignmentId).map(_.seriesName)
 
 }
 

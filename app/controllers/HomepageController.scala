@@ -20,11 +20,11 @@ class HomepageController @Inject() (
     with I18nSupport {
 
   def judgmentHomepageSubmit(): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
-    consignmentService.createConsignment(None, request.token).map(consignment => Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get)))
+    consignmentService.createConsignment(None, request.token).map(consignment => Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentId)))
   }
 
   def homepageSubmit(): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
-    consignmentService.createConsignment(None, request.token).map(consignment => Redirect(routes.SeriesDetailsController.seriesDetails(consignment.consignmentid.get)))
+    consignmentService.createConsignment(None, request.token).map(consignment => Redirect(routes.SeriesDetailsController.seriesDetails(consignment.consignmentId)))
   }
 
   def homepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>

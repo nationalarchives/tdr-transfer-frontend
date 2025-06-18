@@ -1,7 +1,8 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.KeycloakConfiguration
+import services.DynamoService
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
@@ -18,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class TransferAgreementPart1Controller @Inject() (
     val controllerComponents: SecurityComponents,
-    val graphqlConfiguration: GraphQLConfiguration,
+    val dynamoService: DynamoService,
     val transferAgreementService: TransferAgreementService,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
@@ -45,11 +46,11 @@ class TransferAgreementPart1Controller @Inject() (
       request: Request[AnyContent]
   ): Future[Result] = {
     for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
       statuses = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType, SeriesType)
       transferAgreementStatus: Option[String] = statuses.get(TransferAgreementType).flatten
       seriesStatus: Option[String] = statuses.get(SeriesType).flatten
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      reference <- consignmentService.getConsignmentRef(consignmentId)
     } yield {
       val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
       val warningMessage = Messages("transferAgreement.warning")
@@ -91,16 +92,16 @@ class TransferAgreementPart1Controller @Inject() (
     }
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
-      val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
       for {
-        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
         transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType).values.headOption.flatten
         result <- transferAgreementStatus match {
           case Some(InProgressValue.value) => Future(Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
           case None =>
             transferAgreementService
-              .addTransferAgreementPart1(consignmentId, request.token.bearerAccessToken, formData)
+              .addTransferAgreementPart1(consignmentId, formData)
               .map(_ => Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
           case _ =>
             throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")

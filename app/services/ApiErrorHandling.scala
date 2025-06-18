@@ -1,30 +1,27 @@
 package services
 
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import configuration.GraphQLBackend._
-import errors.{AuthorisationException, GraphQlException}
-import sangria.ast.Document
-import uk.gov.nationalarchives.tdr.GraphQLClient
-import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
-
-import scala.concurrent.{ExecutionContext, Future}
+//import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+//import configuration.GraphQLBackend._
+//import errors.{AuthorisationException, GraphQlException}
+//import sangria.ast.Document
+//import slick.jdbc.JdbcBackend.Database
+//import uk.gov.nationalarchives.tdr.GraphQLClient
+//import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
+//
+//import scala.concurrent.{ExecutionContext, Future}
+//import slick.jdbc.PostgresProfile.api._
+//import uk.gov.nationalarchives.Tables._
 
 object ApiErrorHandling {
-  def sendApiRequest[Data, Variables](
-      graphQlClient: GraphQLClient[Data, Variables],
-      document: Document,
-      token: BearerAccessToken,
-      variables: Variables
-  )(implicit executionContext: ExecutionContext): Future[Data] = {
 
-    graphQlClient
-      .getResult(token, document, Some(variables))
-      .map(result =>
-        result.errors match {
-          case Nil                                 => result.data.get
-          case List(authError: NotAuthorisedError) => throw new AuthorisationException(authError.message)
-          case errors                              => throw new GraphQlException(errors)
-        }
-      )
-  }
+
+
+//  val db = Database.forConfig("consignmentapidb")
+
+//  def getSeries(tdrBodyCode: String): Future[Seq[SeriesRow]] = {
+//    val query = for {
+//      (series, _) <- Series.join(Body).on(_.bodyid === _.bodyid).filter(_._2.tdrcode === tdrBodyCode)
+//    } yield series
+//    db.run(query.result)
+//  }
 }

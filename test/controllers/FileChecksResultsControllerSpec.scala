@@ -23,7 +23,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue}
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, S3Service}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
@@ -506,15 +506,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       blockDraftMetadataUpload: Boolean = false
   ) = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
+    val dynamoService = new services.DynamoService()
+    val s3Service = new services.S3Service()
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
+    val confirmTransferService = new ConfirmTransferService(dynamoService)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     new FileChecksResultsController(
       securityComponent,
       keycloakConfiguration,
-      graphQLConfiguration,
       consignmentService,
       confirmTransferService,
       exportService(app.configuration),
@@ -524,7 +524,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   }
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
-    new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
+    val dynamoService = new services.DynamoService()
+    new ConsignmentExportService(wsClient, configuration, dynamoService, new S3Service())
   }
   def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration): FileChecksResultsController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)

@@ -31,7 +31,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfte
   private val graphQlClient = mock[GraphQLClient[getSeries.Data, getSeries.Variables]]
   when(graphQlConfig.getClient[getSeries.Data, getSeries.Variables]()).thenReturn(graphQlClient)
 
-  private val seriesService: SeriesService = new SeriesService(graphQlConfig)
+  private val seriesService: SeriesService = new SeriesService(new DynamoService())
 
   private val seriesId = UUID.fromString("8ba6ad4e-546c-4e41-b3ca-72de01513d20")
   private val bodyName = "some transferring body"
@@ -54,7 +54,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfte
     val series = seriesService.getSeriesForUser(token).futureValue
 
     series.size should equal(1)
-    series.head.seriesid should equal(seriesId)
+    series.head.code should equal(seriesId)
   }
 
   "getSeriesForUser" should "return an error if the API call fails" in {

@@ -24,6 +24,7 @@ libraryDependencies ++= Seq(
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
   "io.circe" %% "circe-core" % "0.14.13",
   "io.circe" %% "circe-generic" % "0.14.13",
+  "uk.gov.nationalarchives.oci" %% "oci-tools-scala" % "0.4.0",
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
@@ -35,6 +36,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.278",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.278",
   "ch.qos.logback" % "logback-classic" % "1.5.18",
+  "software.amazon.awssdk" % "dynamodb" % "2.31.64",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.49.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.49.0",
@@ -43,6 +45,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.46.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.46.0-alpha",
+  "org.apache.pekko" %% "pekko-slf4j" % "1.0.2",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.18.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test

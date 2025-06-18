@@ -127,9 +127,11 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "create a consignment when a valid form is submitted and the api response is successful" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[ac.Data, ac.Variables]()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val seriesService = new SeriesService(graphQLConfiguration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val s3Service = new services.S3Service()
+      val dynamoService = new services.DynamoService()
+      val seriesService = new SeriesService(dynamoService)
+      val consignmentService = new ConsignmentService(dynamoService, s3Service)
+      val consignmentStatusService = new ConsignmentStatusService(dynamoService)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val seriesId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val consignmentResponse: ac.AddConsignment = new ac.AddConsignment(Some(consignmentId), Some(seriesId), "Consignment-Ref")
@@ -329,10 +331,11 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
   }
 
   private def instantiateSeriesController(securityComponents: SecurityComponents, keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration) = {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val seriesService = new SeriesService(graphQLConfiguration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val s3Service = new services.S3Service()
+    val dynamoService = new services.DynamoService()
+    val seriesService = new SeriesService(dynamoService)
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     new SeriesDetailsController(securityComponents, keycloakConfiguration, seriesService, consignmentService, consignmentStatusService)
   }

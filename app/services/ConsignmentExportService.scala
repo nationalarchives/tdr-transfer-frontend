@@ -6,33 +6,22 @@ import graphql.codegen.UpdateTransferInitiated.updateTransferInitiated._
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logging}
 import services.ApiErrorHandling._
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentExportService @Inject() (val ws: WSClient, val configuration: Configuration, graphQLConfiguration: GraphQLConfiguration)(implicit
+class ConsignmentExportService @Inject() (val ws: WSClient, val configuration: Configuration, dynamoService: DynamoService, s3Service: S3Service)(implicit
     val executionContext: ExecutionContext
 ) extends Logging {
 
   def updateTransferInitiated(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
-    val client = graphQLConfiguration.getClient[Data, Variables]()
-    sendApiRequest(client, document, token, Variables(consignmentId))
-      .map(d => d.updateTransferInitiated.isDefined)
+    dynamoService.setFieldToValue(consignmentId, "status_TransferInitiated", Instant.now).map(res => res.sdkHttpResponse().isSuccessful)
   }
 
-  def triggerExport(consignmentId: UUID, token: String): Future[Boolean] = {
-    val url = s"${configuration.get[String]("export.baseUrl")}/export/$consignmentId"
-    ws.url(url)
-      .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
-      .post("{}")
-      .flatMap(r =>
-        r.status match {
-          case 200 => Future(true)
-          case _ =>
-            logger.error(s"Export api response ${r.status} ${r.body}")
-            Future.failed(new Exception(s"Call to export API has returned a non 200 response for consignment $consignmentId"))
-        }
-      )
+  def triggerExport(consignmentId: UUID, token: Token): Future[Boolean] = {
+    s3Service.export(token.userId, consignmentId).map(_.forall(_.sdkHttpResponse().isSuccessful))
   }
 }

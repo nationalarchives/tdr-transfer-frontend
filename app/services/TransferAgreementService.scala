@@ -1,36 +1,28 @@
 package services
 
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import configuration.GraphQLConfiguration
 import controllers.{TransferAgreementData, TransferAgreementPart2Data}
-import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
-import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
-import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAgreementPrivateBetaInput}
-import services.ApiErrorHandling.sendApiRequest
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TransferAgreementService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
-  private val addTransferAgreementPart1Client =
-    graphqlConfiguration.getClient[atapb.Data, atapb.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
-  private val addTransferAgreementPart2Client =
-    graphqlConfiguration.getClient[atac.Data, atac.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
-  def addTransferAgreementPart1(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementData): Future[atapb.AddTransferAgreementPrivateBeta] = {
-    val addTransferAgreementPrivateBetaInput: AddTransferAgreementPrivateBetaInput =
-      AddTransferAgreementPrivateBetaInput(consignmentId, formData.publicRecord, formData.crownCopyright, formData.english)
-    val variables: atapb.Variables = atapb.Variables(addTransferAgreementPrivateBetaInput)
-
-    sendApiRequest(addTransferAgreementPart1Client, atapb.document, token, variables).map(_.addTransferAgreementPrivateBeta)
+class TransferAgreementService @Inject() (val dynamoService: DynamoService)(implicit val ec: ExecutionContext) {
+  def addTransferAgreementPart1(consignmentId: UUID, formData: TransferAgreementData): Future[Unit] = {
+    for {
+      _ <- dynamoService.setFieldToValue(consignmentId, "publicRecord", formData.publicRecord)
+      _ <- dynamoService.setFieldToValue(consignmentId, "crownCopyright", formData.crownCopyright)
+      _ <- dynamoService.setFieldToValue(consignmentId, "english", formData.english)
+      _ <- dynamoService.setFieldToValue(consignmentId, "status_TransferAgreement", "InProgress")
+    } yield()
   }
 
-  def addTransferAgreementPart2(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementPart2Data): Future[atac.AddTransferAgreementCompliance] = {
-    val addTransferAgreementComplianceInput: AddTransferAgreementComplianceInput =
-      AddTransferAgreementComplianceInput(consignmentId, formData.droAppraisalSelection, formData.openRecords, formData.droSensitivity)
-    val variables: atac.Variables = atac.Variables(addTransferAgreementComplianceInput)
-
-    sendApiRequest(addTransferAgreementPart2Client, atac.document, token, variables).map(_.addTransferAgreementCompliance)
+  def addTransferAgreementPart2(consignmentId: UUID, formData: TransferAgreementPart2Data): Future[Unit] = {
+    for {
+      _ <- dynamoService.setFieldToValue(consignmentId, "droAppraisalSelection", formData.droAppraisalSelection)
+      _ <- dynamoService.setFieldToValue(consignmentId, "droSensitivity", formData.droSensitivity)
+      _ <- dynamoService.setFieldToValue(consignmentId, "openRecords", formData.openRecords.getOrElse(""))
+      _ <- dynamoService.setFieldToValue(consignmentId, "status_TransferAgreement", "Completed")
+    } yield()
   }
 }

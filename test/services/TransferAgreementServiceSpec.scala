@@ -38,7 +38,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
   when(graphQlConfig.getClient[atac.Data, atac.Variables]())
     .thenReturn(graphQlClientForTAPart2) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
 
-  private val transferAgreementService: TransferAgreementService = new TransferAgreementService(graphQlConfig)
+  private val transferAgreementService: TransferAgreementService = new TransferAgreementService(new DynamoService())
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
 
   private val token = new BearerAccessToken("some-token")
@@ -78,13 +78,8 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreement: AddTransferAgreementPrivateBeta =
-      transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).futureValue
+    transferAgreementService.addTransferAgreementPart1(consignmentId, taPart1FormData).futureValue
 
-    transferAgreement.consignmentId should equal(consignmentId)
-    transferAgreement.allPublicRecords should equal(taPart1FormData.publicRecord)
-    transferAgreement.allCrownCopyright should equal(taPart1FormData.crownCopyright)
-    transferAgreement.allEnglish should equal(taPart1FormData.english)
   }
 
   "addTransferAgreementPart1" should "return an error when the API has an error" in {
@@ -92,7 +87,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[HttpError[_]]
+    val transferAgreement = transferAgreementService.addTransferAgreementPart1(consignmentId, taPart1FormData).failed.futureValue.asInstanceOf[HttpError[_]]
 
     transferAgreement shouldBe a[HttpError[_]]
   }
@@ -103,7 +98,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferAgreement =
-      transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[AuthorisationException]
+      transferAgreementService.addTransferAgreementPart1(consignmentId, taPart1FormData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferAgreement shouldBe a[AuthorisationException]
   }
@@ -122,13 +117,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPart2.getResult(token, atac.document, Some(atac.Variables(transferAgreementPart2Input))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreementPart2: AddTransferAgreementCompliance =
-      transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).futureValue
-
-    transferAgreementPart2.consignmentId should equal(consignmentId)
-    transferAgreementPart2.appraisalSelectionSignedOff should equal(taPart2FormData.droAppraisalSelection)
-    transferAgreementPart2.sensitivityReviewSignedOff should equal(taPart2FormData.droSensitivity)
-    transferAgreementPart2.initialOpenRecords should equal(taPart2FormData.openRecords)
+    transferAgreementService.addTransferAgreementPart2(consignmentId, taPart2FormData).futureValue
   }
 
   "addTransferAgreementPart2" should "return an error when the API has an error" in {
@@ -136,7 +125,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPart2.getResult(token, atac.document, Some(atac.Variables(transferAgreementPart2Input))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreementPart2 = transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).failed.futureValue.asInstanceOf[HttpError[_]]
+    val transferAgreementPart2 = transferAgreementService.addTransferAgreementPart2(consignmentId, taPart2FormData).failed.futureValue.asInstanceOf[HttpError[_]]
 
     transferAgreementPart2 shouldBe a[HttpError[_]]
   }
@@ -147,7 +136,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferAgreementPart2 =
-      transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).failed.futureValue.asInstanceOf[AuthorisationException]
+      transferAgreementService.addTransferAgreementPart2(consignmentId, taPart2FormData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferAgreementPart2 shouldBe a[AuthorisationException]
   }

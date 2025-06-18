@@ -13,7 +13,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Configuration
-import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
+import services.{ConsignmentService, ConsignmentStatusService, DynamoService, S3Service, TransferAgreementService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 
@@ -70,14 +70,15 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration
   ): TransferAgreementPart1Controller = {
 
-    val graphQLConfiguration = new GraphQLConfiguration(config)
-    val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val dynamoService = new DynamoService()
+    val s3Service = new S3Service()
+    val transferAgreementService = new TransferAgreementService(dynamoService)
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     new TransferAgreementPart1Controller(
       securityComponents,
-      graphQLConfiguration,
+      dynamoService,
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,
@@ -90,14 +91,15 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       config: Configuration,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ): TransferAgreementPart2Controller = {
-    val graphQLConfiguration = new GraphQLConfiguration(config)
-    val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val dynamoService = new DynamoService()
+    val s3Service = new S3Service()
+    val transferAgreementService = new TransferAgreementService(dynamoService)
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     new TransferAgreementPart2Controller(
       securityComponents,
-      graphQLConfiguration,
+      dynamoService,
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,

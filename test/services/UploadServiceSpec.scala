@@ -30,39 +30,6 @@ class UploadServiceSpec extends AnyFlatSpec {
   private val configuration: Configuration = mock[Configuration]
   val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
 
-  "startUpload" should "return the correct data" in {
-    val input = StartUploadInput(UUID.randomUUID(), "parent", Some(false))
-    val graphQlClientForStartUpload = mock[GraphQLClient[su.Data, su.Variables]]
-    when(graphQlConfig.getClient[su.Data, su.Variables]())
-      .thenReturn(graphQlClientForStartUpload)
-
-    val graphQlResponse =
-      GraphQlResponse(Some(su.Data("ok")), Nil)
-    when(graphQlClientForStartUpload.getResult(token, su.document, Some(su.Variables(input))))
-      .thenReturn(Future.successful(graphQlResponse))
-
-    val response = new UploadService(graphQlConfig, applicationConfig).startUpload(input, token).futureValue
-    response should equal("ok")
-  }
-
-  "saveMetadata" should "return the correct data" in {
-    val graphQlClientForAddFilesAndMetadata = mock[GraphQLClient[afam.Data, afam.Variables]]
-    when(graphQlConfig.getClient[afam.Data, afam.Variables]())
-      .thenReturn(graphQlClientForAddFilesAndMetadata)
-
-    val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, "1") :: Nil
-    val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil), None)
-    val input = afam.AddFilesAndMetadata(UUID.randomUUID(), "0")
-
-    val graphQlResponse =
-      GraphQlResponse(Some(afam.Data(List(input))), Nil)
-    when(graphQlClientForAddFilesAndMetadata.getResult(token, afam.document, Some(afam.Variables(addFileAndMetadataInput))))
-      .thenReturn(Future.successful(graphQlResponse))
-
-    val response = new UploadService(graphQlConfig, applicationConfig).saveClientMetadata(addFileAndMetadataInput, token).futureValue
-    response.size should equal(1)
-    response.head should equal(input)
-  }
 
   "uploadDraftMetadata" should "return call s3AsyncClient putObject with correct arguments " in {
 
@@ -75,7 +42,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     doAnswer(_ => mockResponse).when(s3AsyncClient).putObject(putObjectRequestCaptor.capture(), requestBodyCaptor.capture())
     when(configuration.get[String]("s3.endpoint")).thenReturn("http://localhost:9009")
 
-    new UploadService(graphQlConfig, applicationConfig)
+    new UploadService(applicationConfig)
       .uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A".getBytes, s3AsyncClient)
 
     putObjectRequestCaptor.getValue.bucket() shouldBe "test-draft-metadata-bucket"
@@ -89,7 +56,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     doAnswer(_ => mockResponse).when(s3AsyncClient).putObject(any[PutObjectRequest], any[ByteBuffersAsyncRequestBody])
     when(configuration.get[String]("s3.endpoint")).thenReturn("http://localhost:9009")
 
-    val response = new UploadService(graphQlConfig, applicationConfig)
+    val response = new UploadService(applicationConfig)
       .uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A".getBytes, s3AsyncClient)
       .failed
       .futureValue

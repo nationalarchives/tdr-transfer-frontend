@@ -1,10 +1,10 @@
 @import controllers.util.DropdownField
-@import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 @import helper._
 @import views.html.partials.{backLink, errorSummary, inputDropdown, downloadMetadataLink}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
+@import services.DynamoService.GetConsignment
+@(consignmentId: UUID, consignmentDetails: GetConsignment, userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
     @main("View Request for Metadata", hasError = dropdownField.fieldErrors.nonEmpty, backLink = Some(backLink(routes.MetadataReviewController.metadataReviews().url, "Back")), isTnaUser = true) {
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">

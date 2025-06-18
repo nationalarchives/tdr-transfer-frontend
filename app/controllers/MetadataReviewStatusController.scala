@@ -20,9 +20,9 @@ class MetadataReviewStatusController @Inject() (
 
   def metadataReviewStatusPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
-      reviewStatus = consignmentStatus.flatMap(s => consignmentStatusService.getStatusValues(s.consignmentStatuses, MetadataReviewType).values.headOption.flatten)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      consignmentStatus <- consignmentStatusService.getConsignmentStatuses(consignmentId)
+      reviewStatus = consignmentStatus.find(_.statusType == "MetadataReview").map(_.value)
+      reference <- consignmentService.getConsignmentRef(consignmentId)
     } yield reviewStatus
       .map(status => Ok(views.html.standard.metadataReviewStatus(consignmentId, reference, request.token.name, request.token.email, status)))
       .getOrElse(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))

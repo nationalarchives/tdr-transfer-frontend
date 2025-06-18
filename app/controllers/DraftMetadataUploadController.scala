@@ -37,7 +37,7 @@ class DraftMetadataUploadController @Inject() (
 
   def draftMetadataUploadPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      reference <- consignmentService.getConsignmentRef(consignmentId)
     } yield {
       Ok(views.html.draftmetadata.draftMetadataUpload(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.bearerAccessToken.getValue))
         .uncache()
@@ -59,10 +59,11 @@ class DraftMetadataUploadController @Inject() (
         _ <- IO(
           logger.info(s"User:${token.userId} uploaded the draft metadata file for consignment:$consignmentId")
         )
-        _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)))
+        _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(consignmentStatusInput.consignmentId, consignmentStatusInput.statusType, consignmentStatusInput.statusValue.getOrElse(""))))
         firstFilePart <- fromOption(request.body.files.headOption)(new RuntimeException(noDraftMetadataFileUploaded))
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException(noDraftMetadataFileUploaded))
         draftMetadataBytes = new BufferedInputStream(new FileInputStream(file.ref.getAbsoluteFile)).readAllBytes()
+        _ <- IO.fromFuture(IO(consignmentService.updateIndividualCustomMetadata(token.userId, consignmentId, draftMetadataBytes)))
         _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadataBytes)))
         _ <- IO.fromFuture(IO { consignmentService.updateDraftMetadataFileName(consignmentId, file.filename, token.bearerAccessToken) })
         _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, uploadFileName, token) })
@@ -72,7 +73,7 @@ class DraftMetadataUploadController @Inject() (
       uploadDraftMetadata
         .recoverWith { case error =>
           val errorPage = for {
-            reference <- consignmentService.getConsignmentRef(consignmentId, token.bearerAccessToken)
+            reference <- consignmentService.getConsignmentRef(consignmentId)
           } yield {
             logger.error(error.getMessage, error)
             Ok(views.html.draftmetadata.draftMetadataUploadError(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, token.bearerAccessToken.getValue)).uncache()

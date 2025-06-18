@@ -7,5 +7,8 @@ case class FrontEndInfo(
     uploadUrl: String,
     authUrl: String,
     clientId: String,
-    realm: String
+    realm: String,
+    awsAccessKeyId: String,
+    awsSecretAccessKey: String,
+    awsSessionToken: String
 )

@@ -65,16 +65,16 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   ): FileChecksController = {
 
     val wsClient = new InternalWSClient("http", 9007)
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val dynamoService = new services.DynamoService()
+    val s3Service = new services.S3Service()
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
     val backendChecks = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
-    val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
-    val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, graphQLConfiguration)
+    val confirmTransferService = new ConfirmTransferService(dynamoService)
+    val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, dynamoService)
 
     new FileChecksController(
       controllerComponents,
-      graphQLConfiguration,
       keycloakConfiguration,
       consignmentService,
       frontEndInfoConfiguration,

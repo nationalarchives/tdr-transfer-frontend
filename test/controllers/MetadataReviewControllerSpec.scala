@@ -35,8 +35,9 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
 
     "render the metadata review page" in {
       setGetConsignmentsForMetadataReviewResponse(wiremockServer)
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val dynamoService = new services.DynamoService()
+      val s3Service = new services.S3Service()
+      val consignmentService = new ConsignmentService(dynamoService, s3Service)
       val controller = new MetadataReviewController(getValidTNAUserKeycloakConfiguration(), getAuthorisedSecurityComponents, consignmentService)
       val response = controller
         .metadataReviews()
@@ -51,8 +52,9 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
     }
 
     "return 403 if the metadata review page is accessed by a non TNA user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val dynamoService = new services.DynamoService()
+      val s3Service = new services.S3Service()
+      val consignmentService = new ConsignmentService(dynamoService, s3Service)
       val controller = new MetadataReviewController(getValidKeycloakConfiguration, getAuthorisedSecurityComponents, consignmentService)
       val response = controller
         .metadataReviews()
@@ -62,8 +64,9 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
     }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val dynamoService = new services.DynamoService()
+      val s3Service = new services.S3Service()
+      val consignmentService = new ConsignmentService(dynamoService, s3Service)
       val controller = new MetadataReviewController(getValidKeycloakConfiguration, getUnauthorisedSecurityComponents, consignmentService)
       val response = controller
         .metadataReviews()

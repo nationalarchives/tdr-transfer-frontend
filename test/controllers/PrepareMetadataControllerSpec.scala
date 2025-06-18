@@ -112,8 +112,10 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val dynamoService = new services.DynamoService()
+    val s3Service = new services.S3Service()
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     new PrepareMetadataController(keycloakConfiguration, securityComponents, consignmentService, consignmentStatusService)
   }

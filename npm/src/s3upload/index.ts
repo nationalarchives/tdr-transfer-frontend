@@ -6,14 +6,11 @@ import {
 
 import { Upload } from "@aws-sdk/lib-storage"
 import {
+  IFileMetadata,
   IFileWithPath,
   TProgressFunction
 } from "@nationalarchives/file-information"
-import { isError } from "../errorhandling"
-import {
-  AddFileStatusInput,
-  FileStatus
-} from "@nationalarchives/tdr-generated-graphql"
+import {v4 as uuidv4} from 'uuid';
 
 export interface ITdrFileWithPath {
   fileId: string
@@ -44,7 +41,7 @@ export class S3Upload {
   uploadToS3: (
     consignmentId: string,
     userId: string | undefined,
-    iTdrFilesWithPath: ITdrFileWithPath[],
+    iTdrFilesWithPath: IFileMetadata[],
     callback: TProgressFunction,
     stage: string
   ) => Promise<IUploadResult | Error> = async (
@@ -59,8 +56,8 @@ export class S3Upload {
       const totalChunks: number = iTdrFilesWithPath.reduce(
         (fileSizeTotal, tdrFileWithPath) =>
           fileSizeTotal +
-          (tdrFileWithPath.fileWithPath.file.size
-            ? tdrFileWithPath.fileWithPath.file.size
+          (tdrFileWithPath.file.size
+            ? tdrFileWithPath.file.size
             : 1),
         0
       )
@@ -68,6 +65,15 @@ export class S3Upload {
       const sendData: ServiceOutputTypes[] = []
       const fileIdsOfFilesThatFailedToUpload: string[] = []
       for (const tdrFileWithPath of iTdrFilesWithPath) {
+        const {checksum, lastModified, size, path} = tdrFileWithPath
+
+        const fileId = uuidv4()
+        await this.uploadMetadata(
+            consignmentId,
+            userId,
+            fileId,
+            JSON.stringify({checksum, lastModified, size, path, fileId, consignmentId})
+        )
         const uploadResult = await this.uploadSingleFile(
           consignmentId,
           userId,
@@ -78,21 +84,29 @@ export class S3Upload {
             processedChunks,
             totalChunks,
             totalFiles
-          }
+          },
+          fileId
         )
         if (
           uploadResult?.$metadata !== undefined &&
           uploadResult.$metadata.httpStatusCode != 200
         ) {
-          await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
-          fileIdsOfFilesThatFailedToUpload.push(tdrFileWithPath.fileId)
+          fileIdsOfFilesThatFailedToUpload.push(fileId)
         }
         sendData.push(uploadResult)
-        processedChunks += tdrFileWithPath.fileWithPath.file.size
-          ? tdrFileWithPath.fileWithPath.file.size
+        processedChunks += tdrFileWithPath.file.size
+          ? tdrFileWithPath.file.size
           : 1
       }
-
+      const csrfInput: HTMLInputElement = document.querySelector(
+          "input[name='csrfToken']"
+      )!
+      await fetch(`/consignment/${consignmentId}/upload-status/Completed/${iTdrFilesWithPath.length}`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {"Content-Type": "application/json", "Csrf-Token": csrfInput.value}
+          })
       return fileIdsOfFilesThatFailedToUpload.length === 0
         ? {
             sendData,
@@ -107,34 +121,53 @@ export class S3Upload {
     }
   }
 
-  private uploadSingleFile: (
+  uploadMetadata: (
+      consignmentId: string,
+      userId: string,
+      fileId: string,
+      body: string
+  ) => Promise<ServiceOutputTypes> = (consignmentId, userId, fileId, body) => {
+    const key = `${userId}/${consignmentId}/${fileId}.metadata`
+    const params: PutObjectCommandInput = {
+      Key: key,
+      Bucket: "dp-sam-test-bucket",
+      ACL: "bucket-owner-read",
+      Body: body
+    }
+    const progress = new Upload({ client: this.client, params })
+    return progress.done()
+  }
+
+  uploadSingleFile: (
     consignmentId: string,
     userId: string,
     stage: string,
-    tdrFileWithPath: ITdrFileWithPath,
+    tdrFileWithPath: IFileMetadata,
     updateProgressCallback: TProgressFunction,
-    progressInfo: IFileProgressInfo
+    progressInfo: IFileProgressInfo,
+    fileId: string
   ) => Promise<ServiceOutputTypes> = (
     consignmentId,
     userId,
     stage,
     tdrFileWithPath,
     updateProgressCallback,
-    progressInfo
+    progressInfo,
+    fileId
   ) => {
-    const { fileWithPath, fileId } = tdrFileWithPath
-    const key = `${userId}/${consignmentId}/${fileId}`
+
+    const key = `${userId}/${consignmentId}/${fileId}.file`
     const params: PutObjectCommandInput = {
       Key: key,
-      Bucket: this.uploadUrl,
+      Bucket: "dp-sam-test-bucket",
       ACL: "bucket-owner-read",
-      Body: fileWithPath.file
+      Body: tdrFileWithPath.file
     }
 
     const progress = new Upload({ client: this.client, params })
 
     const { processedChunks, totalChunks, totalFiles } = progressInfo
-    if (fileWithPath.file.size >= 1) {
+    if (tdrFileWithPath.file.size >= 1) {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
         const loaded = ev.loaded
@@ -175,39 +208,5 @@ export class S3Upload {
     const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
 
     updateProgressFunction({ processedFiles, percentageProcessed, totalFiles })
-  }
-
-  private async addFileStatus(
-    fileId: string,
-    status: string
-  ): Promise<FileStatus | Error> {
-    const csrfInput: HTMLInputElement = document.querySelector(
-      "input[name='csrfToken']"
-    )!
-    const input: AddFileStatusInput = {
-      fileId,
-      statusType: "Upload",
-      statusValue: status
-    }
-    const result: Response | Error = await fetch("/add-file-status", {
-      credentials: "include",
-      method: "POST",
-      body: JSON.stringify(input),
-      headers: {
-        "Content-Type": "application/json",
-        "Csrf-Token": csrfInput.value,
-        "X-Requested-With": "XMLHttpRequest"
-      }
-    }).catch((err) => {
-      return Error(err)
-    })
-
-    if (isError(result)) {
-      return result
-    } else if (result.status != 200) {
-      return Error(`Add file status failed: ${result.statusText}`)
-    } else {
-      return (await result.json()) as FileStatus
-    }
   }
 }

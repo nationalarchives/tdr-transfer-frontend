@@ -6,7 +6,7 @@ import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
-import services.ConsignmentService
+import services.{ConsignmentService, DynamoService, S3Service}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
@@ -115,8 +115,9 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   private def instantiateBeforeUploadingController(
       keycloakConfiguration: KeycloakConfiguration = getValidJudgmentUserKeycloakConfiguration
   ) = {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val dynamoService = new DynamoService()
+    val s3Service = new S3Service()
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
 
     new BeforeUploadingController(
       getAuthorisedSecurityComponents,

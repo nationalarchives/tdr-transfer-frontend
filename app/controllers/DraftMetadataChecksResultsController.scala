@@ -133,7 +133,7 @@ class DraftMetadataChecksResultsController @Inject() (
   def downloadErrorReport(consignmentId: UUID, priorityErrorType: FileError = ROW_VALIDATION): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
-        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+        reference <- consignmentService.getConsignmentRef(consignmentId)
         errorReport <- draftMetadataService.getErrorReport(consignmentId)
       } yield {
         val errorPriorityOrdering: Ordering[Error] =

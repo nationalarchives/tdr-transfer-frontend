@@ -15,7 +15,10 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
     get("upload.url"),
     get("auth.url"),
     get("auth.clientId"),
-    get("auth.realm")
+    get("auth.realm"),
+    sys.env("AWS_ACCESS_KEY_ID"),
+    sys.env("AWS_SECRET_ACCESS_KEY"),
+    sys.env("AWS_SESSION_TOKEN"),
   )
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")

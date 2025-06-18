@@ -41,16 +41,16 @@ class ConfirmTransferController @Inject() (
 
   private def getConsignmentSummary(request: Request[AnyContent], consignmentId: UUID)(implicit requestHeader: RequestHeader): Future[ConsignmentSummaryData] = {
     consignmentService
-      .getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
+      .getConsignmentConfirmTransfer(consignmentId)
       .map { summary =>
-        ConsignmentSummaryData(summary.seriesName.get, summary.transferringBodyName.get, summary.totalFiles, summary.consignmentReference)
+        ConsignmentSummaryData(summary.seriesName.get, request.token.transferringBody.get, 0, summary.consignmentReference)
       }
   }
 
   private def loadStandardPageBasedOnCtStatus(consignmentId: UUID, httpStatus: Status, finalTransferForm: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm)(
       implicit request: Request[AnyContent]
   ): Future[Result] = {
-    consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
+    consignmentStatusService.getConsignmentStatuses(consignmentId).flatMap { consignmentStatuses =>
       val consignmentStatusValues: Map[Statuses.StatusType, Option[String]] =
         consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType, TransferAgreementType, UploadType, ClientChecksType, ExportType)
       val exportTransferStatus = consignmentStatusValues.get(ExportType).headOption.flatten
@@ -67,7 +67,7 @@ class ConfirmTransferController @Inject() (
         .getOrElse(
           exportTransferStatus match {
             case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
-              consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
+              consignmentService.getConsignmentRef(consignmentId).map { consignmentRef =>
                 Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name)).uncache()
               }
             case None =>
@@ -108,15 +108,16 @@ class ConfirmTransferController @Inject() (
         val token: BearerAccessToken = request.token.bearerAccessToken
 
         for {
-          consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+          consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
           exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
           result <- exportStatus match {
             case Some(CompletedValue.value) => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
             case None =>
               for {
-                _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
+                _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, formData)
                 _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)
-                _ <- consignmentExportService.triggerExport(consignmentId, token.toString)
+                _ <- consignmentExportService.triggerExport(consignmentId, request.token)
+                _ <- consignmentStatusService.updateConsignmentStatus(consignmentId, "Export", "Completed")
               } yield Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
             case _ =>
               throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")

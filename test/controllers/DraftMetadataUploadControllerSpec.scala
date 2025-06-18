@@ -194,9 +194,10 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   ): DraftMetadataUploadController = {
     when(draftMetadataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(FileError.NONE))
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val dynamoService = new services.DynamoService()
+    val s3Service = new services.S3Service()
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     new DraftMetadataUploadController(
       securityComponents,

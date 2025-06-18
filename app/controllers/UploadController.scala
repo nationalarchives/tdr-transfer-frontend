@@ -18,52 +18,23 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UploadController @Inject() (
+    val dynamoService: DynamoService,
     val controllerComponents: SecurityComponents,
-    val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
     val frontEndInfoConfiguration: ApplicationConfig,
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
-    val fileStatusService: FileStatusService,
     val backendChecksService: BackendChecksService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
 
-  def startUpload(): Action[AnyContent] = secureAction.async { implicit request =>
-    request.body.asJson.flatMap(body => {
-      decode[StartUploadInput](body.toString).toOption
-    }) match {
-      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
-      case Some(input) => uploadService.startUpload(input, request.token.bearerAccessToken).map(Ok(_))
-    }
-  }
-
-  def saveClientMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
-    request.body.asJson.flatMap(body => {
-      decode[AddFileAndMetadataInput](body.toString()).toOption
-    }) match {
-      case Some(metadataInput) => uploadService.saveClientMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
-      case None                => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
-    }
-  }
-
-  def addFileStatus(): Action[AnyContent] = secureAction.async { implicit request =>
-    request.body.asJson.flatMap(body => {
-      decode[AddMultipleFileStatusesInput](body.toString()).toOption
-    }) match {
-      case Some(addMultipleFileStatusesInput: AddMultipleFileStatusesInput) =>
-        fileStatusService.addMultipleFileStatuses(addMultipleFileStatusesInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
-      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
-    }
-  }
-
   def uploadPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
+      reference <- consignmentService.getConsignmentRef(consignmentId)
     } yield {
       val statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType, UploadType)
       val transferAgreementStatus: Option[String] = statusesToValue.get(TransferAgreementType).flatten
@@ -96,12 +67,16 @@ class UploadController @Inject() (
     }
   }
 
+  def setUploadStatus(consignmentId: UUID, status: String, fileCount: Int): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    consignmentService.setUploadStatus(consignmentId, status, fileCount).map(_ => Ok("{}"))
+  }
+
   def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
+      reference <- consignmentService.getConsignmentRef(consignmentId)
     } yield {
       val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, UploadType).values.headOption.flatten
       val pageHeadingUpload = "Upload document"

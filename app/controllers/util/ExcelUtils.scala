@@ -2,10 +2,9 @@ package controllers.util
 
 import controllers.util.DateUtils.convertToLocalDateOrString
 import controllers.util.GuidanceUtils.{ALL_COLUMNS, GuidanceColumnWriter, approximatedRowHeight}
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.dhatim.fastexcel.{BorderSide, BorderStyle, Workbook, Worksheet}
+import services.S3Service.{Files, GetConsignmentFileMetadata}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.GuidanceItem
 
@@ -16,14 +15,14 @@ object ExcelUtils {
   val NonEditableColour: String = "CCCCCC"
 
   def createExcelFile(
-      consignmentRef: String,
-      fileMetadata: getConsignmentFilesMetadata.GetConsignment,
-      downloadFileDisplayProperties: List[DownloadFileDisplayProperty],
-      keyToTdrFileHeader: String => String,
-      keyToTdrDataLoadHeader: String => String,
-      keyToPropertyType: String => String,
-      sortColumn: String,
-      guidanceItems: Seq[GuidanceItem] = Seq.empty
+     consignmentRef: String,
+     fileMetadata: GetConsignmentFileMetadata,
+     downloadFileDisplayProperties: List[DownloadFileDisplayProperty],
+     keyToTdrFileHeader: String => String,
+     keyToTdrDataLoadHeader: String => String,
+     keyToPropertyType: String => String,
+     sortColumn: String,
+     guidanceItems: Seq[GuidanceItem] = Seq.empty
   ): Array[Byte] = {
     val colProperties: List[ColumnProperty] =
       downloadFileDisplayProperties.map(displayProperty => ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "end_date": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "former_reference_department": {
+      "type": "string"
+    },
+    "ClosureType": {
+      "type": "string",
+      "default": "Open"
+    },
+    "ClosureStartDate": {
+      "type": "string"
+    },
+    "ClosurePeriod": {
+      "type": "string"
+    },
+    "FoiExemptionCode": {
+      "type": "string"
+    },
+    "FoiExemptionAsserted": {
+      "type": "string"
+    },
+    "TitleClosed": {
+      "type": "string",
+      "default": "No"
+    },
+    "TitleAlternate": {
+      "type": "string"
+    },
+    "DescriptionClosed": {
+      "type": "string",
+      "default": "No"
+    },
+    "DescriptionAlternate": {
+      "type": "string"
+    },
+    "Language": {
+      "type": "string",
+      "default": "English"
+    },
+    "file_name_translation": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}

@@ -19,7 +19,7 @@ import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, S3Service}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
@@ -139,9 +139,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to login for a logged out user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val dynamoService = new services.DynamoService()
+      val s3Service = new services.S3Service()
+      val consignmentService = new ConsignmentService(dynamoService, s3Service)
+      val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
       val controller =
         new DownloadMetadataController(
@@ -183,8 +184,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
     "return a redirect to login for a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val dynamoService = new services.DynamoService()
+      val s3Service = new services.S3Service()
+      val consignmentService = new ConsignmentService(dynamoService, s3Service)
+      val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
       val controller =
         new DownloadMetadataController(
@@ -215,9 +218,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
   private def createController(consignmentType: String, userType: Option[String] = None) = {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val dynamoService = new services.DynamoService()
+    val s3Service = new services.S3Service()
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration

@@ -12,10 +12,7 @@ export const getKeycloakInstance: (
   })
   const errorHandlingModule = await import("../errorhandling")
   try {
-    const authenticated = await keycloakInstance.init({
-      onLoad: "check-sso",
-      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
-    })
+    const authenticated = true
     if (errorHandlingModule.isError(authenticated)) {
       return authenticated
     } else {

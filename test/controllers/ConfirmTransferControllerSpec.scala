@@ -24,7 +24,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import play.api.test.WsTestClient.InternalWSClient
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, DynamoService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, EnglishLang, FormTester, FrontEndTestHelper}
@@ -64,7 +64,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
-    new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
+    new ConsignmentExportService(wsClient, configuration, new DynamoService())
   }
 
   "ConfirmTransferController GET" should {
@@ -667,10 +667,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
       blockSkipMetadataReview: Boolean = false
   ) = {
+    val dynamoService = new DynamoService()
+    val s3Service = new services.S3Service()
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val confirmTransferService = new ConfirmTransferService(dynamoService)
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
+    val consignmentStatusService = new ConsignmentStatusService(dynamoService)
 
     new ConfirmTransferController(
       securityComponents,

@@ -23,25 +23,25 @@ class TransferCompleteController @Inject() (
 
   def transferComplete(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      consignmentTransferSummary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
+      consignmentTransferSummary <- consignmentService.getConsignmentConfirmTransfer(consignmentId)
     } yield {
-      messagingService.sendTransferCompleteNotification(
-        TransferCompleteEvent(
-          transferringBodyName = consignmentTransferSummary.transferringBodyName,
-          consignmentReference = consignmentTransferSummary.consignmentReference,
-          consignmentId = consignmentId.toString,
-          seriesName = consignmentTransferSummary.seriesName,
-          userId = request.token.userId.toString,
-          userEmail = request.token.email
-        )
-      )
+//      messagingService.sendTransferCompleteNotification(
+//        TransferCompleteEvent(
+//          transferringBodyName = if (consignmentTransferSummary.transferringBodyName.isEmpty) {None} else {Option(consignmentTransferSummary.transferringBodyName)},
+//          consignmentReference = consignmentTransferSummary.consignmentReference,
+//          consignmentId = consignmentId.toString,
+//          seriesName = consignmentTransferSummary.seriesName,
+//          userId = request.token.userId.toString,
+//          userEmail = request.token.email
+//        )
+//      )
       Ok(views.html.standard.transferComplete(consignmentId, consignmentTransferSummary.consignmentReference, request.token.name))
     }
   }
 
   def judgmentTransferComplete(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      .getConsignmentRef(consignmentId)
       .map { consignmentReference =>
         Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name))
       }

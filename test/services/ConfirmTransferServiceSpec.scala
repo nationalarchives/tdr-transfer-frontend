@@ -32,7 +32,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
   when(graphQlConfig.getClient[aftc.Data, aftc.Variables]())
     .thenReturn(standardGraphQlClient) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
 
-  private val confirmTransferService: ConfirmTransferService = new ConfirmTransferService(graphQlConfig)
+  private val confirmTransferService: ConfirmTransferService = new ConfirmTransferService(new DynamoService())
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
 
   private val token = new BearerAccessToken("some-token")
@@ -68,7 +68,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferConfirmation: AddFinalTransferConfirmation =
-      confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).futureValue
+      confirmTransferService.addFinalTransferConfirmation(consignmentId, formData).futureValue
 
     transferConfirmation.consignmentId should equal(consignmentId)
     transferConfirmation.legalCustodyTransferConfirmed should equal(formData.transferLegalCustody)
@@ -79,7 +79,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalTransferConfirmationInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[HttpError[_]]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, formData).failed.futureValue.asInstanceOf[HttpError[_]]
 
     transferConfirmation shouldBe a[HttpError[_]]
   }
@@ -89,7 +89,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[AuthorisationException]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, formData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferConfirmation shouldBe a[AuthorisationException]
   }
@@ -110,7 +110,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferConfirmation: AddFinalTransferConfirmation =
-      confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).futureValue
+      confirmTransferService.addFinalTransferConfirmation(consignmentId, formData).futureValue
 
     transferConfirmation.consignmentId should equal(consignmentId)
     transferConfirmation.legalCustodyTransferConfirmed should equal(true)
@@ -121,7 +121,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalJudgmentTransferConfirmationInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[HttpError[_]]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, formData).failed.futureValue.asInstanceOf[HttpError[_]]
 
     transferConfirmation shouldBe a[HttpError[_]]
   }
@@ -131,7 +131,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalJudgmentTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[AuthorisationException]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, formData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferConfirmation shouldBe a[AuthorisationException]
   }

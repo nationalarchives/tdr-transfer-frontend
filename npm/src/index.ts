@@ -18,7 +18,10 @@ export interface IFrontEndInfo {
   stage: string
   region: string
   clientId: string
-  realm: string
+  realm: string,
+  awsAccessKeyId: string,
+  awsSecretAccessKey: string,
+  awsSessionToken: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
@@ -33,6 +36,12 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
     document.querySelector(".auth-url")
   const clientIdElement: HTMLInputElement | null =
     document.querySelector(".client-id")
+  const awsAccessKeyId: HTMLInputElement | null =
+      document.querySelector(".awsAccessKey")
+  const awsSecretAccessKey: HTMLInputElement | null =
+      document.querySelector(".awsAccessSecret")
+  const awsSessionToken: HTMLInputElement | null =
+      document.querySelector(".awsAccessSessionToken")
   const realmElement: HTMLInputElement | null = document.querySelector(".realm")
   if (
     apiUrlElement &&
@@ -41,7 +50,10 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
     uploadUrlElement &&
     authUrlElement &&
     clientIdElement &&
-    realmElement
+    realmElement &&
+    awsAccessKeyId &&
+    awsSecretAccessKey &&
+    awsSessionToken
   ) {
     return {
       apiUrl: apiUrlElement.value,
@@ -50,7 +62,10 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
       uploadUrl: uploadUrlElement.value,
       authUrl: authUrlElement.value,
       clientId: clientIdElement.value,
-      realm: realmElement.value
+      realm: realmElement.value,
+      awsAccessKeyId: awsAccessKeyId.value,
+      awsSecretAccessKey: awsSecretAccessKey.value,
+      awsSessionToken: awsSessionToken.value
     }
   } else {
     return Error("The front end information is missing")
@@ -83,16 +98,12 @@ export const renderModules = async () => {
       const authModule = await import("./auth")
       const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
-        const metadataUploadModule = await import("./clientfilemetadataupload")
-        const clientFileProcessing =
-          new metadataUploadModule.ClientFileMetadataUpload()
         const uploadModule = await import("./upload")
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
         )
 
         new uploadModule.FileUploader(
-          clientFileProcessing,
           frontEndInfo,
           keycloak,
           nextPageModule.goToFileChecksPage
@@ -111,14 +122,14 @@ export const renderModules = async () => {
       const authModule = await import("./auth")
       const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
-        const isJudgmentUser = keycloak.tokenParsed?.judgment_user
+        const isJudgmentUser = false
         const checksModule = await import("./checks")
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
         )
         //interval for page reload set at 90% of token validity period
-        const checksPageRefreshInterval =
-          (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.9
+        const checksPageRefreshInterval = 1000000
+
         const resultOrError = new checksModule.Checks().updateFileCheckProgress(
           isJudgmentUser,
           nextPageModule.goToNextPage,
@@ -161,7 +172,7 @@ export const renderModules = async () => {
     const sessionTimeoutModule = await import("./auth/session-timeout")
     const errorHandlingModule = await import("./errorhandling")
     if (!errorHandlingModule.isError(frontEndInfo)) {
-      await sessionTimeoutModule.initialiseSessionTimeout(frontEndInfo)
+      // await sessionTimeoutModule.initialiseSessionTimeout(frontEndInfo)
     }
   }
 

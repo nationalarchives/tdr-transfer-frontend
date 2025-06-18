@@ -23,7 +23,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   lazy val graphqlConfig = new GraphQLConfiguration(app.configuration)
-  lazy val consignmentService = new ConsignmentService(graphqlConfig)
+  val dynamoService = new services.DynamoService()
+  val s3Service = new services.S3Service()
+  lazy val consignmentService = new ConsignmentService(dynamoService, s3Service)
 
   val wiremockServer = new WireMockServer(9006)
 

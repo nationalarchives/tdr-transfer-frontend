@@ -46,13 +46,15 @@ class SeriesDetailsController @Inject() (
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
       for {
-        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
         seriesStatus = consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType).values.headOption.flatten
-      } yield seriesStatus match {
-        case Some(CompletedValue.value) => Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
-        case _ =>
-          consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
-          Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
+      } yield {
+        seriesStatus match {
+          case Some(CompletedValue.value) => Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
+          case _ =>
+            consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
+            Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
+        }
       }
     }
 
@@ -64,13 +66,14 @@ class SeriesDetailsController @Inject() (
 
   private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     for {
-      consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
-      seriesStatus = consignmentStatus.flatMap(s => consignmentStatusService.getStatusValues(s.consignmentStatuses, SeriesType).values.headOption.flatten)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId)
+      series <- consignmentStatusService.getSeries(consignmentId)
+      seriesStatus = consignmentStatus.map(_.value)
+      reference <- consignmentService.getConsignmentRef(consignmentId)
       result <- seriesStatus match {
         case Some(CompletedValue.value) =>
           val seriesOption: InputNameAndValue = consignmentStatus
-            .map(c => InputNameAndValue(c.seriesName.getOrElse(""), c.seriesid.getOrElse("").toString))
+            .map(c => InputNameAndValue(series.getOrElse(""), series.getOrElse("").toString))
             .get
 
           Future(
@@ -79,10 +82,10 @@ class SeriesDetailsController @Inject() (
           )
         case _ =>
           if (!seriesStatus.contains(InProgressValue.value)) {
-            consignmentStatusService.addConsignmentStatus(consignmentId, "Series", InProgressValue.value, request.token.bearerAccessToken)
+            consignmentStatusService.addConsignmentStatus(consignmentId, "Series", InProgressValue.value)
           }
           seriesService.getSeriesForUser(request.token).map { series =>
-            val options = series.map(series => InputNameAndValue(series.code, series.seriesid.toString))
+            val options = series.map(series => InputNameAndValue(series.code, series.id.toString))
             status(views.html.standard.seriesDetails(consignmentId, reference, createDropDownField(options, form), request.token.name)).uncache()
           }
       }

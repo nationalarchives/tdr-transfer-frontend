@@ -321,7 +321,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         "https://mock-upload-url.com",
         "https://mock-auth-url.com",
         "mockClientId",
-        "mockRealm"
+        "mockRealm",
+        "","",""
       )
     )
     frontEndInfoConfiguration

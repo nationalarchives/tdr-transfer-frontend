@@ -1,10 +1,10 @@
 package controllers.util
 
 import controllers.routes
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import services.ConsignmentStatusService
+import services.DynamoService.ConsignmentStatuses
 import services.Statuses.{CompletedValue, InProgressValue, MetadataReviewType}
 
 import java.util.UUID

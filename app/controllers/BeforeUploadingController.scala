@@ -23,7 +23,7 @@ class BeforeUploadingController @Inject() (
 
   def beforeUploading(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      .getConsignmentRef(consignmentId)
       .map(reference => Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, reference, request.token.name)))
   }
 }

@@ -45,7 +45,7 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
       when(client.getResult[Future](tokenCaptor.capture(), any[Document], variablesCaptor.capture())(any[SttpBackend[Future, Any]], any[ClassTag[Future[_]]]))
         .thenReturn(Future(GraphQlResponse(Option(Data(Option(1))), List())))
       when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
-      val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
+      val service = new ConsignmentExportService(wsClient, config, new DynamoService())
       val consignmentId = UUID.randomUUID()
       val token = new BearerAccessToken("token")
       service.updateTransferInitiated(consignmentId, token)
@@ -70,7 +70,7 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
     when(client.getResult[Future](any[BearerAccessToken], any[Document], any[Option[Variables]])(any[SttpBackend[Future, Any]], any[ClassTag[Future[_]]]))
       .thenReturn(getResultResponse)
     when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
-    val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
+    val service = new ConsignmentExportService(wsClient, config, new DynamoService())
     service.updateTransferInitiated(UUID.randomUUID(), new BearerAccessToken())
   }
 
@@ -85,7 +85,7 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
     when(response.status).thenReturn(responseCode)
     when(request.post[String]("{}")).thenReturn(Future(response))
 
-    val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
+    val service = new ConsignmentExportService(wsClient, config, new DynamoService())
     service.triggerExport(consignmentId, "token")
   }
 }

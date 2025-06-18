@@ -1,5 +1,4 @@
 import { ClientFileProcessing } from "../clientfileprocessing"
-import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFrontEndInfo } from "../index"
@@ -36,7 +35,6 @@ export class FileUploader {
   ) => void
 
   constructor(
-    clientFileMetadataUpload: ClientFileMetadataUpload,
     frontendInfo: IFrontEndInfo,
     keycloak: Keycloak,
     goToNextPage: (
@@ -45,19 +43,17 @@ export class FileUploader {
       isJudgmentUser: Boolean
     ) => void
   ) {
-    const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
       region: "eu-west-2",
       credentials: {
-        accessKeyId: "placeholder-id",
-        secretAccessKey: "placeholder-secret"
-      },
-      requestHandler: new TdrFetchHandler({ requestTimeoutMs })
+        accessKeyId: frontendInfo.awsAccessKeyId,
+        secretAccessKey: frontendInfo.awsSecretAccessKey,
+        sessionToken: frontendInfo.awsSessionToken
+      }
     }
 
     const client = new S3Client(config)
     this.clientFileProcessing = new ClientFileProcessing(
-      clientFileMetadataUpload,
       new S3Upload(client, frontendInfo.uploadUrl)
     )
     this.stage = frontendInfo.stage
@@ -74,34 +70,28 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
-    const refreshedToken = await refreshOrReturnToken(this.keycloak)
-
-    const cookiesUrl = `${this.uploadUrl}/cookies`
-    scheduleTokenRefresh(this.keycloak, cookiesUrl)
+    const csrfInput: HTMLInputElement = document.querySelector(
+        "input[name='csrfToken']"
+    )!
+    await fetch(`/consignment/${uploadFilesInfo.consignmentId}/upload-status/InProgress/${files.length}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {"Content-Type": "application/json", "Csrf-Token": csrfInput.value}
+        })
     const errors: Error[] = []
-    const cookiesResponse = await fetch(cookiesUrl, {
-      credentials: "include",
-      headers: { Authorization: `Bearer ${refreshedToken}` }
-    }).catch((err) => {
-      return err
-    })
-    if (!isError(cookiesResponse)) {
-      const processResult = await this.clientFileProcessing.processClientFiles(
+    const processResult = await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,
         this.stage,
-        this.keycloak.tokenParsed?.sub
-      )
+        "15648dcb-c478-43e0-b09b-6ea646a96c21"
+    )
 
-      if (isError(processResult)) {
-        errors.push(processResult)
-      }
-    } else {
-      errors.push(cookiesResponse)
+    if (isError(processResult)) {
+      errors.push(processResult)
     }
 
-    const isJudgmentUser: boolean =
-      this.keycloak.tokenParsed?.judgment_user === true
+    const isJudgmentUser: boolean = false
     const consignmentId = uploadFilesInfo.consignmentId
     const uploadFailed = errors.length > 0
 
@@ -110,8 +100,7 @@ export class FileUploader {
   }
 
   initialiseFormListeners(): void {
-    const isJudgmentUser: boolean =
-      this.keycloak.tokenParsed?.judgment_user === true
+    const isJudgmentUser: boolean = false
 
     const uploadForm: HTMLFormElement | null =
       document.querySelector("#file-upload-form")

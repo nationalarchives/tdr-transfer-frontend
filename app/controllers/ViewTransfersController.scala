@@ -3,13 +3,11 @@ package controllers
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.util.DateUtils
-import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
-import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
-import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
 import graphql.codegen.types.ConsignmentFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
+import services.DynamoService.{ConsignmentStatuses, GetConsignment}
 import services.Statuses._
 
 import java.util.UUID
@@ -47,39 +45,34 @@ class ViewTransfersController @Inject() (
         consignmentFilters,
         request.token.bearerAccessToken
       )
-      consignments = consignmentTransfers.edges match {
-        case Some(edges) => edges.flatMap(createView)
-        case None        => Nil
-      }
     } yield Ok(
-      views.html.viewTransfers(consignments, pageNumber, consignmentTransfers.totalPages.getOrElse(1), request.token.name, request.token.email, request.token.isJudgmentUser)
+      views.html.viewTransfers(createView(consignmentTransfers), pageNumber, 1, request.token.name, request.token.email, request.token.isJudgmentUser)
     )
   }
 
-  private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =
-    edges.map { edge =>
-      val userAction: UserAction = toUserAction(edge.node)
-
+  private def createView(consignments: List[GetConsignment]): List[ConsignmentTransfers] =
+    consignments.map { consignment =>
+      val userAction: UserAction = toUserAction(consignment)
       ConsignmentTransfers(
-        edge.node.consignmentid,
-        edge.node.consignmentReference,
+        Option(consignment.consignmentId),
+        consignment.consignmentReference,
         userAction.transferStatus,
         statusColours(userAction.transferStatus),
         userAction,
-        edge.node.exportDatetime.map(edt => DateUtils.format(edt, "dd/MM/yyyy HH:mm")).getOrElse("N/A"),
-        edge.node.createdDatetime.map(cdt => DateUtils.format(cdt, "dd/MM/yyyy HH:mm")).getOrElse(""),
-        edge.node.totalFiles
+        "N/A",
+        "",
+        consignment.fileCount.getOrElse(0)
       )
     }
 
-  private def toUserAction(consignment: Node): UserAction = {
+  private def toUserAction(consignment: GetConsignment): UserAction = {
     val judgmentType = consignment.consignmentType.contains("judgment")
-    val consignmentId = consignment.consignmentid.get
+    val consignmentId = consignment.consignmentId
     val consignmentRef = consignment.consignmentReference
     val statuses = consignment.consignmentStatuses
 
     val statusesToCheck: List[ConsignmentStatuses] = if (judgmentType) {
-      statuses.filterNonJudgmentStatuses
+      statuses
     } else {
       statuses
     }
@@ -170,7 +163,7 @@ class ViewTransfersController @Inject() (
 
     val checkStatuses = statuses.filter(s => s.statusType == ClientChecksType.id || s.statusType == UploadType.id)
     val checkValues = checkStatuses.map(_.value)
-    val abandoned = checkValues.size == 2 && checkValues.forall(_ == InProgressValue.value) && checkStatuses.flatMap(_.modifiedDatetime).isEmpty
+    val abandoned = checkValues.size == 2 && checkValues.forall(_ == InProgressValue.value)
 
     checkValues match {
       case csc if csc.contains(FailedValue.value) || csc.contains(CompletedWithIssuesValue.value) || abandoned =>

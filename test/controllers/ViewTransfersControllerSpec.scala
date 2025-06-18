@@ -12,7 +12,7 @@ import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
-import services.ConsignmentService
+import services.{ConsignmentService, DynamoService, S3Service}
 import services.Statuses.UnrecognisedType
 import testUtils.{CheckPageForStaticElements, ConsignmentStatusesOptions, FrontEndTestHelper}
 
@@ -47,8 +47,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         s"render the '$expectedTransferState' action for the given 'consignment status'" in {
           setConsignmentTypeResponse(wiremockServer, "standard")
           val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = statuses)
-          val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-          val consignmentService = new ConsignmentService(graphQLConfiguration)
+    
+          val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
           val applicationConfig = new ApplicationConfig(app.configuration)
           val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val response = controller
@@ -73,8 +73,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           setConsignmentTypeResponse(wiremockServer, judgmentType)
           val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, statuses = statuses)
 
-          val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-          val consignmentService = new ConsignmentService(graphQLConfiguration)
+    
+          val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
           val applicationConfig = new ApplicationConfig(app.configuration)
           val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val response = controller
@@ -97,8 +97,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, standardType)
       val consignments = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List())
 
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
       val applicationConfig = new ApplicationConfig(app.configuration)
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
@@ -133,8 +133,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         setConsignmentTypeResponse(wiremockServer, standardType)
         val consignments = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List(), totalPages = totalPages)
 
-        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val consignmentService = new ConsignmentService(graphQLConfiguration)
+  
+        val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
         val applicationConfig = new ApplicationConfig(app.configuration)
         val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val response = controller
@@ -163,8 +163,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         setConsignmentTypeResponse(wiremockServer, standardType)
         val consignmentsWithAllStatusStates: List[Consignments.Edges] =
           setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List(invalidConsignmentStatus))
-        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val consignmentService = new ConsignmentService(graphQLConfiguration)
+  
+        val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
         val applicationConfig = new ApplicationConfig(app.configuration)
         val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val response = controller
@@ -187,8 +187,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "render the view transfers page with no consignments if the user doesn't have any consignments" in {
       setConsignmentTypeResponse(wiremockServer, standardType)
       setConsignmentViewTransfersResponse(wiremockServer, standardType, noConsignment = true)
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
       val applicationConfig = new ApplicationConfig(app.configuration)
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
@@ -204,8 +204,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     }
 
     "return 403 if the view transfers page is accessed by a judgment user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
       val applicationConfig = new ApplicationConfig(app.configuration)
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
@@ -216,8 +216,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentService = new ConsignmentService(new DynamoService(), new S3Service())
       val applicationConfig = new ApplicationConfig(app.configuration)
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller

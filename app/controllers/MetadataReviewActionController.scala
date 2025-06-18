@@ -53,10 +53,7 @@ class MetadataReviewActionController @Inject() (
       for {
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
-            consignmentStatusService.updateConsignmentStatus(
-              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None),
-              request.token.bearerAccessToken
-            )
+            consignmentStatusService.updateConsignmentStatus(consignmentId, statusType, statusValue)
           }
         )
       } yield {
@@ -82,8 +79,8 @@ class MetadataReviewActionController @Inject() (
       requestHeader: RequestHeader
   ): Future[Result] = {
     for {
-      consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
-      userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
+      consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken).map(_.head)
+      userDetails <- keycloakConfiguration.userDetails(consignment.userId.toString)
     } yield {
       status(
         views.html.tna.metadataReviewAction(

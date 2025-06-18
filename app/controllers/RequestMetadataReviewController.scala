@@ -22,7 +22,7 @@ class RequestMetadataReviewController @Inject() (
 
   def requestMetadataReviewPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      .getConsignmentRef(consignmentId)
       .map { ref =>
         Ok(views.html.standard.requestMetadataReview(consignmentId, ref, request.token.name, request.token.email))
       }
@@ -31,19 +31,19 @@ class RequestMetadataReviewController @Inject() (
   def submitMetadataForReview(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val token = request.token.bearerAccessToken
     for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
       statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, MetadataReviewType).values.headOption.flatten
       _ <-
         if (statusesToValue.isEmpty) {
-          consignmentStatusService.addConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value, token)
+          consignmentStatusService.addConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value)
         } else {
-          consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(InProgressValue.value), None), token)
+          consignmentStatusService.updateConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value)
         }
-      summary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, token)
+      summary <- consignmentService.getConsignmentConfirmTransfer(consignmentId)
     } yield {
       messagingService.sendMetadataReviewRequestNotification(
         MetadataReviewRequestEvent(
-          transferringBodyName = summary.transferringBodyName,
+          transferringBodyName = if (summary.transferringBodyName.isEmpty) {None} else {Option(summary.transferringBodyName)},
           consignmentReference = summary.consignmentReference,
           consignmentId = consignmentId.toString,
           seriesCode = summary.seriesName,

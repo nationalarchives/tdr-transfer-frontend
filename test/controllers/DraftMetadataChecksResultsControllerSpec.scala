@@ -363,8 +363,9 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       affectedProperties: Set[String] = Set(),
       errorFileData: Option[ErrorFileData] = None
   ): DraftMetadataChecksResultsController = {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val dynamoService = new services.DynamoService()
+    val s3Service = new services.S3Service()
+    val consignmentService = new ConsignmentService(dynamoService, s3Service)
     val mockedErrorFileData = if (errorFileData.isDefined) { errorFileData.get }
     else mockErrorFileData(fileError, affectedProperties)
     when(draftMetaDataService.getErrorReport(any[UUID])).thenReturn(Future.successful(mockedErrorFileData))

@@ -25,8 +25,8 @@ class MessagingService @Inject() (val applicationConfig: ApplicationConfig)(impl
     utils.publish(transferCompletedEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
   }
 
-  def sendMetadataReviewRequestNotification(metadataReviewRequestEvent: MetadataReviewRequestEvent): PublishResponse = {
-    utils.publish(metadataReviewRequestEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+  def sendMetadataReviewRequestNotification(metadataReviewRequestEvent: MetadataReviewRequestEvent): Unit = {
+//    utils.publish(metadataReviewRequestEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
   }
 
   def sendMetadataReviewSubmittedNotification(metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent): PublishResponse = {

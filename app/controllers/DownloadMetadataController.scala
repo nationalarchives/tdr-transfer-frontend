@@ -26,8 +26,8 @@ class DownloadMetadataController @Inject() (
 
   def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      ref <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+      ref <- consignmentService.getConsignmentRef(consignmentId)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId)
     } yield {
       RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
         Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name))
@@ -52,7 +52,7 @@ class DownloadMetadataController @Inject() (
     val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
 
     for {
-      metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
+      metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token, None, None)
       downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType).sortBy(_.columnIndex)
       excelFile = ExcelUtils.createExcelFile(
         metadata.consignmentReference,
