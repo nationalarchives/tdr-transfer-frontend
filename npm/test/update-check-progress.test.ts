@@ -20,16 +20,9 @@ import { Checks } from "../src/checks"
 import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../src/checks/verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "../src/checks/display-checks-completed-banner"
 
-//stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
-const original = window.location;
-
 beforeAll(() => {
-  delete window.location
-  window.location = { reload: jest.fn() } as any
-});
-
-afterAll(() => {
-  window.location = original as any
+  //stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
+  console.error = jest.fn()
 });
 
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
