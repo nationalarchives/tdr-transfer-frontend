@@ -20,18 +20,9 @@ import { Checks } from "../src/checks"
 import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../src/checks/verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "../src/checks/display-checks-completed-banner"
 
-//stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
-const original = window.location;
-
 beforeAll(() => {
-  Object.defineProperty(window, 'location', {
-    configurable: true,
-    value: { reload: jest.fn() },
-  });
-});
-
-afterAll(() => {
-  Object.defineProperty(window, 'location', { configurable: true, value: original });
+  //stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
+  console.error = jest.fn()
 });
 
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
@@ -141,14 +132,14 @@ test("'updateFileCheckProgress' calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
   await checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   jest.runOnlyPendingTimers()
-  expect(setInterval).toBeCalledTimes(2)
+  expect(setInterval).toHaveBeenCalledTimes(2)
 })
 
 test("'updateDraftMetadataValidationProgress' calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
   await checks.updateDraftMetadataValidationProgress()
   jest.runOnlyPendingTimers()
-  expect(setInterval).toBeCalledTimes(1)
+  expect(setInterval).toHaveBeenCalledTimes(1)
 })
 
 test("'updateFileCheckProgress' shows a standard user, the notification banner and an enabled continue button if all checks are complete", async () => {
@@ -170,8 +161,8 @@ test("'updateFileCheckProgress' shows a standard user, the notification banner a
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toBeCalled()
-  expect(displayChecksCompletedBanner).toBeCalled()
+  expect(haveFileChecksCompleted).toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).toHaveBeenCalled()
 })
 
 test("'updateDraftMetadataValidationProgress' shows a standard user, the notification banner and an enabled continue button if all checks are 'completed'", async () => {
@@ -193,8 +184,8 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, the notific
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
-  expect(hasDraftMetadataValidationCompleted).toBeCalled()
-  expect(displayChecksCompletedBanner).toBeCalled()
+  expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).toHaveBeenCalled()
 })
 
 test("'updateDraftMetadataValidationProgress' shows a standard user, the notification banner and an enabled continue button if all checks are 'completedWithIssues'", async () => {
@@ -216,8 +207,8 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, the notific
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
-  expect(hasDraftMetadataValidationCompleted).toBeCalled()
-  expect(displayChecksCompletedBanner).toBeCalled()
+  expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' shows a standard user, no banner and a disabled continue button if the checks are in progress", async () => {
@@ -237,8 +228,8 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toBeCalled()
-  expect(displayChecksCompletedBanner).not.toBeCalled()
+  expect(haveFileChecksCompleted).toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
 test("'updateDraftMetadataValidationProgress' shows a standard user, no banner and a disabled continue button if the checks are in progress", async () => {
@@ -258,8 +249,8 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, no banner a
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
-  expect(hasDraftMetadataValidationCompleted).toBeCalled()
-  expect(displayChecksCompletedBanner).not.toBeCalled()
+  expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' shows a standard user, no banner and a disabled continue button if no file checks information is returned", async () => {
@@ -279,8 +270,8 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toBeCalled()
-  expect(displayChecksCompletedBanner).not.toBeCalled()
+  expect(haveFileChecksCompleted).toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
 test("'updateDraftMetadataValidationProgress' shows a standard user, no banner and a disabled continue button if no file checks information is returned", async () => {
@@ -300,8 +291,8 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, no banner a
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
-  expect(hasDraftMetadataValidationCompleted).toBeCalled()
-  expect(displayChecksCompletedBanner).not.toBeCalled()
+  expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all checks are complete", async () => {

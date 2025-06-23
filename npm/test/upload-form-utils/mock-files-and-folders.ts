@@ -4,6 +4,7 @@ export const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
     item: (index: number) => file[index],
+    [Symbol.iterator]: jest.fn(),
     0: file[0],
     1: file[1]
   } as FileList
