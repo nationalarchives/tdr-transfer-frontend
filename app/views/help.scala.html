@@ -36,7 +36,7 @@
                         <li><a href="#transfer-agreement">Step 2: Transfer agreement</a></li>
                         <li><a href="#upload-records">Step 3: Upload your records</a></li>
                         <li><a href="#file-checks">Step 4: File checks</a></li>
-                        <li><a href="#additional-metadata">Step 5: Add, edit or delete metadata</a></li>
+                        <li><a href="#upload-metadata">Step 5: Providing metadata for your records</a></li>
                         <li><a href="#submit-metadata">Step 6: Submit Metadata to be checked by experts at TNA</a></li>
                         <li><a href="#download-metadata">Step 7: Download and review metadata</a></li>
                         <li><a href="#confirm-transfer">Step 8: Confirm transfer</a></li>
@@ -171,7 +171,7 @@
                 <li>Schedule an office visit</li>
                 <li>Advise users on getting support from their DRO, more digitally confident colleagues, or their IT department</li>
             </ul>
-            
+
             <h2 class="govuk-heading-m" id="registering-new-account">Registering for a new account</h2>
             <h3 class="govuk-heading-s" id="new-user-email">Part 1: Requesting a new account</h3>
             <ol class="govuk-body">
@@ -384,53 +384,129 @@
                 Failing checks may mean you cannot proceed with your transfer until the problems are resolved.
             </p>
 
-            <h3 class="govuk-heading-s" id="additional-metadata">Step 5: Add, edit or delete metadata</h3>
-            <p class="govuk-body">You may now add, edit or delete descriptive and closure metadata.</p>
-            <p class="govuk-body">Click on the ‘Descriptive metadata’ or ‘Closure metadata’ links to begin adding additional metadata to records as required.</p>
-            <p class="govuk-body">Use the ‘what you can provide’ links for information on the type of metadata fields you can currently enter in each section.</p>
-            <p class="govuk-body">Only click ‘Next’ when you have completed all your metadata entries to move on to the next step.</p>
-            <img src="@routes.Assets.versioned("images/standard-additional-metadata-start-page.png")" class="screenshots" alt="Additional metadata start page" />
+            <h3 class="govuk-heading-s" id="upload-metadata">Step 5: Providing metadata for your records</h3>
 
-            <h3 class="govuk-heading-s" id="descriptive-metadata">Descriptive metadata</h3>
-            <p class="govuk-body">Descriptive metadata will enhance your record. Adding descriptions to your records will help the public find and understand what your record is about. We strongly encourage you to add any extra information available.</p>
-            <p class="govuk-body">Once you select the record you wish to add descriptive metadata to, you may provide the following information:</p>
-            <ul class="govuk-list govuk-list--bullet">
-                <li>Description – this will explain the content of your record and will be visible to the public, unless you confirm this is sensitive when adding Closure Metadata and provide an alternative.</li>
-                <li>Date of the record – this is where you can add the last date that the record was modified if different to the date automatically determined during upload. Check this against your own information to ensure the correct date is added if required.</li>
-                <li>Language - this is where you can choose the language or languages used in the record. You can also provide a translated title if the record title is not in English.</li>
+            <p class="govuk-body">Once your records have successfully uploaded to TDR you will need to provide closure and descriptive
+                metadata associated with your records. This can be done by uploading a metadata CSV file via TDR.</p>
+
+            <b> Closed records and mandatory closure metadata</b>
+            <p class="govuk-body">If your transfer includes closed records, you MUST provide the following ‘closure metadata’ for these record(s):</p>
+            <ul class="govuk-body">
+                <li>Closure status</li>
+                <li>Closure start date</li>
+                <li>Closure Period</li>
+                <li>FOI exemption code(s)</li>
+                <li>FOI schedule date</li>
+                <li>Alternative filename (if filename is sensitive)</li>
+                <li>Alternative description (if description is sensitive)</li>
             </ul>
+            <p class="govuk-body">You can also provide ’descriptive metadata’ for uploaded records. Please refer to the ‘Quick Guide’ for more details and guidance on mandatory and optional metadata, with examples of the correct format.</p>
+            <b>Descriptive metadata</b>
+            <p class="govuk-body">
+                This will help provide context and meaning for your records and help end users of Discovery (our public catalogue) find your records.
+                For example; description, date of the record, former reference etc.
+            </p>
+            <p class="govuk-body">
+                If you do not wish to provide descriptive metadata (all records MUST be open),  select ‘I don’t need to provide any metadata’ at the bottom
+                of the page shown below. Check if your records meet all of the conditions displayed in the expanded text and, if so, click on the ‘I don’t
+                need to provide any metadata’ button to continue.
+            </p>
+            <img src="@routes.Assets.versioned("images/standard-prepare-your-metadata-full.png")" class="screenshots" alt="Prepare your metadata" />
+            <img src="@routes.Assets.versioned("images/standard-prepare-your-metadata-continue.png")" class="screenshots" alt="Prepare your metadata" />
 
-            <h3 class="govuk-heading-s" id="closure-metadata">Closure metadata</h3>
-            <p class="govuk-body">If you wish to transfer closed records, you must add closure metadata.</p>
-            <p class="govuk-body">
-                Once you select the record to add closure metadata to, you must first confirm the closure status has been agreed with the Advisory Council and/or The National Archives.
-                If it has been agreed, you may proceed to add information to the following fields:
-            </p>
-            <ul class="govuk-list govuk-list--bullet">
-                <li>FOI decision asserted – you should enter the date that the closure schedule was agreed with the Advisory Council and/or The National Archives.</li>
-                <li>Closure start date – you should enter the date of the last meaningful change to the record.</li>
-                <li>Closure period – you should enter the number of years the record must be closed from the closure start date.</li>
-                <li>FOI exemption code – you should search and select at least one exemption code per record.</li>
-                <li>Is the title sensitive for the public? – under this question, you should confirm if the title is sensitive to the public. If it is, you can add an alternative title.</li>
-                <li>Is the description sensitive for the public? – under this question, you should confirm if the description is sensitive to the public. If it is, you can add an alternative description. You can only provide an alternative description if you have already added a description on the Descriptive Metadata page.</li>
-            </ul>
+            <ol class="govuk-body">
+                <li><b>Download your metadata template spreadsheet.</b></li>
+                <p class="govuk-body">Click on ‘Download metadata template (excel) to download the template.</p>
+                <img src="@routes.Assets.versioned("images/standard-prepare-your-metadata.png")" class="screenshots" alt="Prepare your metadata" />
 
-            <h3 class="govuk-heading-s">Titles and descriptions that are sensitive to the public</h3>
-            <p class="govuk-body">
-                If the title or description of your record is sensitive to the public, you can provide an alternative when adding closure metadata.
-                The alternative will be visible on the public catalogue. You may wish to do one of the following:
-            </p>
-            <p class="govuk-body">
-                Redact – remove the sensitive words. For example: ‘Correspondence with [name withheld]’
-            </p>
-            <p class="govuk-body">
-                Sanitise – replace the sensitive word. For example: 'UK military exercises in xxx' (where 'military' has replaced 'Special Forces').
-            </p>
-            <p class="govuk-body">
-                Withhold the title or description without providing an alternative. For example: '[Title withheld]' and or '[description withheld]'.
-            </p>
+                <p class="govuk-body">This template will contain the following extracted from your records upon upload:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>Filepath</li>
+                    <li>Filename</li>
+                    <li>Date last modified</li>
+                </ul>
+                <li><b>Fill in the template with metadata associated with your records</b></li>
+                <p class="govuk-body">Open the template in an appropriate spreadsheet application. Make sure you DO NOT alter the values of extracted metadata
+                    in the template (filepath, filename, date last modified).</p>
+                <img src="@routes.Assets.versioned("images/standard-metadata-template.png")" class="screenshots" alt="Metadata template" />
 
-            <h3 class="govuk-heading-s" id="submit-metadata">Step 6: Submitting your metadata to be reviewed by the Digital Archiving team</h3>
+                <p class="govuk-body">Click on the ‘Quick Guide’ tab within the metadata template spreadsheet for guidance on filling in the template.
+                    This provides an overview of mandatory and optional metadata, the correct format and examples.</p>
+                <p class="govuk-body">If you are copying metadata from your own spreadsheet into the template in bulk, please ensure the sort order
+                    is aligned. By default, the template is sorted by the extracted file path value alphabetically (A-Z). You may use ‘V-Lookup’(Excel) to
+                    copy across metadata in bulk from your own spreadsheet into the template or other ‘Lookup’ functions built into your spreadsheet application.
+                </p>
+                <li><b>Save your completed metadata template as a CSV file</b></li>
+                <p class="govuk-body">Once you have completed your template with metadata, save as a CSV file so that you can upload it to TDR.
+                    (Make sure you are viewing the correct sheet - i.e. you select the Metadata sheet tab within the spreadsheet and not the Quick Guide)
+                </p>
+                <p class="govuk-body">To do this:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>Save your file as Excel first (File > Save) before you save as CSV</li>
+                    <li>Click File > Save As</li>
+                    <li>From the ‘Save as type’ dropdown, choose CSV UTF-8 (Comma delimited) (*.csv)</li>
+                    <li>Click Save</li>
+                    <li>Close the file, you are ready to upload</li>
+                </ul>
+                <b><i>If you need to make more changes to your metadata, we recommend that you open the Excel file you saved first, make changes,
+                    and then save again as CSV. Opening a CSV file in Excel can cause formats to be converted.</i></b>
+
+                <li><b>Upload your metadata CSV file to TDR</b></li>
+                <p class="govuk-body">Click on ‘Choose file’ first which will prompt you to upload a file from your local or shared network drives.</p>
+                <img src="@routes.Assets.versioned("images/standard-upload-a-metadata.png")" class="screenshots" alt="Upload a metadata CSV" />
+                <p class="govuk-body">Select your saved metadata CSV file. Once the correct CSV file has been selected click on ‘Upload’.</p>
+
+                <li><b>Automated checks on your metadata CSV file</b></li>
+                <p class="govuk-body">TDR will run some checks on the metadata CSV file.</p>
+
+                <p class="govuk-body">To make sure your file is successfully imported to TDR  please ensure your Metadata CSV file is:</p>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li>saved to CSV before upload (ideally UTF-8)</li>
+                        <li>includes ALL the columns provided in the template (can be hidden)</li>
+                        <li>the corresponding file path, filename and date last modified extracted by TDR upon upload have not been modified</li>
+                        <li>does not contain duplicate/extra rows or columns</li>
+                    </ul>
+                <img src="@routes.Assets.versioned("images/standard-checking-your-metadata.png")" class="screenshots" alt="Checking your metadata" />
+                <p class="govuk-body">Once the automated checks have been completed you will see a message on the screen confirming
+                    your metadata has been checked.
+                </p>
+                <img src="@routes.Assets.versioned("images/standard-checking-your-metadata-done.png")" class="screenshots" alt="Checking your metadata" />
+                <p class="govuk-body">Click on ‘Continue’ to view the results of the automated checks. </p>
+
+                <li><b>Successful import of your metadata CSV file to TDR</b></li>
+                <p class="govuk-body">If your metadata file passes the automated checks it will be ‘imported’ to TDR.</p>
+                <img src="@routes.Assets.versioned("images/standard-results-of-your-metadata-checks.png")" class="screenshots" alt="Results of your metadata checks" />
+                <b>Changing the CSV file or amending metadata</b>
+                <p class="govuk-body">If you need to make any amendments to your metadata file, click on the link’: ‘Upload a metadata CSV’
+                    to return to the ‘Upload a metadata CSV page’ and if you need to download the template again, then select the back arrow labeled
+                    ‘prepare your metadata’ to go back a step and start over.
+                </p>
+
+                <b>Download error report</b>
+                <p class="govuk-body">If the metadata values you provided for your uploaded records fail our automated validation checks, you will be provided
+                    with an error report. Click on ‘Download error report’ to view the errors in Excel or your preferred spreadsheet application.
+                </p>
+                <p class="govuk-body">If your metadata file passes the automated checks it will be ‘imported’ to TDR.</p>
+                <img src="@routes.Assets.versioned("images/standard-results-of-your-metadata-checks-error.png")" class="screenshots" alt="Results of your metadata checks" />
+
+                <p class="govuk-body">Errors are reported at the error  level per record  The corresponding filepath is listed with  ‘column heading’, ’ value’
+                    and reason for error. If a record has failed checks for 2 reasons, then these will be listed in separate rows.
+                </p>
+                <img src="@routes.Assets.versioned("images/standard-error-file.png")" class="screenshots" alt="Error report" />
+
+                <p class="govuk-body">Please note, when correcting  we recommend you do this in your saved metadata excel file or by re-downloading the
+                    metadata template for your records from the ‘Prepare your metadata page’. If you open the CSV file to make corrections, re-save as a
+                    CSV and re-upload, it may alter some formatting and will fail the automated checks again.
+                </p>
+                <p class="govuk-body">There are other reasons as to why your metadata CSV file may fail the automated checks. Follow the instructions provided
+                    to fix the issue(s). If  you need support contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                </p>
+                <p class="govuk-body">Once your metadata CSV file passes the automated checks and is imported you will then be able to submit for a metadata
+                    review by one of our experts.
+                </p>
+            </ol>
+
+            <h3 class="govuk-heading-s" id="submit-metadata">Step 6: Submit your metadata to be reviewed by the Digital Archiving team</h3>
             <p class="govuk-body">
                 Once you have added metadata to your uploaded records via Transfer Digital Records (TDR), you will be presented with the option to download and check the metadata TDR has captured against your records. This will include system metadata extracted by TDR from your uploaded records such as:
             </p>
@@ -474,9 +550,10 @@
                     <img src="@routes.Assets.versioned("images/standard-view-transfers-page.png")" class="screenshots" alt="View transfers page" />
                     <img src="@routes.Assets.versioned("images/standard-review-issues.png")" class="screenshots" alt="Issues found in metadata page" />
                     <p class="govuk-body">
-                        Select ‘Continue’ to return to the ‘Record metadata’ page and address the issues with your metadata by selecting the record and updating the form.
+                        Select ‘Continue’ to return to the ‘Prepare your metadata’ page. This will give you the chance to download the metadata template again
+                        (if needed) or simply click ‘continue’ to upload the correct metadata as a CSV file.
                     </p>
-                    <img src="@routes.Assets.versioned("images/standard-additional-metadata-short.png")" class="screenshots" alt="Additonal metadata page" />
+                    <img src="@routes.Assets.versioned("images/standard-prepare-your-metadata.png")" class="screenshots" alt="Prepare your metadata" />
                     <p class="govuk-body">
                         Once you have made the necessary changes, you will be prompted to repeat the steps described above to submit your metadata for review by the Digital Archiving team who will check it again and send you an email notification.
                     </p>
