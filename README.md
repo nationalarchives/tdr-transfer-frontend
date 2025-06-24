@@ -28,8 +28,12 @@ You will need to access the app at `app.tdr-local.nationalarchives.gov.uk` in or
 1. Add an entry to your `/etc/hosts` file as follows:
 ```127.0.0.1    app.tdr-local.nationalarchives.gov.uk```
 
-2. Create a new `ssl` directory in the `conf` package at the root of this project. `cd` into it. Create a certificate for the domain using the following command:
-```mkcert app.tdr-local.nationalarchives.gov.uk```
+2. Create a new `ssl` directory in the `conf` package at the root of this project. `cd` into it. Create a certificate for the domain:
+```
+    mkdir conf/ssl
+    cd conf/ssl
+    mkcert app.tdr-local.nationalarchives.gov.uk
+```
 This will generate two files, `app.tdr-local.nationalarchives.gov.uk.pem` and `app.tdr-local.nationalarchives.gov.uk-key.pem`.
 
 3. Convert the PEMs into a PKCS12 file that can be used by the play framework using the following command:
