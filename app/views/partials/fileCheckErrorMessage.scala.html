@@ -4,6 +4,7 @@
 @{
     val isPasswordProtected = fileStatuses.contains("PasswordProtected")
     val isZip = fileStatuses.contains("Zip")
+    val isRedacted = fileStatuses.contains("redacted.failure")
 
     if(isPasswordProtected && isZip){
         fileCheckGenericErrorMessage(consignmentRef)
@@ -22,7 +23,10 @@
                 for a full list.
                 Either remove or unpack your zip and archival package files and try uploading again.
                 </p>
-        } else {
-                fileCheckGenericErrorMessage(consignmentRef)
-        }
+        } else if (isRedacted) {
+            <p class="govuk-body govuk-!-font-weight-bold">Your redacted files don't match</p>
+    }
+    else {
+        fileCheckGenericErrorMessage(consignmentRef)
+    }
 }

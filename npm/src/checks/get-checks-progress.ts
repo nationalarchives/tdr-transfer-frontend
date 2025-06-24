@@ -9,9 +9,9 @@ import { isError } from "../errorhandling"
 export interface IProgress {}
 
 export interface IFileCheckProgress extends IProgress {
-  antivirusProcessed: number
+  avProcessed: number
   checksumProcessed: number
-  ffidProcessed: number
+  fileFormatProcessed: number
   totalFiles: number
 }
 
@@ -68,15 +68,10 @@ export const getFileChecksProgress: () => Promise<
 > = async () => {
   const progress = await getProgress("file-check-progress")
   if (!isError(progress)) {
-    const response = progress as Consignment
+    const response = progress as IFileCheckProgress
+    const {avProcessed, checksumProcessed, fileFormatProcessed, totalFiles} = response
     if (response) {
-      const fileChecks = response.fileChecks
-      return {
-        antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
-        checksumProcessed: fileChecks.checksumProgress.filesProcessed,
-        ffidProcessed: fileChecks.ffidProgress.filesProcessed,
-        totalFiles: response.totalFiles
-      }
+      return {avProcessed, checksumProcessed, fileFormatProcessed, totalFiles}
     } else {
       return Error(
         `No file checks progress metadata found for consignment: ${response}`

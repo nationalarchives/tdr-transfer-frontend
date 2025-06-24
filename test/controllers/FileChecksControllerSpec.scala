@@ -71,7 +71,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     val consignmentStatusService = new ConsignmentStatusService(dynamoService)
     val backendChecks = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
     val confirmTransferService = new ConfirmTransferService(dynamoService)
-    val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, dynamoService)
+    val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, dynamoService, s3Service)
 
     new FileChecksController(
       controllerComponents,

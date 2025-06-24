@@ -24,7 +24,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import play.api.test.WsTestClient.InternalWSClient
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, DynamoService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, DynamoService, S3Service}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, EnglishLang, FormTester, FrontEndTestHelper}
@@ -64,7 +64,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
-    new ConsignmentExportService(wsClient, configuration, new DynamoService())
+    new ConsignmentExportService(wsClient, configuration, new DynamoService(), new S3Service())
   }
 
   "ConfirmTransferController GET" should {

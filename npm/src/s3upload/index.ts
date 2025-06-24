@@ -29,6 +29,15 @@ export interface IUploadResult {
   totalChunks: number
 }
 
+interface IUploadFile {
+  checksum: string;
+  size: number;
+  path: string;
+  lastModified: Date;
+  file: File;
+  fileId: string
+}
+
 export class S3Upload {
   client: S3Client
   uploadUrl: string
@@ -64,15 +73,28 @@ export class S3Upload {
       let processedChunks = 0
       const sendData: ServiceOutputTypes[] = []
       const fileIdsOfFilesThatFailedToUpload: string[] = []
-      for (const tdrFileWithPath of iTdrFilesWithPath) {
-        const {checksum, lastModified, size, path} = tdrFileWithPath
 
+      const uploadFiles: IUploadFile[] = iTdrFilesWithPath.map(f => {
         const fileId = uuidv4()
+        return {fileId, ...f}
+      })
+
+      const fileWithPaths = uploadFiles.map(f => {
+        const {fileId, path} = f
+        return {fileId, path}
+      })
+
+      await this.uploadMetadata(
+          `${userId}/${consignmentId}.files`,
+          JSON.stringify(fileWithPaths),
+      )
+
+      for (const tdrFileWithPath of uploadFiles) {
+        const {checksum, lastModified, size, path, fileId} = tdrFileWithPath
+
         await this.uploadMetadata(
-            consignmentId,
-            userId,
-            fileId,
-            JSON.stringify({checksum, lastModified, size, path, fileId, consignmentId})
+            `${userId}/${consignmentId}/${fileId}.metadata`,
+            JSON.stringify({checksum, lastModified, size, path, fileId, consignmentId, "type": "File"})
         )
         const uploadResult = await this.uploadSingleFile(
           consignmentId,
@@ -122,12 +144,9 @@ export class S3Upload {
   }
 
   uploadMetadata: (
-      consignmentId: string,
-      userId: string,
-      fileId: string,
+      key: string,
       body: string
-  ) => Promise<ServiceOutputTypes> = (consignmentId, userId, fileId, body) => {
-    const key = `${userId}/${consignmentId}/${fileId}.metadata`
+  ) => Promise<ServiceOutputTypes> = (key, body) => {
     const params: PutObjectCommandInput = {
       Key: key,
       Bucket: "dp-sam-test-bucket",

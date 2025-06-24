@@ -22,6 +22,6 @@ class ConsignmentExportService @Inject() (val ws: WSClient, val configuration: C
   }
 
   def triggerExport(consignmentId: UUID, token: Token): Future[Boolean] = {
-    s3Service.export(token.userId, consignmentId).map(_.forall(_.sdkHttpResponse().isSuccessful))
+    s3Service.exportConsignment(token.userId, consignmentId).map(res => res.forall(_.sdkHttpResponse().isSuccessful))
   }
 }

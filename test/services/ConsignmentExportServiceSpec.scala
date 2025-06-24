@@ -15,6 +15,7 @@ import play.api.Configuration
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import sangria.ast.Document
 import sttp.client3.SttpBackend
+import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -45,7 +46,7 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
       when(client.getResult[Future](tokenCaptor.capture(), any[Document], variablesCaptor.capture())(any[SttpBackend[Future, Any]], any[ClassTag[Future[_]]]))
         .thenReturn(Future(GraphQlResponse(Option(Data(Option(1))), List())))
       when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
-      val service = new ConsignmentExportService(wsClient, config, new DynamoService())
+      val service = new ConsignmentExportService(wsClient, config, new DynamoService(), new S3Service())
       val consignmentId = UUID.randomUUID()
       val token = new BearerAccessToken("token")
       service.updateTransferInitiated(consignmentId, token)
@@ -70,12 +71,11 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
     when(client.getResult[Future](any[BearerAccessToken], any[Document], any[Option[Variables]])(any[SttpBackend[Future, Any]], any[ClassTag[Future[_]]]))
       .thenReturn(getResultResponse)
     when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
-    val service = new ConsignmentExportService(wsClient, config, new DynamoService())
+    val service = new ConsignmentExportService(wsClient, config, new DynamoService(), new S3Service())
     service.updateTransferInitiated(UUID.randomUUID(), new BearerAccessToken())
   }
 
   private def triggerExport(responseCode: Int, consignmentId: UUID): Future[Boolean] = {
-    val graphQLConfiguration = mock[GraphQLConfiguration]
     val wsClient = mock[WSClient]
     val request = mock[WSRequest]
     val config = mock[Configuration]
@@ -85,7 +85,7 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
     when(response.status).thenReturn(responseCode)
     when(request.post[String]("{}")).thenReturn(Future(response))
 
-    val service = new ConsignmentExportService(wsClient, config, new DynamoService())
-    service.triggerExport(consignmentId, "token")
+    val service = new ConsignmentExportService(wsClient, config, new DynamoService(), new S3Service())
+    service.triggerExport(consignmentId, Token(null, null))
   }
 }
