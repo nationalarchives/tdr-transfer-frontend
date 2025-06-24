@@ -137,7 +137,7 @@ test("a single file upload returns the correct key and should not call addFileSt
     jest.fn(),
     ""
   )
-  expect(fetchMock).toBeCalledTimes(0)
+  expect(fetchMock).toHaveBeenCalledTimes(0)
   const input = s3Mock.calls().pop()!.args[0].input as { Key: string }
   expect(input.Key).toEqual(
     `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
@@ -349,7 +349,7 @@ test("multiple file uploads call the callback correctly and should not call addF
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
   const s3Upload = new S3Upload(s3Client, "")
 
-  expect(fetchMock).not.toBeCalled()
+  expect(fetchMock).not.toHaveBeenCalled()
 
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -375,7 +375,7 @@ test("when there is an error with the upload, an error is returned and should no
     ""
   )
 
-  expect(fetchMock).not.toBeCalled()
+  expect(fetchMock).not.toHaveBeenCalled()
   await expect(result).rejects.toEqual(Error("error"))
 })
 
@@ -422,7 +422,7 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
     callback,
     ""
   )
-  expect(fetchMock).not.toBeCalled()
+  expect(fetchMock).not.toHaveBeenCalled()
 
   expect(isError(result)).toBe(false)
   if (!isError(result)) {

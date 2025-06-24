@@ -88,7 +88,7 @@ test("'initialiseSessionTimeout' should refresh tokens if the user clicks to ext
 
   jest.useRealTimers()
   await new Promise((r) => setTimeout(r, 1)) //Slightly cheating, the await allows the refreshToken to work
-  expect(mockKeycloak.updateToken).toBeCalled()
+  expect(mockKeycloak.updateToken).toHaveBeenCalled()
 })
 
 test("'initialiseSessionTimeout' should sign the user out if the session expires", async () => {
@@ -112,5 +112,5 @@ test("'initialiseSessionTimeout' should sign the user out if the session expires
 
   expect(timeoutDialog.open).toEqual(true)
   jest.useRealTimers()
-  expect(mockKeycloak.logout).toBeCalled()
+  expect(mockKeycloak.logout).toHaveBeenCalled()
 })
