@@ -84,7 +84,7 @@ This will generate two files, `app.tdr-local.nationalarchives.gov.uk.pem` and `a
     - AWS_PROFILE=<the name of your AWS CLI profile logged into integration>
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
-- Visit `http://localhost:9000`
+- Visit `https://app.tdr-local.nationalarchives.gov.uk:9000`
 
 When you log into the site, you will need to log in as a user from the Integration environment.
 
