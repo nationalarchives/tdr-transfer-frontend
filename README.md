@@ -26,7 +26,7 @@ development environment for the other TDR services.
 You will need to access the app at `app.tdr-local.nationalarchives.gov.uk` in order to speak to the integration auth server. To do so, take the following steps.
 
 1. Add an entry to your `/etc/hosts` file as follows:
-```127.0.0.1 app.tdr-local.nationalarchives.gov.uk```
+```127.0.0.1    app.tdr-local.nationalarchives.gov.uk```
 
 2. Create a new `ssl` directory in the `conf` package at the root of this project. `cd` into it. Create a certificate for the domain using the following command:
 ```mkcert app.tdr-local.nationalarchives.gov.uk```
@@ -81,7 +81,7 @@ This will generate two files, `app.tdr-local.nationalarchives.gov.uk.pem` and `a
     - AUTH_SECRET=\<the secret for the Keycloak client that you copied above\>
     - READ_AUTH_SECRET=\<follow the steps above for obtaining `AUTH_SECRET`, but using parameter key `/intg/keycloak/user_read_client/secret`\>
     - NOTIFICATION_SNS_TOPIC_ARN=\<the arn for sns topic for slack notifications you obtained above>
-    - AWS_PROFILE=<the name of your AWS CLI profile logged into integration>
+    - AWS_PROFILE=\<the name of your AWS CLI profile logged into integration>
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
 - Visit `https://app.tdr-local.nationalarchives.gov.uk:9000`
