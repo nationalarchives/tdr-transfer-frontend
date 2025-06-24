@@ -35,7 +35,7 @@ test("renderModules calls authorisation when upload form present on page", async
     "</div>"
 
   await renderModules()
-  expect(keycloakInstance).toBeCalledTimes(1)
+  expect(keycloakInstance).toHaveBeenCalledTimes(1)
 
   keycloakInstance.mockRestore()
 })
@@ -54,7 +54,7 @@ test("renderModules does not call authorisation when no upload form present on p
 
   renderModules()
 
-  expect(keycloakInstance).toBeCalledTimes(0)
+  expect(keycloakInstance).toHaveBeenCalledTimes(0)
 
   keycloakInstance.mockRestore()
 })
@@ -73,7 +73,7 @@ test("renderModules does not call authorisation when no identity pool id present
 
   renderModules()
 
-  expect(keycloakInstance).toBeCalledTimes(0)
+  expect(keycloakInstance).toHaveBeenCalledTimes(0)
 
   keycloakInstance.mockRestore()
 })
@@ -90,7 +90,7 @@ test("renderModules does not call authorisation when the front end info is missi
     "</div>"
 
   renderModules()
-  expect(keycloakInstance).toBeCalledTimes(0)
+  expect(keycloakInstance).toHaveBeenCalledTimes(0)
 
   keycloakInstance.mockRestore()
 })
@@ -102,7 +102,7 @@ test("renderModules calls authorisation when dialog is present on page", async (
   document.body.innerHTML = '<a href="#" class="timeout-dialog">' + getFrontEndInfoHtml()
 
   await renderModules()
-  expect(keycloakInstance).toBeCalledTimes(1)
+  expect(keycloakInstance).toHaveBeenCalledTimes(1)
 
   keycloakInstance.mockRestore()
 })
@@ -115,7 +115,7 @@ test("renderModules does not call authorisation when dialog box is not present o
 
   await renderModules()
 
-  expect(keycloakInstance).toBeCalledTimes(0)
+  expect(keycloakInstance).toHaveBeenCalledTimes(0)
 
   keycloakInstance.mockRestore()
 })
