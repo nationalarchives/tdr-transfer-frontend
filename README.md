@@ -20,6 +20,43 @@ Regardless of how you set up the development environment, you will need:
 Follow these instructions if you want to make changes to the frontend application without needing to set up a full
 development environment for the other TDR services.
 
+
+#### Local self signed certificate
+
+You will need to access the app at `app.tdr-local.nationalarchives.gov.uk` in order to speak to the integration auth server. To do so, take the following steps.
+
+1. Add an entry to your `/etc/hosts` file as follows:
+```127.0.0.1    app.tdr-local.nationalarchives.gov.uk```
+
+2. Create a new `ssl` directory in the `conf` package at the root of this project. `cd` into it. Create a certificate for the domain:
+```
+    mkdir conf/ssl
+    cd conf/ssl
+    mkcert app.tdr-local.nationalarchives.gov.uk
+```
+This will generate two files, `app.tdr-local.nationalarchives.gov.uk.pem` and `app.tdr-local.nationalarchives.gov.uk-key.pem`.
+
+3. Convert the PEMs into a PKCS12 file that can be used by the play framework using the following command:
+```
+  openssl pkcs12 -export -out app.tdr-local.nationalarchives.gov.uk.p12 \
+  -inkey app.tdr-local.nationalarchives.gov.uk-key.pem \
+  -in app.tdr-local.nationalarchives.gov.uk.pem \
+  -password pass:<password-of-your-choice>
+```
+
+4. Add a partial config file named `application.local-ssl.conf` in the `conf/ssl` directory with the following snippet, substituting the password you set on the PKCS12 file in the previous step:
+```
+  play.server.https {
+    keyStore {
+      path = "conf/ssl/app.tdr-local.nationalarchives.gov.uk.p12"
+      type = "PKCS12"
+      password = <password-from-previous-step>
+    }
+  }
+```
+
+#### Run the app
+
 - Run Redis using Docker:
   ```
   docker run -d --name redis -p 6379:6379 redis
@@ -42,15 +79,16 @@ development environment for the other TDR services.
     - get arn for the slack notifications SNS topic for integration (find in AWS console)
 - In IntelliJ, create a new sbt run configuration:
   - Set the Tasks parameter to `run`
+  - To run on https, will need add a number of flags to the VM parameters field: `--add-exports=java.base/sun.security.x509=ALL-UNNAMED -Dhttps.port=9000 -Dhttp.port=disabled`
   - Configure the environment variables:
     - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
     - AUTH_SECRET=\<the secret for the Keycloak client that you copied above\>
     - READ_AUTH_SECRET=\<follow the steps above for obtaining `AUTH_SECRET`, but using parameter key `/intg/keycloak/user_read_client/secret`\>
     - NOTIFICATION_SNS_TOPIC_ARN=\<the arn for sns topic for slack notifications you obtained above>
-    - AWS_PROFILE=<the name of your AWS CLI profile logged into integration>
+    - AWS_PROFILE=\<the name of your AWS CLI profile logged into integration>
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
-- Visit `http://localhost:9000`
+- Visit `https://app.tdr-local.nationalarchives.gov.uk:9000`
 
 When you log into the site, you will need to log in as a user from the Integration environment.
 

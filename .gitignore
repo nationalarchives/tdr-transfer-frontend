@@ -1,4 +1,5 @@
 .idea
+conf/ssl/*
 logs
 target
 project/target
