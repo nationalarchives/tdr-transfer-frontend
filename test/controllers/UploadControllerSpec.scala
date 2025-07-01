@@ -479,8 +479,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |                <div class="govuk-error-summary__body">
            |                    <p>Your file has failed to upload.</p>""".stripMargin
       )
-      uploadPageAsString must include(
-        """
+      uploadPageAsString must include("""
           |            <div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
           |                <div class="govuk-notification-banner__header">
           |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
