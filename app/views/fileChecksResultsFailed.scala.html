@@ -14,10 +14,16 @@
           </h2>
           <div class="govuk-error-summary__body">
             @if(isJudgmentUser) {
-              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
+              <p class="govuk-body">Please check the following items and try again.</p>
+              <ul class="govuk-list govuk-list--bullet">
+                <li>Ensure your file is not password protected or encrypted</li>
+                <li>Ensure your file is saved as Word Document (*.docx) using Word for Windows 2007 onwards</li>
+                <li>We cannot accept files saved as Word 97-2003 Document (*.doc)</li>
+              </ul>
+              <p class="govuk-body">If you receive this error again, contact us at
                 <a class="govuk-link" href="mailto:@Messages("nationalArchives.email")" data-hsupport="email">
                   @Messages("nationalArchives.email")
-                </a>
+                </a> for support.
               </p>
             } else {
               @fileCheckErrorMessage(fileStatuses, consignmentRef)

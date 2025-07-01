@@ -73,6 +73,19 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       |              There is a problem
       |          </h2>""".stripMargin
 
+  val expectedJudgmentErrorMessage: String =
+    """              <p class="govuk-body">Please check the following items and try again.</p>
+      |              <ul class="govuk-list govuk-list--bullet">
+      |                <li>Ensure your file is not password protected or encrypted</li>
+      |                <li>Ensure your file is saved as Word Document (*.docx) using Word for Windows 2007 onwards</li>
+      |                <li>We cannot accept files saved as Word 97-2003 Document (*.doc)</li>
+      |              </ul>
+      |              <p class="govuk-body">If you receive this error again, contact us at
+      |                <a class="govuk-link" href="mailto:nationalArchives.email" data-hsupport="email">
+      |                  nationalArchives.email
+      |                </a> for support.
+      |              </p>""".stripMargin
+
   "FileChecksResultsController GET after file check success" should {
     "render the fileChecksResults page with the confirmation box for a standard user" in {
 
@@ -135,11 +148,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       resultsPageAsString must include("<title>Results of checks - Transfer Digital Records - GOV.UK</title>")
       resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of checks</h1>""")
       resultsPageAsString must include(expectedFailureTitle)
-      resultsPageAsString must include("""              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
-                                         |                <a class="govuk-link" href="mailto:nationalArchives.email" data-hsupport="email">
-                                         |                  nationalArchives.email
-                                         |                </a>
-                                         |              </p>""".stripMargin)
+      resultsPageAsString must include(expectedJudgmentErrorMessage)
       resultsPageAsString must include(expectedFailureReturnButton)
     }
 
@@ -194,11 +203,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |                        Continue
             |                    </button>
             |                </form>""".stripMargin,
-          """              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
-            |                <a class="govuk-link" href="mailto:nationalArchives.email" data-hsupport="email">
-            |                  nationalArchives.email
-            |                </a>
-            |              </p>""".stripMargin
+          expectedJudgmentErrorMessage
         )
       } else {
         (
