@@ -387,9 +387,9 @@
             <h3 class="govuk-heading-s" id="upload-metadata">Step 5: Providing metadata for your records</h3>
 
             <p class="govuk-body">Once your records have successfully uploaded to TDR you will need to provide closure and descriptive
-                metadata associated with your records. This can be done by uploading a metadata CSV file via TDR.</p>
+                metadata associated with your records. This can be done by uploading a metadata CSV (comma separated values) file via TDR.</p>
 
-            <b> Closed records and mandatory closure metadata</b>
+            <p class="govuk-body"><b>Closed records and mandatory closure metadata</b></p>
             <p class="govuk-body">If your transfer includes closed records, you MUST provide the following ‘closure metadata’ for these record(s):</p>
             <ul class="govuk-body">
                 <li>Closure status</li>
@@ -400,10 +400,10 @@
                 <li>Alternative filename (if filename is sensitive)</li>
                 <li>Alternative description (if description is sensitive)</li>
             </ul>
-            <p class="govuk-body">You can also provide ’descriptive metadata’ for uploaded records. Please refer to the ‘Quick Guide’ for more details and guidance on mandatory and optional metadata, with examples of the correct format.</p>
-            <b>Descriptive metadata</b>
+            <p class="govuk-body">Please refer to the ‘Metadata Quick Guide’ for more details and guidance on mandatory and optional metadata, with examples of the correct format.</p>
+            <p class="govuk-body"><b>Descriptive metadata</b></p>
             <p class="govuk-body">
-                This will help provide context and meaning for your records and help end users of Discovery (our public catalogue) find your records.
+                You can also provide ’descriptive metadata’ for uploaded records. This will help provide context and meaning for your records and help end users of Discovery (our public catalogue) find your records.
                 For example; description, date of the record, former reference etc.
             </p>
             <p class="govuk-body">
@@ -416,10 +416,10 @@
 
             <ol class="govuk-body">
                 <li><b>Download your metadata template spreadsheet.</b></li>
-                <p class="govuk-body">Click on ‘Download metadata template (excel) to download the template.</p>
+                <p class="govuk-body">Click on ‘Download metadata template (excel)’ to download the template.</p>
                 <img src="@routes.Assets.versioned("images/standard-prepare-your-metadata.png")" class="screenshots" alt="Prepare your metadata" />
 
-                <p class="govuk-body">This template will contain the following extracted from your records upon upload:</p>
+                <p class="govuk-body">This template contains the following extracted from your records upon upload:</p>
                 <ul class="govuk-list govuk-list--bullet">
                     <li>Filepath</li>
                     <li>Filename</li>
@@ -454,12 +454,12 @@
                 </p>
 
                 <li><b>Upload your metadata CSV file to TDR</b></li>
-                <p class="govuk-body">Click on ‘Choose file’ first which will prompt you to upload a file from your local or shared network drives.</p>
+                <p class="govuk-body">Click on ‘Choose file’ which will prompt you to upload a file from your local or shared network drives.</p>
                 <img src="@routes.Assets.versioned("images/standard-upload-a-metadata.png")" class="screenshots" alt="Upload a metadata CSV" />
-                <p class="govuk-body">Select your saved metadata CSV file. Once the correct CSV file has been selected click on ‘Upload’.</p>
+                <p class="govuk-body">Select your saved metadata CSV file. Once the correct CSV file has been selected click ‘Upload’.</p>
 
                 <li><b>Automated checks on your metadata CSV file</b></li>
-                <p class="govuk-body">TDR will run some checks on the metadata CSV file.</p>
+                <p class="govuk-body">TDR will run some automated checks on the metadata CSV file.</p>
 
                 <p class="govuk-body">To make sure your file is successfully imported to TDR  please ensure your Metadata CSV file is:</p>
                     <ul class="govuk-list govuk-list--bullet">
@@ -473,37 +473,37 @@
                     your metadata has been checked.
                 </p>
                 <img src="@routes.Assets.versioned("images/standard-checking-your-metadata-done.png")" class="screenshots" alt="Checking your metadata" />
-                <p class="govuk-body">Click on ‘Continue’ to view the results of the automated checks. </p>
+                <p class="govuk-body">Click ‘Continue’ to view the results of the automated checks. </p>
 
                 <li><b>Successful import of your metadata CSV file to TDR</b></li>
                 <p class="govuk-body">If your metadata file passes the automated checks it will be ‘imported’ to TDR.</p>
                 <img src="@routes.Assets.versioned("images/standard-results-of-your-metadata-checks.png")" class="screenshots" alt="Results of your metadata checks" />
-                <b>Changing the CSV file or amending metadata</b>
-                <p class="govuk-body">If you need to make any amendments to your metadata file, click on the link’: ‘Upload a metadata CSV’
+                <p class="govuk-body"><b>Changing the CSV file or amending metadata</b></p>
+                <p class="govuk-body">If you need to make any amendments to your metadata file, click on the link: ‘Upload a metadata CSV’
                     to return to the ‘Upload a metadata CSV page’ and if you need to download the template again, then select the back arrow labeled
                     ‘prepare your metadata’ to go back a step and start over.
                 </p>
 
-                <b>Download error report</b>
+                <p class="govuk-body"><b>Download error report</b></p>
                 <p class="govuk-body">If the metadata values you provided for your uploaded records fail our automated validation checks, you will be provided
-                    with an error report. Click on ‘Download error report’ to view the errors in Excel or your preferred spreadsheet application.
+                    with an error report. Click ‘Download error report’ to view the errors in Excel or your preferred spreadsheet application.
                 </p>
                 <p class="govuk-body">If your metadata file passes the automated checks it will be ‘imported’ to TDR.</p>
                 <img src="@routes.Assets.versioned("images/standard-results-of-your-metadata-checks-error.png")" class="screenshots" alt="Results of your metadata checks" />
 
-                <p class="govuk-body">Errors are reported at the error  level per record  The corresponding filepath is listed with  ‘column heading’, ’ value’
-                    and reason for error. If a record has failed checks for 2 reasons, then these will be listed in separate rows.
+                <p class="govuk-body">Errors are reported at the error level per record. The corresponding filepath is listed with  ‘column heading’, ’ value’
+                    and ‘error message’. If a record has failed checks for 2 reasons, then these will be listed in 2 separate rows.
                 </p>
                 <img src="@routes.Assets.versioned("images/standard-error-file.png")" class="screenshots" alt="Error report" />
 
-                <p class="govuk-body">Please note, when correcting  we recommend you do this in your saved metadata excel file or by re-downloading the
+                <p class="govuk-body">Please note, when correcting, we recommend you do this in your saved metadata excel file or by re-downloading the
                     metadata template for your records from the ‘Prepare your metadata page’. If you open the CSV file to make corrections, re-save as a
                     CSV and re-upload, it may alter some formatting and will fail the automated checks again.
                 </p>
                 <p class="govuk-body">There are other reasons as to why your metadata CSV file may fail the automated checks. Follow the instructions provided
                     to fix the issue(s). If  you need support contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
                 </p>
-                <p class="govuk-body">Once your metadata CSV file passes the automated checks and is imported you will then be able to submit for a metadata
+                <p class="govuk-body">Once your metadata CSV file passes the automated checks and is imported, you will then be able to submit for a metadata
                     review by one of our experts.
                 </p>
             </ol>
