@@ -436,7 +436,19 @@ function setupUploadPageHTML() {
     <div id="upload-progress" class="govuk-grid-row" hidden>
         <div class="govuk-grid-column-two-thirds" role="status" aria-live="assertive">
             <div id="progress-bar-and-message">
-                <p class="govuk-body">Do not close your browser window while your files are being uploaded. This could take a few minutes.</p>
+            <div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        Important
+                    </h2>
+                </div>
+                <div class="govuk-notification-banner__content">
+                    <p class="govuk-notification-banner__heading">
+                        Do not close your browser window while your file is being uploaded. This may take a few minutes.
+                    </p>
+                </div>
+            </div>
+            </div>
                 <div>
                     <span id="upload-status-screen-reader">
                         <label for="upload-records-progress-bar" class="govuk-label progress-label">
