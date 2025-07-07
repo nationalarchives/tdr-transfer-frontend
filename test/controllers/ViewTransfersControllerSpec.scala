@@ -3,6 +3,7 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
 import org.scalatest.matchers.should.Matchers._
@@ -248,6 +249,47 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "sortAndBuildConsignmentTransfers" should {
+    "sort TDR-2025-A1AA before TDR-AZAA when created later, despite alphabetical order" in {
+      val olderDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 10, 0), ZoneId.systemDefault())
+      val newerDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 11, 0), ZoneId.systemDefault())
+      
+      val edgesFromRefAndDateTime: (String, ZonedDateTime) => Edges = (reference, createdTime) =>
+        Edges(
+          node = Node(
+            consignmentid = Some(UUID.randomUUID()), 
+            consignmentReference = reference, 
+            consignmentType = Some("standard"), 
+            exportDatetime = None,
+            createdDatetime = Some(createdTime),
+            consignmentStatuses = List.empty, 
+            totalFiles = 1
+          ),
+          cursor = ""
+        )
+      
+      val consignmentsResponse = Consignments(
+        edges = Some(List(
+          Some(edgesFromRefAndDateTime("TDR-2025-AZAA", olderDateTime)), 
+          Some(edgesFromRefAndDateTime("TDR-2025-A1AA", newerDateTime))
+        )),
+        pageInfo = Consignments.PageInfo(hasNextPage = false, endCursor = None),
+        totalPages = Some(1)
+      )
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val applicationConfig = new ApplicationConfig(app.configuration)
+      val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+
+      val result = controller.sortAndBuildConsignmentTransferViews(consignmentsResponse)
+
+      result should have length 2
+      result.head.reference should be("TDR-2025-A1AA")
+      result(1).reference should be("TDR-2025-AZAA")
+    }
+  }
+  
   def checkForExpectedViewTransfersPageContent(viewTransfersPageAsString: String, consignmentExists: Boolean = true): Unit = {
     viewTransfersPageAsString must include("""<a href="/homepage" class="govuk-back-link">Back</a>""")
     viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")

@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.util.DateUtils
+import graphql.codegen.GetConsignments.getConsignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
@@ -12,6 +13,7 @@ import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 import services.Statuses._
 
+import java.time.ZonedDateTime
 import java.util.UUID
 import javax.inject.Inject
 
@@ -41,21 +43,24 @@ class ViewTransfersController @Inject() (
   def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
     for {
-      consignmentTransfers <- consignmentService.getConsignments(
+      consignmentTransfers: getConsignments.Consignments <- consignmentService.getConsignments(
         pageNumber - 1,
         applicationConfig.numberOfItemsOnViewTransferPage,
         consignmentFilters,
         request.token.bearerAccessToken
       )
-      consignments = consignmentTransfers.edges match {
-        case Some(edges) => edges.flatMap(createView)
-        case None        => Nil
-      }
+      consignments = sortAndBuildConsignmentTransferViews(consignmentTransfers)
     } yield Ok(
       views.html.viewTransfers(consignments, pageNumber, consignmentTransfers.totalPages.getOrElse(1), request.token.name, request.token.email, request.token.isJudgmentUser)
     )
   }
 
+  def sortAndBuildConsignmentTransferViews(consignmentsResponse: getConsignments.Consignments): List[ConsignmentTransfers] = {
+    consignmentsResponse.edges.map { edges =>
+     edges.sortBy(_.flatMap(_.node.createdDatetime))(Ordering.Option(Ordering[ZonedDateTime].reverse)).flatMap(createView)
+    }.getOrElse(List.empty[ConsignmentTransfers])
+  }
+  
   private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =
     edges.map { edge =>
       val userAction: UserAction = toUserAction(edge.node)
