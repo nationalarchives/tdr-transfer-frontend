@@ -253,26 +253,28 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "sort TDR-2025-A1AA before TDR-AZAA when created later, despite alphabetical order" in {
       val olderDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 10, 0), ZoneId.systemDefault())
       val newerDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 11, 0), ZoneId.systemDefault())
-      
+
       val edgesFromRefAndDateTime: (String, ZonedDateTime) => Edges = (reference, createdTime) =>
         Edges(
           node = Node(
-            consignmentid = Some(UUID.randomUUID()), 
-            consignmentReference = reference, 
-            consignmentType = Some("standard"), 
+            consignmentid = Some(UUID.randomUUID()),
+            consignmentReference = reference,
+            consignmentType = Some("standard"),
             exportDatetime = None,
             createdDatetime = Some(createdTime),
-            consignmentStatuses = List.empty, 
+            consignmentStatuses = List.empty,
             totalFiles = 1
           ),
           cursor = ""
         )
-      
+
       val consignmentsResponse = Consignments(
-        edges = Some(List(
-          Some(edgesFromRefAndDateTime("TDR-2025-AZAA", olderDateTime)), 
-          Some(edgesFromRefAndDateTime("TDR-2025-A1AA", newerDateTime))
-        )),
+        edges = Some(
+          List(
+            Some(edgesFromRefAndDateTime("TDR-2025-AZAA", olderDateTime)),
+            Some(edgesFromRefAndDateTime("TDR-2025-A1AA", newerDateTime))
+          )
+        ),
         pageInfo = Consignments.PageInfo(hasNextPage = false, endCursor = None),
         totalPages = Some(1)
       )
@@ -289,7 +291,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       result(1).reference should be("TDR-2025-AZAA")
     }
   }
-  
+
   def checkForExpectedViewTransfersPageContent(viewTransfersPageAsString: String, consignmentExists: Boolean = true): Unit = {
     viewTransfersPageAsString must include("""<a href="/homepage" class="govuk-back-link">Back</a>""")
     viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")

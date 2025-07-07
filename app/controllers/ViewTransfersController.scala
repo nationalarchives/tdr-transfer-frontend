@@ -56,11 +56,13 @@ class ViewTransfersController @Inject() (
   }
 
   def sortAndBuildConsignmentTransferViews(consignmentsResponse: getConsignments.Consignments): List[ConsignmentTransfers] = {
-    consignmentsResponse.edges.map { edges =>
-     edges.sortBy(_.flatMap(_.node.createdDatetime))(Ordering.Option(Ordering[ZonedDateTime].reverse)).flatMap(createView)
-    }.getOrElse(List.empty[ConsignmentTransfers])
+    consignmentsResponse.edges
+      .map { edges =>
+        edges.sortBy(_.flatMap(_.node.createdDatetime))(Ordering.Option(Ordering[ZonedDateTime].reverse)).flatMap(createView)
+      }
+      .getOrElse(List.empty[ConsignmentTransfers])
   }
-  
+
   private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =
     edges.map { edge =>
       val userAction: UserAction = toUserAction(edge.node)
