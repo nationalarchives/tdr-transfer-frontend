@@ -41,19 +41,18 @@ class DownloadMetadataController @Inject() (
     }
   }
 
-  def downloadMetadataFile(consignmentId: UUID): Action[AnyContent] = standardAndTnaUserAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def downloadMetadataFile(consignmentId: UUID, downloadType: Option[String] = Some("MetadataDownloadTemplate")): Action[AnyContent] = standardAndTnaUserAction(consignmentId) { implicit request: Request[AnyContent] =>
     if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded metadata for consignmentId: $consignmentId")
 
     val metadataConfiguration = ConfigUtils.loadConfiguration
     val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
     val tdrDataLoadHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
     val propertyTypeEvaluator = metadataConfiguration.getPropertyType
-    val downloadType = "MetadataDownloadTemplate"
     val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
 
     for {
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
-      downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType).sortBy(_.columnIndex)
+      downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType.get).sortBy(_.columnIndex)
       excelFile = ExcelUtils.createExcelFile(
         metadata.consignmentReference,
         metadata,
