@@ -265,7 +265,17 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
 
       uploadPageAsString must include(
-        """<p class="govuk-body">Do not close your browser while your records are being uploaded. This may take a few minutes.</p>"""
+        """            <div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+          |                <div class="govuk-notification-banner__header">
+          |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+          |                        Important
+          |                    </h2>
+          |                </div>
+          |                <div class="govuk-notification-banner__content">
+          |                    <p class="govuk-notification-banner__heading">
+          |                        Do not close your browser window while your files are being uploaded. This may take a few minutes.
+          |                    </p>
+          |                </div>""".stripMargin
       )
     }
 
@@ -469,7 +479,19 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |                <div class="govuk-error-summary__body">
            |                    <p>Your file has failed to upload.</p>""".stripMargin
       )
-      uploadPageAsString must include("""<p class="govuk-body">Do not close your browser window while your file is being uploaded. This may take a few minutes.</p>""")
+      uploadPageAsString must include("""
+          |            <div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+          |                <div class="govuk-notification-banner__header">
+          |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+          |                        Important
+          |                    </h2>
+          |                </div>
+          |                <div class="govuk-notification-banner__content">
+          |                    <p class="govuk-notification-banner__heading">
+          |                        Do not close your browser window while your file is being uploaded. This may take a few minutes.
+          |                    </p>
+          |                </div>
+          |""".stripMargin)
     }
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
