@@ -41,34 +41,34 @@ class DownloadMetadataController @Inject() (
     }
   }
 
-  def downloadMetadataFile(consignmentId: UUID): Action[AnyContent] = standardAndTnaUserAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded metadata for consignmentId: $consignmentId")
+  def downloadMetadataFile(consignmentId: UUID, downloadType: Option[String]): Action[AnyContent] = standardAndTnaUserAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded metadata for consignmentId: $consignmentId")
 
-    val metadataConfiguration = ConfigUtils.loadConfiguration
-    val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
-    val tdrDataLoadHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
-    val propertyTypeEvaluator = metadataConfiguration.getPropertyType
-    val downloadType = "MetadataDownloadTemplate"
-    val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
+      val metadataConfiguration = ConfigUtils.loadConfiguration
+      val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
+      val tdrDataLoadHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
+      val propertyTypeEvaluator = metadataConfiguration.getPropertyType
+      val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
 
-    for {
-      metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
-      downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType).sortBy(_.columnIndex)
-      excelFile = ExcelUtils.createExcelFile(
-        metadata.consignmentReference,
-        metadata,
-        downloadDisplayProperties,
-        tdrFileHeaderMapper,
-        tdrDataLoadHeaderMapper,
-        propertyTypeEvaluator,
-        fileSortColumn,
-        GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
-      )
-    } yield {
-      Ok(excelFile)
-        .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$getCurrentDateTime.xlsx")
-    }
+      for {
+        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
+        downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType.getOrElse("MetadataDownloadTemplate")).sortBy(_.columnIndex)
+        excelFile = ExcelUtils.createExcelFile(
+          metadata.consignmentReference,
+          metadata,
+          downloadDisplayProperties,
+          tdrFileHeaderMapper,
+          tdrDataLoadHeaderMapper,
+          propertyTypeEvaluator,
+          fileSortColumn,
+          GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
+        )
+      } yield {
+        Ok(excelFile)
+          .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+          .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$getCurrentDateTime.xlsx")
+      }
   }
 
   private def getCurrentDateTime = {

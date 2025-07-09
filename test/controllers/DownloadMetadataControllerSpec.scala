@@ -134,7 +134,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     "return forbidden for a judgment user" in {
       val controller = createController("judgment")
       val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
       status(response) must be(FORBIDDEN)
     }
 
@@ -151,7 +151,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           getInvalidKeycloakConfiguration
         )
       val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
       status(response) must be(FOUND)
     }
   }
@@ -207,7 +207,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
     val consignmentId = UUID.randomUUID()
     val controller = createController("standard", userType.some)
-    val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+    val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
     val responseByteArray: ByteString = contentAsBytes(response)
     val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
     new ReadableWorkbook(bufferedSource)
