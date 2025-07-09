@@ -38,7 +38,7 @@
 
             <p class="govuk-body">Download an Excel template that contains pre-populated metadata. The metadata values in the template were either extracted from your records or set by default. See 'Quick Guide' tab in template for guidance.</p>
 
-            @downloadMetadataLink(consignmentId, "Download metadata template (Excel)", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
+            @downloadMetadataLink(consignmentId, "Download metadata template (Excel)", routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url)
 
             <h2 class="govuk-heading-m">Saving your spreadsheet as a CSV</h2>
             <p class="govuk-body">Once you have completed your metadata template, you will need to save it as a <abbr title="Comma Separated Values">CSV</abbr> file before you upload it to TDR.</p>
