@@ -29,7 +29,7 @@
                 <p>In your CSV, include a header row for the column titles and one row for every record that requires metadata.</p>
             </div>
             <div>
-            @downloadMetadataLink(consignmentId, "Download metadata Excel template", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
+            @downloadMetadataLink(consignmentId, "Download metadata Excel template", routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url)
             </div>
 
             <form action="@routes.DraftMetadataUploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >

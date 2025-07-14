@@ -273,9 +273,13 @@ class UploadControllerSpec extends FrontEndTestHelper {
           |                </div>
           |                <div class="govuk-notification-banner__content">
           |                    <p class="govuk-notification-banner__heading">
-          |                        Do not close your browser window while your files are being uploaded. This may take a few minutes.
+          |                        Keep this browser window open while your files are being uploaded.
           |                    </p>
           |                </div>""".stripMargin
+      )
+
+      uploadPageAsString must include(
+        """<p class="govuk-body">This could take up to two hours, depending on the size of your upload. If you close your browser window before your files finish uploading, the upload will stop.</p>"""
       )
     }
 
@@ -488,7 +492,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
           |                </div>
           |                <div class="govuk-notification-banner__content">
           |                    <p class="govuk-notification-banner__heading">
-          |                        Do not close your browser window while your file is being uploaded. This may take a few minutes.
+          |                        Keep this window open while your document is being uploaded. This may take a few minutes.
           |                    </p>
           |                </div>
           |""".stripMargin)
