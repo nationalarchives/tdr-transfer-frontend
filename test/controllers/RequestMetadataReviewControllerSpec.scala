@@ -43,7 +43,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
   "requestMetadataReviewPage" should {
 
-    "render the request metadata review page with an authenticated user when 'blockMetadataReview' set to 'false'" in {
+    "render the request metadata review page with an authenticated user" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -65,6 +65,10 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
            |                Submit metadata for review
            |              </button>
            |            </div>""".stripMargin
+      )
+
+      requestMetadataReviewPageAsString must include(
+        s"""<a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-link">Prepare your metadata</a>"""
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(requestMetadataReviewPageAsString, userType = "standard")
