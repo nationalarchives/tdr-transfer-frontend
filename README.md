@@ -41,7 +41,7 @@ This will generate two files, `app.tdr-local.nationalarchives.gov.uk.pem` and `a
   openssl pkcs12 -export -out app.tdr-local.nationalarchives.gov.uk.p12 \
   -inkey app.tdr-local.nationalarchives.gov.uk-key.pem \
   -in app.tdr-local.nationalarchives.gov.uk.pem \
-  -password pass:<password-of-your-choice>
+  -password pass:vg-password
 ```
 
 4. Add a partial config file named `application.local-ssl.conf` in the `conf/ssl` directory with the following snippet, substituting the password you set on the PKCS12 file in the previous step:
