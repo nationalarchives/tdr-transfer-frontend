@@ -15,4 +15,8 @@ class HelpController @Inject() (securityComponents: SecurityComponents) extends 
   def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.judgment.judgmentHelp(request.isLoggedIn, request.name))
   }
+
+  def metadataQuickGuide(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    Ok(views.html.metadataquickguide(request.isLoggedIn, request.name, request.isJudgmentUser))
+  }
 }

@@ -1,0 +1,51 @@
+@(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@import play.api.libs.json._
+@import scala.io.Source
+
+@defining("User Help Guide") { title =>
+  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">Metadata Quick Guide</h1>
+
+            <p class="govuk-body">Use this guide to help you complete your metadata template correctly. It includes a full list of metadata you can provide for your records, along with format requirements and examples to guide you.</p>
+
+            @{
+                // Load and parse the JSON file from the resources
+                val jsonSource = Source.fromFile(play.Environment.simple().getFile("conf/metadataGuide.json"))
+                val jsonContent = try jsonSource.mkString finally jsonSource.close()
+                val metadataGuide = Json.parse(jsonContent).as[JsArray].value
+
+                // Create the table
+                val table =
+                    <table class="govuk-table">
+                        <caption class="govuk-table__caption govuk-table__caption--m">Metadata Fields</caption>
+                        <thead class="govuk-table__head">
+                            <tr class="govuk-table__row">
+                                <th scope="col" class="govuk-table__header">Column title</th>
+                                <th scope="col" class="govuk-table__header">Details</th>
+                                <th scope="col" class="govuk-table__header">Format</th>
+                                <th scope="col" class="govuk-table__header">Requirement</th>
+                                <th scope="col" class="govuk-table__header">Example</th>
+                            </tr>
+                        </thead>
+                        <tbody class="govuk-table__body">
+                            {metadataGuide.map(item => {
+                                val fieldJson = item.as[JsObject]
+                                <tr class="govuk-table__row">
+                                    <td class="govuk-table__cell">{fieldJson("property").as[String]}</td>
+                                    <td class="govuk-table__cell">{fieldJson("details").as[String]}</td>
+                                    <td class="govuk-table__cell">{fieldJson("format").as[String]}</td>
+                                    <td class="govuk-table__cell">{fieldJson("tdrRequirement").as[String]}</td>
+                                    <td class="govuk-table__cell">{fieldJson("example").as[String]}</td>
+                                </tr>
+                            })}
+                        </tbody>
+                    </table>
+
+                table
+            }
+        </div>
+    </div>
+  }
+}
