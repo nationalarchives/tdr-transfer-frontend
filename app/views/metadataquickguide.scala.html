@@ -1,28 +1,23 @@
-@(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean, guideContent: String, propertyNameMapper:String =>String)(implicit messages: Messages, request: RequestHeader)
 @import play.api.libs.json._
 @import scala.io.Source
 
-@defining("User Help Guide") { title =>
+@defining("User Metadata Quick Guide") { title =>
   @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">Metadata Quick Guide</h1>
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">Metadata quick guide</h1>
 
-            <p class="govuk-body">Use this guide to help you complete your metadata template correctly. It includes a full list of metadata you can provide for your records, along with format requirements and examples to guide you.</p>
-
+            <p class="govuk-body govuk-!-padding-bottom-2">Use this guide to help you complete your metadata template correctly. It includes a full list of metadata you can provide for your records, along with format requirements and examples to guide you.</p>
+            <div class="govuk-width-container">
             @{
-                // Load and parse the JSON file from the resources
-                val jsonSource = Source.fromFile(play.Environment.simple().getFile("conf/metadataGuide.json"))
-                val jsonContent = try jsonSource.mkString finally jsonSource.close()
-                val metadataGuide = Json.parse(jsonContent).as[JsArray].value
+               val metadataGuide = Json.parse(guideContent).as[JsArray].value
 
-                // Create the table
-                val table =
+               val table =
                     <table class="govuk-table">
-                        <caption class="govuk-table__caption govuk-table__caption--m">Metadata Fields</caption>
                         <thead class="govuk-table__head">
                             <tr class="govuk-table__row">
-                                <th scope="col" class="govuk-table__header">Column title</th>
+                                <th scope="col" class="govuk-table__header">Column&nbsp;title</th>
                                 <th scope="col" class="govuk-table__header">Details</th>
                                 <th scope="col" class="govuk-table__header">Format</th>
                                 <th scope="col" class="govuk-table__header">Requirement</th>
@@ -33,8 +28,8 @@
                             {metadataGuide.map(item => {
                                 val fieldJson = item.as[JsObject]
                                 <tr class="govuk-table__row">
-                                    <td class="govuk-table__cell">{fieldJson("property").as[String]}</td>
-                                    <td class="govuk-table__cell">{fieldJson("details").as[String]}</td>
+                                    <td class="govuk-table__cell"><strong>{propertyNameMapper(fieldJson("property").as[String])}</strong></td>
+                                    <td class="govuk-table__cell govuk-!-width-one-third">{fieldJson("details").as[String]}</td>
                                     <td class="govuk-table__cell">{fieldJson("format").as[String]}</td>
                                     <td class="govuk-table__cell">{fieldJson("tdrRequirement").as[String]}</td>
                                     <td class="govuk-table__cell">{fieldJson("example").as[String]}</td>
@@ -42,9 +37,9 @@
                             })}
                         </tbody>
                     </table>
-
                 table
             }
+            </div>
         </div>
     </div>
   }
