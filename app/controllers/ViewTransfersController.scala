@@ -124,7 +124,7 @@ class ViewTransfersController @Inject() (
     val actionText = if (judgmentType) View.value else Download.value
     val url =
       if (judgmentType) routes.TransferCompleteController.judgmentTransferComplete(consignmentId).url
-      else routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url
+      else routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url
     status.value match {
       // Even though export is InProgress once a user clicks export there is nothing else they can do, hence setting the status to transferred
       case InProgressValue.value | CompletedValue.value => UserAction(Transferred.value, url, actionText)

@@ -26,10 +26,10 @@
 
 <p class="govuk-body">Follow the guidance to amend your metadata. You can download a copy of the metadata we reviewed below.</p>
 
-    @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
+    @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url)
 
 <div class="govuk-button-group">
-    <a class="govuk-button" href="@routes.PrepareMetadataController.prepareMetadata(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+    <a class="govuk-button" href="@routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)" role="button" draggable="false" data-module="govuk-button">
         Continue
     </a>
 </div>
