@@ -30,4 +30,3 @@ class HelpController @Inject() (securityComponents: SecurityComponents) extends 
     Ok(views.html.metadataquickguide(request.isLoggedIn, request.name, request.isJudgmentUser, guideContent, propertyNameMapper))
   }
 }
-
