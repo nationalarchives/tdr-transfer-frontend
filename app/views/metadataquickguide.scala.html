@@ -8,7 +8,7 @@
         <div class="govuk-grid-column-full">
             <h1 class="govuk-heading-l">Metadata quick guide</h1>
 
-            <p class="govuk-body govuk-!-padding-bottom-2">Use this guide to help you complete your metadata template correctly. It includes a full list of metadata you can provide for your records, along with format requirements and examples to guide you.</p>
+            <p class="govuk-body govuk-!-padding-bottom-2 govuk-!-width-two-thirds">Use this guide to help you complete your metadata template correctly. It includes a full list of metadata you can provide for your records, along with format requirements and examples to guide you.</p>
             <div class="govuk-width-container">
             @{
                val metadataGuide = Json.parse(guideContent).as[JsArray].value
@@ -28,7 +28,7 @@
                             {metadataGuide.map(item => {
                                 val fieldJson = item.as[JsObject]
                                 <tr class="govuk-table__row">
-                                    <td class="govuk-table__cell"><strong>{propertyNameMapper(fieldJson("property").as[String])}</strong></td>
+                                    <td class="govuk-table__header">{propertyNameMapper(fieldJson("property").as[String])}</td>
                                     <td class="govuk-table__cell govuk-!-width-one-third">{fieldJson("details").as[String]}</td>
                                     <td class="govuk-table__cell">{fieldJson("format").as[String]}</td>
                                     <td class="govuk-table__cell">{fieldJson("tdrRequirement").as[String]}</td>
