@@ -97,21 +97,20 @@ class HelpControllerSpec extends FrontEndTestHelper {
     pageAsString must include("Use this guide to help you complete your metadata template correctly")
 
     // Check for table headers
-    pageAsString must include("Column&nbsp;title")
-    pageAsString must include("Details")
-    pageAsString must include("Format")
-    pageAsString must include("Requirement")
-    pageAsString must include("Example")
+    pageAsString must include("""<th scope="col" class="govuk-table__header">Column&nbsp;title</th>""")
+    pageAsString must include("""<th scope="col" class="govuk-table__header">Details</th>""")
+    pageAsString must include("""<th scope="col" class="govuk-table__header">Format</th>""")
+    pageAsString must include("""<th scope="col" class="govuk-table__header">Requirement</th>""")
+    pageAsString must include("""<th scope="col" class="govuk-table__header">Example</th>""")
 
-    // Check that the table is rendered with the govuk-table class
     pageAsString must include("""<table class="govuk-table">""")
 
+    // Check for specific table row using stripMargin for proper multiline string formatting
     pageAsString must include("""<tr class="govuk-table__row">
-                                |<td class="govuk-table__header">date of the record</td>
-                                |<td class="govuk-table__cell govuk-!-width-one-third">If the date last modified is not meaningful, please provide a meaningful date</td>
-                                |<td class="govuk-table__cell">YYYY-MM-DD</td>
-                                |<td class="govuk-table__cell">Optional</td>
-                                |<td class="govuk-table__cell">2020-03-01</td>""".stripMargin)
-
+        |<td class="govuk-table__cell"><strong>date_last_modified</strong></td>
+        |<td class="govuk-table__cell govuk-!-width-one-third">This is the date last modified extracted upon upload, do not modify</td>
+        |<td class="govuk-table__cell">Do not modify</td>
+        |<td class="govuk-table__cell">Mandatory</td>
+        |<td class="govuk-table__cell">N/A</td>""".stripMargin)
   }
 }
