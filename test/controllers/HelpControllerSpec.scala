@@ -69,7 +69,7 @@ class HelpControllerSpec extends FrontEndTestHelper {
       status(metadataGuide) mustBe OK
       contentType(metadataGuide) mustBe Some("text/html")
 
-      checkMetadataQuickGuidePage(pageAsString, signedIn = false)
+      checkMetadataQuickGuidePage(pageAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "", consignmentExists = false)
     }
   }
@@ -91,11 +91,12 @@ class HelpControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def checkMetadataQuickGuidePage(pageAsString: String, signedIn: Boolean = true): Unit = {
+  private def checkMetadataQuickGuidePage(pageAsString: String): Unit = {
     pageAsString must include("<title>User Metadata Quick Guide - Transfer Digital Records - GOV.UK</title>")
     pageAsString must include("""<h1 class="govuk-heading-l">Metadata quick guide</h1>""")
     pageAsString must include("Use this guide to help you complete your metadata template correctly")
 
+    pageAsString must include("""<table class="govuk-table">""")
     // Check for table headers
     pageAsString must include("""<th scope="col" class="govuk-table__header">Column&nbsp;title</th>""")
     pageAsString must include("""<th scope="col" class="govuk-table__header">Details</th>""")
@@ -103,14 +104,14 @@ class HelpControllerSpec extends FrontEndTestHelper {
     pageAsString must include("""<th scope="col" class="govuk-table__header">Requirement</th>""")
     pageAsString must include("""<th scope="col" class="govuk-table__header">Example</th>""")
 
-    pageAsString must include("""<table class="govuk-table">""")
+    // Check a row of the table
+    pageAsString must include("""<td class="govuk-table__header">closure period</td>""")
+    pageAsString must include(
+      """<td class="govuk-table__cell govuk-!-width-one-third">Closed record: Provide a list of the number of years closure for each foi exemption code, in corresponding order</td>"""
+    )
+    pageAsString must include("""<td class="govuk-table__cell">Semi-colon separated list of numbers between 1 and 150 (with no spaces)</td>""")
+    pageAsString must include("""<td class="govuk-table__cell">Mandatory for closed record</td>""")
+    pageAsString must include("""<td class="govuk-table__cell">40;80</td>""")
 
-    // Check for specific table row using stripMargin for proper multiline string formatting
-    pageAsString must include("""<tr class="govuk-table__row">
-        |<td class="govuk-table__cell"><strong>date_last_modified</strong></td>
-        |<td class="govuk-table__cell govuk-!-width-one-third">This is the date last modified extracted upon upload, do not modify</td>
-        |<td class="govuk-table__cell">Do not modify</td>
-        |<td class="govuk-table__cell">Mandatory</td>
-        |<td class="govuk-table__cell">N/A</td>""".stripMargin)
   }
 }
