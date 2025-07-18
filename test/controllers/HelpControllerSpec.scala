@@ -60,6 +60,18 @@ class HelpControllerSpec extends FrontEndTestHelper {
       checkForContentOnHelpPage(pageAsString, userType)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = userType, consignmentExists = false)
     }
+
+    "render the metadata quick guide page from a new instance of controller" in {
+      val controller = new HelpController(getUnauthorisedSecurityComponents)
+      val metadataGuide = controller.metadataQuickGuide().apply(FakeRequest(GET, "/help/metadataquickguide"))
+      val pageAsString = contentAsString(metadataGuide)
+
+      status(metadataGuide) mustBe OK
+      contentType(metadataGuide) mustBe Some("text/html")
+
+      checkMetadataQuickGuidePage(pageAsString, signedIn = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "", consignmentExists = false)
+    }
   }
 
   private def checkForContentOnHelpPage(pageAsString: String, userType: String = "standard", signedIn: Boolean = true): Unit = {
@@ -77,5 +89,29 @@ class HelpControllerSpec extends FrontEndTestHelper {
         """<h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to using Transfer Digital Records (TDR)</h2>"""
       )
     }
+  }
+
+  private def checkMetadataQuickGuidePage(pageAsString: String, signedIn: Boolean = true): Unit = {
+    pageAsString must include("<title>User Metadata Quick Guide - Transfer Digital Records - GOV.UK</title>")
+    pageAsString must include("""<h1 class="govuk-heading-l">Metadata quick guide</h1>""")
+    pageAsString must include("Use this guide to help you complete your metadata template correctly")
+
+    // Check for table headers
+    pageAsString must include("Column&nbsp;title")
+    pageAsString must include("Details")
+    pageAsString must include("Format")
+    pageAsString must include("Requirement")
+    pageAsString must include("Example")
+
+    // Check that the table is rendered with the govuk-table class
+    pageAsString must include("""<table class="govuk-table">""")
+
+    pageAsString must include("""<tr class="govuk-table__row">
+                                |<td class="govuk-table__header">date of the record</td>
+                                |<td class="govuk-table__cell govuk-!-width-one-third">If the date last modified is not meaningful, please provide a meaningful date</td>
+                                |<td class="govuk-table__cell">YYYY-MM-DD</td>
+                                |<td class="govuk-table__cell">Optional</td>
+                                |<td class="govuk-table__cell">2020-03-01</td>""".stripMargin)
+
   }
 }
