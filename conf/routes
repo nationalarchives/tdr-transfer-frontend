@@ -12,6 +12,7 @@ GET         /contact                                                            
 GET         /cookies                                                                                     controllers.CookiesController.cookies()
 GET         /faq                                                                                         controllers.FaqController.faq()
 GET         /help                                                                                        controllers.HelpController.help()
+GET         /help/metadataquickguide                                                                     controllers.HelpController.metadataQuickGuide()
 GET         /view-transfers                                                                              controllers.ViewTransfersController.viewConsignments(pageNumber: Int = 1)
 GET         /view-transfers/:pageNumber                                                                  controllers.ViewTransfersController.viewConsignments(pageNumber: Int)
 GET         /registration-complete                                                                       controllers.RegistrationController.complete()
