@@ -29,9 +29,9 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.240",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.249",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.422",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.64",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.151",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.423",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.66",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.155",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.284",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.284",
   "ch.qos.logback" % "logback-classic" % "1.5.18",
@@ -56,7 +56,7 @@ disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.3.0"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.4.0"
 
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.19.0"
 libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.19.0"
