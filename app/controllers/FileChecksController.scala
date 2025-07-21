@@ -8,10 +8,14 @@ import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
+import play.api.Configuration
+import play.api.cache.redis.CacheApi
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.Statuses._
 import services._
+import software.amazon.awssdk.services.sfn.model.DescribeExecutionRequest
+import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -28,7 +32,9 @@ class FileChecksController @Inject() (
     val backendChecksService: BackendChecksService,
     val consignmentStatusService: ConsignmentStatusService,
     val confirmTransferService: ConfirmTransferService,
-    val consignmentExportService: ConsignmentExportService
+    val consignmentExportService: ConsignmentExportService,
+    val cacheApi: CacheApi,
+    val configuration: Configuration
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -200,17 +206,19 @@ class FileChecksController @Inject() (
     val intervals = totalSleepTime / interval
 
     def checkStatus(remainingIntervals: Int): Future[Unit] = {
+      val sfnClient = StepFunctionClients.sfnAsyncClient(s"${configuration.get[String]("backendchecks.baseUrl")}")
+      val execArn = cacheApi.get(s"${consignmentId}_execArn")
+      //here
       if (remainingIntervals <= 0) {
         Future.unit
       } else {
-        getFileChecksProgress(request, consignmentId).flatMap { progress =>
-          if (progress.isComplete) {
-            Future.unit
-          } else {
-            Future {
-              blocking(Thread.sleep(interval))
-            }.flatMap(_ => checkStatus(remainingIntervals - 1))
-          }
+        val exec = sfnClient.describeExecution(DescribeExecutionRequest.builder().executionArn(execArn.get).build())
+        if (exec.get.status().toString != "RUNNING") {
+          Future.unit
+        } else {
+          Future {
+            blocking(Thread.sleep(interval))
+          }.flatMap(_ => checkStatus(remainingIntervals - 1))
         }
       }
     }

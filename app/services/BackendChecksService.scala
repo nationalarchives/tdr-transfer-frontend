@@ -1,27 +1,30 @@
 package services
 
+import cats.effect.unsafe.implicits.global
 import com.google.inject.Inject
-import play.api.libs.ws.WSClient
+import io.circe.generic.encoding.DerivedAsObjectEncoder.deriveEncoder
+import play.api.cache.redis.CacheApi
 import play.api.{Configuration, Logging}
+import uk.gov.nationalarchives.aws.utils.stepfunction.{StepFunctionClients, StepFunctionUtils}
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class BackendChecksService @Inject() (val wsClient: WSClient, val configuration: Configuration)(implicit val executionContext: ExecutionContext) extends Logging {
+class BackendChecksService @Inject() (val cacheApi: CacheApi, val configuration: Configuration)(implicit val executionContext: ExecutionContext) extends Logging {
+
+  private val sfnClient = StepFunctionClients.sfnAsyncClient(s"${configuration.get[String]("backendchecks.baseUrl")}")
+  private val sfnUtils = StepFunctionUtils(sfnClient)
 
   def triggerBackendChecks(consignmentId: UUID, token: String): Future[Boolean] = {
-    val url = s"${configuration.get[String]("backendchecks.baseUrl")}/backend-checks/$consignmentId"
-    wsClient
-      .url(url)
-      .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
-      .post("{}")
-      .flatMap(r =>
-        r.status match {
-          case 200 => Future(true)
-          case _ =>
-            logger.error(s"Backend checks api response ${r.status} ${r.body}")
-            Future.failed(new Exception(s"Call to backend checks API has returned a non 200 response for consignment $consignmentId"))
-        }
-      )
+    val executionArnCache = cacheApi.set[String](s"${consignmentId}_execArn")
+    val input = Input(consignmentId)
+    for {
+      a <- sfnUtils.startExecution("sfnArn", input).unsafeToFuture()
+    } yield {
+      executionArnCache.add(a.executionArn())
+      true
+    }
   }
+
+  case class Input(consignmentId: UUID)
 }
