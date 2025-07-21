@@ -37,7 +37,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
   val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   "metadataReviewStatusPage GET" should {
-    "render the default metadata review status page with an authenticated user when 'blockMetadataReview' set to 'false'" in {
+    "render the default metadata review status page with an authenticated user" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
@@ -137,7 +137,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
       metadataReviewStatusPageAsString must include(
         s"""
            |<div class="govuk-button-group">
-           |    <a class="govuk-button" href="/consignment/$consignmentId/draft-metadata/prepare-metadata" role="button" draggable="false" data-module="govuk-button">
+           |    <a class="govuk-button" href="/consignment/$consignmentId/draft-metadata/upload" role="button" draggable="false" data-module="govuk-button">
            |        Continue
            |    </a>
            |</div>""".stripMargin
@@ -202,7 +202,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
 
     }
 
-    "render page not found error when 'blockMetadataReview' set to 'true'" in {
+    "render page not found error when metadata review status is missing" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
@@ -251,10 +251,8 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
 
   private def instantiateMetadataReviewStatusController(
       securityComponents: SecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockMetadataReview: Boolean = false
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ) = {
-    when(configuration.get[Boolean]("featureAccessBlock.blockMetadataReview")).thenReturn(blockMetadataReview)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
