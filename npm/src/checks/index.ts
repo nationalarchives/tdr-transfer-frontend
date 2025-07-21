@@ -9,7 +9,7 @@ import {
   getTransferProgress,
   getFileChecksProgress,
   IDraftMetadataValidationProgress,
-  IFileCheckProgress
+  IFileChecksStatus
 } from "./get-checks-progress"
 import { isError } from "../errorhandling"
 
@@ -53,10 +53,10 @@ export class Checks {
 
       const intervalId: ReturnType<typeof setInterval> = setInterval(
         async () => {
-          const fileChecksProgress: IFileCheckProgress | Error =
+          const fileChecksStatus: IFileChecksStatus | Error =
             await getFileChecksProgress()
-          if (!isError(fileChecksProgress)) {
-            const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
+          if (!isError(fileChecksStatus)) {
+            const checksCompleted = haveFileChecksCompleted(fileChecksStatus)
             if (checksCompleted) {
               clearInterval(intervalId)
               clearInterval(refreshPageIntervalId)
@@ -64,7 +64,7 @@ export class Checks {
             }
           } else {
             clearInterval(refreshPageIntervalId)
-            return fileChecksProgress
+            return fileChecksStatus
           }
         },
         10000

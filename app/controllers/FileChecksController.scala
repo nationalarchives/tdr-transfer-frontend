@@ -14,7 +14,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.Statuses._
 import services._
-import software.amazon.awssdk.services.sfn.model.DescribeExecutionRequest
+import software.amazon.awssdk.services.sfn.model.{DescribeExecutionRequest, ExecutionStatus}
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients
 import viewsapi.Caching.preventCaching
 
@@ -40,6 +40,13 @@ class FileChecksController @Inject() (
     with I18nSupport {
 
   implicit val jsonEncoder: Encoder[TransferProgress] = deriveEncoder[TransferProgress]
+
+  def fileChecksStatus(consignmentId: UUID): String = {
+    val sfnClient = StepFunctionClients.sfnAsyncClient(s"${configuration.get[String]("backendchecks.baseUrl")}")
+    val execArn = cacheApi.get(s"${consignmentId}_execArn")
+    val exec = sfnClient.describeExecution(DescribeExecutionRequest.builder().executionArn(execArn.get).build())
+    exec.get().status().toString
+  }
 
   private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)(implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
     consignmentService
@@ -206,19 +213,17 @@ class FileChecksController @Inject() (
     val intervals = totalSleepTime / interval
 
     def checkStatus(remainingIntervals: Int): Future[Unit] = {
-      val sfnClient = StepFunctionClients.sfnAsyncClient(s"${configuration.get[String]("backendchecks.baseUrl")}")
-      val execArn = cacheApi.get(s"${consignmentId}_execArn")
-      //here
       if (remainingIntervals <= 0) {
         Future.unit
       } else {
-        val exec = sfnClient.describeExecution(DescribeExecutionRequest.builder().executionArn(execArn.get).build())
-        if (exec.get.status().toString != "RUNNING") {
-          Future.unit
-        } else {
-          Future {
-            blocking(Thread.sleep(interval))
-          }.flatMap(_ => checkStatus(remainingIntervals - 1))
+        getFileChecksProgress(request, consignmentId).flatMap { progress =>
+          if (progress.isComplete) {
+            Future.unit
+          } else {
+            Future {
+              blocking(Thread.sleep(interval))
+            }.flatMap(_ => checkStatus(remainingIntervals - 1))
+          }
         }
       }
     }

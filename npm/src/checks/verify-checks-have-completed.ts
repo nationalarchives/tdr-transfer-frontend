@@ -1,19 +1,13 @@
 import {
   IDraftMetadataValidationProgress,
-  IFileCheckProgress
+  IFileChecksStatus
 } from "./get-checks-progress"
 
 export const haveFileChecksCompleted: (
-  fileChecksProgress: IFileCheckProgress
-) => boolean = (fileChecksProgress: IFileCheckProgress) => {
-  const { antivirusProcessed, checksumProcessed, ffidProcessed, totalFiles } =
-    fileChecksProgress
-
-  return (
-    antivirusProcessed == totalFiles &&
-    checksumProcessed == totalFiles &&
-    ffidProcessed == totalFiles
-  )
+  fileChecksStatus: IFileChecksStatus
+) => boolean = (fileChecksCompleted: IFileChecksStatus) => {
+  const { status } = fileChecksCompleted
+  return status !== "RUNNING"
 }
 
 export const hasDraftMetadataValidationCompleted: (
