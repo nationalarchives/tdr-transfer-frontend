@@ -28,7 +28,7 @@
                             {metadataGuide.map(item => {
                                 val fieldJson = item.as[JsObject]
                                 <tr class="govuk-table__row">
-                                    <td class="govuk-table__header">{propertyNameMapper(fieldJson("property").as[String])}</td>
+                                    <th scope="row" class="govuk-table__header">{propertyNameMapper(fieldJson("property").as[String])}</th>
                                     <td class="govuk-table__cell govuk-!-width-one-third">{fieldJson("details").as[String]}</td>
                                     <td class="govuk-table__cell">{fieldJson("format").as[String]}</td>
                                     <td class="govuk-table__cell">{fieldJson("tdrRequirement").as[String]}</td>
