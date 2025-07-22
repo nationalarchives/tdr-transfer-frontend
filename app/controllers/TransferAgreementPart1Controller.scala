@@ -30,15 +30,12 @@ class TransferAgreementPart1Controller @Inject() (
   val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
-        .verifying("All records must be confirmed as public before proceeding", b => b),
-      "crownCopyright" -> boolean
-        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b)
-    )((publicRecord, crownCopyright) => TransferAgreementData(publicRecord, crownCopyright, None))(data => Option(data.publicRecord, data.crownCopyright))
+        .verifying("All records must be confirmed as public before proceeding", b => b)
+    )(publicRecord => TransferAgreementData(publicRecord, None))(data => Option(data.publicRecord))
   )
 
   private val transferAgreementFormNameAndLabel: Seq[(String, String)] = Seq(
-    ("publicRecord", "Public Records"),
-    ("crownCopyright", "Crown Copyright")
+    ("publicRecord", "Public Records")
   )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])(implicit
@@ -117,4 +114,4 @@ class TransferAgreementPart1Controller @Inject() (
   }
 }
 
-case class TransferAgreementData(publicRecord: Boolean, crownCopyright: Boolean, english: Option[Boolean])
+case class TransferAgreementData(publicRecord: Boolean, english: Option[Boolean])
