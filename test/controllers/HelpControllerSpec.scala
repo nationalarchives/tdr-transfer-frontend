@@ -107,7 +107,7 @@ class HelpControllerSpec extends FrontEndTestHelper {
     // Check a row of the table
     pageAsString must include("""<th scope="row" class="govuk-table__header">closure period</th>""")
     pageAsString must include(
-      """<td class="govuk-table__cell govuk-!-width-one-third">Closed record: Provide a list of the number of years closure for each foi exemption code, in corresponding order</td>"""
+      """<td class="govuk-table__cell govuk-!-width-one-third">Closed record: Provide a list of the number of years closure for each foi exemption code, in corresponding order.</td>"""
     )
     pageAsString must include("""<td class="govuk-table__cell">Semi-colon separated list of numbers between 1 and 150 (with no spaces)</td>""")
     pageAsString must include("""<td class="govuk-table__cell">Mandatory for closed record</td>""")
