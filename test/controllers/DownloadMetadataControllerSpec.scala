@@ -92,6 +92,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         rows.head.getCell(2).asString must equal("date last modified")
         rows.head.getCell(3).asString must equal("date of the record")
         rows.head.getCell(4).asString must equal("description")
+        rows.head.getCell(18).asString must equal("restrictions on use")
 
         val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
           .find { case (cell, _) => cell.asString == "copyright" }
