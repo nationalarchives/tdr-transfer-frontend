@@ -354,6 +354,49 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       rows(2).getCell(2).asString must equal("abcd")
       rows(2).getCell(3).asString must equal("BASE_SCHEMA.foi_exmption_code.enum")
     }
+
+    "download the excel file with errors ordered by filepath ascending" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val schemaError1 = Error("BASE_SCHEMA", "FOI exemption code", "enum", "BASE_SCHEMA.foi_exmption_code.enum")
+      val rowValidationError1 = Error("ROW_VALIDATION", "", "unknown", "File not found in uploads")
+      val schemaError2 = Error("BASE_SCHEMA", "Description", "required", "BASE_SCHEMA.description.required")
+      val rowValidationError2 = Error("ROW_VALIDATION", "", "unknown", "Missing file extension")
+
+      val metadata1 = List(Metadata("FOI exemption code", "abcd"), Metadata("Filepath", "/zz/file3.txt"))
+      val metadata2 = List(Metadata("Description", ""), Metadata("Filepath", "/aa/file1.txt"))
+      val metadata3 = List(Metadata("Filepath", "/mm/file2.txt"))
+
+      val errorFileData = ErrorFileData(
+        consignmentId,
+        date = "2024-12-12",
+        FileError.SCHEMA_VALIDATION,
+        List(
+          ValidationErrors("/zz/file3.txt", Set(schemaError1, rowValidationError1), metadata1),
+          ValidationErrors("/aa/file1.txt", Set(schemaError2), metadata2),
+          ValidationErrors("/mm/file2.txt", Set(rowValidationError2), metadata3)
+        )
+      )
+
+      val response = instantiateController(errorFileData = Some(errorFileData))
+        .downloadErrorReport(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/download-report"))
+
+      val responseByteArray: ByteString = contentAsBytes(response)
+      val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+      val wb: ReadableWorkbook = new ReadableWorkbook(bufferedSource)
+      val ws: Sheet = wb.getFirstSheet
+      val rows: List[Row] = ws.read.asScala.toList
+
+      // Skip header row and get filepath column values
+      val filepaths = rows.tail.map(_.getCell(0).asString)
+
+      // Check that filepaths are in ascending order
+      filepaths must equal(List("/aa/file1.txt", "/mm/file2.txt", "/zz/file3.txt", "/zz/file3.txt"))
+
+      // Alternative assertion to verify sorting
+      filepaths must equal(filepaths.sorted)
+    }
   }
 
   private def instantiateController(
