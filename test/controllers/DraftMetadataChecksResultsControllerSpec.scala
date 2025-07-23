@@ -388,14 +388,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       val ws: Sheet = wb.getFirstSheet
       val rows: List[Row] = ws.read.asScala.toList
 
-      // Skip header row and get filepath column values
       val filepaths = rows.tail.map(_.getCell(0).asString)
-
-      // Check that filepaths are in ascending order
       filepaths must equal(List("/aa/file1.txt", "/mm/file2.txt", "/zz/file3.txt", "/zz/file3.txt"))
-
-      // Alternative assertion to verify sorting
-      filepaths must equal(filepaths.sorted)
     }
   }
 
