@@ -11,13 +11,6 @@ object DefaultMockFormOptions {
       value = "true",
       errorMessage = "All records must be confirmed as public before proceeding",
       fieldType = "inputCheckbox"
-    ),
-    MockInputOption(
-      "crownCopyright",
-      "Crown Copyright",
-      value = "true",
-      errorMessage = "All records must be confirmed Crown Copyright before proceeding",
-      fieldType = "inputCheckbox"
     )
   )
 

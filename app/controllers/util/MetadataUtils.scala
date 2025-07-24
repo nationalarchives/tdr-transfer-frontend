@@ -14,4 +14,5 @@ object MetadataProperty {
   val end_date = "end_date"
   val language = "Language"
   val filePath = "Filepath"
+  val copyright = "RightsCopyright"
 }

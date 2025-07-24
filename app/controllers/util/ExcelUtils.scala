@@ -23,13 +23,14 @@ object ExcelUtils {
       keyToTdrDataLoadHeader: String => String,
       keyToPropertyType: String => String,
       sortColumn: String,
+      defaultValue: String => String,
       guidanceItems: Seq[GuidanceItem] = Seq.empty
   ): Array[Byte] = {
     val colProperties: List[ColumnProperty] =
       downloadFileDisplayProperties.map(displayProperty => ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))
     val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => keyToPropertyType(dp.key))
     val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value.toUpperCase))
-    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, keyToPropertyType, keyToTdrDataLoadHeader)
+    val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, keyToPropertyType, keyToTdrDataLoadHeader, defaultValue)
     ExcelUtils.writeExcel(
       s"Metadata for $consignmentRef",
       colProperties,
@@ -48,7 +49,8 @@ object ExcelUtils {
       dataTypes: List[String] = Nil,
       guidanceItems: Seq[GuidanceItem] = Seq.empty,
       keyToTdrFileHeader: String => String = identity,
-      keyToPropertyType: String => String = identity
+      keyToPropertyType: String => String = identity,
+      defaultValue: String => String = identity
   ): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
@@ -145,21 +147,31 @@ object ExcelUtils {
       sortedMetaData: List[Files],
       downloadProperties: List[DownloadFileDisplayProperty],
       keyToPropertyType: String => String,
-      keyToTdrDataLoadHeader: String => String
+      keyToTdrDataLoadHeader: String => String,
+      defaultValue: String => String
   ): List[List[Any]] = {
     sortedMetaData.map { file =>
       {
         val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
-        downloadProperties.map(x => x.key).map { colOrderSchemaPropertyName =>
+        downloadProperties.map(x => KeyAndDefault(x.key, defaultValue)).map { keyAndDefault =>
           groupedMetadata
-            .get(keyToTdrDataLoadHeader(colOrderSchemaPropertyName))
+            .get(keyToTdrDataLoadHeader(keyAndDefault.key))
             .map { fileMetadataValue =>
-              convertValue(keyToPropertyType(colOrderSchemaPropertyName), fileMetadataValue)
+              val dataValue = if (fileMetadataValue.isEmpty) {
+                keyAndDefault.defaultValueMapper(keyAndDefault.key)
+              } else {
+                fileMetadataValue
+              }
+              convertValue(keyToPropertyType(keyAndDefault.key), dataValue)
             }
             .getOrElse("")
         }
       }
     }
+  }
+
+  case class KeyAndDefault(key: String, defaultValueMapper: String => String) {
+    def value: Option[String] = if (defaultValueMapper(key).isEmpty) None else Some(defaultValueMapper(key))
   }
 
   def convertValue(propertyType: String, fileMetadataValue: String, convertBoolean: Boolean = true): Any = {
