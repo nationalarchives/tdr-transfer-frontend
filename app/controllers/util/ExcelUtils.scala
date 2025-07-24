@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 object ExcelUtils {
 
-  val NonEditableColour: String = "CCCCCC"
+  private val NonEditableColour: String = "CCCCCC"
 
   def createExcelFile(
       consignmentRef: String,
@@ -28,7 +28,7 @@ object ExcelUtils {
     val colProperties: List[ColumnProperty] =
       downloadFileDisplayProperties.map(displayProperty => ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))
     val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => keyToPropertyType(dp.key))
-    val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value.toUpperCase))
+    val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value).getOrElse(""))(NaturalStringOrdering)
     val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, keyToPropertyType, keyToTdrDataLoadHeader)
     ExcelUtils.writeExcel(
       s"Metadata for $consignmentRef",
