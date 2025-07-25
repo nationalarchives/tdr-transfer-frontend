@@ -62,6 +62,7 @@ class DownloadMetadataController @Inject() (
           tdrDataLoadHeaderMapper,
           propertyTypeEvaluator,
           fileSortColumn,
+          metadataConfiguration.getDefaultValue,
           GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
         )
       } yield {
