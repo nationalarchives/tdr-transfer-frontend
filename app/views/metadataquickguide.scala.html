@@ -1,0 +1,46 @@
+@(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean, guideContent: String, propertyNameMapper:String =>String)(implicit messages: Messages, request: RequestHeader)
+@import play.api.libs.json._
+@import scala.io.Source
+
+@defining("User Metadata Quick Guide") { title =>
+  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">Metadata quick guide</h1>
+
+            <p class="govuk-body govuk-!-padding-bottom-2 govuk-!-width-two-thirds">Use this guide to help you complete your metadata template correctly. It includes a full list of metadata you can provide for your records, along with format requirements and examples to guide you.</p>
+            <div class="govuk-width-container">
+            @{
+               val metadataGuide = Json.parse(guideContent).as[JsArray].value
+
+               val table =
+                    <table class="govuk-table">
+                        <thead class="govuk-table__head">
+                            <tr class="govuk-table__row">
+                                <th scope="col" class="govuk-table__header">Column&nbsp;title</th>
+                                <th scope="col" class="govuk-table__header">Details</th>
+                                <th scope="col" class="govuk-table__header">Format</th>
+                                <th scope="col" class="govuk-table__header">Requirement</th>
+                                <th scope="col" class="govuk-table__header">Example</th>
+                            </tr>
+                        </thead>
+                        <tbody class="govuk-table__body">
+                            {metadataGuide.map(item => {
+                                val fieldJson = item.as[JsObject]
+                                <tr class="govuk-table__row">
+                                    <th scope="row" class="govuk-table__header">{propertyNameMapper(fieldJson("property").as[String])}</th>
+                                    <td class="govuk-table__cell govuk-!-width-one-third">{fieldJson("details").as[String]}</td>
+                                    <td class="govuk-table__cell">{fieldJson("format").as[String]}</td>
+                                    <td class="govuk-table__cell">{fieldJson("tdrRequirement").as[String]}</td>
+                                    <td class="govuk-table__cell">{fieldJson("example").as[String]}</td>
+                                </tr>
+                            })}
+                        </tbody>
+                    </table>
+                table
+            }
+            </div>
+        </div>
+    </div>
+  }
+}

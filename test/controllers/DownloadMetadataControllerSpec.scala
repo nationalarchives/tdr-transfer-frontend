@@ -36,6 +36,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
+  val userTypeTable: TableFor1[String] = Table(
+    "userType",
+    "standard",
+    "TNA"
+  )
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -45,12 +50,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     wiremockServer.resetAll()
     wiremockServer.stop()
   }
-
-  val userTypeTable: TableFor1[String] = Table(
-    "userType",
-    "standard",
-    "TNA"
-  )
 
   "DownloadMetadataController downloadMetadataCsv GET" should {
     forAll(userTypeTable)(userType => {
@@ -65,7 +64,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           FileMetadata(clientSideOriginalFilepath, "test/path1"),
           FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
           FileMetadata(end_date, ""),
-          FileMetadata(description, "")
+          FileMetadata(description, ""),
+          FileMetadata(copyright, "")
         )
         val metadataFileTwo = List(
           FileMetadata(fileUUID, uuid2),
@@ -73,7 +73,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           FileMetadata(clientSideOriginalFilepath, "test/path2"),
           FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
           FileMetadata(end_date, ""),
-          FileMetadata(description, "")
+          FileMetadata(description, ""),
+          FileMetadata(copyright, "Copyright")
         )
         val files = List(
           gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne, Nil),
@@ -91,14 +92,22 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         rows.head.getCell(2).asString must equal("date last modified")
         rows.head.getCell(3).asString must equal("date of the record")
         rows.head.getCell(4).asString must equal("description")
+        rows.head.getCell(18).asString must equal("restrictions on use")
+
+        val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
+          .find { case (cell, _) => cell.asString == "copyright" }
+          .map(_._2)
+          .getOrElse(-1)
 
         rows(1).getCell(0).asString must equal("test/path1")
         rows(1).getCell(1).asString must equal("FileName1")
         rows(1).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+        rows(1).getCell(copyrightIndex).asString must equal("Crown copyright")
 
         rows(2).getCell(0).asString must equal("test/path2")
         rows(2).getCell(1).asString must equal("FileName2")
         rows(2).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+        rows(2).getCell(copyrightIndex).asString must equal("Copyright")
 
       }
     })
