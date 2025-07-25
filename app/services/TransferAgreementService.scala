@@ -20,7 +20,7 @@ class TransferAgreementService @Inject() (val graphqlConfiguration: GraphQLConfi
     graphqlConfiguration.getClient[atac.Data, atac.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
   def addTransferAgreementPart1(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementData): Future[atapb.AddTransferAgreementPrivateBeta] = {
     val addTransferAgreementPrivateBetaInput: AddTransferAgreementPrivateBetaInput =
-      AddTransferAgreementPrivateBetaInput(consignmentId, formData.publicRecord, formData.crownCopyright, formData.english)
+      AddTransferAgreementPrivateBetaInput(consignmentId, formData.publicRecord, formData.publicRecord, formData.english)
     val variables: atapb.Variables = atapb.Variables(addTransferAgreementPrivateBetaInput)
 
     sendApiRequest(addTransferAgreementPart1Client, atapb.document, token, variables).map(_.addTransferAgreementPrivateBeta)
