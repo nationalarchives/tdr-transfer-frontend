@@ -140,7 +140,7 @@ class DraftMetadataChecksResultsController @Inject() (
           Ordering.by[Error, (Boolean, String)](e => (!e.validationProcess.equals(s"$priorityErrorType"), e.validationProcess))
         val errorList = errorReport.fileError match {
           case SCHEMA_VALIDATION =>
-            errorReport.validationErrors.flatMap { validationErrors =>
+            errorReport.validationErrors.sortBy(_.assetId).flatMap { validationErrors =>
               val data = validationErrors.data.map(metadata => metadata.name -> metadata.value).toMap
               validationErrors.errors.toList
                 .sorted(errorPriorityOrdering)
