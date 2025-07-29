@@ -6,7 +6,9 @@ import controllers.util.DateUtils
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
-import graphql.codegen.types.ConsignmentFilters
+import graphql.codegen.types.ConsignmentOrderField.CreatedAtTimestamp
+import graphql.codegen.types.Direction.Descending
+import graphql.codegen.types.{ConsignmentFilters, ConsignmentOrderBy}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
@@ -40,11 +42,13 @@ class ViewTransfersController @Inject() (
 
   def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
+    val orderBy = ConsignmentOrderBy(CreatedAtTimestamp, Descending)
     for {
       consignmentTransfers <- consignmentService.getConsignments(
         pageNumber - 1,
         applicationConfig.numberOfItemsOnViewTransferPage,
         consignmentFilters,
+        orderBy,
         request.token.bearerAccessToken
       )
       consignments = consignmentTransfers.edges match {
