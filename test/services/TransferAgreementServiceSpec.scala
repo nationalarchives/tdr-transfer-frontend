@@ -43,14 +43,14 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
 
   private val token = new BearerAccessToken("some-token")
 
-  private val taPart1FormData = TransferAgreementData(publicRecord = true, crownCopyright = true, english = Option(true))
+  private val taPart1FormData = TransferAgreementData(publicRecord = true, english = Option(true))
 
   private val taPart2FormData = TransferAgreementPart2Data(droAppraisalSelection = true, droSensitivity = true, openRecords = Option(true))
 
   private val transferAgreementPart1Input = AddTransferAgreementPrivateBetaInput(
     consignmentId,
     allPublicRecords = taPart1FormData.publicRecord,
-    allCrownCopyright = taPart1FormData.crownCopyright,
+    allCrownCopyright = taPart1FormData.publicRecord,
     allEnglish = taPart1FormData.english
   )
 
@@ -83,7 +83,6 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
 
     transferAgreement.consignmentId should equal(consignmentId)
     transferAgreement.allPublicRecords should equal(taPart1FormData.publicRecord)
-    transferAgreement.allCrownCopyright should equal(taPart1FormData.crownCopyright)
     transferAgreement.allEnglish should equal(taPart1FormData.english)
   }
 
