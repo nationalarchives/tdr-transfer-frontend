@@ -27,8 +27,8 @@ object NaturalOrdering extends Ordering[String] {
     while (i < aChars.length && j < bChars.length) {
       if (aChars(i) == ' ' && bChars(j) != ' ') return -1
       if (bChars(j) == ' ' && aChars(i) != ' ') return 1
-      val aDoubleUnderscore = i+1 < aChars.length && aChars(i) == '_' && aChars(i+1) == '_'
-      val bDoubleUnderscore = j+1 < bChars.length && bChars(j) == '_' && bChars(j+1) == '_'
+      val aDoubleUnderscore = i + 1 < aChars.length && aChars(i) == '_' && aChars(i + 1) == '_'
+      val bDoubleUnderscore = j + 1 < bChars.length && bChars(j) == '_' && bChars(j + 1) == '_'
 
       if (aDoubleUnderscore && !bDoubleUnderscore) return -1
       if (bDoubleUnderscore && !aDoubleUnderscore) return 1
