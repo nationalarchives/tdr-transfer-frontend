@@ -48,6 +48,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
   val consignmentRef = "TDR-TEST-2024"
   val userEmail = "test@test.com"
   val expectedPath = s"/consignment/$consignmentId/metadata-review/review-progress"
+  val downloadTemplateDomain = Some("MetadataReviewDetailTemplate")
 
   "MetadataReviewActionController GET" should {
 
@@ -61,7 +62,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       playStatus(metadataReviewActionPage) mustBe OK
       contentType(metadataReviewActionPage) mustBe Some("text/html")
 
-      checkForExpectedMetadataReviewActionPageContent(metadataReviewActionPageAsString)
+      checkForExpectedMetadataReviewActionPageContent(metadataReviewActionPageAsString, templateDomain = downloadTemplateDomain)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewActionPageAsString, userType = "tna")
     }
 
@@ -75,7 +76,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       playStatus(metadataReviewActionPage) mustBe OK
       contentType(metadataReviewActionPage) mustBe Some("text/html")
 
-      checkForExpectedMetadataReviewActionPageContent(metadataReviewActionPageAsString)
+      checkForExpectedMetadataReviewActionPageContent(metadataReviewActionPageAsString, templateDomain = downloadTemplateDomain)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewActionPageAsString, userType = "tna")
     }
 
@@ -184,7 +185,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |        <span class="govuk-visually-hidden">Error:</span>
       |        Select a status
       |    </p>""".stripMargin)
-      checkForExpectedMetadataReviewActionPageContent(metadataReviewSubmitAsString)
+      checkForExpectedMetadataReviewActionPageContent(metadataReviewSubmitAsString, templateDomain = downloadTemplateDomain)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewSubmitAsString, userType = "tna")
       verify(messagingService, times(0)).sendMetadataReviewSubmittedNotification(metadataReviewDecisionEvent)
     }
@@ -247,7 +248,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def checkForExpectedMetadataReviewActionPageContent(pageAsString: String, isTransferAdvisor: Boolean = false): Unit = {
+  private def checkForExpectedMetadataReviewActionPageContent(pageAsString: String, isTransferAdvisor: Boolean = false, templateDomain: Option[String]): Unit = {
     pageAsString must include("""<a href="/admin/metadata-review" class="govuk-back-link">Back</a>""")
     pageAsString must include("""View request for TDR-2024-TEST""")
     pageAsString must include("""<dt class="govuk-summary-list__key">
@@ -269,7 +270,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |                        email@test.com
       |                        </dd>""".stripMargin)
     pageAsString must include("""1. Download and review transfer metadata""")
-    pageAsString must include(downloadLinkHTML(consignmentId))
+    pageAsString must include(downloadLinkHTML(consignmentId, templateDomain))
     if (isTransferAdvisor) {
       pageAsString must include("""2. Set the status of this review""")
       pageAsString must include(
