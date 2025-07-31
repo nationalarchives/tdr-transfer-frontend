@@ -36,13 +36,13 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.286",
   "ch.qos.logback" % "logback-classic" % "1.5.18",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.49.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.49.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.49.0",
+  "io.opentelemetry" % "opentelemetry-api" % "1.52.0",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.52.0",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.52.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.48.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.46.0-alpha",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.48.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.18.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
@@ -51,6 +51,8 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2
 
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.2"
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.2"
+dependencyOverrides += "io.netty" % "netty-codec" % "5.0.0.Alpha2"
+
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
