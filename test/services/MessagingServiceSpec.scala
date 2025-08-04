@@ -1,5 +1,6 @@
 package services
 
+import cats.implicits.catsSyntaxOptionId
 import configuration.ApplicationConfig
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -44,20 +45,26 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
   "sendMetadataReviewRequestNotification" should "call publish with the correct parameters" in {
     val service = createService
     val metadataReviewRequestEvent = MessagingService.MetadataReviewRequestEvent(
-      transferringBodyName = Some("TransferringBodyName"),
-      consignmentReference = "Ref123",
-      consignmentId = "ConsID456",
-      seriesCode = Some("SomeSeries"),
-      userId = "UserID789",
-      userEmail = "user@example.com"
+      "intg",
+      "Mock".some,
+      "TDR-2024",
+      "c140d49c-93d0-4345-8d71-c97ff28b947e",
+      "someSeries".some,
+      "c140d49c-93d0-4345-8d71-c97ff28b947e",
+      "test@example.com",
+      true,
+      10
     )
     val expectedMessageString = """{
-                                  |  "transferringBodyName" : "TransferringBodyName",
-                                  |  "consignmentReference" : "Ref123",
-                                  |  "consignmentId" : "ConsID456",
-                                  |  "seriesCode" : "SomeSeries",
-                                  |  "userId" : "UserID789",
-                                  |  "userEmail" : "user@example.com"
+                                  |  "environment" : "intg",
+                                  |  "transferringBodyName" : "Mock",
+                                  |  "consignmentReference" : "TDR-2024",
+                                  |  "consignmentId" : "c140d49c-93d0-4345-8d71-c97ff28b947e",
+                                  |  "seriesCode" : "someSeries",
+                                  |  "userId" : "c140d49c-93d0-4345-8d71-c97ff28b947e",
+                                  |  "userEmail" : "test@example.com",
+                                  |  "closedRecords" : true,
+                                  |  "totalRecords" : 10
                                   |}""".stripMargin
     service.sendMetadataReviewRequestNotification(metadataReviewRequestEvent)
     verify(mockUtils).publish(expectedMessageString, testArn)
@@ -66,16 +73,28 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
   "sendMetadataReviewSubmittedNotification" should "call publish with the correct parameters" in {
     val service = createService
     val metadataReviewSubmittedEvent = MessagingService.MetadataReviewSubmittedEvent(
+      environment = "intg",
       consignmentReference = "Ref123",
       urlLink = "example.com",
       userEmail = "user@example.com",
-      status = "Status"
+      status = "Status",
+      transferringBodyName = "ABCD".some,
+      seriesCode = "1234".some,
+      userId = "some",
+      closedRecords = true,
+      totalRecords = 10
     )
     val expectedMessageString = """{
+                                  |  "environment" : "intg",
                                   |  "consignmentReference" : "Ref123",
                                   |  "urlLink" : "example.com",
                                   |  "userEmail" : "user@example.com",
-                                  |  "status" : "Status"
+                                  |  "status" : "Status",
+                                  |  "transferringBodyName" : "ABCD",
+                                  |  "seriesCode" : "1234",
+                                  |  "userId" : "some",
+                                  |  "closedRecords" : true,
+                                  |  "totalRecords" : 10
                                   |}""".stripMargin
     service.sendMetadataReviewSubmittedNotification(metadataReviewSubmittedEvent)
     verify(mockUtils).publish(expectedMessageString, testArn)

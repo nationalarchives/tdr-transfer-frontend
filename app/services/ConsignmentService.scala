@@ -5,6 +5,7 @@ import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.{closureType, fileType}
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
@@ -44,6 +45,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfmr.Data, gcfmr.Variables]()
   private val getConsignmentDetailsForReviewClient = graphqlConfiguration.getClient[gcdfmr.Data, gcdfmr.Variables]()
   private val updateDraftMetadataFileNameClient = graphqlConfiguration.getClient[ucsdmfn.Data, ucsdmfn.Variables]()
+  private val getConsignmentForMetadataReviewRequest = graphqlConfiguration.getClient[gcfmrr.Data, gcfmrr.Variables]()
 
   def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables = gfcp.Variables(consignmentId)
@@ -167,6 +169,12 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   def getConsignmentDetailForMetadataReview(consignmentId: UUID, token: BearerAccessToken): Future[gcdfmr.GetConsignment] = {
     val variables = new gcdfmr.Variables(consignmentId)
     sendApiRequest(getConsignmentDetailsForReviewClient, gcdfmr.document, token, variables)
+      .map(data => data.getConsignment.get)
+  }
+
+  def getConsignmentDetailForMetadataReviewRequest(consignmentId: UUID, token: BearerAccessToken): Future[gcfmrr.GetConsignment] = {
+    val variables = new gcfmrr.Variables(consignmentId)
+    sendApiRequest(getConsignmentForMetadataReviewRequest, gcfmrr.document, token, variables)
       .map(data => data.getConsignment.get)
   }
 

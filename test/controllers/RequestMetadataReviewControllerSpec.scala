@@ -2,7 +2,8 @@ package controllers
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mockito.{times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
@@ -91,10 +92,26 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
     "add status, send metadata review request notification and render the metadata review page" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentSummaryResponse(wiremockServer, transferringBodyName = "Mock".some, consignmentReference = "TDR-2024", seriesName = "someSeries".some)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setAddConsignmentStatusResponse(wiremockServer)
       setUpdateConsignmentStatus(wiremockServer)
+
+      val seriesName = "SomeSeries".some
+      val transferringBodyName = "SomeTransferringBody".some
+      val totalClosedRecords = 1
+      val totalFiles = 10
+      val userId = UUID.fromString("c140d49c-93d0-4345-8d71-c97ff28b947e")
+      val consignmentReference = "TDR-2024"
+
+      setConsignmentsForMetadataReviewRequestResponse(
+        wiremockServer,
+        consignmentReference = consignmentReference,
+        userId = UUID.fromString("c140d49c-93d0-4345-8d71-c97ff28b947e"),
+        seriesName = seriesName,
+        transferringBodyName = transferringBodyName,
+        totalClosedRecords = totalClosedRecords,
+        totalFiles = totalFiles
+      )
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val content = controller
@@ -105,8 +122,9 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       redirectLocation(content).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
 
       val metadataReviewRequestEvent =
-        MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "someSeries".some, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
+        MetadataReviewRequestEvent("intg", transferringBodyName, consignmentReference, consignmentId.toString, seriesName, userId.toString, "test@example.com", true, totalFiles)
       verify(messagingService, times(1)).sendMetadataReviewRequestNotification(metadataReviewRequestEvent)
+
     }
 
     "return forbidden if the page is accessed by a judgment user" in {
@@ -139,6 +157,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    new RequestMetadataReviewController(securityComponents, consignmentService, consignmentStatusService, keycloakConfiguration, messagingService)
+    val config = new ApplicationConfig(app.configuration)
+    new RequestMetadataReviewController(securityComponents, consignmentService, consignmentStatusService, keycloakConfiguration, config, messagingService)
   }
 }
