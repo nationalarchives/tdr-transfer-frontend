@@ -156,8 +156,8 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.updateConsignmentSeriesId.isDefined)
   }
 
-  def getConsignments(pageNumber: Int, limit: Int, consignmentFilters: ConsignmentFilters, token: BearerAccessToken): Future[Consignments] = {
-    sendApiRequest(getConsignments, gcs.document, token, gcs.Variables(limit, None, Option(pageNumber), Option(consignmentFilters)))
+  def getConsignments(pageNumber: Int, limit: Int, consignmentFilters: ConsignmentFilters, orderBy: ConsignmentOrderBy, token: BearerAccessToken): Future[Consignments] = {
+    sendApiRequest(getConsignments, gcs.document, token, gcs.Variables(limit, None, Option(pageNumber), Option(consignmentFilters), Option(orderBy)))
       .map(data => data.consignments)
   }
 
