@@ -18,6 +18,8 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
+import graphql.codegen.types.ConsignmentOrderField.CreatedAtTimestamp
+import graphql.codegen.types.Direction.Descending
 import graphql.codegen.types._
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
@@ -445,20 +447,22 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val response = GraphQlResponse[gcs.Data](Some(gcs.Data(consignments)), Nil)
 
       val consignmentFilter = ConsignmentFilters(userId.some, None)
-      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some, None).some))
+      val orderBy = ConsignmentOrderBy(CreatedAtTimestamp, Descending)
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some, orderBy.some).some))
         .thenReturn(Future.successful(response))
 
-      val history = consignmentService.getConsignments(1, 100, consignmentFilter, bearerAccessToken).futureValue
+      val history = consignmentService.getConsignments(1, 100, consignmentFilter, orderBy, bearerAccessToken).futureValue
       history.edges.get should be(edges)
     }
 
     "return an error when the API has an error" in {
 
       val consignmentFilter = ConsignmentFilters(UUID.randomUUID().some, None)
-      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some, None).some))
+      val orderBy = ConsignmentOrderBy(CreatedAtTimestamp, Descending)
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some, orderBy.some).some))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-      val results = consignmentService.getConsignments(1, 100, consignmentFilter, bearerAccessToken)
+      val results = consignmentService.getConsignments(1, 100, consignmentFilter, orderBy, bearerAccessToken)
       results.failed.futureValue shouldBe a[HttpError[_]]
     }
   }
