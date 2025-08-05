@@ -13,6 +13,7 @@ import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmatio
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcsu}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
@@ -199,6 +200,38 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentSummary"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  def setConsignmentsForMetadataReviewRequestResponse(
+      wiremockServer: WireMockServer,
+      userId: UUID = UUID.fromString("fe214a75-cfc4-4767-a7ab-e9b4b2ca700d"),
+      consignmentReference: String = "TEST-TDR-2021-GB",
+      seriesName: Option[String] = Some("SomeSeries"),
+      transferringBodyName: Option[String] = Some("SomeBodyName"),
+      totalFiles: Int = 10,
+      totalClosedRecords: Int = 10
+  ): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcfmrr.Data, gcfmrr.Variables]()
+    val response = gcfmrr.Data(
+      Option(
+        gcfmrr.GetConsignment(
+          userId,
+          consignmentReference,
+          seriesName,
+          transferringBodyName,
+          totalClosedRecords,
+          totalFiles
+        )
+      )
+    )
+    val data: client.GraphqlData = client.GraphqlData(Some(response))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentForMetadataReviewRequest"))
         .willReturn(okJson(dataString))
     )
   }

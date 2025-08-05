@@ -1,8 +1,9 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.MetadataReviewActionController.consignmentStatusUpdates
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.getConsignmentDetailsForMetadataReview
 import io.circe.Printer
@@ -48,7 +49,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
   val consignmentRef = "TDR-TEST-2024"
   val userEmail = "test@test.com"
   val expectedPath = s"/consignment/$consignmentId/metadata-review/review-progress"
-  val downloadTemplateDomain = Some("MetadataReviewDetailTemplate")
+  val downloadTemplateDomain: Option[String] = Some("MetadataReviewDetailTemplate")
 
   "MetadataReviewActionController GET" should {
 
@@ -98,16 +99,23 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val status = CompletedValue.value
 
-      // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
-      class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String, expectedEmail: String, expectedStatus: String)
-          extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
-        override def matches(event: MetadataReviewSubmittedEvent): Boolean = {
-          event.consignmentReference == expectedConsignmentRef && event.urlLink.contains(expectedPath) && event.userEmail == expectedEmail && event.status == expectedStatus
-        }
-      }
+      val seriesName = "SomeSeries".some
+      val transferringBodyName = "SomeTransferringBody".some
+      val totalClosedRecords = 1
+      val totalFiles = 10
 
-      val metadataReviewDecisionEventMatcher = new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath, userEmail, status)
+      val metadataReviewDecisionEventMatcher =
+        new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath, userEmail, status, seriesName, transferringBodyName, totalFiles)
 
+      setConsignmentsForMetadataReviewRequestResponse(
+        wiremockServer,
+        consignmentReference = consignmentRef,
+        userId = userId,
+        seriesName = seriesName,
+        transferringBodyName = transferringBodyName,
+        totalClosedRecords = totalClosedRecords,
+        totalFiles = totalFiles
+      )
       setUpdateConsignmentStatus(wiremockServer)
 
       val reviewSubmit =
@@ -128,16 +136,23 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val status = CompletedWithIssuesValue.value
 
-      // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
-      class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String, expectedEmail: String, expectedStatus: String)
-          extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
-        override def matches(event: MetadataReviewSubmittedEvent): Boolean = {
-          event.consignmentReference == expectedConsignmentRef && event.urlLink.contains(expectedPath) && event.userEmail == expectedEmail && event.status == expectedStatus
-        }
-      }
+      val seriesName = "SomeSeries".some
+      val transferringBodyName = "SomeTransferringBody".some
+      val totalClosedRecords = 1
+      val totalFiles = 10
 
-      val metadataReviewDecisionEventMatcher = new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath, userEmail, status)
+      val metadataReviewDecisionEventMatcher =
+        new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath, userEmail, status, seriesName, transferringBodyName, totalFiles)
 
+      setConsignmentsForMetadataReviewRequestResponse(
+        wiremockServer,
+        consignmentReference = consignmentRef,
+        userId = userId,
+        seriesName = seriesName,
+        transferringBodyName = transferringBodyName,
+        totalClosedRecords = totalClosedRecords,
+        totalFiles = totalFiles
+      )
       setUpdateConsignmentStatus(wiremockServer)
 
       val reviewSubmit =
@@ -169,7 +184,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val consignmentRef = "TDR-TEST-2024"
       val userEmail = "test@test.com"
-      val metadataReviewDecisionEvent = MetadataReviewSubmittedEvent(consignmentRef, "SomeUrl", userEmail, "status")
+      val metadataReviewDecisionEvent =
+        MetadataReviewSubmittedEvent("intg", "consignmentRef", "urlLink", userEmail, "Approved", "transferringBodyName".some, "seriesCode".some, userId.toString, true, 10)
       val reviewSubmit = controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
       setUpdateConsignmentStatus(wiremockServer)
       setGetConsignmentDetailsForMetadataReviewResponse()
@@ -198,8 +214,9 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val config = new ApplicationConfig(app.configuration)
 
-    new MetadataReviewActionController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService, messagingService)
+    new MetadataReviewActionController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService, messagingService, config)
   }
 
   private def setGetConsignmentDetailsForMetadataReviewResponse() = {
@@ -281,6 +298,28 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
                                    |                </option>""".stripMargin)
       pageAsString must include(s"""<option value="Completed">Approve</option>""")
       pageAsString must include(s"""<option value="CompletedWithIssues">Reject</option>""")
+    }
+  }
+
+  class MetadataReviewSubmittedEventMatcher(
+      expectedConsignmentRef: String,
+      expectedPath: String,
+      expectedEmail: String,
+      expectedStatus: String,
+      seriesName: Option[String],
+      transferringBodyName: Option[String],
+      totalFiles: Int
+  ) extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
+    override def matches(event: MetadataReviewSubmittedEvent): Boolean = {
+      event.environment == "intg" &&
+      event.seriesCode == seriesName &&
+      event.transferringBodyName == transferringBodyName &&
+      event.consignmentReference == expectedConsignmentRef &&
+      event.urlLink.contains(expectedPath) &&
+      event.userEmail == expectedEmail &&
+      event.status == expectedStatus &&
+      event.closedRecords &&
+      event.totalRecords == totalFiles
     }
   }
 }
