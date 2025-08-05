@@ -106,7 +106,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       setConsignmentsForMetadataReviewRequestResponse(
         wiremockServer,
         consignmentReference = consignmentReference,
-        userId = UUID.fromString("c140d49c-93d0-4345-8d71-c97ff28b947e"),
+        userId = userId,
         seriesName = seriesName,
         transferringBodyName = transferringBodyName,
         totalClosedRecords = totalClosedRecords,

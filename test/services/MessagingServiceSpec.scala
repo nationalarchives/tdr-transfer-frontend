@@ -50,7 +50,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
       "TDR-2024",
       "c140d49c-93d0-4345-8d71-c97ff28b947e",
       "someSeries".some,
-      "c140d49c-93d0-4345-8d71-c97ff28b947e",
+      "22579624-3eb9-4453-9b41-dd53a58fcfe7",
       "test@example.com",
       true,
       10
@@ -61,7 +61,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
                                   |  "consignmentReference" : "TDR-2024",
                                   |  "consignmentId" : "c140d49c-93d0-4345-8d71-c97ff28b947e",
                                   |  "seriesCode" : "someSeries",
-                                  |  "userId" : "c140d49c-93d0-4345-8d71-c97ff28b947e",
+                                  |  "userId" : "22579624-3eb9-4453-9b41-dd53a58fcfe7",
                                   |  "userEmail" : "test@example.com",
                                   |  "closedRecords" : true,
                                   |  "totalRecords" : 10
