@@ -445,7 +445,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val response = GraphQlResponse[gcs.Data](Some(gcs.Data(consignments)), Nil)
 
       val consignmentFilter = ConsignmentFilters(userId.some, None)
-      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some).some))
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some, None).some))
         .thenReturn(Future.successful(response))
 
       val history = consignmentService.getConsignments(1, 100, consignmentFilter, bearerAccessToken).futureValue
@@ -455,7 +455,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     "return an error when the API has an error" in {
 
       val consignmentFilter = ConsignmentFilters(UUID.randomUUID().some, None)
-      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some).some))
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some, None).some))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.getConsignments(1, 100, consignmentFilter, bearerAccessToken)

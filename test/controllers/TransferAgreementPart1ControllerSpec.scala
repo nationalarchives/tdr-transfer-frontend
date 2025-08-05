@@ -135,9 +135,7 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
 
       val addTransferAgreementResponse: atapb.AddTransferAgreementPrivateBeta = new atapb.AddTransferAgreementPrivateBeta(
         consignmentId,
-        true,
-        true,
-        Option(true)
+        true
       )
       taHelper.stubTAPart1Response(Some(addTransferAgreementResponse), app.configuration)
 
