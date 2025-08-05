@@ -49,9 +49,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
 
   private val transferAgreementPart1Input = AddTransferAgreementPrivateBetaInput(
     consignmentId,
-    allPublicRecords = taPart1FormData.publicRecord,
-    allCrownCopyright = taPart1FormData.publicRecord,
-    allEnglish = taPart1FormData.english
+    allPublicRecords = taPart1FormData.publicRecord
   )
 
   private val transferAgreementPart2Input = AddTransferAgreementComplianceInput(
@@ -66,7 +64,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
   }
 
   "addTransferAgreementPart1" should "return the TransferAgreement from the API" in {
-    val transferAgreementPart1Response = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = Option(true))
+    val transferAgreementPart1Response = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true)
 
     val graphQlResponse =
       GraphQlResponse(
@@ -83,7 +81,6 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
 
     transferAgreement.consignmentId should equal(consignmentId)
     transferAgreement.allPublicRecords should equal(taPart1FormData.publicRecord)
-    transferAgreement.allEnglish should equal(taPart1FormData.english)
   }
 
   "addTransferAgreementPart1" should "return an error when the API has an error" in {
