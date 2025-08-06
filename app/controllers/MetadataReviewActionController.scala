@@ -52,15 +52,15 @@ class MetadataReviewActionController @Inject() (
     val successFunction: SelectedStatusData => Future[Result] = { formData: SelectedStatusData =>
       logger.info(s"TNA user: ${request.token.userId} has set consignment: $consignmentId to ${formData.statusId}")
       for {
-        _ <- Future.sequence(
-          consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
-            consignmentStatusService.updateConsignmentStatus(
-              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None),
-              request.token.bearerAccessToken
-            )
-          }
-        )
-        consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
+//        _ <- Future.sequence(
+//          consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
+//            consignmentStatusService.updateConsignmentStatus(
+//              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None),
+//              request.token.bearerAccessToken
+//            )
+//          }
+//        )
+        consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
       } yield {
         messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
@@ -72,8 +72,8 @@ class MetadataReviewActionController @Inject() (
             transferringBodyName = consignmentDetails.transferringBodyName,
             seriesCode = consignmentDetails.seriesName,
             userId = request.token.userId.toString,
-            closedRecords = consignmentDetails.totalClosedRecords > 0,
-            totalRecords = consignmentDetails.totalFiles
+            closedRecords = false,
+            totalRecords = 2
           )
         )
         Redirect(routes.MetadataReviewController.metadataReviews())
