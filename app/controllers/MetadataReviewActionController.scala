@@ -52,6 +52,7 @@ class MetadataReviewActionController @Inject() (
     val successFunction: SelectedStatusData => Future[Result] = { formData: SelectedStatusData =>
       logger.info(s"TNA user: ${request.token.userId} has set consignment: $consignmentId to ${formData.statusId}")
       for {
+        consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
             consignmentStatusService.updateConsignmentStatus(
@@ -60,7 +61,6 @@ class MetadataReviewActionController @Inject() (
             )
           }
         )
-        consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
       } yield {
         messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
