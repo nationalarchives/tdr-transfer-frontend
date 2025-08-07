@@ -14,7 +14,7 @@ libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2" % Test
 
 val playVersion = "3.0.3"
-val playPac4jVersion = "12.0.2-PLAY3.0"
+val playPac4jVersion = "13.0.0-PLAY3.0"
 val pac4jVersion = "6.2.0"
 val sttpVersion = "3.11.0"
 
@@ -52,7 +52,6 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.2"
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.2"
 dependencyOverrides += "io.netty" % "netty-codec" % "5.0.0.Alpha2"
-
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
