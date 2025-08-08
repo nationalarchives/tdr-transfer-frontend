@@ -52,7 +52,7 @@ class DownloadMetadataController @Inject() (
       val fileSortColumn = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")("file_path")
 
       for {
-        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
+        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
         downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType.getOrElse("MetadataDownloadTemplate")).sortBy(_.columnIndex)
         excelFile = ExcelUtils.createExcelFile(
           metadata.consignmentReference,
