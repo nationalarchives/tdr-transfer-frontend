@@ -44,17 +44,26 @@ object MessagingService {
       userEmail: String
   )
   case class MetadataReviewRequestEvent(
+      environment: String,
       transferringBodyName: Option[String],
       consignmentReference: String,
       consignmentId: String,
       seriesCode: Option[String],
       userId: String,
-      userEmail: String
+      userEmail: String,
+      closedRecords: Boolean,
+      totalRecords: Int
   )
   case class MetadataReviewSubmittedEvent(
+      environment: String,
       consignmentReference: String,
       urlLink: String,
       userEmail: String,
-      status: String
+      status: String,
+      transferringBodyName: Option[String],
+      seriesCode: Option[String],
+      userId: String,
+      closedRecords: Boolean,
+      totalRecords: Int
   )
 }

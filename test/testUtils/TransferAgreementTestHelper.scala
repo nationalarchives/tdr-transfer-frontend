@@ -49,9 +49,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val options = Map(
       "part1" ->
         Seq(
-          ("publicRecord", value),
-          ("crownCopyright", value),
-          ("english", value)
+          ("publicRecord", value)
         ),
       "part2" ->
         Seq(

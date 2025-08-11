@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.KeycloakConfiguration
+import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.MetadataReviewActionController.consignmentStatusUpdates
 import controllers.util.{DropdownField, InputNameAndValue}
 import graphql.codegen.types.ConsignmentStatusInput
@@ -25,7 +25,8 @@ class MetadataReviewActionController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val messagingService: MessagingService
+    val messagingService: MessagingService,
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport
@@ -51,6 +52,7 @@ class MetadataReviewActionController @Inject() (
     val successFunction: SelectedStatusData => Future[Result] = { formData: SelectedStatusData =>
       logger.info(s"TNA user: ${request.token.userId} has set consignment: $consignmentId to ${formData.statusId}")
       for {
+        consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
             consignmentStatusService.updateConsignmentStatus(
@@ -62,10 +64,16 @@ class MetadataReviewActionController @Inject() (
       } yield {
         messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
-            consignmentRef,
+            environment = applicationConfig.frontEndInfo.stage,
+            consignmentReference = consignmentDetails.consignmentReference,
             urlLink = generateUrlLink(request, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url),
-            userEmail,
-            formData.statusId
+            userEmail = userEmail,
+            status = formData.statusId,
+            transferringBodyName = consignmentDetails.transferringBodyName,
+            seriesCode = consignmentDetails.seriesName,
+            userId = request.token.userId.toString,
+            closedRecords = consignmentDetails.totalClosedRecords > 0,
+            totalRecords = consignmentDetails.totalFiles
           )
         )
         Redirect(routes.MetadataReviewController.metadataReviews())
