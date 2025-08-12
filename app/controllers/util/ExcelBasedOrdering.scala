@@ -8,14 +8,12 @@ object ExcelBasedOrdering extends Ordering[String] {
       Set((58 to 64).map(_.toChar): _*) ++
       Set((91 to 96).map(_.toChar): _*) ++
       Set((123 to 126).map(_.toChar): _*)
-    val underscore = Set('_')
     val alphanumeric = (('0' to '9') ++ ('a' to 'z') ++ ('A' to 'Z')).toSet
 
     List(
       (space, 0),
       (specialChars, 1),
-      (underscore, 2),
-      (alphanumeric, 3)
+      (alphanumeric, 2)
     ).flatMap { case (chars, priority) =>
       chars.map(c => c -> priority)
     }.toMap
