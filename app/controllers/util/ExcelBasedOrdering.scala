@@ -1,6 +1,6 @@
 package controllers.util
 
-object ExcelBasedOrdering extends Ordering[String]{
+object ExcelBasedOrdering extends Ordering[String] {
   // Define the priority order for characters
   private val priorityOrder: Map[Char, Int] = {
     val space = Set(' ')
