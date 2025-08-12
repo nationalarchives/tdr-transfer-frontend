@@ -17,6 +17,7 @@ class RequestMetadataReviewController @Inject() (
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
     val keycloakConfiguration: KeycloakConfiguration,
+    val applicationConfig: configuration.ApplicationConfig,
     val messagingService: MessagingService
 ) extends TokenSecurity {
 
@@ -39,16 +40,19 @@ class RequestMetadataReviewController @Inject() (
         } else {
           consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(InProgressValue.value), None), token)
         }
-      summary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, token)
+      consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, token)
     } yield {
       messagingService.sendMetadataReviewRequestNotification(
         MetadataReviewRequestEvent(
-          transferringBodyName = summary.transferringBodyName,
-          consignmentReference = summary.consignmentReference,
+          environment = applicationConfig.frontEndInfo.stage,
+          transferringBodyName = consignmentDetails.transferringBodyName,
+          consignmentReference = consignmentDetails.consignmentReference,
           consignmentId = consignmentId.toString,
-          seriesCode = summary.seriesName,
+          seriesCode = consignmentDetails.seriesName,
           userId = request.token.userId.toString,
-          userEmail = request.token.email
+          userEmail = request.token.email,
+          closedRecords = consignmentDetails.totalClosedRecords > 0,
+          totalRecords = consignmentDetails.totalFiles
         )
       )
 

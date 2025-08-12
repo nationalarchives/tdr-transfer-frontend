@@ -13,6 +13,7 @@ import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmatio
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcsu}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
@@ -199,6 +200,38 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentSummary"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  def setConsignmentsForMetadataReviewRequestResponse(
+      wiremockServer: WireMockServer,
+      userId: UUID = UUID.fromString("fe214a75-cfc4-4767-a7ab-e9b4b2ca700d"),
+      consignmentReference: String = "TEST-TDR-2021-GB",
+      seriesName: Option[String] = Some("SomeSeries"),
+      transferringBodyName: Option[String] = Some("SomeBodyName"),
+      totalFiles: Int = 10,
+      totalClosedRecords: Int = 10
+  ): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcfmrr.Data, gcfmrr.Variables]()
+    val response = gcfmrr.Data(
+      Option(
+        gcfmrr.GetConsignment(
+          userId,
+          consignmentReference,
+          seriesName,
+          transferringBodyName,
+          totalClosedRecords,
+          totalFiles
+        )
+      )
+    )
+    val data: client.GraphqlData = client.GraphqlData(Some(response))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentForMetadataReviewRequest"))
         .willReturn(okJson(dataString))
     )
   }
@@ -593,8 +626,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       )
     }.toList
 
-  def downloadLinkHTML(consignmentId: UUID): String = {
-    val linkHTML: String = s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
+  def downloadLinkHTML(consignmentId: UUID, templateDomain: Option[String] = None): String = {
+    val domainParam = templateDomain match {
+      case Some(value) => s"?downloadType=$value"
+      case _           => ""
+    }
+
+    val linkHTML: String =
+      s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv$domainParam">
                               |    <span aria-hidden="true" class="tna-button-icon">
                               |        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
                               |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>

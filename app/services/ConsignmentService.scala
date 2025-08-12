@@ -5,6 +5,7 @@ import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.{closureType, fileType}
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
@@ -44,6 +45,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfmr.Data, gcfmr.Variables]()
   private val getConsignmentDetailsForReviewClient = graphqlConfiguration.getClient[gcdfmr.Data, gcdfmr.Variables]()
   private val updateDraftMetadataFileNameClient = graphqlConfiguration.getClient[ucsdmfn.Data, ucsdmfn.Variables]()
+  private val getConsignmentForMetadataReviewRequest = graphqlConfiguration.getClient[gcfmrr.Data, gcfmrr.Variables]()
 
   def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables = gfcp.Variables(consignmentId)
@@ -75,13 +77,11 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
 
   def getConsignmentFileMetadata(
       consignmentId: UUID,
-      token: BearerAccessToken,
-      metadataType: Option[String],
-      fileIds: Option[List[UUID]],
-      additionalProperties: Option[List[String]] = None
+      token: BearerAccessToken
   ): Future[gcfm.GetConsignment] = {
+    val defaultFileFilter = Option(FileFilters(Option("File"), None, None, None))
     val variables: gcfm.Variables =
-      new GetConsignmentFilesMetadata.getConsignmentFilesMetadata.Variables(consignmentId, getFileFilters(metadataType, fileIds, additionalProperties))
+      new GetConsignmentFilesMetadata.getConsignmentFilesMetadata.Variables(consignmentId, defaultFileFilter)
 
     sendApiRequest(getConsignmentFilesMetadataClient, gcfm.document, token, variables)
       .map(data =>
@@ -154,8 +154,8 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.updateConsignmentSeriesId.isDefined)
   }
 
-  def getConsignments(pageNumber: Int, limit: Int, consignmentFilters: ConsignmentFilters, token: BearerAccessToken): Future[Consignments] = {
-    sendApiRequest(getConsignments, gcs.document, token, gcs.Variables(limit, None, Option(pageNumber), Option(consignmentFilters)))
+  def getConsignments(pageNumber: Int, limit: Int, consignmentFilters: ConsignmentFilters, orderBy: ConsignmentOrderBy, token: BearerAccessToken): Future[Consignments] = {
+    sendApiRequest(getConsignments, gcs.document, token, gcs.Variables(limit, None, Option(pageNumber), Option(consignmentFilters), Option(orderBy)))
       .map(data => data.consignments)
   }
 
@@ -170,21 +170,17 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.getConsignment.get)
   }
 
+  def getConsignmentDetailForMetadataReviewRequest(consignmentId: UUID, token: BearerAccessToken): Future[gcfmrr.GetConsignment] = {
+    val variables = new gcfmrr.Variables(consignmentId)
+    sendApiRequest(getConsignmentForMetadataReviewRequest, gcfmrr.document, token, variables)
+      .map(data => data.getConsignment.get)
+  }
+
   def updateDraftMetadataFileName(consignmentId: UUID, fileName: String, token: BearerAccessToken): Future[Int] = {
     val input = UpdateClientSideDraftMetadataFileNameInput(consignmentId, fileName)
     val variables = new ucsdmfn.Variables(input)
     sendApiRequest(updateDraftMetadataFileNameClient, ucsdmfn.document, token, variables)
       .map(data => data.updateClientSideDraftMetadataFileName.get)
-  }
-
-  private def getFileFilters(metadataType: Option[String], fileIds: Option[List[UUID]], additionalProperties: Option[List[String]]): Option[FileFilters] = {
-    val metadataTypeFilter = metadataType match {
-      case None                => additionalProperties.map(p => FileMetadataFilters(None, None, Some(p)))
-      case Some("closure")     => Some(FileMetadataFilters(Some(true), None, additionalProperties))
-      case Some("descriptive") => Some(FileMetadataFilters(None, Some(true), additionalProperties))
-      case Some(value)         => throw new IllegalArgumentException(s"Invalid metadata type: $value")
-    }
-    Option(FileFilters(Option("File"), fileIds, None, metadataTypeFilter))
   }
 }
 object ConsignmentService {
