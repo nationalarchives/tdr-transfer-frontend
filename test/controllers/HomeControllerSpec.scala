@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.Configuration
 import play.api.test.Helpers._
 import play.api.test._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
@@ -7,6 +8,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 class HomeControllerSpec extends FrontEndTestHelper {
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val configuration: Configuration = mock[Configuration]
 
   "HomeController GET" should {
 
