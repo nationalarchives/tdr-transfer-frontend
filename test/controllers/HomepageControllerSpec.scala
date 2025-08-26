@@ -224,7 +224,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       pageAsString must include("""<form action="/judgment/homepage" method="POST" novalidate="">""")
       pageAsString must include("""<h2 class="govuk-heading-m">Service update – September 2025</h2>""")
       pageAsString must include("""<p class="govuk-body">You can now upload amendments and press summaries to existing judgments or decisions.</p>""")
-      pageAsString must include("""<p class="govuk-body">When you select "Start your transfer", choose the document type and enter the Neutral Citation Number (NCN) of the original judgment or decision.</p>""")
+      pageAsString must include(
+        """<p class="govuk-body">When you select "Start your transfer", choose the document type and enter the Neutral Citation Number (NCN) of the original judgment or decision.</p>"""
+      )
       pageAsString must include("""<p class="govuk-body">If there’s no NCN, you’ll need to provide extra details.</p>""")
       pageAsString must include("""<h2 class="govuk-heading-m">Further support</h2>""")
     } else {
