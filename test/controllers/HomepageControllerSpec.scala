@@ -245,7 +245,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       pageAsString must include("""<p class="govuk-body">You can use this service to:</p>""")
       pageAsString must include("""<ul class="govuk-list govuk-list--bullet">
        |          <li>transfer judgments and decisions</li>
-       |          <li>transfer an amendment to an existing judgment or decision</li>
+       |          <li>transfer an amendment/press summary to an existing judgment or decision</li>
        |        </ul>""".stripMargin)
       pageAsString must include("Start your transfer")
       pageAsString must include("""<form action="/judgment/homepage" method="POST" novalidate="">""")
