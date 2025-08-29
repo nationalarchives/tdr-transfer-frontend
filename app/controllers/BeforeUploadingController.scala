@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -16,7 +16,8 @@ class BeforeUploadingController @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
-    val consignmentService: ConsignmentService
+    val consignmentService: ConsignmentService,
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -24,6 +25,6 @@ class BeforeUploadingController @Inject() (
   def beforeUploading(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      .map(reference => Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, reference, request.token.name)))
+      .map(reference => Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, reference, request.token.name, applicationConfig.blockJudgmentPressSummaries)))
   }
 }

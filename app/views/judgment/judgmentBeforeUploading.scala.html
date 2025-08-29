@@ -3,7 +3,7 @@
 @import java.util.UUID
 
 @import views.html.partials.backLink
-@(consignmentId: UUID, consignmentRef: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, name: String, blockPressSummaries: Boolean)(implicit request: RequestHeader, messages: Messages)
 @main("Before you upload a document", name = name, isJudgmentUser = true, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">

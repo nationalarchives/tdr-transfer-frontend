@@ -1,0 +1,48 @@
+@()
+
+    <div class="govuk-form-group">
+        <fieldset class="govuk-fieldset">
+            <legend class="govuk-fieldset__legend govuk-hint">
+                Select the reasons for the update:
+            </legend>
+
+            <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+                <div class="govuk-checkboxes__item">
+                    <input class="govuk-checkboxes__input" id="typo" name="updateReason" type="checkbox" value="typo">
+                    <label class="govuk-label govuk-checkboxes__label" for="typo">
+                        Typo
+                    </label>
+                </div>
+                <div class="govuk-checkboxes__item">
+                    <input class="govuk-checkboxes__input" id="Formatting" name="updateReason" type="checkbox" value="Formatting">
+                    <label class="govuk-label govuk-checkboxes__label" for="Formatting">
+                        Formatting
+                    </label>
+                </div>
+                <div class="govuk-checkboxes__item">
+                    <input class="govuk-checkboxes__input" id="NCN" name="updateReason" type="checkbox" value="NCN">
+                    <label class="govuk-label govuk-checkboxes__label" for="NCN">
+                        Amendment to NCN
+                    </label>
+                </div>
+                <div class="govuk-checkboxes__item">
+                    <input class="govuk-checkboxes__input" id="Anonymisation" name="updateReason" type="checkbox" value="Anonymisation">
+                    <label class="govuk-label govuk-checkboxes__label" for="Anonymisation">
+                        Anonymisation/redaction
+                    </label>
+                </div>
+
+                <div class="govuk-checkboxes__item">
+                    <input class="govuk-checkboxes__input" id="Other" name="updateReason" type="checkbox" value="Other">
+                    <label class="govuk-label govuk-checkboxes__label" for="Other">
+                        Other
+                    </label>
+                </div>
+                <hr class="govuk-section-break govuk-section-break--m"  style="clear: both;">
+                <div class="govuk-form-group" style="clear: both;">
+                    <label class="govuk-label" for="event-name" >
+                        Add more details about this update (optional):
+                    </label>
+                    <textarea class="govuk-textarea" id="event-name" name="event-name" rows="5" aria-describedby="more-detail-hint"></textarea>      </div>
+        </fieldset>
+    </div>
