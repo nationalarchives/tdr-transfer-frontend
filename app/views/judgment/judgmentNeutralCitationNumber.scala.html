@@ -1,78 +1,28 @@
-@import views.html.partials.{backLink, transferReference}
+@import helper._
+@import views.html.partials.{backLink, transferReference, neutralCitationFields, neutralCitationHelp}
 
 @import java.util.UUID
 @(consignmentId: UUID, consignmentRef: String, name: String)(implicit request: RequestHeader, messages: Messages)
-@main("Provide neutral citation", name = name, isJudgmentUser = true, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
-    @defining(play.core.PlayVersion.current) { version =>
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>
-                <div><form id="neutralCitationForm" action="provide-neutral-citation-v1" method="post">
-                    <div class="govuk-form-group">
-                        <label class="govuk-label govuk-body" for="neutral-citation">
-                            <p class="govuk-body">Enter the NCN for the judgment that this update relates to:</p>
-                        </label>
-                        <input class="govuk-input" id="neutral-citation" name="neutralCitation" type="text">
-                    </div>
-                    <div class="govuk-form-group">
-                        <fieldset class="govuk-fieldset">
-                            <legend class="govuk-fieldset__legend govuk-visually-hidden">
-                                Original judgment to this update does not have an NCN
-                            </legend>
-                            <div class="govuk-checkboxes" data-module="govuk-checkboxes">
-                                <div class="govuk-checkboxes__item">
-                                    <input class="govuk-checkboxes__input" id="no-ncn" name="no-ncn" type="checkbox" value="no-ncn-select" data-aria-controls="conditional-no-ncn">
-                                    <label class="govuk-label govuk-checkboxes__label" for="no-ncn">
-                                        Original judgment to this update does not have an NCN
-                                    </label>
-                                </div>
-                                <div class="govuk-checkboxes__conditional govuk-checkboxes__conditional--hidden" id="conditional-no-ncn">
-                                    <div class="govuk-form-group">
-                                        <label class="govuk-label" for="no-ncnHtml">
-                                            Provide any details that would help us identify the document, such as a transfer reference  (optional):
-                                        </label>
-                                        <input class="govuk-input" id="no-ncnHtml" name="no" type="text">
-                                    </div>
-                                </div>
-                            </div>
-                        </fieldset>
+@main("Provide neutral citation", name = name, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>
 
+            @form(routes.JudgmentNeutralCitationController.validateNCN(consignmentId)) {
+                @CSRF.formField
+                @neutralCitationFields()
 
-                        <details class="govuk-details" data-module="govuk-details">
-                            <summary class="govuk-details__summary">
-                                <span class="govuk-details__summary-text">
-                                    Help with neutral citation numbers
-                                </span>
-                            </summary>
-                            <div class="govuk-details__text">
-                                <p class="govuk-body">A neutral citation number will look like:</p>
-                                <ul class="govuk-list govuk-list--bullet">
-                                    <li>[2025] EWCOP 123 (T1) </li>
-                                    <li>[2025] EWHC 2084 (Ch)</li>
-                                    <li>[2025] UKSC 123 </li>
-                                </ul>
+                @neutralCitationHelp()
 
-                                <p class="govuk-body">
-                                    Further guidance on NCN&#39;s can be found on the <a class="govuk-link" target="_blank" href="https://nationalarchives.github.io/ds-caselaw-judiciary-guidance/ncn.html">
-                                    Find Case Law website</a> (opens in a new tab).</p>
-                            </div>
-                        </details>
+                <hr class="govuk-section-break govuk-section-break--m">
 
-
-                        <hr class="govuk-section-break govuk-section-break--m">
-
-                        <div class="govuk-button-group">
-
-
-                            <button class="govuk-button" data-module="govuk-button" id="continueButton">
-                                Continue
-                            </button>
-
-                        </div>
-                    </div>
-                </form></div>
-            </div>
-            @transferReference(consignmentRef, isJudgmentUser = true)
+                <div class="govuk-button-group">
+                    <button class="govuk-button" data-module="govuk-button" id="continueButton" type="submit">
+                        Continue
+                    </button>
+                </div>
+            }
         </div>
-    }
+        @transferReference(consignmentRef, isJudgmentUser = true)
+    </div>
 }

@@ -1,0 +1,89 @@
+package controllers
+
+import com.github.tomakehurst.wiremock.WireMockServer
+import configuration.GraphQLConfiguration
+import play.api.Play.materializer
+import play.api.test.CSRFTokenHelper._
+import play.api.test.FakeRequest
+import play.api.test.Helpers.{POST, contentAsString, contentType, redirectLocation, status => playStatus, _}
+import services.ConsignmentService
+import testUtils.FrontEndTestHelper
+
+import java.util.UUID
+import scala.concurrent.ExecutionContext
+
+class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
+  implicit val ec: ExecutionContext = ExecutionContext.global
+
+  val wiremockServer = new WireMockServer(9006)
+
+  override def beforeEach(): Unit = {
+    wiremockServer.start()
+  }
+
+  override def afterEach(): Unit = {
+    wiremockServer.resetAll()
+    wiremockServer.stop()
+  }
+
+  private def instantiateController() = {
+    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val consignmentService = new ConsignmentService(graphQLConfiguration)
+    new JudgmentNeutralCitationController(getAuthorisedSecurityComponents, graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+  }
+
+  "JudgmentNeutralCitationController POST" should {
+    "return BadRequest and show error when no NCN and checkbox not selected" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val result = controller
+        .validateNCN(consignmentId)
+        .apply(FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation").withCSRFToken)
+
+      playStatus(result) mustBe BAD_REQUEST
+      contentType(result) mustBe Some("text/html")
+      val body = contentAsString(result)
+      body must include("There is a problem")
+      body must include("neutral-citation-reasons-error")
+      body must include("Provide the neutral citation number (NCN) for the original judgment")
+    }
+
+    "redirect to upload page when NCN is provided" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+
+      val result = controller
+        .validateNCN(consignmentId)
+        .apply(
+          FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation")
+            .withFormUrlEncodedBody("neutralCitation" -> "[2025] EWHC 1")
+            .withCSRFToken
+        )
+
+      playStatus(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(s"/judgment/$consignmentId/upload")
+    }
+
+    "redirect to upload page when 'no-ncn' checkbox selected" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+
+      val result = controller
+        .validateNCN(consignmentId)
+        .apply(
+          FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation")
+            .withFormUrlEncodedBody("no-ncn" -> "no-ncn-select")
+            .withCSRFToken
+        )
+
+      playStatus(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some(s"/judgment/$consignmentId/upload")
+    }
+  }
+}
+
