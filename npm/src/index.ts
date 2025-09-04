@@ -192,11 +192,8 @@ export const renderModules = async () => {
   const ncnInput = document.querySelector("#neutral-citation")
   if (ncnCheckbox && ncnInput) {
     const ncnModule = await import("./judgmentmetadata/neutral-citation")
-    // Prefer new naming; fallback kept for safety
     if (typeof ncnModule.initialiseNeutralCitationToggle === "function") {
       ncnModule.initialiseNeutralCitationToggle()
-    } else if (typeof ncnModule.initNeutralCitationToggle === "function") {
-      ncnModule.initNeutralCitationToggle()
     }
   }
 }

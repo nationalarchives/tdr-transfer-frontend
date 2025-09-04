@@ -63,7 +63,7 @@ GET         /judgment/homepage                                                  
 POST        /judgment/homepage                                                                           controllers.HomepageController.judgmentHomepageSubmit()
 GET         /judgment/help                                                                               controllers.HelpController.judgmentHelp()
 GET         /judgment/:consignmentId/before-uploading                                                    controllers.BeforeUploadingController.beforeUploading(consignmentId: java.util.UUID)
-GET         /judgment/:consignmentId/neutral-citation                                                    controllers.JudgmentNeutralCitationController.page(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/neutral-citation                                                    controllers.JudgmentNeutralCitationController.addNCN(consignmentId: java.util.UUID)
 POST        /judgment/:consignmentId/neutral-citation                                                    controllers.JudgmentNeutralCitationController.validateNCN(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                                                              controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks                                                         controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])

@@ -1,11 +1,11 @@
-import { initNeutralCitationToggle } from "../../src/judgmentmetadata/neutral-citation"
+import { initialiseNeutralCitationToggle } from "../../src/judgmentmetadata/neutral-citation"
 
-describe("initNeutralCitationToggle", () => {
+describe("initialiseNeutralCitationToggle", () => {
   beforeEach(() => {
     document.body.innerHTML = `
       <input type="checkbox" id="no-ncn">
       <input type="text" id="neutral-citation">
-      <input type="text" id="no-ncnHtml" value="some details">
+      <input type="text" id="no-ncnReference" value="some details">
     `
   })
 
@@ -16,7 +16,7 @@ describe("initNeutralCitationToggle", () => {
     input.value = "[2025] EWHC 123"
     checkbox.checked = true
 
-    initNeutralCitationToggle()
+    initialiseNeutralCitationToggle()
 
     expect(input.value).toBe("")
     expect(input.disabled).toBe(true)
@@ -26,12 +26,12 @@ describe("initNeutralCitationToggle", () => {
   test("enables input when checkbox is unchecked and clears details field", () => {
     const checkbox = document.querySelector<HTMLInputElement>("#no-ncn")!
     const input = document.querySelector<HTMLInputElement>("#neutral-citation")!
-    const details = document.querySelector<HTMLInputElement>("#no-ncnHtml")!
+    const details = document.querySelector<HTMLInputElement>("#no-ncnReference")!
 
     checkbox.checked = false
     details.value = "previous details"
 
-    initNeutralCitationToggle()
+    initialiseNeutralCitationToggle()
 
     expect(input.disabled).toBe(false)
     expect(input.getAttribute("aria-disabled")).toBeNull()
@@ -41,9 +41,9 @@ describe("initNeutralCitationToggle", () => {
   test("responds to change events", () => {
     const checkbox = document.querySelector<HTMLInputElement>("#no-ncn")!
     const input = document.querySelector<HTMLInputElement>("#neutral-citation")!
-    const details = document.querySelector<HTMLInputElement>("#no-ncnHtml")!
+    const details = document.querySelector<HTMLInputElement>("#no-ncnReference")!
 
-    initNeutralCitationToggle()
+    initialiseNeutralCitationToggle()
 
     checkbox.checked = true
     checkbox.dispatchEvent(new Event("change"))

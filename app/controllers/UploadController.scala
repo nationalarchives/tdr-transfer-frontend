@@ -12,6 +12,7 @@ import services.Statuses._
 import services._
 import viewsapi.Caching.preventCaching
 
+import java.net.URLEncoder
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -99,6 +100,20 @@ class UploadController @Inject() (
   def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
+    def buildBackUrl: String = {
+      val ncn = request.getQueryString("judgment_neutral_citation").filter(_.nonEmpty)
+      val noNcn = request.getQueryString("judgment_no_neutral_citation").filter(_.nonEmpty)
+      val reference = request.getQueryString("judgment_reference").filter(_.nonEmpty)
+      val params = Seq(
+        ncn.map(v => s"judgment_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
+        noNcn.map(v => s"judgment_no_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
+        reference.map(v => s"judgment_reference=${URLEncoder.encode(v, "UTF-8")}"
+        )
+      ).flatten
+      val base = routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
+      if (params.nonEmpty) s"$base?${params.mkString("&")}" else base
+    }
+
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -115,7 +130,8 @@ class UploadController @Inject() (
           Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
-          Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+          val backUrl = buildBackUrl
+          Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name, backUrl))
             .uncache()
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")

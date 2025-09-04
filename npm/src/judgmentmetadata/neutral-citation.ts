@@ -7,14 +7,12 @@ export interface ToggleOptions {
 
 /**
  * Initialise the neutral citation number (NCN) input enable/disable toggle.
- * Mirrors the naming convention (initialise*) used elsewhere in the codebase.
- * Idempotent: safe to call multiple times (only one event listener will be added).
  */
 export function initialiseNeutralCitationToggle(options: ToggleOptions = {}): void {
   const {
     checkboxSelector = "#no-ncn",
     inputSelector = "#neutral-citation",
-    detailsInputSelector = "#no-ncnHtml"
+    detailsInputSelector = "#no-ncnReference" // updated to match template field id
   } = options
 
   const checkbox = document.querySelector<HTMLInputElement>(checkboxSelector)
@@ -25,7 +23,6 @@ export function initialiseNeutralCitationToggle(options: ToggleOptions = {}): vo
     return
   }
 
-  // Idempotency guard so repeated calls (e.g. partial page updates) don't attach extra listeners
   if (checkbox.dataset.ncnToggleInitialised === "true") {
     return
   }
@@ -60,9 +57,4 @@ export function initialiseNeutralCitationToggle(options: ToggleOptions = {}): vo
 
   toggle()
   checkbox.addEventListener("change", toggle)
-}
-
-// Backwards compatibility: retain previous init function name used by index.ts
-export function initNeutralCitationToggle(options: ToggleOptions = {}): void {
-  initialiseNeutralCitationToggle(options)
 }
