@@ -5,7 +5,12 @@ export interface ToggleOptions {
   detailsInputSelector?: string
 }
 
-export function initNeutralCitationToggle(options: ToggleOptions = {}): void {
+/**
+ * Initialise the neutral citation number (NCN) input enable/disable toggle.
+ * Mirrors the naming convention (initialise*) used elsewhere in the codebase.
+ * Idempotent: safe to call multiple times (only one event listener will be added).
+ */
+export function initialiseNeutralCitationToggle(options: ToggleOptions = {}): void {
   const {
     checkboxSelector = "#no-ncn",
     inputSelector = "#neutral-citation",
@@ -17,9 +22,14 @@ export function initNeutralCitationToggle(options: ToggleOptions = {}): void {
   const detailsInput = document.querySelector<HTMLInputElement>(detailsInputSelector)
 
   if (!checkbox || !textInput) {
-    // Elements not present on this page; nothing to initialise.
     return
   }
+
+  // Idempotency guard so repeated calls (e.g. partial page updates) don't attach extra listeners
+  if (checkbox.dataset.ncnToggleInitialised === "true") {
+    return
+  }
+  checkbox.dataset.ncnToggleInitialised = "true"
 
   const DISABLED_CLASS = "govuk-input--disabled"
 
@@ -34,7 +44,6 @@ export function initNeutralCitationToggle(options: ToggleOptions = {}): void {
     textInput.disabled = false
     textInput.removeAttribute("aria-disabled")
     textInput.classList.remove(DISABLED_CLASS)
-    // Optionally focus for UX
     textInput.focus()
   }
 
@@ -43,16 +52,17 @@ export function initNeutralCitationToggle(options: ToggleOptions = {}): void {
       disableInput()
     } else {
       enableInput()
-      // Clear any previously entered details in the conditional field when unchecked
       if (detailsInput) {
         detailsInput.value = ""
       }
     }
   }
 
-  // Set initial state based on current checkbox state (covers back/forward cache, server-rendered state, etc.)
   toggle()
-
-  // Listen for changes
   checkbox.addEventListener("change", toggle)
+}
+
+// Backwards compatibility: retain previous init function name used by index.ts
+export function initNeutralCitationToggle(options: ToggleOptions = {}): void {
+  initialiseNeutralCitationToggle(options)
 }
