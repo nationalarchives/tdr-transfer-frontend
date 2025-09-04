@@ -47,7 +47,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
       body must include("There is a problem")
-      body must include("neutral-citation-reasons-error")
+      body must include("update-reasons-error") // updated id expected in template
       body must include("Provide the neutral citation number (NCN) for the original judgment")
     }
 
@@ -56,16 +56,18 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
+      val validNcn = "[2025] EWCOP 123 (T1)"
       val result = controller
         .validateNCN(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation")
-            .withFormUrlEncodedBody("neutralCitation" -> "[2025] EWHC 1")
+            .withFormUrlEncodedBody("judgment_neutral_citation" -> validNcn)
             .withCSRFToken
         )
 
       playStatus(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some(s"/judgment/$consignmentId/upload")
+      val redirect = redirectLocation(result).value
+      redirect must startWith(s"/judgment/$consignmentId/upload?judgment_neutral_citation=")
     }
 
     "redirect to upload page when 'no-ncn' checkbox selected" in {
@@ -77,13 +79,13 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
         .validateNCN(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation")
-            .withFormUrlEncodedBody("no-ncn" -> "no-ncn-select")
+            .withFormUrlEncodedBody("judgment_no_neutral_citation" -> "no-ncn-select")
             .withCSRFToken
         )
 
       playStatus(result) mustBe SEE_OTHER
-      redirectLocation(result) mustBe Some(s"/judgment/$consignmentId/upload")
+      val redirect = redirectLocation(result).value
+      redirect mustBe s"/judgment/$consignmentId/upload?judgment_no_neutral_citation=no-ncn-select"
     }
   }
 }
-
