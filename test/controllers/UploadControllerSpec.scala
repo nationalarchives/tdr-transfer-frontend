@@ -12,6 +12,7 @@ import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMu
 import io.circe.syntax._
 import io.circe.parser.decode
 import io.circe.generic.auto._
+import org.mockito.Mockito.when
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -36,6 +37,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
   val triggerBackendChecksServer = new WireMockServer(9008)
   private val configuration: Configuration = mock[Configuration]
   val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
+  val fabConfiguration: Configuration = mock[Configuration]
+  when(fabConfiguration.get[Boolean]("featureAccessBlock.blockJudgmentPressSummaries")).thenReturn(false)
+  val fabConfig = new ApplicationConfig(fabConfiguration)
 
   override def beforeEach(): Unit = {
     triggerBackendChecksServer.start()
@@ -71,7 +75,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -96,7 +101,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
 
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -125,7 +131,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
 
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -154,7 +161,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
 
       val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "InProgress", someDateTime, None))
@@ -185,7 +193,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
 
       val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None))
@@ -298,7 +307,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
 
       val consignmentStatuses = List(
@@ -336,7 +346,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val uploadStatus = "Completed"
 
@@ -380,7 +391,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
 
       val consignmentStatuses = List(
@@ -430,7 +442,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
 
       setConsignmentReferenceResponse(wiremockServer)
@@ -439,7 +452,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller
         .judgmentUploadPage(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload?judgment_neutral_citation=judgmentNeutralCitation").withCSRFToken)
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
@@ -447,6 +460,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment", pageRequiresAwsServices = true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
+      uploadPageAsString must include(
+        """<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/neutral-citation?judgment_neutral_citation=judgmentNeutralCitation" class="govuk-back-link">Back</a>"""
+      )
       uploadPageAsString must include("<title>Upload document - Transfer Digital Records - GOV.UK</title>")
       uploadPageAsString must include("""<h1 class="govuk-heading-l">Upload document</h1>""")
       uploadPageAsString must include("You may now select and upload the judgment or decision. You can only upload one file.")
@@ -498,6 +514,39 @@ class UploadControllerSpec extends FrontEndTestHelper {
           |""".stripMargin)
     }
 
+    "show the judgment upload back  to before upload when behind fab blockJudgmentPressSummaries" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val fabConfiguration: Configuration = mock[Configuration]
+      when(fabConfiguration.get[Boolean]("featureAccessBlock.blockJudgmentPressSummaries")).thenReturn(true)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val fabConfigBlockJudgmentPressSummaries = new ApplicationConfig(fabConfiguration)
+      val controller = new UploadController(
+        getAuthorisedSecurityComponents,
+        graphQLConfiguration,
+        getValidJudgmentUserKeycloakConfiguration,
+        frontEndInfoConfiguration,
+        consignmentService,
+        uploadService,
+        fileStatusService,
+        backendChecksService,
+        fabConfigBlockJudgmentPressSummaries
+      )
+
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+
+      val uploadPage = controller
+        .judgmentUploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload?judgment_neutral_citation=judgmentNeutralCitation").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
+      uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
+    }
+
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
       val uploadStatus = InProgressValue
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -544,7 +593,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       consignmentService,
       uploadService,
       fileStatusService,
-      backendChecksService
+      backendChecksService,
+      fabConfig
     )
 
     val consignmentStatuses = List(
@@ -579,7 +629,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
             consignmentService,
             uploadService,
             fileStatusService,
-            backendChecksService
+            backendChecksService,
+            fabConfig
           )
 
         setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -617,7 +668,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
             consignmentService,
             uploadService,
             fileStatusService,
-            backendChecksService
+            backendChecksService,
+            fabConfig
           )
 
         val consignmentStatuses = List(
@@ -660,7 +712,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
             consignmentService,
             uploadService,
             fileStatusService,
-            backendChecksService
+            backendChecksService,
+            fabConfig
           )
 
         val consignmentStatuses = List(
@@ -716,7 +769,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val saveMetadataResponse = controller
         .saveClientMetadata()
@@ -748,7 +802,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val saveMetadataResponse = controller
         .saveClientMetadata()
@@ -775,7 +830,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, "1") :: Nil
       val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil), None)
@@ -824,7 +880,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val result = controller
         .addFileStatus()
@@ -857,7 +914,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val result = controller
         .addFileStatus()
@@ -893,7 +951,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val result = controller
         .addFileStatus()
@@ -934,7 +993,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val saveMetadataResponse = controller
         .startUpload()
@@ -963,7 +1023,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val saveMetadataResponse = controller
         .startUpload()
@@ -991,7 +1052,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         consignmentService,
         uploadService,
         fileStatusService,
-        backendChecksService
+        backendChecksService,
+        fabConfig
       )
       val startUploadInput = StartUploadInput(consignmentId, "parent", Some(false))
       wiremockServer.stubFor(

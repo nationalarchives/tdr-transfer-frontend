@@ -33,13 +33,6 @@ class JudgmentNeutralCitationController @Inject() (
   private val NCN = "judgment_neutral_citation"
   private val NO_NCN = "judgment_no_neutral_citation"
   private val JUDGMENT_REFERENCE = "judgment_reference"
-
-  private case class NeutralCitationData(
-      neutralCitation: Option[String],
-      noNeutralCitation: Boolean,
-      judgmentReference: Option[String]
-  )
-
   private val neutralCitationForm: Form[NeutralCitationData] = Form(
     mapping(
       NCN -> optional(text),
@@ -64,25 +57,31 @@ class JudgmentNeutralCitationController @Inject() (
   }
 
   def validateNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    neutralCitationForm.bindFromRequest().fold(
-      _ => handleValidation(consignmentId, NeutralCitationData(None, noNeutralCitation = false, None)),
-      data => handleValidation(consignmentId, data)
-    )
+    neutralCitationForm
+      .bindFromRequest()
+      .fold(
+        _ => handleValidation(consignmentId, NeutralCitationData(None, noNeutralCitation = false, None)),
+        data => handleValidation(consignmentId, data)
+      )
   }
 
   private def handleValidation(consignmentId: UUID, data: NeutralCitationData)(implicit request: Request[AnyContent]) = {
-    val objectMetadata = toObjectMetadata(data)
-    val validated = doValidation(objectMetadata)
-
+    val objectMetadata = neutralCitationToObjectMetadata(data)
     val ncnValue: Option[String] = data.neutralCitation
     val rawNoNcnSelected: Boolean = data.noNeutralCitation
     val effectiveNoNcnSelected: Boolean = rawNoNcnSelected && ncnValue.forall(_.isEmpty)
     val judgmentReference: Option[String] = if (effectiveNoNcnSelected) data.judgmentReference else None
 
+    val validated = doValidation(objectMetadata)
+
     if (validated.isDefined) {
       consignmentService
         .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        .map(reference => BadRequest(views.html.judgment.judgmentNeutralCitationNumberError(consignmentId, reference, request.token.name, validated.get, ncnValue, effectiveNoNcnSelected, judgmentReference)))
+        .map(reference =>
+          BadRequest(
+            views.html.judgment.judgmentNeutralCitationNumberError(consignmentId, reference, request.token.name, validated.get, ncnValue, effectiveNoNcnSelected, judgmentReference)
+          )
+        )
     } else {
       val params = Seq(
         ncnValue.filter(_.nonEmpty).map(v => NCN -> v),
@@ -98,8 +97,7 @@ class JudgmentNeutralCitationController @Inject() (
     }
   }
 
-  // Removed manual extractFormData; replaced with Form API.
-  private def toObjectMetadata(data: NeutralCitationData): ObjectMetadata = {
+  private def neutralCitationToObjectMetadata(data: NeutralCitationData): ObjectMetadata = {
     ObjectMetadata(
       "data",
       Set(
@@ -117,6 +115,10 @@ class JudgmentNeutralCitationController @Inject() (
   private def validateRelationships(data: ObjectMetadata): Option[String] = {
     val validationErrors: Map[String, List[ValidationError]] = MetadataValidationJsonSchema.validateWithSingleSchema(RELATIONSHIP_SCHEMA, Set(data))
     val errorOption: Option[ValidationError] = validationErrors.headOption.flatMap(x => x._2.headOption)
+    validationErrorMessage(errorOption)
+  }
+
+  private def validationErrorMessage(errorOption: Option[ValidationError]) = {
     errorOption.map(ve => {
       properties.getProperty(s"${ve.validationProcess}.${ve.property}.${ve.errorKey}", s"${ve.validationProcess}.${ve.property}.${ve.errorKey}")
     })
@@ -134,9 +136,7 @@ class JudgmentNeutralCitationController @Inject() (
           val errorOption: Option[ValidationError] = {
             validationErrors.find(p => p._2.exists(error => error.property == NCN)).flatMap(_._2.headOption)
           }
-          errorOption.map(ve => {
-            properties.getProperty(s"${ve.validationProcess}.${ve.property}.${ve.errorKey}", s"${ve.validationProcess}.${ve.property}.${ve.errorKey}")
-          })
+          validationErrorMessage(errorOption)
         }
     }
   }
@@ -147,4 +147,6 @@ class JudgmentNeutralCitationController @Inject() (
     properties.load(source.bufferedReader())
     properties
   }
+
+  private case class NeutralCitationData(neutralCitation: Option[String], noNeutralCitation: Boolean, judgmentReference: Option[String])
 }

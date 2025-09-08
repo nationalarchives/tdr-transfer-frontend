@@ -47,7 +47,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
       body must include("There is a problem")
-      body must include("update-reasons-error") // updated id expected in template
+      body must include("update-reasons-error")
       body must include("Provide the neutral citation number (NCN) for the original judgment")
     }
 

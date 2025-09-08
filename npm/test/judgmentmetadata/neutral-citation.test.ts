@@ -5,7 +5,7 @@ describe("initialiseNeutralCitationToggle", () => {
     document.body.innerHTML = `
       <input type="checkbox" id="no-ncn">
       <input type="text" id="neutral-citation">
-      <input type="text" id="no-ncnReference" value="some details">
+      <input type="text" id="no-ncnReference">
     `
   })
 
@@ -23,7 +23,7 @@ describe("initialiseNeutralCitationToggle", () => {
     expect(input.getAttribute("aria-disabled")).toBe("true")
   })
 
-  test("enables input when checkbox is unchecked and clears details field", () => {
+  test("enables input when checkbox is unchecked and clears reference field", () => {
     const checkbox = document.querySelector<HTMLInputElement>("#no-ncn")!
     const input = document.querySelector<HTMLInputElement>("#neutral-citation")!
     const details = document.querySelector<HTMLInputElement>("#no-ncnReference")!

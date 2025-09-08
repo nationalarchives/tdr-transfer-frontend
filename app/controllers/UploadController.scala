@@ -26,7 +26,8 @@ class UploadController @Inject() (
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val fileStatusService: FileStatusService,
-    val backendChecksService: BackendChecksService
+    val backendChecksService: BackendChecksService,
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -101,17 +102,21 @@ class UploadController @Inject() (
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     def buildBackUrl: String = {
-      val ncn = request.getQueryString("judgment_neutral_citation").filter(_.nonEmpty)
-      val noNcn = request.getQueryString("judgment_no_neutral_citation").filter(_.nonEmpty)
-      val reference = request.getQueryString("judgment_reference").filter(_.nonEmpty)
-      val params = Seq(
-        ncn.map(v => s"judgment_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
-        noNcn.map(v => s"judgment_no_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
-        reference.map(v => s"judgment_reference=${URLEncoder.encode(v, "UTF-8")}"
-        )
-      ).flatten
-      val base = routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
-      if (params.nonEmpty) s"$base?${params.mkString("&")}" else base
+      if (applicationConfig.blockJudgmentPressSummaries) {
+        routes.BeforeUploadingController.beforeUploading(consignmentId).url
+      } else {
+
+        val ncn = request.getQueryString("judgment_neutral_citation").filter(_.nonEmpty)
+        val noNcn = request.getQueryString("judgment_no_neutral_citation").filter(_.nonEmpty)
+        val reference = request.getQueryString("judgment_reference").filter(_.nonEmpty)
+        val params = Seq(
+          ncn.map(v => s"judgment_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
+          noNcn.map(v => s"judgment_no_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
+          reference.map(v => s"judgment_reference=${URLEncoder.encode(v, "UTF-8")}")
+        ).flatten
+        val base = routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
+        if (params.nonEmpty) s"$base?${params.mkString("&")}" else base
+      }
     }
 
     for {
@@ -131,8 +136,10 @@ class UploadController @Inject() (
             .uncache()
         case None =>
           val backUrl = buildBackUrl
-          Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name, backUrl))
-            .uncache()
+          Ok(
+            views.html.judgment
+              .judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name, backUrl)
+          ).uncache()
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
       }
