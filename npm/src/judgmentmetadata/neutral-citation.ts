@@ -8,7 +8,9 @@ export interface ToggleOptions {
 /**
  * Initialise the neutral citation number (NCN) input enable/disable toggle.
  */
-export function initialiseNeutralCitationToggle(options: ToggleOptions = {}): void {
+export function initialiseNeutralCitationToggle(
+  options: ToggleOptions = {}
+): void {
   const {
     checkboxSelector = "#no-ncn",
     inputSelector = "#neutral-citation",
