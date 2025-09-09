@@ -1,13 +1,15 @@
+@import controllers.util.ConsignmentProperty
 @(
   ncnValue: Option[String],
   noNcnSelected: Boolean,
   judgmentReference: Option[String]
 )(implicit messages: Messages)
+@defining(noNcnSelected && ncnValue.isEmpty) { disabledState =>
 <div class="govuk-form-group">
     <label class="govuk-label" for="neutral-citation">
         <span class="govuk-body">Enter the NCN for the judgment that this update relates to:</span>
     </label>
-    <input class="govuk-input @if(noNcnSelected && ncnValue.isEmpty){govuk-input--disabled}" id="neutral-citation" name="judgment_neutral_citation" type="text" value="@ncnValue.getOrElse("")" @if(noNcnSelected && ncnValue.isEmpty){disabled aria-disabled="true"}>
+    <input class="govuk-input @if(noNcnSelected && ncnValue.isEmpty){govuk-input--disabled}" id="neutral-citation" name="@ConsignmentProperty.NCN" type="text" value="@ncnValue.getOrElse("")" @if(disabledState){aria-disabled="true"}>
 </div>
 <div class="govuk-form-group">
     <fieldset class="govuk-fieldset">
@@ -16,19 +18,22 @@
         </legend>
         <div class="govuk-checkboxes" data-module="govuk-checkboxes">
             <div class="govuk-checkboxes__item">
-                <input class="govuk-checkboxes__input" id="no-ncn" name="judgment_no_neutral_citation" type="checkbox" value="no-ncn-select" data-aria-controls="conditional-no-ncn" @if(noNcnSelected && ncnValue.isEmpty){checked}>
+                <input class="govuk-checkboxes__input" id="no-ncn" name="@ConsignmentProperty.NO_NCN" type="checkbox" value="no-ncn-select" data-aria-controls="conditional-no-ncn" @if(disabledState){checked} />
                 <label class="govuk-label govuk-checkboxes__label" for="no-ncn">
                     Original judgment to this update does not have an NCN
                 </label>
             </div>
-            <div class="govuk-checkboxes__conditional @if(!(noNcnSelected && ncnValue.isEmpty)){govuk-checkboxes__conditional--hidden}" id="conditional-no-ncn">
+            <div class="govuk-checkboxes__conditional @if(!disabledState){govuk-checkboxes__conditional--hidden}" id="conditional-no-ncn">
                 <div class="govuk-form-group">
                     <label class="govuk-label" for="no-ncnReference">
                         Provide any details that would help us identify the document, such as a transfer reference  (optional):
                     </label>
-                    <input class="govuk-input" id="no-ncnReference" name="judgment_reference" type="text" value="@{ if(noNcnSelected && ncnValue.isEmpty) judgmentReference.getOrElse("") else "" }">
+                    @defining(if(disabledState) judgmentReference.getOrElse("") else "") { refValue =>
+                        <input class="govuk-input" id="no-ncnReference" name="@ConsignmentProperty.JUDGMENT_REFERENCE" type="text" value="@refValue" />
+                    }
                 </div>
             </div>
         </div>
     </fieldset>
 </div>
+}

@@ -7,6 +7,11 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{POST, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import services.ConsignmentService
+import services.ConsignmentMetadataService
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.AddOrUpdateConsignmentMetadata
 import testUtils.FrontEndTestHelper
 
 import java.util.UUID
@@ -29,7 +34,16 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
   private def instantiateController() = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-    new JudgmentNeutralCitationController(getAuthorisedSecurityComponents, graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+    val consignmentMetadataService = mock[ConsignmentMetadataService]
+    when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], any[List[graphql.codegen.types.ConsignmentMetadata]], any[BearerAccessToken]))
+      .thenReturn(scala.concurrent.Future.successful(List.empty[AddOrUpdateConsignmentMetadata]))
+    new JudgmentNeutralCitationController(
+      getAuthorisedSecurityComponents,
+      graphQLConfiguration,
+      getValidJudgmentUserKeycloakConfiguration,
+      consignmentService,
+      consignmentMetadataService
+    )
   }
 
   "JudgmentNeutralCitationController POST" should {
@@ -79,13 +93,13 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
         .validateNCN(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation")
-            .withFormUrlEncodedBody("judgment_no_neutral_citation" -> "no-ncn-select")
+            .withFormUrlEncodedBody("judgment_no_neutral_citation" -> "no-ncn-select", "judgment_reference" -> "An example reference")
             .withCSRFToken
         )
 
       playStatus(result) mustBe SEE_OTHER
       val redirect = redirectLocation(result).value
-      redirect mustBe s"/judgment/$consignmentId/upload?judgment_no_neutral_citation=no-ncn-select"
+      redirect mustBe s"/judgment/$consignmentId/upload?judgment_no_neutral_citation=no-ncn-select&judgment_reference=An+example+reference"
     }
   }
 }

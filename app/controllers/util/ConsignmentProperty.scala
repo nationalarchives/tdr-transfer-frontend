@@ -1,0 +1,36 @@
+package controllers.util
+
+import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
+import uk.gov.nationalarchives.tdr.validation.schema.MetadataValidationJsonSchema.ObjectMetadata
+import uk.gov.nationalarchives.tdr.validation.schema.{JsonSchemaDefinition, MetadataValidationJsonSchema, ValidationError}
+
+import java.util.Properties
+import scala.io.Source
+
+object ConsignmentProperty {
+  lazy val tdrDataLoadHeaderMapper: String => String = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
+  private lazy val properties = getMessageProperties
+  private lazy val metadataConfiguration = ConfigUtils.loadConfiguration
+  val NCN = "judgment_neutral_citation"
+  val NO_NCN = "judgment_no_neutral_citation"
+  val JUDGMENT_REFERENCE = "judgment_reference"
+
+  def validateWithSchema(data: ObjectMetadata, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
+    MetadataValidationJsonSchema.validateWithSingleSchema(schema, Set(data))
+  }
+
+  def validationErrorMessage(errorOption: Option[ValidationError]): Option[String] = {
+    errorOption.map(ve => {
+      properties.getProperty(s"${ve.validationProcess}.${ve.property}.${ve.errorKey}", s"${ve.validationProcess}.${ve.property}.${ve.errorKey}")
+    })
+  }
+
+  private def getMessageProperties: Properties = {
+    val source = Source.fromURL(getClass.getResource("/validation-messages/validation-messages.properties"))
+    val properties = new Properties()
+    properties.load(source.bufferedReader())
+    properties
+  }
+
+  case class NeutralCitationData(neutralCitation: Option[String], noNeutralCitation: Boolean, judgmentReference: Option[String])
+}

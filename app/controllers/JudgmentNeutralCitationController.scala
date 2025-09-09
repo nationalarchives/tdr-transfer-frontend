@@ -2,49 +2,32 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.ConsignmentProperty._
+import graphql.codegen.types.ConsignmentMetadata
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.ConsignmentService
+import services.{ConsignmentMetadataService, ConsignmentService}
 import uk.gov.nationalarchives.tdr.validation.Metadata
 import uk.gov.nationalarchives.tdr.validation.schema.JsonSchemaDefinition.{BASE_SCHEMA, RELATIONSHIP_SCHEMA}
 import uk.gov.nationalarchives.tdr.validation.schema.MetadataValidationJsonSchema.ObjectMetadata
-import uk.gov.nationalarchives.tdr.validation.schema.{MetadataValidationJsonSchema, ValidationError}
+import uk.gov.nationalarchives.tdr.validation.schema.ValidationError
 
 import java.net.URLEncoder
-import java.util.{Properties, UUID}
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.io.Source
-import play.api.data._
-import play.api.data.Forms._
 
 @Singleton
 class JudgmentNeutralCitationController @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
-    val consignmentService: ConsignmentService
+    val consignmentService: ConsignmentService,
+    val consignmentMetadataService: ConsignmentMetadataService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-
-  private lazy val properties = getMessageProperties
-  private val NCN = "judgment_neutral_citation"
-  private val NO_NCN = "judgment_no_neutral_citation"
-  private val JUDGMENT_REFERENCE = "judgment_reference"
-  private val neutralCitationForm: Form[NeutralCitationData] = Form(
-    mapping(
-      NCN -> optional(text),
-      NO_NCN -> optional(text)
-        .transform[Boolean](_.contains("no-ncn-select"), b => if (b) Some("no-ncn-select") else None),
-      JUDGMENT_REFERENCE -> optional(text)
-    ) { (ncnOpt, noNcn, refOpt) =>
-      NeutralCitationData(ncnOpt.map(_.trim).filter(_.nonEmpty), noNcn, refOpt.map(_.trim).filter(_.nonEmpty))
-    } { data =>
-      Some((data.neutralCitation, data.noNeutralCitation, data.judgmentReference))
-    }
-  )
 
   def addNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val ncnValue: Option[String] = request.getQueryString(NCN).filter(_.nonEmpty)
@@ -57,47 +40,91 @@ class JudgmentNeutralCitationController @Inject() (
   }
 
   def validateNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    neutralCitationForm
-      .bindFromRequest()
-      .fold(
-        _ => handleValidation(consignmentId, NeutralCitationData(None, noNeutralCitation = false, None)),
-        data => handleValidation(consignmentId, data)
-      )
+    val data: NeutralCitationData = extractFormData(request)
+    handleValidation(consignmentId, data)
   }
 
-  private def handleValidation(consignmentId: UUID, data: NeutralCitationData)(implicit request: Request[AnyContent]) = {
-    val objectMetadata = neutralCitationToObjectMetadata(data)
-    val ncnValue: Option[String] = data.neutralCitation
-    val rawNoNcnSelected: Boolean = data.noNeutralCitation
-    val effectiveNoNcnSelected: Boolean = rawNoNcnSelected && ncnValue.forall(_.isEmpty)
-    val judgmentReference: Option[String] = if (effectiveNoNcnSelected) data.judgmentReference else None
+  private def handleValidation(consignmentId: UUID, ncnData: NeutralCitationData)(implicit request: Request[AnyContent]) = {
 
-    val validated = doValidation(objectMetadata)
+    // Only send judgmentReference if noNeutralCitation is true
+    val judgmentReference: Option[String] = if (ncnData.noNeutralCitation) ncnData.judgmentReference else None
+
+    val validated = doValidation(ncnData)
 
     if (validated.isDefined) {
       consignmentService
         .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         .map(reference =>
           BadRequest(
-            views.html.judgment.judgmentNeutralCitationNumberError(consignmentId, reference, request.token.name, validated.get, ncnValue, effectiveNoNcnSelected, judgmentReference)
+            views.html.judgment.judgmentNeutralCitationNumberError(
+              consignmentId,
+              reference,
+              request.token.name,
+              validated.get,
+              ncnData.judgmentReference,
+              ncnData.noNeutralCitation,
+              judgmentReference
+            )
           )
         )
     } else {
-      val params = Seq(
-        ncnValue.filter(_.nonEmpty).map(v => NCN -> v),
-        if (effectiveNoNcnSelected) Some(NO_NCN -> "no-ncn-select") else None,
-        if (effectiveNoNcnSelected) judgmentReference.filter(_.nonEmpty).map(v => JUDGMENT_REFERENCE -> v) else None
-      ).flatten
-      val base = routes.UploadController.judgmentUploadPage(consignmentId).url
-      val url = if (params.nonEmpty) {
-        val qs = params.map { case (k, v) => s"$k=${URLEncoder.encode(v, "UTF-8")}" }.mkString("&")
-        s"$base?$qs"
-      } else base
-      Future.successful(Redirect(url))
+      val url: String = buildBackURL(consignmentId, ncnData)
+
+      val metadataList = List(
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), ncnData.neutralCitation.getOrElse("")),
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), if (ncnData.noNeutralCitation) "yes" else "no"),
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), judgmentReference.getOrElse(""))
+      )
+      consignmentMetadataService
+        .addOrUpdateConsignmentMetadata(consignmentId, metadataList, request.token.bearerAccessToken)
+
+      Future(Redirect(url))
     }
   }
 
-  private def neutralCitationToObjectMetadata(data: NeutralCitationData): ObjectMetadata = {
+  private def buildBackURL(consignmentId: UUID, ncnData: NeutralCitationData) = {
+    val params: Seq[(String, String)] = Seq(
+      if (ncnData.neutralCitation.nonEmpty) Some(NCN -> ncnData.neutralCitation.get) else None,
+      if (ncnData.noNeutralCitation) Some(NO_NCN -> "no-ncn-select") else None,
+      if (ncnData.noNeutralCitation) ncnData.judgmentReference.map(reference => JUDGMENT_REFERENCE -> reference) else None
+    ).flatten
+    val base = routes.UploadController.judgmentUploadPage(consignmentId).url
+    val url = if (params.nonEmpty) {
+      val encodedParameters = params.map { case (k, v) => s"$k=${URLEncoder.encode(v, "UTF-8")}" }.mkString("&")
+      s"$base?$encodedParameters"
+    } else base
+    url
+  }
+
+  private def doValidation(data: NeutralCitationData): Option[String] = {
+    validateNCNValue(data).orElse(validateRelationships(data))
+  }
+
+  private def validateRelationships(data: NeutralCitationData): Option[String] = {
+    val objectMetadata = neutralCitationDataToObjectMetadata(data)
+    val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(objectMetadata, RELATIONSHIP_SCHEMA)
+    val errorOption: Option[ValidationError] = validationErrors.headOption.flatMap(x => x._2.headOption)
+    validationErrorMessage(errorOption)
+  }
+
+  private def validateNCNValue(data: NeutralCitationData): Option[String] = {
+    data.neutralCitation match {
+      case None => None
+      case Some(ncnMetadata) =>
+        if (ncnMetadata.isEmpty) {
+          None
+        } else {
+          val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(neutralCitationDataToObjectMetadata(data), BASE_SCHEMA)
+
+          val errorOption: Option[ValidationError] = {
+            validationErrors.find(p => p._2.exists(error => error.property == NCN)).flatMap(_._2.headOption)
+          }
+          validationErrorMessage(errorOption)
+        }
+    }
+  }
+
+  private def neutralCitationDataToObjectMetadata(data: NeutralCitationData): ObjectMetadata = {
     ObjectMetadata(
       "data",
       Set(
@@ -108,45 +135,13 @@ class JudgmentNeutralCitationController @Inject() (
     )
   }
 
-  private def doValidation(data: ObjectMetadata): Option[String] = {
-    validateNCNValue(data).orElse(validateRelationships(data))
+  private def extractFormData(request: Request[AnyContent]) = {
+    val formData = request.body.asFormUrlEncoded.getOrElse(Map.empty)
+    NeutralCitationData(
+      formData.get(NCN).flatMap(_.headOption),
+      formData.get(NO_NCN).exists(_.contains("no-ncn-select")),
+      formData.get(JUDGMENT_REFERENCE).flatMap(_.headOption)
+    )
   }
 
-  private def validateRelationships(data: ObjectMetadata): Option[String] = {
-    val validationErrors: Map[String, List[ValidationError]] = MetadataValidationJsonSchema.validateWithSingleSchema(RELATIONSHIP_SCHEMA, Set(data))
-    val errorOption: Option[ValidationError] = validationErrors.headOption.flatMap(x => x._2.headOption)
-    validationErrorMessage(errorOption)
-  }
-
-  private def validationErrorMessage(errorOption: Option[ValidationError]) = {
-    errorOption.map(ve => {
-      properties.getProperty(s"${ve.validationProcess}.${ve.property}.${ve.errorKey}", s"${ve.validationProcess}.${ve.property}.${ve.errorKey}")
-    })
-  }
-
-  private def validateNCNValue(data: ObjectMetadata): Option[String] = {
-    data.metadata.find(_.name == NCN) match {
-      case None => None
-      case Some(ncnMetadata) =>
-        val ncnValue = ncnMetadata.value
-        if (ncnValue.isEmpty) {
-          None
-        } else {
-          val validationErrors: Map[String, List[ValidationError]] = MetadataValidationJsonSchema.validateWithSingleSchema(BASE_SCHEMA, Set(data))
-          val errorOption: Option[ValidationError] = {
-            validationErrors.find(p => p._2.exists(error => error.property == NCN)).flatMap(_._2.headOption)
-          }
-          validationErrorMessage(errorOption)
-        }
-    }
-  }
-
-  private def getMessageProperties: Properties = {
-    val source = Source.fromURL(getClass.getResource("/validation-messages/validation-messages.properties"))
-    val properties = new Properties()
-    properties.load(source.bufferedReader())
-    properties
-  }
-
-  private case class NeutralCitationData(neutralCitation: Option[String], noNeutralCitation: Boolean, judgmentReference: Option[String])
 }
