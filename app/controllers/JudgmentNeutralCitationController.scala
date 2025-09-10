@@ -77,8 +77,7 @@ class JudgmentNeutralCitationController @Inject() (
       )
       consignmentMetadataService
         .addOrUpdateConsignmentMetadata(consignmentId, metadataList, request.token.bearerAccessToken)
-
-      Future(Redirect(url))
+        .map(_ => Redirect(url))
     }
   }
 
