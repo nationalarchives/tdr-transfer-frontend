@@ -502,7 +502,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
           |""".stripMargin)
     }
 
-    "show the judgment upload back  to before upload when behind fab blockJudgmentPressSummaries" in {
+    "show the judgment upload back to before upload when behind fab blockJudgmentPressSummaries" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
@@ -532,6 +532,38 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload?judgment_neutral_citation=judgmentNeutralCitation").withCSRFToken)
       val uploadPageAsString = contentAsString(uploadPage)
       uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
+    }
+
+    "show the back button shows no parameters when no ncn sent in request" in {
+      val controller = setUpController()
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+
+      val uploadPage = controller
+        .judgmentUploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
+      uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/neutral-citation" class="govuk-back-link">Back</a>""")
+    }
+
+    "show the back button shows parameters when ncn sent in request" in {
+      val controller = setUpController()
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+
+      val uploadPage = controller
+        .judgmentUploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload?judgment_neutral_citation=judgmentNeutralCitation").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
+      uploadPageAsString must include(
+        """<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/neutral-citation?judgment_neutral_citation=judgmentNeutralCitation" class="govuk-back-link">Back</a>"""
+      )
     }
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
@@ -1106,5 +1138,24 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |        </a>""".stripMargin
       )
     }
+  }
+
+  private def setUpController() = {
+    val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
+    val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+    val fileStatusService = new FileStatusService(graphQLConfiguration)
+    val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+
+    new UploadController(
+      getAuthorisedSecurityComponents,
+      graphQLConfiguration,
+      getValidJudgmentUserKeycloakConfiguration,
+      frontEndInfoConfiguration,
+      consignmentService,
+      uploadService,
+      fileStatusService,
+      backendChecksService
+    )
   }
 }
