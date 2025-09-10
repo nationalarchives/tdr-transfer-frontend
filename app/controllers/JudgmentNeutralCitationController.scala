@@ -3,20 +3,17 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.ConsignmentProperty._
-import graphql.codegen.types.ConsignmentMetadata
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentMetadataService, ConsignmentService}
-import uk.gov.nationalarchives.tdr.validation.Metadata
 import uk.gov.nationalarchives.tdr.validation.schema.JsonSchemaDefinition.{BASE_SCHEMA, RELATIONSHIP_SCHEMA}
-import uk.gov.nationalarchives.tdr.validation.schema.MetadataValidationJsonSchema.ObjectMetadata
 import uk.gov.nationalarchives.tdr.validation.schema.ValidationError
 
 import java.net.URLEncoder
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class JudgmentNeutralCitationController @Inject() (
@@ -96,8 +93,7 @@ class JudgmentNeutralCitationController @Inject() (
   }
 
   private def validateRelationships(data: NeutralCitationData): Option[String] = {
-    val objectMetadata = neutralCitationDataToObjectMetadata(data)
-    val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(objectMetadata, RELATIONSHIP_SCHEMA)
+    val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(data, RELATIONSHIP_SCHEMA)
     val errorOption: Option[ValidationError] = validationErrors.headOption.flatMap(x => x._2.headOption)
     validationErrorMessage(errorOption)
   }
@@ -109,7 +105,7 @@ class JudgmentNeutralCitationController @Inject() (
         if (ncnMetadata.isEmpty) {
           None
         } else {
-          val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(neutralCitationDataToObjectMetadata(data), BASE_SCHEMA)
+          val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(data, BASE_SCHEMA)
 
           val errorOption: Option[ValidationError] = {
             validationErrors.find(p => p._2.exists(error => error.property == NCN)).flatMap(_._2.headOption)
@@ -117,17 +113,6 @@ class JudgmentNeutralCitationController @Inject() (
           validationErrorMessage(errorOption)
         }
     }
-  }
-
-  private def neutralCitationDataToObjectMetadata(data: NeutralCitationData): ObjectMetadata = {
-    ObjectMetadata(
-      "data",
-      Set(
-        Metadata(NCN, data.neutralCitation.getOrElse("")),
-        Metadata(NO_NCN, if (data.noNeutralCitation) "yes" else "no"),
-        Metadata(JUDGMENT_REFERENCE, data.judgmentReference.getOrElse(""))
-      )
-    )
   }
 
   private def extractFormData(request: Request[AnyContent]) = {
@@ -138,5 +123,4 @@ class JudgmentNeutralCitationController @Inject() (
       formData.get(JUDGMENT_REFERENCE).flatMap(_.headOption)
     )
   }
-
 }
