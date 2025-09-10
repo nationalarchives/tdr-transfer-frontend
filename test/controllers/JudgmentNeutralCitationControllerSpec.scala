@@ -11,6 +11,7 @@ import services.ConsignmentMetadataService
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import controllers.util.ConsignmentProperty.NeutralCitationData
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.AddOrUpdateConsignmentMetadata
 import testUtils.FrontEndTestHelper
 
@@ -35,7 +36,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentMetadataService = mock[ConsignmentMetadataService]
-    when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], any[List[graphql.codegen.types.ConsignmentMetadata]], any[BearerAccessToken]))
+    when(consignmentMetadataService.addOrUpdateConsignmentNeutralCitationNumber(any[UUID], any[NeutralCitationData], any[BearerAccessToken]))
       .thenReturn(scala.concurrent.Future.successful(List.empty[AddOrUpdateConsignmentMetadata]))
     new JudgmentNeutralCitationController(
       getAuthorisedSecurityComponents,
@@ -78,7 +79,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
             .withFormUrlEncodedBody("judgment_neutral_citation" -> validNcn)
             .withCSRFToken
         )
-
+      println(playStatus(result))
       playStatus(result) mustBe SEE_OTHER
       val redirect = redirectLocation(result).value
       redirect must startWith(s"/judgment/$consignmentId/upload?judgment_neutral_citation=")

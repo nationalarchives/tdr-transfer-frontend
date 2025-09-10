@@ -31,8 +31,9 @@ class JudgmentNeutralCitationController @Inject() (
 
   def addNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val ncnValue: Option[String] = request.getQueryString(NCN).filter(_.nonEmpty)
-    val rawNoNcnSelected: Boolean = request.getQueryString(NO_NCN).exists(_.contains("no-ncn-select"))
-    val effectiveNoNcnSelected = rawNoNcnSelected && ncnValue.isEmpty
+    val noNcnSelected: Boolean = request.getQueryString(NO_NCN).exists(_.contains("no-ncn-select"))
+    val effectiveNoNcnSelected = noNcnSelected && ncnValue.isEmpty
+    // UI does not allow both NCN and no NCN to be selected, so only send judgmentReference if noNCN is selected
     val judgmentReference: Option[String] = if (effectiveNoNcnSelected) request.getQueryString(JUDGMENT_REFERENCE).filter(_.nonEmpty) else None
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -70,13 +71,8 @@ class JudgmentNeutralCitationController @Inject() (
     } else {
       val url: String = buildBackURL(consignmentId, ncnData)
 
-      val metadataList = List(
-        ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), ncnData.neutralCitation.getOrElse("")),
-        ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), if (ncnData.noNeutralCitation) "yes" else "no"),
-        ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), judgmentReference.getOrElse(""))
-      )
       consignmentMetadataService
-        .addOrUpdateConsignmentMetadata(consignmentId, metadataList, request.token.bearerAccessToken)
+        .addOrUpdateConsignmentNeutralCitationNumber(consignmentId, ncnData, request.token.bearerAccessToken)
         .map(_ => Redirect(url))
     }
   }

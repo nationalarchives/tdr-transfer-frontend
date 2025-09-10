@@ -2,6 +2,7 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import controllers.util.ConsignmentProperty.{JUDGMENT_REFERENCE, NCN, NO_NCN, NeutralCitationData, tdrDataLoadHeaderMapper}
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.{addOrUpdateConsignmentMetadata => aoucm}
 import graphql.codegen.types.{AddOrUpdateConsignmentMetadataInput, ConsignmentMetadata}
 import services.ApiErrorHandling._
@@ -29,5 +30,20 @@ class ConsignmentMetadataService @Inject() (val graphqlConfiguration: GraphQLCon
     val input = AddOrUpdateConsignmentMetadataInput(consignmentId, consignmentMetadata)
     val variables = aoucm.Variables(input)
     sendApiRequest(addOrUpdateConsignmentMetadataClient, aoucm.document, token, variables).map(_.addOrUpdateConsignmentMetadata)
+  }
+
+  def addOrUpdateConsignmentNeutralCitationNumber(
+      consignmentId: UUID,
+      neutralCitationData: NeutralCitationData,
+      token: BearerAccessToken
+  ): Future[List[aoucm.AddOrUpdateConsignmentMetadata]] = {
+    val judgmentReference: Option[String] = if (neutralCitationData.noNeutralCitation) neutralCitationData.judgmentReference else None
+
+    val metadataList = List(
+      ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), neutralCitationData.neutralCitation.getOrElse("")),
+      ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), if (neutralCitationData.noNeutralCitation) "yes" else "no"),
+      ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), judgmentReference.getOrElse(""))
+    )
+    addOrUpdateConsignmentMetadata(consignmentId, metadataList, token)
   }
 }
