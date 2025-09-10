@@ -41,7 +41,7 @@ class ConsignmentMetadataService @Inject() (val graphqlConfiguration: GraphQLCon
 
     val metadataList = List(
       ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), neutralCitationData.neutralCitation.getOrElse("")),
-      ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), if (neutralCitationData.noNeutralCitation) "yes" else "no"),
+      ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), neutralCitationData.noNeutralCitation.toString),
       ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), judgmentReference.getOrElse(""))
     )
     addOrUpdateConsignmentMetadata(consignmentId, metadataList, token)
