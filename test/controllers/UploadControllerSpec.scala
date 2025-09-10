@@ -509,7 +509,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val fileStatusService = new FileStatusService(graphQLConfiguration)
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val fabConfiguration: Configuration = mock[Configuration]
-      when(fabConfiguration.get[Boolean]("featureAccessBlock.blockJudgmentPressSummaries")).thenReturn(true)
+      when(fabConfiguration.get[Boolean]("notificationSnsTopicArn")).thenReturn(true)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val fabConfigBlockJudgmentPressSummaries = new ApplicationConfig(fabConfiguration)
       val controller = new UploadController(
