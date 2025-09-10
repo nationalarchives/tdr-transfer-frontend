@@ -26,8 +26,7 @@ class UploadController @Inject() (
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val fileStatusService: FileStatusService,
-    val backendChecksService: BackendChecksService,
-    val applicationConfig: ApplicationConfig
+    val backendChecksService: BackendChecksService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -102,7 +101,7 @@ class UploadController @Inject() (
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     def buildBackUrl: String = {
-      if (applicationConfig.blockJudgmentPressSummaries) {
+      if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
         routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
 
