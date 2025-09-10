@@ -20,7 +20,7 @@ object ConsignmentProperty {
     MetadataValidationJsonSchema.validateWithSingleSchema(schema, Set(data))
   }
 
-  def validateWithSchema(neutralCitationData: NeutralCitationData, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
+  def validateNeutralCitationData(neutralCitationData: NeutralCitationData, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
     val data = ObjectMetadata(
       "data",
       Set(

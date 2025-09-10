@@ -93,7 +93,7 @@ class JudgmentNeutralCitationController @Inject() (
   }
 
   private def validateRelationships(data: NeutralCitationData): Option[String] = {
-    val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(data, RELATIONSHIP_SCHEMA)
+    val validationErrors: Map[String, List[ValidationError]] = validateNeutralCitationData(data, RELATIONSHIP_SCHEMA)
     val errorOption: Option[ValidationError] = validationErrors.headOption.flatMap(x => x._2.headOption)
     validationErrorMessage(errorOption)
   }
@@ -105,7 +105,7 @@ class JudgmentNeutralCitationController @Inject() (
         if (ncnMetadata.isEmpty) {
           None
         } else {
-          val validationErrors: Map[String, List[ValidationError]] = validateWithSchema(data, BASE_SCHEMA)
+          val validationErrors: Map[String, List[ValidationError]] = validateNeutralCitationData(data, BASE_SCHEMA)
 
           val errorOption: Option[ValidationError] = {
             validationErrors.find(p => p._2.exists(error => error.property == NCN)).flatMap(_._2.headOption)
