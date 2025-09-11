@@ -10,7 +10,7 @@ export interface ToggleOptions {
  */
 export function initialiseNeutralCitationToggle(
   options: ToggleOptions = {}
-): void {
+) {
   const {
     checkboxSelector = "#no-ncn",
     inputSelector = "#neutral-citation",
@@ -33,21 +33,21 @@ export function initialiseNeutralCitationToggle(
 
   const DISABLED_CLASS = "govuk-input--disabled"
 
-  const disableInput = (): void => {
+  const disableInput = () => {
     textInput.value = ""
     textInput.disabled = true
     textInput.setAttribute("aria-disabled", "true")
     textInput.classList.add(DISABLED_CLASS)
   }
 
-  const enableInput = (): void => {
+  const enableInput = () => {
     textInput.disabled = false
     textInput.removeAttribute("aria-disabled")
     textInput.classList.remove(DISABLED_CLASS)
     textInput.focus()
   }
 
-  const toggle = (): void => {
+  const toggle = () => {
     if (checkbox.checked) {
       disableInput()
     } else {
