@@ -13,7 +13,6 @@ import services.Statuses._
 import services._
 import viewsapi.Caching.preventCaching
 
-import java.net.URLEncoder
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -107,14 +106,13 @@ class UploadController @Inject() (
       if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
         routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
-
         val ncn = request.getQueryString(NCN).filter(_.nonEmpty)
         val noNcn = request.getQueryString(NO_NCN).filter(_.nonEmpty)
         val reference = request.getQueryString(JUDGMENT_REFERENCE).filter(_.nonEmpty)
         val params = Seq(
-          ncn.map(v => s"$NCN=${URLEncoder.encode(v, "UTF-8")}"),
-          noNcn.map(v => s"$NO_NCN=${URLEncoder.encode(v, "UTF-8")}"),
-          reference.map(v => s"$JUDGMENT_REFERENCE=${URLEncoder.encode(v, "UTF-8")}")
+          ncn.map(neutralCitation => s"$NCN=$neutralCitation"),
+          noNcn.map(noNeutralCitation => s"$NO_NCN=$noNeutralCitation"),
+          reference.map(reference => s"$JUDGMENT_REFERENCE=$reference")
         ).flatten
         val base = routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
         if (params.nonEmpty) s"$base?${params.mkString("&")}" else base

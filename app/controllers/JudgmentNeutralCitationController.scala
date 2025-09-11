@@ -81,11 +81,10 @@ class JudgmentNeutralCitationController @Inject() (
       if (ncnData.noNeutralCitation) ncnData.judgmentReference.map(reference => JUDGMENT_REFERENCE -> reference) else None
     ).flatten
     val base = routes.UploadController.judgmentUploadPage(consignmentId).url
-    val url = if (params.nonEmpty) {
-      val encodedParameters = params.map { case (k, v) => s"$k=${URLEncoder.encode(v, "UTF-8")}" }.mkString("&")
+    if (params.nonEmpty) {
+      val encodedParameters = params.map { case (k, value) => s"$k=${URLEncoder.encode(value, "UTF-8")}" }.mkString("&")
       s"$base?$encodedParameters"
     } else base
-    url
   }
 
   private def doValidation(data: NeutralCitationData): Option[String] = {
