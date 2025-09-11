@@ -2,7 +2,6 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import controllers.util.ConsignmentProperty
 import controllers.util.ConsignmentProperty.{JUDGMENT_REFERENCE, NCN, NO_NCN}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
@@ -105,8 +104,7 @@ class UploadController @Inject() (
     def buildBackUrl: String = {
       // TODO when all NCN work complete this is what the fab block should be
       // if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
-      //if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
-      if(false){
+      if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
         routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
 
