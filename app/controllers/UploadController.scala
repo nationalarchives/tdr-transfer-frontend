@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.ConsignmentProperty
+import controllers.util.ConsignmentProperty.{JUDGMENT_REFERENCE, NCN, NO_NCN}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -104,17 +105,18 @@ class UploadController @Inject() (
     def buildBackUrl: String = {
       // TODO when all NCN work complete this is what the fab block should be
       // if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
-      if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
+      //if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
+      if(false){
         routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
 
-        val ncn = request.getQueryString(ConsignmentProperty.NCN).filter(_.nonEmpty)
-        val noNcn = request.getQueryString(ConsignmentProperty.NO_NCN).filter(_.nonEmpty)
-        val reference = request.getQueryString(ConsignmentProperty.JUDGMENT_REFERENCE).filter(_.nonEmpty)
+        val ncn = request.getQueryString(NCN).filter(_.nonEmpty)
+        val noNcn = request.getQueryString(NO_NCN).filter(_.nonEmpty)
+        val reference = request.getQueryString(JUDGMENT_REFERENCE).filter(_.nonEmpty)
         val params = Seq(
-          ncn.map(v => s"${ConsignmentProperty.NCN}=${URLEncoder.encode(v, "UTF-8")}"),
-          noNcn.map(v => s"${ConsignmentProperty.NO_NCN}=${URLEncoder.encode(v, "UTF-8")}"),
-          reference.map(v => s"${ConsignmentProperty.JUDGMENT_REFERENCE}=${URLEncoder.encode(v, "UTF-8")}")
+          ncn.map(v => s"$NCN=${URLEncoder.encode(v, "UTF-8")}"),
+          noNcn.map(v => s"$NO_NCN=${URLEncoder.encode(v, "UTF-8")}"),
+          reference.map(v => s"$JUDGMENT_REFERENCE=${URLEncoder.encode(v, "UTF-8")}")
         ).flatten
         val base = routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
         if (params.nonEmpty) s"$base?${params.mkString("&")}" else base
