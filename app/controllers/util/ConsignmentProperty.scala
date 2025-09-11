@@ -25,6 +25,7 @@ object ConsignmentProperty {
       "data",
       Set(
         Metadata(NCN, neutralCitationData.neutralCitation.getOrElse("")),
+        // need yes or no here ad Metadata value expects a string. Converted before final validation
         Metadata(NO_NCN, if (neutralCitationData.noNeutralCitation) "yes" else "no"),
         Metadata(JUDGMENT_REFERENCE, neutralCitationData.judgmentReference.getOrElse(""))
       )
