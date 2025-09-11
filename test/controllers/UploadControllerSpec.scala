@@ -1125,7 +1125,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
   }
 
   private def setUpNCNTestController() = {
-    // when code for FAB blockJudgmentPressSummaries remove next 2 lines
+    // -----------------------
+    // when code for FAB blockJudgmentPressSummaries remove below
     val frontEndInfoConfigurationTest: ApplicationConfig = mock[ApplicationConfig]
     when(frontEndInfoConfigurationTest.draftMetadataFileName).thenReturn("TEST_WITHFAB")
     when(frontEndInfoConfigurationTest.frontEndInfo).thenReturn(
@@ -1139,6 +1140,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         "mockRealm"
       )
     )
+    // -----------------------
     val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
