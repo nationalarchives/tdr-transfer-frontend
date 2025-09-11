@@ -44,7 +44,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       graphQLConfiguration,
       getValidJudgmentUserKeycloakConfiguration,
       consignmentService,
-      consignmentMetadataService,
+      consignmentMetadataService
     )
   }
 

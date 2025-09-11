@@ -101,7 +101,9 @@ class UploadController @Inject() (
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     def buildBackUrl: String = {
-      if (frontEndInfoConfiguration.notificationSnsTopicArn != null) {
+      // TODO when all NCN work complete this is what the fab block should be
+      // if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
+      if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
         routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
 
@@ -111,7 +113,7 @@ class UploadController @Inject() (
         val params = Seq(
           ncn.map(v => s"judgment_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
           noNcn.map(v => s"judgment_no_neutral_citation=${URLEncoder.encode(v, "UTF-8")}"),
-            reference.map(v => s"judgment_reference=${URLEncoder.encode(v, "UTF-8")}")
+          reference.map(v => s"judgment_reference=${URLEncoder.encode(v, "UTF-8")}")
         ).flatten
         val base = routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
         if (params.nonEmpty) s"$base?${params.mkString("&")}" else base

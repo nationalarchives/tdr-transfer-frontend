@@ -28,6 +28,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, InProgressValue, StatusValue}
+import viewsapi.FrontEndInfo
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import scala.jdk.CollectionConverters._
@@ -417,22 +418,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "show the judgment upload page for judgments" in {
-      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
-      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = new UploadController(
-        getAuthorisedSecurityComponents,
-        graphQLConfiguration,
-        getValidJudgmentUserKeycloakConfiguration,
-        frontEndInfoConfiguration,
-        consignmentService,
-        uploadService,
-        fileStatusService,
-        backendChecksService
-      )
+      val controller = setUpNCNTestController()
 
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -508,15 +495,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
-      val fabConfiguration: Configuration = mock[Configuration]
-      when(fabConfiguration.get[Boolean]("notificationSnsTopicArn")).thenReturn(true)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val fabConfigBlockJudgmentPressSummaries = new ApplicationConfig(fabConfiguration)
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
         graphQLConfiguration,
         getValidJudgmentUserKeycloakConfiguration,
-        fabConfigBlockJudgmentPressSummaries,
+        frontEndInfoConfiguration,
         consignmentService,
         uploadService,
         fileStatusService,
@@ -535,7 +519,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "show the back button shows no parameters when no ncn sent in request" in {
-      val controller = setUpController()
+      val controller = setUpNCNTestController()
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
       setConsignmentReferenceResponse(wiremockServer)
@@ -550,7 +534,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "show the back button shows parameters when ncn sent in request" in {
-      val controller = setUpController()
+      val controller = setUpNCNTestController()
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
       setConsignmentReferenceResponse(wiremockServer)
@@ -1140,7 +1124,21 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def setUpController() = {
+  private def setUpNCNTestController() = {
+    // when code for FAB blockJudgmentPressSummaries remove next 2 lines
+    val frontEndInfoConfigurationTest: ApplicationConfig = mock[ApplicationConfig]
+    when(frontEndInfoConfigurationTest.draftMetadataFileName).thenReturn("TEST_WITHFAB")
+    when(frontEndInfoConfigurationTest.frontEndInfo).thenReturn(
+      FrontEndInfo(
+        "https://mock-api-url.com/graphql",
+        "mockStage",
+        "mockRegion",
+        "https://mock-upload-url.com",
+        "https://mock-auth-url.com",
+        "mockClientId",
+        "mockRealm"
+      )
+    )
     val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
@@ -1151,7 +1149,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
       getValidJudgmentUserKeycloakConfiguration,
-      frontEndInfoConfiguration,
+      // when code for FAB blockJudgmentPressSummaries replace below with frontEndInfoConfiguration,
+      frontEndInfoConfigurationTest,
       consignmentService,
       uploadService,
       fileStatusService,
