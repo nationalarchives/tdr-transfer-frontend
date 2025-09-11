@@ -32,17 +32,17 @@ class ConsignmentMetadataService @Inject() (val graphqlConfiguration: GraphQLCon
     sendApiRequest(addOrUpdateConsignmentMetadataClient, aoucm.document, token, variables).map(_.addOrUpdateConsignmentMetadata)
   }
 
+  // Convenience method to add or update the neutral citation number, no neutral citation flag, and judgment reference metadataw
+  // will not validated the data, just send it to the API
   def addOrUpdateConsignmentNeutralCitationNumber(
       consignmentId: UUID,
       neutralCitationData: NeutralCitationData,
       token: BearerAccessToken
   ): Future[List[aoucm.AddOrUpdateConsignmentMetadata]] = {
-    val judgmentReference: Option[String] = if (neutralCitationData.noNeutralCitation) neutralCitationData.judgmentReference else None
-
     val metadataList = List(
       ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), neutralCitationData.neutralCitation.getOrElse("")),
       ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), neutralCitationData.noNeutralCitation.toString),
-      ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), judgmentReference.getOrElse(""))
+      ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), neutralCitationData.judgmentReference.getOrElse(""))
     )
     addOrUpdateConsignmentMetadata(consignmentId, metadataList, token)
   }
