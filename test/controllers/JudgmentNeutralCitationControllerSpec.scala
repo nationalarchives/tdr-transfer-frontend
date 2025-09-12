@@ -113,6 +113,29 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       body must include("Neutral citation number must be between 10 and 100 characters")
     }
 
+    "return BadRequest and show error when the user enters more than 500 characters for judgment_reference field" in {
+      val consignmentId = UUID.randomUUID()
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+      val longJudgmentReference = "a" * 501
+
+      val result = controller
+        .validateNCN(consignmentId)
+        .apply(
+          FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation?")
+            .withFormUrlEncodedBody("judgment_reference" -> longJudgmentReference)
+            .withCSRFToken
+        )
+
+      playStatus(result) mustBe BAD_REQUEST
+      contentType(result) mustBe Some("text/html")
+      val body = contentAsString(result)
+      body must include("There is a problem")
+      body must include("update-reasons-error")
+      body must include("Enter a valid NCN, or select 'Original judgment to this update does not have an NCN'")
+    }
+
     "redirect to upload page when NCN is provided" in {
       val consignmentId = UUID.randomUUID()
       val controller = instantiateController()
