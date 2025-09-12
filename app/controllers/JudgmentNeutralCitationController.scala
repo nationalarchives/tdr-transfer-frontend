@@ -59,7 +59,7 @@ class JudgmentNeutralCitationController @Inject() (
               reference,
               request.token.name,
               validated.get,
-              ncnData.judgmentReference,
+              ncnData.neutralCitation,
               ncnData.noNeutralCitation,
               judgmentReference
             )
