@@ -1,3 +1,4 @@
+@import views.html.partials.judgmentHelpContentOriginal
 @(isLoggedIn: Boolean, name: String, blockPressSummaries: Boolean)(implicit messages: Messages, request: RequestHeader)
 @defining("Transferring Judgments to The National Archives") { title =>
     @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
@@ -5,456 +6,541 @@
             <div class="govuk-grid-column-two-thirds">
                 <h1 class="govuk-heading-l" id="transferring-judgments">@title</h1>
 
-                <h2 class="govuk-heading-m" id="step-by-step-guide">
-                    A step-by-step guide to using Transfer Digital Records (TDR)</h2>
-                <nav aria-label="List">
-                    <ul class="govuk-list govuk-list--bullet">
-                        <li><a href="#about">About this service</a></li>
-                        <li><a href="#before-you-begin">Before you begin</a></li>
-                        <li>
-                            <a href="#register-new-account">Registering for a new account</a>
+                <h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to using Transfer Digital Records (TDR)</h2>
+                @if(blockPressSummaries) {
+                    @judgmentHelpContentOriginal()
+                } else {
+                    <nav aria-label="List">
+                        <ul class="govuk-list govuk-list--bullet">
+                            <li><a href="#about">About this service</a></li>
+                            <li><a href="#before-you-begin">Before you begin</a></li>
+                            <li>
+                                <a href="#register-new-account">Registering for a new account</a>
+                                <ul class="govuk-list govuk-list--bullet">
+                                    <li><a class="govuk-link" href="#new-user-email">
+                                        Part 1: Requesting a new account</a></li>
+                                    <li><a class="govuk-link" href="#two-step-auth">
+                                        Part 2: How to set up your OTP (one time password)</a></li>
+                                    <li><a class="govuk-link" href="#set-pass">Part 3: Set your password</a></li>
+                                    <li><a class="govuk-link" href="#set-up-two-set-auth">
+                                        Set up two step authentication</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a class="govuk-link" href="#existing-account-holder">
+                                    Part 1: Using this service as an existing account holder</a>
+                        <li>Part 2:
                             <ul class="govuk-list govuk-list--bullet">
-                                <li><a href="#new-user-email">Requesting a new account</a></li>
-                                <li><a href="#two-step-auth">How to set up your OTP (one time password)</a></li>
-                                <li><a href="#set-pass">Set your password</a></li>
+                                <li><a class="govuk-link" href="#option-1">
+                                    Option 1: It's a judgment or decision being transferred for the first time </a></li>
+                                <li><a class="govuk-link" href="#option-2">
+                                    Option 2: It's an update to a judgment and decision</a></li>
+                                <li><a class="govuk-link" href="#option-3">
+                                    Option 3: It's a press summary related to a judgment or decision
+                                </a></li>
                             </ul>
                         </li>
-                        <li>
-                            <a href="#existing-account-holder">Using this service as an existing account holder</a>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><a href="#accessing-tdr">Accessing TDR</a></li>
-                                <li><a href="#step-0">
-                                    Step 0: Sign in to your account using multi-factor authentication</a></li>
-                                <li><a href="#step-1">Step 1: Check your file before uploading</a></li>
-                                <li><a href="#step-2">Step 2: Upload the judgment</a></li>
-                                <li><a href="#step-3">Step 3: Upload undergoes checks</a></li>
-                                <li><a href="#step-4">Step 4: Transfer complete</a></li>
-                            </ul>
-                        </li>
-                        <li><a href="#glossary">Glossary</a></li>
-                    </ul>
-                </nav>
+                            </li>
+                            <li><a href="#part-3-upload-doc">Part 3: Upload the document</a></li>
+                            <li><a href="#glossary">Glossary</a></li>
+                        </ul>
+                    </nav>
+                    <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-                <h2 class="govuk-heading-m" id="about">About this service</h2>
-                <p class="govuk-body">
-                    Transfer Digital Records (TDR) is a secure digital transfer service from The National Archives (TNA) that enables Public Record Bodies to upload, prepare and then transfer selected digital public records to TNA for permanent archiving and publication.
-                </p>
-                <p class="govuk-body">
-                    For anyone involved in recording judgments, this service is used to send the final approved judgment to TNA for preservation and publication on the 'Find Case Law' website <a href="https://caselaw.nationalarchives.gov.uk">
-                    https://caselaw.nationalarchives.gov.uk</a>.
-                </p>
-                <p class="govuk-body">
-                    Sending judgments via TDR is in two stages:
-                </p>
-                <ul class="govuk-list govuk-list--bullet">
-                    <li>First you will upload your judgment onto TDR </li>
-                    <li>Then your document will be scanned to check for viruses etc.</li>
-                    <li>If your document passes these checks, it will automatically be submitted for transfer to TNA</li>
-                </ul>
+                    <h2 class="govuk-heading-m" id="about">About this service</h2>
 
-                <h2 class="govuk-heading-m" id="before-you-begin">Before you begin</h2>
-
-                <h3 class="govuk-heading-s" id="web-browsers">Web browsers</h3>
-                <p class="govuk-body">
-                    We do not support Internet Explorer. We advise you to use a different browser such as Edge, Chrome or Firefox to ensure you can use this service and all of its features.
-                </p>
-
-                <h3 class="govuk-heading-s" id="secured-access">Secured access</h3>
-                <p class="govuk-body">
-                    In order to keep the service and your account secure, TDR uses Multi-Factor Authentication (MFA), which needs two separate pieces of information in order to authenticate and grant access to the service. This means you are required to sign in each time using a unique generated 'one-time password' (OTP) code that confirms who you are. This can be set up with a free-to-download authenticator app on your smartphone, such as Google Authenticator, Microsoft Authenticator, or FreeOTP. Other authenticators are also available.
-                </p>
-                <p class="govuk-body">
-                    Free-to-download apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store' for Android.
-                </p>
-
-                <h3 class="govuk-heading-s" id="file-format">File format</h3>
-                <p class="govuk-body">
-                    You must only upload a single Microsoft Word (.docx) document per transfer, using the template supplied by the Judiciary Office Judgments Helpdesk. During upload and checking, if we detect a file we cannot accept, you will be notified on screen. For more information about the types of files we accept, contact <a href="mailto:@Messages("judiciary.email")">@Messages("judiciary.email")</a>
-                </p>
-                <h3 class="govuk-heading-s" id="supplementary-material">Supplementary material</h3>
-                <p class="govuk-body">
-                    If supporting documents, such as photos, need to be preserved with a judgment, they must be emailed to the TNA Find Case Law editorial team with the transfer reference of the judgment they relate to. Full details on how to do this can be found <a href="#supp-material">
-                    here</a>.
-                </p>
-
-                <h3 class="govuk-heading-s" id="contact-us">Contact us</h3>
-                <p class="govuk-body">
-                    If you have a query regarding asking for a TDR account, the transfer process, the status of your transfer, or more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria, email the Judiciary Office Judgments Helpdesk at <a href="mailto:@Messages("judiciary.email")">
-                @Messages("judiciary.email")</a>.
-                </p>
-
-                <h2 class="govuk-heading-m" id="register-new-account">Registering for a new account</h2>
-                <h3 class="govuk-heading-s" id="new-user-email">Part 1: Requesting a new account</h3>
-                <ol class="govuk-body">
-                    <li>
-                        If your department has not already requested an account for you, you can register by emailing <a href="mailto:@Messages("nationalArchives.email")">
-                    @Messages("nationalArchives.email")</a>
-                        from your work email. In your email, clearly state your first name and surname, and ask to register as a new user.
-                        It may take up to 2 working days for your request to be processed.
-                    </li>
-                    <li>
-                        Once your account is ready, you'll receive an email with the subject <span class="govuk-!-font-weight-bold">
-                        "Register for your Transfer Digital Records (TDR) account - ACTION REQUIRED"</span>
-                        . This email will include important instructions on how to complete your registration.
-                    </li>
-                    <li>
-                        In addition, you’ll get another email with the subject <span class="govuk-!-font-weight-bold">
-                        "Update Your Account"</span>
-                        , which will contain a link. The link will expire in 12 hours, so click it as soon as possible to start your registration. If the link expires, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
-                        to ask for a new one.
-                    </li>
-                    <li>The registration link will take you to this page:</li>
-                    <img src="@routes.Assets.versioned("images/configure-otp-password-page.png")" class="screenshots" alt="Sign in page with a link to setup MFA and password" />
-                </ol>
-
-                <h3 class="govuk-heading-s" id="why-otp">
-                    What is two-step authentication and why do I need to use an OTP?</h3>
-                <p class="govuk-body">
-                    An OTP (one-time password) is a unique code that confirms your identity. It’s generated by an authenticator app on your smartphone. You can download one of these free authenticator apps: Google Authenticator, Microsoft Authenticator, or FreeOTP. These apps are available on the App Store for iPhone, or Google Play for Android.
-                </p>
-                <p class="govuk-body">
-                    To keep the service and your account secure, you must sign in to your TDR account using an OTP in addition to your personal password.
-                </p>
-
-                <h3 class="govuk-heading-s" id="two-step-auth">Part 2: How to set up your OTP (one time password)</h3>
-                <p class="govuk-body">
-                    After clicking the <span class="govuk-!-font-weight-bold">"Configure OTP, Update Password"</span>
-                    link, you’ll be taken to the <span class="govuk-!-font-weight-bold">
-                    "Set up two-step authentication"</span> page.
-                </p>
-                <img src="@routes.Assets.versioned("images/set-up-mfa-page.png")" class="screenshots" alt="Form to setup multi factor authentication" />
-                <h3 class="govuk-heading-s">Step 1: Install an authenticator app</h3>
-                <p class="govuk-body">
-                    Before you continue, make sure you have an authenticator app installed on your smartphone. You can only use Google Authenticator, Microsoft Authenticator, or FreeOTP.
-                </p>
-                <h3 class="govuk-heading-s">Step 2: Set up your authenticator app</h3>
-                <p class="govuk-body">
-                    Open the authenticator app on your smartphone.
-                </p>
-                <p class="govuk-body">
-                    Create a new account in the app by scanning the QR code displayed on your computer screen.
-                </p>
-                <p class="govuk-body">
-                    For Google Authenticator: Choose "Scan a QR code".
-                </p>
-                <p class="govuk-body">
-                    For Microsoft Authenticator: Tap the '+' icon to add a new account. If you can’t see this, tap the three dots in the top right corner. Then select "Other (Google, Facebook, etc.)" to open the QR scanner.
-                </p>
-                <p class="govuk-body">
-                    For FreeOTP: Tap the QR code icon at the top of your screen.
-                </p>
-
-                <p class="govuk-body">
-                    Once you’ve scanned the QR code, the app will create a unique account to use with TDR and display a 6-digit code that refreshes regularly.
-                </p>
-                <h3 class="govuk-heading-s">Step 3: Enter the code</h3>
-                <p class="govuk-body">
-                    Enter the 6-digit code from your app into the "One-time code" box on your computer without spaces.
-                    Make sure you enter the code before it refreshes (every 30 to 60 seconds).
-                </p>
-                <p class="govuk-body">
-                    Click "Submit" before the code changes in the app.
-                </p>
-
-                <h3 class="govuk-heading-s" id="set-pass">Part 3: Set your password</h3>
-                <p class="govuk-body">
-                    You will be taken to a <span class="govuk-!-font-weight-bold">"Set new password"</span>
-                    page in order to set your own unique password:</p>
-                <img src="@routes.Assets.versioned("images/set-password-page.png")" class="screenshots" alt="Form to set a new password" />
-                <ol class="govuk-body">
-                    <li>
-                        Enter a unique password, using a minimum of 10 characters, into the <span class="govuk-!-font-weight-bold">
-                        "New password"</span>
-                        box. Enter the same password in the <span class="govuk-!-font-weight-bold">
-                        "Confirm password"</span> box. Do not share your password with anyone.</li>
-                    <li>Click <span class="govuk-!-font-weight-bold">"Submit"</span>
-                        to be taken to the "Sign in to your account" page:</li>
-                    <img src="@routes.Assets.versioned("images/sign-in-link-page.png")" class="screenshots" alt="Page with a link to sign in to your account" />
-                    <li>
-                        Click the <span class="govuk-!-font-weight-bold">"sign in to your account"</span>
-                        link to be taken to the standard "Sign in to your account" page that you will see each time you sign in to use the service as an existing account holder.
-                    </li>
-                    <li>You must complete your registration following the sign in procedure.</li>
-                </ol>
-
-                <h2 class="govuk-heading-m" id="existing-account-holder">
-                    Using the service as an existing account holder</h2>
-                <h3 class="govuk-heading-s" id="web-browsers-access">Web browsers</h3>
-                <p class="govuk-body">
-                    We do not support Internet Explorer. We advise you to use a different browser such as Edge, Chrome or Firefox to ensure you can use this service and all of its features.
-                </p>
-
-                <h3 class="govuk-heading-s" id="accessing-tdr">Accessing TDR</h3>
-                <p class="govuk-body">
-                    TDR is accessed through your web browser and can be found here: <a href="https://tdr.nationalarchives.gov.uk/">
-                    https://tdr.nationalarchives.gov.uk/</a>
-                </p>
-
-                <img src="@routes.Assets.versioned("images/home-page.png")" class="screenshots" alt="TDR home page" />
-                <p class="govuk-body">
-                    Click <span class="govuk-!-font-weight-bold">"Start now"</span>
-                    to sign in and begin the transfer process.
-                </p>
-
-                <h3 class="govuk-heading-s" id="step-0">
-                    To begin: Sign in to your account using Multi-Factor Authentication</h3>
-                <p class="govuk-body">
-                    Before you can use the service, you must sign in using Multi-Factor Authentication (MFA) with the authenticator app that you set up on your smartphone, which generates your unique 'one-time password' (OTP) code.
-                </p>
-                <ol class="govuk-body">
-                    <img src="@routes.Assets.versioned("images/judgment-sign-in-email-password.png")" class="screenshots" alt="Form to enter an email and password" />
-                    <li>
-                        Sign in by entering your email address and password, then click "Sign in" to be taken to the "One-time code" section on this page:
-                    </li>
-                    <img src="@routes.Assets.versioned("images/enter-mfa-code-page.png")" class="screenshots" alt="Form to enter the code from the MFA app" />
-                    <li>
-                        Make sure you have access to the smart device which has the Authenticator app linked to your Transfer Digital Records account.
-                    </li>
-                    <li>
-                        Open the app on your device and go to the Transfer Digital Records account within the app to retrieve the 6 digit one-time passcode.
-                    </li>
-                    <li>
-                        If the code doesn't work, wait for the app to refresh and generate a new code and try using that instead.
-                    </li>
-                    <li>
-                        Enter the code without any spaces and click <span class="govuk-!-font-weight-bold">
-                        "Continue"</span> before the authenticator app refreshes the code.
-                        Contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
-                        if you need support.
-                    </li>
-                    <li>You will then be taken to the TDR Homepage:
-                        <img src="@routes.Assets.versioned("images/judgment-tdr-start-page.png")" class="screenshots" alt="The TDR Homepage" />
-                        Click <span class="govuk-!-font-weight-bold">"Start your transfer"</span> to begin
-                    </li>
-
-                </ol>
-
-                <h3 class="govuk-heading-s" id="step-1">Step 1: Check your file before uploading</h3>
-                <p class="govuk-body">
-                    You will be prompted to check that your file contains the following information:
-                </p>
-                <ul class="govuk-body">
-                    <li>neutral citation</li>
-                    <li>name(s) of judge(s)</li>
-                    <li>name(s) of parties </li>
-                    <li>court</li>
-                    <li>judgment date</li>
-                </ul>
-                <p class="govuk-body">
-                    You must ensure your judgment includes all important information above <span class="govuk-!-font-weight-bold">
-                    before</span> you start your upload.
-                </p>
-                <p class="govuk-body">
-                    Check that your document follows the guidance and rules provided below, so that it can be converted into the correct format for publishing:
-                </p>
-                <p class="govuk-body">
-                    <a href="https://nationalarchives.github.io/ds-caselaw-judiciary-guidance/">
-                        Home- Judiciary guidance for the Find case law service from the National Archives</a>
-                </p>
-                <p class="govuk-body">
-                    Press "Continue" when you are ready to move on.
-                </p>
-                <img src="@routes.Assets.versioned("images/judgment-check-your-file.png")" class="screenshots" alt="Check your file before uploading page" />
-
-                <h3 class="govuk-heading-s" id="supp-material">Supplementary material</h3>
-                <p class="govuk-body">
-                    Currently, you cannot upload additional documents with your judgment, as part of the transfer. Instead, you will need to send these via email to <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">
-                @Messages("nationalArchives.judgmentsEmail")</a>
-                    quoting your transfer reference.
-                </p>
-
-                <h3 class="govuk-heading-s" id="replacement-versions">Replacement versions</h3>
-                <p class="govuk-body">
-                    If your judgment is a revision or an update to an existing judgment, email <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
-                    to notify the TNA Find Case Law editorial team. <span class="govuk-!-font-weight-bold">
-                    Include the neutral citation reference</span> of the original judgment that it is replacing.
-                </p>
-
-                <h3 class="govuk-heading-s" id="anonymisation-orders">Anonymisation Orders</h3>
-                <p class="govuk-body">
-                    If your judgment has an anonymisation order, email <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
-                    to notify the TNA Find Case Law editorial team. <span class="govuk-!-font-weight-bold">
-                    You must include the neutral citation reference and any important information</span>
-                    . This procedure will become automated in time.
-                </p>
-
-                <h3 class="govuk-heading-s" id="step-2">Step 2: Upload the judgment</h3>
-                <p class="govuk-body">
-                    To upload your judgment, you can either:
-                </p>
-                <ol class="govuk-body">
-                    <li>"Choose file" by browsing for a file stored on your computer, or "Drag and drop a single file" into the upload box. The file must be uploaded as a Microsoft Word document (.docx) and you must only upload a single file. Only valid Word files will be visible when using 'Choose file' to browse. If you attempt to 'Drag and drop' a different file format, you will see this error message and must choose a different valid Word file.</li>
-                    <img src="@routes.Assets.versioned("images/judgment-upload-error.png")" class="screenshots" alt="Judgment upload error page" />
-                    <li>
-                        <p class="govuk-body">
-                            When you have selected a valid file, the page will show the name of the file selected in green.
-                        </p>
-                        <img src="@routes.Assets.versioned("images/judgment-upload-valid-file.png")" class="screenshots" alt="Judgment upload page with a valid file selected" />
-
-                        <p class="govuk-body">
-                            If you selected a file in error, use the blue "Remove selected records" link, to the right of the file name, to remove the file and start the selection again.
-                            Click "Start upload" to upload your judgment to TDR. You will see a progress bar as the file uploads.
-                        </p>
-                    </li>
-                    <img src="@routes.Assets.versioned("images/judgment-progress-bar.png")" class="screenshots" alt="Judgment upload progress bar"/>
                     <p class="govuk-body">
-                        Your document will automatically undergo checks once the upload is complete.
+                        Transfer Digital Records (TDR) is a secure digital transfer service from The National Archives (TNA) that enables Public Record Bodies to upload, prepare and then transfer selected digital public records to TNA for permanent archiving and publication.
                     </p>
-                </ol>
+                    <p class="govuk-body">
+                        For anyone involved in recording judgments, this service is used to send the final approved judgment and press summaries to TNA for preservation and publication on the 'Find Case Law' website <a href="https://caselaw.nationalarchives.gov.uk">
+                        https://caselaw.nationalarchives.gov.uk</a>.
+                    </p>
+                    <p class="govuk-body">
+                        Sending judgments via TDR is in two stages:
+                    </p>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li>First you will upload your judgment onto TDR </li>
+                        <li>Then your document will be scanned to check for viruses etc.</li>
+                        <li>If your document passes these checks, it will automatically be submitted for transfer to TNA</li>
+                    </ul>
+                    <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-                <h3 class="govuk-heading-s" id="step-3">Step 3: Upload undergoes checks</h3>
-                <p class="govuk-body">
-                    Once uploaded, your judgment will be checked to ensure it is suitable for transfer. This will take several minutes so you must keep your browser tab open.
-                </p>
-                <img src="@routes.Assets.versioned("images/judgment-checking-your-upload.png")" class="screenshots" alt="Checking your upload page" />
+                    <h2 class="govuk-heading-m" id="before-you-begin">Before you begin</h2>
 
-                <h3 class="govuk-heading-s" id="step-4">Step 4: Transfer complete</h3>
+                    <h3 class="govuk-heading-s" id="web-browsers">Web browsers</h3>
+                    <p class="govuk-body">
+                        We do not support Internet Explorer. We advise you to use a different browser such as Edge, Chrome or Firefox to ensure you can use this service and all of its features.
+                    </p>
 
-                <p class="govuk-body">
-                    If your uploaded document passes the checks, your document will automatically be submitted for transfer to TNA and you will be notified on screen with a "Transfer complete" message.
-                </p>
-                <img src="@routes.Assets.versioned("images/judgment-transfer-complete.png")" class="screenshots" alt="File check results page" />
+                    <h3 class="govuk-heading-s" id="secured-access">Secured access</h3>
+                    <p class="govuk-body">
+                        In order to keep the service and your account secure, TDR uses Multi-Factor Authentication (MFA), which needs two separate pieces of information in order to authenticate and grant access to the service. This means you are required to sign in each time using a unique generated 'one-time password' (OTP) code that confirms who you are. This can be set up with a free-to-download authenticator app on your smartphone, such as Google Authenticator, Microsoft Authenticator, or FreeOTP. Other authenticators are also available.
+                    </p>
+                    <p class="govuk-body">
+                        Free-to-download apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store' for Android.
+                    </p>
 
-                <p class="govuk-body">
-                    This will include a transfer reference (e.g. TDR-2024-FKDS). Make a note of this reference in case you need to contact us regarding your transfer.
-                </p>
+                    <h3 class="govuk-heading-s" id="file-format">File format</h3>
+                    <p class="govuk-body">
+                        You must only upload a single Microsoft Word (.docx) document per transfer, using the template supplied by the Judiciary Office Judgments Helpdesk. During upload and checking, if we detect a file we cannot accept, you will be notified on screen. For more information about the types of files we accept, contact <a href="mailto:@Messages("judiciary.email")">@Messages("judiciary.email")</a>
+                    </p>
+                    <h3 class="govuk-heading-s" id="supplementary-material">Supplementary material</h3>
+                    <p class="govuk-body">
+                        If supporting documents, such as photos, need to be preserved with a judgment, they must be emailed to the TNA Find Case Law editorial team with the transfer reference of the judgment they relate to. Full details on how to do this can be found <a href="#supp-material">
+                        'Supplementary material'</a>.
+                    </p>
 
-                <p class="govuk-body">
-                    Clicking on the email link <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
-                    ,
-                    on the screen, will generate an email.
-                </p>
+                    <h3 class="govuk-heading-s" id="contact-us">Contact us</h3>
+                    <p class="govuk-body">
+                        If you have a query regarding asking for a TDR account, the transfer process, the status of your transfer, or more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria, email the Judiciary Office Judgments Helpdesk at <a href="mailto:@Messages("judiciary.email")">
+                    @Messages("judiciary.email")</a>.
+                    </p>
+                    <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-                <p class="govuk-body">
-                    You can contact <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
-                    ,
-                    if you need to submit supporting documents, inform us about an update or revision, or inform us of an anonymisation order.
-                </p>
+                    <h2 class="govuk-heading-m" id="register-new-account">Registering for a new account</h2>
+                    <h3 class="govuk-heading-s" id="new-user-email">Part 1: Requesting a new account</h3>
+                    <ol class="govuk-list govuk-list--number">
+                        <li>
+                            If your department has not already requested an account for you, you can register by emailing <a href="mailto:@Messages("nationalArchives.email")">
+                        @Messages("nationalArchives.email")</a>
+                            from your work email. In your email, clearly state your first name and surname, and ask to register as a new user.
+                            It may take up to 2 working days for your request to be processed.
+                        </li>
+                        <li>
+                            Once your account is ready, you'll receive an email with the subject <span class="govuk-!-font-weight-bold">
+                            "Register for your Transfer Digital Records (TDR) account - ACTION REQUIRED"</span>
+                            . This email will include important instructions on how to complete your registration.
+                        </li>
+                        <li>
+                            In addition, you’ll get another email with the subject <span class="govuk-!-font-weight-bold">
+                            "Update Your Account"</span>
+                            , which will contain a link. The link will expire in 12 hours, so click it as soon as possible to start your registration. If the link expires, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                            to ask for a new one.
+                        </li>
+                        <li>The registration link will take you to this page:</li>
+                        <img src="@routes.Assets.versioned("images/configure-otp-password-page.png")" class="screenshots" alt="Sign in page with a link to setup MFA and password" />
+                    </ol>
 
-                <p class="govuk-body">
-                    Make sure you include the following in the email wherever possible:
-                </p>
-                <ul class="govuk-body">
-                    <li>the neutral citation</li>
-                    <li>the transfer reference: TDR-2024-FKDS</li>
-                    <li>tell us if this transfer was a revision or an update</li>
-                    <li>provide a short description of what has changed</li>
-                </ul>
+                    <h3 class="govuk-heading-s" id="two-step-auth">
+                        Part 2: How to set up your OTP (one time password)</h3>
+                    <p class="govuk-body">
+                        After clicking the <span class="govuk-!-font-weight-bold">
+                        "Configure OTP, Update Password"</span>
+                        link, you’ll be taken to the <span class="govuk-!-font-weight-bold">
+                        "Set up two-step authentication"</span> page.
+                    </p>
+                    <img src="@routes.Assets.versioned("images/set-up-mfa-page.png")" class="screenshots" alt="Form to setup multi factor authentication" />
+                    <p class="govuk-body"><strong>
+                        If you are not familiar with two-step authentication, <a href="#set-up-two-set-auth">
+                        read instructions on setting this up</a> on setting this up before continuing.</strong></p>
 
-                <p class="govuk-body">
-                    You will be notified by email once the judgment has been received, processed by the Find Case Law editorial team, and published for viewing on the Find Case Law website.
-                </p>
+                    <h3 class="govuk-heading-s" id="set-pass">Part 3: Set your password</h3>
+                    <p class="govuk-body">
+                        You will be taken to a <span class="govuk-!-font-weight-bold">"Set new password"</span>
+                        page in order to set your own unique password:</p>
+                    <img src="@routes.Assets.versioned("images/set-password-page.png")" class="screenshots" alt="Form to set a new password" />
+                    <ol class="govuk-body">
+                        <li>
+                            Enter a unique password, using a minimum of 10 characters, into the <span class="govuk-!-font-weight-bold">
+                            "New password"</span>
+                            box. Enter the same password in the <span class="govuk-!-font-weight-bold">
+                            "Confirm password"</span> box. Do not share your password with anyone.</li>
+                        <li>Click <span class="govuk-!-font-weight-bold">"Submit"</span>
+                            to be taken to the "Sign in to your account" page:</li>
+                        <img src="@routes.Assets.versioned("images/sign-in-link-page.png")" class="screenshots" alt="Page with a link to sign in to your account" />
+                        <li>
+                            Click the <span class="govuk-!-font-weight-bold">"sign in to your account"</span>
+                            link to be taken to the standard "Sign in to your account" page that you will see each time you sign in to use the service as an existing account holder.
+                        </li>
+                        <li>You must complete your registration following the sign in procedure.</li>
+                    </ol>
+                    <p class="govuk-body">
+                        Go to <a href="#existing-account-holder">using the service as an existing account holder</a>
+                    </p>
+                    <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-                <p class="govuk-heading-s">
-                    <span class="govuk-!-font-weight-bold">Do not delete your original file yet.</span>
-                </p>
+                    <h2 class="govuk-heading-m" id="set-up-two-set-auth">Set up two-step authentication</h2>
+                    <h3 class="govuk-heading-s" id="why-otp">
+                        What is two-step authentication and why do I need to use an OTP?</h3>
+                    <p class="govuk-body">
+                        An OTP (one-time password) is a unique code that confirms your identity. It’s generated by an authenticator app on your smartphone. You can download one of these free authenticator apps: Google Authenticator, Microsoft Authenticator, or FreeOTP. These apps are available on the App Store for iPhone, or Google Play for Android.
+                    </p>
+                    <p class="govuk-body">
+                        To keep the service and your account secure, you must sign in to your TDR account using an OTP in addition to your personal password.
+                    </p>
+                    <h3 class="govuk-heading-s">Step 1: Install an authenticator app</h3>
+                    <p class="govuk-body">
+                        Before you continue, make sure you have an authenticator app installed on your smartphone. You can only use Google Authenticator, Microsoft Authenticator, or FreeOTP.
+                    </p>
+                    <h3 class="govuk-heading-s">Step 2: Set up your authenticator app</h3>
+                    <p class="govuk-body">
+                        Open the authenticator app on your smartphone.
+                    </p>
+                    <p class="govuk-body">
+                        Create a new account in the app by scanning the QR code displayed on your computer screen.
+                    </p>
+                    <p class="govuk-body">
+                        For Google Authenticator: Choose "Scan a QR code".
+                    </p>
+                    <p class="govuk-body">
+                        For Microsoft Authenticator: Tap the '+' icon to add a new account. If you can’t see this, tap the three dots in the top right corner. Then select "Other (Google, Facebook, etc.)" to open the QR scanner.
+                    </p>
+                    <p class="govuk-body">
+                        For FreeOTP: Tap the QR code icon at the top of your screen.
+                    </p>
 
-                <h3 class="govuk-heading-s" id="error-message">Error message</h3>
-                <p class="govuk-body">
-                    If your file fails our checks, you will be notified on screen and asked to begin your transfer again from the TDR Homepage.
-                </p>
-                <p class="govuk-body">
-                    Before you try again, you should check the following:
-                </p>
-                <ul class="govuk-body">
-                    <li>Your internet connection is stable</li>
-                    <li>Your file is a Microsoft Word document (.docx)</li>
-                    <li>Your file is not corrupted or password protected by checking you can open it on your own computer</li>
-                </ul>
-                <p class="govuk-body">
-                    If your file meets this criteria then try again. If your file still fails, contact <a href="mailto:@Messages("nationalArchives.email")">
-                @Messages("nationalArchives.email")</a> with details of the judgment you have tried to upload.
-                </p>
+                    <p class="govuk-body">
+                        Once you’ve scanned the QR code, the app will create a unique account to use with TDR and display a 6-digit code that refreshes regularly.
+                    </p>
+                    <h3 class="govuk-heading-s">Step 3: Enter the code</h3>
+                    <p class="govuk-body">
+                        Enter the 6-digit code from your app into the "One-time code" box on your computer without spaces.
+                        Make sure you enter the code before it refreshes (every 30 to 60 seconds).
+                    </p>
+                    <p class="govuk-body">
+                        Click "Submit" before the code changes in the app.
+                    </p>
+                    <a href="#set-pass">Return to Part 3: Set your password </a>
+                    <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 
-                <p class="govuk-body">
-                    Click <span class="govuk-!-font-weight-bold">"Return to start"</span>
-                    to begin a new transfer, or <span class="govuk-!-font-weight-bold">"Sign Out"</span>
-                    in the top right corner.
-                </p>
+                    <h2 class="govuk-heading-m" id="existing-account-holder">
+                        Part 1: Using the service as an existing account holder</h2>
+                    <h3 class="govuk-heading-s" id="web-browsers-access">Web browsers</h3>
+                    <p class="govuk-body">
+                        We do not support Internet Explorer. We advise you to use a different browser such as Edge, Chrome or Firefox to ensure you can use this service and all of its features.
+                    </p>
 
-                <h3 class="govuk-heading-s" id="send-feedback">Send us feedback about your experience</h3>
-                <p class="govuk-body">
-                    Please click the <span class="govuk-!-font-weight-bold">"What did you think of this service?"</span>
-                    link to open up an anonymous survey in a new tab and send feedback to improve the service.
-                </p>
-                <p class="govuk-body">
-                    Thank you for using TDR
-                </p>
+                    <h3 class="govuk-heading-s" id="accessing-tdr">Accessing TDR</h3>
+                    <p class="govuk-body">
+                        TDR is accessed through your web browser and can be found here: <a href="https://tdr.nationalarchives.gov.uk/">
+                        https://tdr.nationalarchives.gov.uk/</a>
+                    </p>
 
-                <h2 class="govuk-heading-m" id="glossary">Transfer Digital Records Glossary</h2>
-                <p class="govuk-body">
-                    Each of the following terms is defined within the context of Transfer Digital Records (TDR).
-                </p>
+                    <img src="@routes.Assets.versioned("images/home-page.png")" class="screenshots" alt="TDR home page" />
+                    <p class="govuk-body">
+                        Click <span class="govuk-!-font-weight-bold">"Start now"</span>
+                        to sign in and begin the transfer process.
+                    </p>
 
-                <h3 class="govuk-heading-s" id="glossary-anonymisation-order">Anonymisation Order</h3>
-                <p class="govuk-body">
-                    Specific conditions formerly assigned to protect the identity of one or more parties.
-                </p>
+                    <h3 class="govuk-heading-s" id="step-0">
+                        Sign in to your account using Multi-Factor Authentication</h3>
+                    <p class="govuk-body">
+                        Before you can use the service, you must sign in using Multi-Factor Authentication (MFA) with the authenticator app that you set up on your smartphone, which generates your unique 'one-time password' (OTP) code.
+                    </p>
+                    <ol class="govuk-list govuk-list--number">
+                        <img src="@routes.Assets.versioned("images/judgment-sign-in-email-password.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Form to enter an email and password" />
+                        <li>
+                            Sign in by entering your email address and password, then click "Sign in" to be taken to the "One-time code" section on this page:
+                        </li>
+                        <img src="@routes.Assets.versioned("images/enter-mfa-code-page.png")" class="screenshots" alt="Form to enter the code from the MFA app" />
+                        <li>
+                            Make sure you have access to the smart device which has the Authenticator app linked to your Transfer Digital Records account.
+                        </li>
+                        <li>
+                            Open the app on your device and go to the Transfer Digital Records account within the app to retrieve the 6 digit one-time passcode.
+                        </li>
+                        <li>
+                            If the code doesn't work, wait for the app to refresh and generate a new code and try using that instead.
+                        </li>
+                        <li>
+                            Enter the code without any spaces and click <span class="govuk-!-font-weight-bold">
+                            "Continue"</span> before the authenticator app refreshes the code.
+                            Contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                            if you need support.
+                        </li>
+                        <li>You will then be taken to the TDR Homepage:
+                            <img src="@routes.Assets.versioned("images/judgment-tdr-start-page.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="The TDR Homepage" />
+                            Click <span class="govuk-!-font-weight-bold">"Start your transfer"</span> to begin
+                        </li>
+                        <li>You will now be at the ‘Tell me more about your document’ page you will be presented with three options:
+                            <img src="@routes.Assets.versioned("images/judgment-about-your-document.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Tell us about your document screen">
+                        </li>
+                        <li>Select the appropriate option depending on your task and then press ‘Continue’:</li>
+                        <ul class="govuk-list govuk-list--bullet">
+                            <li><a href="#option-1">
+                                Option 1: It's a judgment or decision being transferred for the first time </a></li>
+                            <li><a href="#option-2">Option 2: It's an update to a judgment or decision</a></li>
+                            <li><a href="#option-3">
+                                Option 3: It's a press summary related to a judgment or decision</a></li>
+                        </ul>
+                    </ol>
+                    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-                <h3 class="govuk-heading-s" id="glossary-authenticator-app">Authenticator app</h3>
-                <p class="govuk-body">
-                    A software app that can be downloaded onto a smartphone and configured to produce a one-time password (OTP) code unique to the user of the device.
-                </p>
+                    <h2 class="govuk-heading-m" id="">Part 2</h2>
+                    <h3 class="govuk-heading-s" id="option-1">
+                        Option 1: It's a judgment or decision being transferred for the first time</h3>
 
-                <h3 class="govuk-heading-s" id="glossary-browser">Browser</h3>
-                <p class="govuk-body">
-                    An application used to access the internet, such as Edge, Chrome or Firefox.
-                </p>
+                    <img src="@routes.Assets.versioned("images/judgment-check-your-file.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Check your file before uploading page" />
 
-                <h3 class="govuk-heading-s" id="glossary-judgment">Judgment</h3>
-                <p class="govuk-body">
-                    A record of a court judgment or tribunal decision.
-                </p>
+                    <h3 class="govuk-heading-s" id="step-1">1:</h3>
 
-                <h3 class="govuk-heading-s" id="glossary-word-document">Microsoft Word (.docx) document</h3>
-                <p class="govuk-body">
-                    A specific electronic file format used for creating documents.
-                </p>
+                    <p class="govuk-body">
+                        Once you have selected this option in the ‘Tell us about your document’ page, you will be prompted to check that your file contains the following information:
+                    </p>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li>neutral citation</li>
+                        <li>name(s) of judge(s)</li>
+                        <li>name(s) of parties </li>
+                        <li>court</li>
+                        <li>judgment date</li>
+                    </ul>
+                    <p class="govuk-body">
+                        You must ensure your judgment includes all important information above <span class="govuk-!-font-weight-bold">
+                        before</span> you start your upload.
+                    </p>
+                    <p class="govuk-body">
+                        Check that your document follows the guidance and rules provided below, so that it can be converted into the correct format for publishing:
+                        <a href="https://nationalarchives.github.io/ds-caselaw-judiciary-guidance/">
+                            Judiciary guidance for the Find case law service from the National Archives</a>
+                    </p>
+                    <p class="govuk-body">
+                        Press "Continue" when you are ready to move on.
+                    </p>
 
-                <h3 class="govuk-heading-s" id="glossary-mfa">Multi-Factor Authentication (MFA)</h3>
-                <p class="govuk-body">
-                    A security feature that uses two separate pieces of information in order to authenticate a genuine account holder. In TDR this includes the user's unique password and an OTP code generated in a configured authenticator app.
-                </p>
+                    <h3 class="govuk-heading-s" id="supp-material">Supplementary material</h3>
+                    <p class="govuk-body">
+                        Currently, you cannot upload additional documents with your judgment, as part of the transfer. Instead, you will need to send these via email to <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">
+                    @Messages("nationalArchives.judgmentsEmail")</a>
+                        quoting your transfer reference.
+                    </p>
 
-                <h3 class="govuk-heading-s" id="glossary-neutral-citation">Neutral citation</h3>
-                <p class="govuk-body">
-                    A reference that makes it easier to find judgments in online resources, such as BAILII. The abbreviation indicates the court in which the case was heard, and the number indicates the case number.
-                </p>
+                    <h3 class="govuk-heading-s" id="replacement-versions">2:</h3>
+                    <p class="govuk-body">
+                        <strong>Go to <a href="#part-3-upload-doc">Part 3: upload the document</a>
+                            to continue this guide.</strong>
+                    </p>
+                    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-                <h3 class="govuk-heading-s" id="glossary-otp">One-time password (OTP)</h3>
-                <p class="govuk-body">
-                    A unique code generated in an authenticator app that is specific to the user of a configured account.
-                </p>
+                    <h3 class="govuk-heading-s" id="step-2">Part 2:</h3>
+                    <h2 class="govuk-heading-m" id="option-2">Option 2: It's an update to a judgment or decision</h2>
 
-                <h3 class="govuk-heading-s" id="glossary-replacement-versions">Update or revision</h3>
-                <p class="govuk-body">
-                    An amended replacement version of an existing judgment that has already been uploaded to TNA for publishing.
-                </p>
+                    <h3 class="govuk-heading-s" id="step-2">1:</h3>
+                    <p class="govuk-body">
+                        When you select this option in the ‘Tell us more about your document’ page, you will be presented with further options:</p>
+                    <img alt="Its an update to a judgment or decision screen" class="screenshots" src="@routes.Assets.versioned("images/judgment-update-to-judgment.png")" />
+                    <p class="govuk-body">
+                        Depending on the reason for the update, select at one of the checkboxes to let TNA know the reason for the update:</p>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li>Typo</li>
+                        <li>Formatting</li>
+                        <li>Amendment to NCN</li>
+                        <li>Anonymisation/redaction</li>
+                        <li>Other </li>
+                    </ul>
 
-                <h3 class="govuk-heading-s" id="glossary-supplementary-material">Supplementary material</h3>
-                <p class="govuk-body">
-                    Additional specified documents that are directly associated with an individual judgment.
-                </p>
+                    <p class="govuk-body">
+                        If you select ‘Other’, it may be helpful if you enter details of this update. This is optional however.</p>
 
-                <h3 class="govuk-heading-s" id="glossary-tdr">Transfer Digital Records (TDR)</h3>
-                <p class="govuk-body">
-                    A product that allows specific documents to be transferred electronically and securely to TNA via a web browser.
-                </p>
+                    <h3 class="govuk-heading-s">2:</h3>
+                    <p class="govuk-body">
+                        You will now be asked to enter the neutral citation number (NCN) for the related judgment on the following screen:</p>
 
-                <h3 class="govuk-heading-s" id="glossary-transfer-reference">Transfer reference</h3>
-                <p class="govuk-body">
-                    A unique reference code assigned to your individual transfer (e.g. TDR-2022-1234) that allows us to identify the transaction and judgment within it.
-                </p>
+                    <img src="@routes.Assets.versioned("images/judgment-provide-ncn-number.png")" alt="Provide NCN number screen" class="screenshots" />
 
-                <h3 class="govuk-heading-s" id="glossary-upload">Upload</h3>
-                <p class="govuk-body">
-                    The action of copying a file into TDR, or the copied file itself.
-                </p>
+                    <p class="govuk-body">
+                        If you are not sure what an NCN looks like, click on the ‘Help with neutral citation numbers’ link for assistance</p>
+                    <p class="govuk-body">Enter your NCN into the textbox, and then select ‘Continue’.</p>
 
-                <h3 class="govuk-heading-s" id="glossary-validation-checks">Validation checks</h3>
-                <p class="govuk-body">
-                    Digital file checking that includes anti-virus check, file authentication, and file-format identification.
-                </p>
+                    <h4 class="govuk-heading-s">If the original judgment does not have an NCN:</h4>
+                    <ol class="govuk-list govuk-list--number">
+                        <li>Select the checkbox option ‘Original judgment to this update does not have an NCN’</li>
+                        <li>A new textbox appears below, and disables the NCN input box: <br />
+                            <img alt="Original judgment to this update does not have an NCN" src="@routes.Assets.versioned("images/judgment-no-ncn-number.png")" class="screenshots" />
+                        </li>
+                        <li>If possible enter text to help TNA identify the original judgment, such as the transfer reference.</li>
+                        <li>Select ‘Continue’.</li>
+                    </ol>
+                    <h3 class="govuk-heading-s">3:</h3>
+                    <p class="govuk-body"><strong>Go to <a href="#part-3-upload-doc">Part 3: upload the document</a>
+                        to continue this guide.
+                    </strong></p>
+                    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+                    <h2 class="govuk-heading-m" id="">Part 2: </h2>
+                    <h3 class="govuk-heading-s" id="option-3">
+                        Option 3: It's a press summary related to a judgment or decision</h3>
+
+                    <h3 class="govuk-heading-s" id="">1:</h3>
+                    <p class="govuk-body">
+                        In the ‘Tell us about your document’ page, select the option ‘It's a press summary related to a judgment or decision’ and press ‘Continue’</p>
+                    <img src="@routes.Assets.versioned("/images/judgment-press-summary.png")" class="screenshots" alt="It's a press summary related to a judgment or decision screen" />
+
+                    <h3 class="govuk-heading-s" id="">2:</h3>
+                    <p class="govuk-body">
+                        You will now be asked to enter the neutral citation number (NCN) for the original judgment on the following screen:</p>
+                    <img src="@routes.Assets.versioned("images/judgment-provide-ncn-number.png")" alt="Provide NCN number screen" class="screenshots">
+                    <p class="govuk-body">
+                        If you are not sure what an NCN looks like, click on the ‘Help with neutral citation numbers’ link for assistance</p>
+
+                    <p class="govuk-body">Enter your NCN into the textbox, and then select ‘Continue’.</p>
+
+                    <h4 class="govuk-heading-s">If the original judgment does not have an NCN:</h4>
+                    <ol class="govuk-list govuk-list--number">
+                        <li>Select the checkbox option ‘Original judgment to this update does not have an NCN’</li>
+                        <li>A new textbox appears below, and disables the NCN input box: <br /><img alt="Original judgment to this update does not have an NCN" class="screenshots" src="@routes.Assets.versioned("images/judgment-no-ncn-number.png")" /></li>
+                        <li>If possible enter text to help TNA identify the original judgment, such as the transfer reference.</li>
+                        <li>Select ‘Continue’.</li>
+                    </ol>
+
+                    <h3 class="govuk-heading-s" id="">3:</h3>
+                    <p class="govuk-body"><strong>Go to <a href="#part-3-upload-doc">Part 3: upload the document</a>
+                        to continue this guide.
+                    </strong></p>
+                    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+                    <h2 class="govuk-heading-m" id="part-3-upload-doc">Part 3: Upload the document</h2>
+                    <p class="govuk-body">To upload your judgment, you can either:</p>
+
+                    <ol class="govuk-list govuk-list--number">
+                        <li>"Choose file" by browsing for a file stored on your computer, or "Drag and drop a single file" into the upload box. The file must be uploaded as a Microsoft Word document (.docx) and you must only upload a single file. Only valid Word files will be visible when using 'Choose file' to browse. If you attempt to 'Drag and drop' a different file format, you will see this error message and must choose a different valid Word file.</li>
+                        <img src="@routes.Assets.versioned("images/judgment-upload-error.png")" class="screenshots" alt="Judgment upload error page" />
+                        <li>
+                            <p class="govuk-body">
+                                When you have selected a valid file, the page will show the name of the file selected in green.
+                            </p>
+                            <img src="@routes.Assets.versioned("images/judgment-upload-valid-file.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Judgment upload page with a valid file selected" />
+
+                            <p class="govuk-body">
+                                If you selected a file in error, use the blue "Remove selected records" link, to the right of the file name, to remove the file and start the selection again.
+                            </p>
+                        </li>
+                        <li>Click "Start upload" to upload your judgment to TDR. You will see a progress bar as the file uploads.</li>
+                        <img src="@routes.Assets.versioned("images/judgment-progress-bar.png")" class="screenshots" alt="Judgment upload progress bar"/>
+                        <p class="govuk-body">
+                            Your document will automatically undergo checks once the upload is complete.
+                        </p>
+                    </ol>
+
+                    <h3 class="govuk-heading-s">Upload undergoes checks</h3>
+                    <p class="govuk-body">
+                        Once uploaded, your judgment will be checked to ensure it is suitable for transfer. This will take several minutes so you must keep your browser tab open.
+                    </p>
+                    <img src="@routes.Assets.versioned("images/judgment-checking-your-upload.png")" class="screenshots" alt="Checking your upload page" />
+
+                    <h3 class="govuk-heading-s" id="step-4">Transfer complete</h3>
+
+                    <p class="govuk-body">
+                        If your uploaded document passes the checks, your document will automatically be submitted for transfer to TNA and you will be notified on screen with a "Transfer complete" message.
+                    </p>
+                    <img src="@routes.Assets.versioned("images/judgment-transfer-complete.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="File check results page" />
+
+                    <p class="govuk-body">
+                        This will include a transfer reference (e.g. TDR-2024-FKDS). Make a note of this reference in case you need to contact us regarding your transfer.
+                    </p>
+
+                    <p class="govuk-body">
+                        Clicking on the email link <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
+                        , on the screen, will generate an email.
+                    </p>
+
+                    <p class="govuk-body">
+                        You can contact <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
+                        , if you need to submit supporting documents or inform us of an anonymisation order.
+                    </p>
+
+                    <p class="govuk-body">
+                        Make sure you include the following in the email wherever possible:
+                    </p>
+                    <ul class="ggovuk-list govuk-list--bullet">
+                        <li>the neutral citation</li>
+                        <li>the transfer reference: TDR-2024-FKDS</li>
+                    </ul>
+
+                    <p class="govuk-body">
+                        You will be notified by email once the judgment has been received, processed by the Find Case Law editorial team, and published for viewing on the Find Case Law website.
+                    </p>
+
+                    <p class="govuk-heading-s">
+                        <span class="govuk-!-font-weight-bold">Do not delete your original file yet.</span>
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="send-feedback">Send us feedback about your experience</h3>
+                    <p class="govuk-body">
+                        Please click the <span class="govuk-!-font-weight-bold">
+                        "What did you think of this service?"</span>
+                        link to open up an anonymous survey in a new tab and send feedback to improve the service.
+                    </p>
+                    <p class="govuk-body">
+                        Thank you for using TDR
+                    </p>
+                    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+                    <h2 class="govuk-heading-m" id="glossary">Transfer Digital Records Glossary</h2>
+                    <p class="govuk-body">
+                        Each of the following terms is defined within the context of Transfer Digital Records (TDR).
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-anonymisation-order">Anonymisation Order</h3>
+                    <p class="govuk-body">
+                        Specific conditions formerly assigned to protect the identity of one or more parties.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-authenticator-app">Authenticator app</h3>
+                    <p class="govuk-body">
+                        A software app that can be downloaded onto a smartphone and configured to produce a one-time password (OTP) code unique to the user of the device.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-browser">Browser</h3>
+                    <p class="govuk-body">
+                        An application used to access the internet, such as Edge, Chrome or Firefox.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-judgment">Judgment</h3>
+                    <p class="govuk-body">
+                        A record of a court judgment or tribunal decision.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-word-document">Microsoft Word (.docx) document</h3>
+                    <p class="govuk-body">
+                        A specific electronic file format used for creating documents.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-mfa">Multi-Factor Authentication (MFA)</h3>
+                    <p class="govuk-body">
+                        A security feature that uses two separate pieces of information in order to authenticate a genuine account holder. In TDR this includes the user's unique password and an OTP code generated in a configured authenticator app.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-neutral-citation">Neutral citation</h3>
+                    <p class="govuk-body">
+                        A reference that makes it easier to find judgments in online resources, such as BAILII. The abbreviation indicates the court in which the case was heard, and the number indicates the case number.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-otp">One-time password (OTP)</h3>
+                    <p class="govuk-body">
+                        A unique code generated in an authenticator app that is specific to the user of a configured account.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-replacement-versions">Update or revision</h3>
+                    <p class="govuk-body">
+                        An amended replacement version of an existing judgment that has already been uploaded to TNA for publishing.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-supplementary-material">Supplementary material</h3>
+                    <p class="govuk-body">
+                        Additional specified documents that are directly associated with an individual judgment.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-tdr">Transfer Digital Records (TDR)</h3>
+                    <p class="govuk-body">
+                        A product that allows specific documents to be transferred electronically and securely to TNA via a web browser.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-transfer-reference">Transfer reference</h3>
+                    <p class="govuk-body">
+                        A unique reference code assigned to your individual transfer (e.g. TDR-2022-1234) that allows us to identify the transaction and judgment within it.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-upload">Upload</h3>
+                    <p class="govuk-body">
+                        The action of copying a file into TDR, or the copied file itself.
+                    </p>
+
+                    <h3 class="govuk-heading-s" id="glossary-validation-checks">Validation checks</h3>
+                    <p class="govuk-body">
+                        Digital file checking that includes anti-virus check, file authentication, and file-format identification.
+                    </p>
+                }
             </div>
         </div>
     }
