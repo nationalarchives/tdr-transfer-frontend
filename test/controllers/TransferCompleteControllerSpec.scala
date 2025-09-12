@@ -189,7 +189,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     )
   }
 
-  private def checkForSurveyLink(transferCompletePageAsString: String, survey: String = "tdr-feedback" ) = {
+  private def checkForSurveyLink(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
     transferCompletePageAsString must include(s"""<div class="govuk-inset-text">""")
     transferCompletePageAsString must include(
       s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="Give your feedback on this service">
@@ -198,7 +198,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     )
   }
 
-  private def checkForNonInsetSurveyLink(transferCompletePageAsString: String, survey: String = "tdr-feedback" ) = {
+  private def checkForNonInsetSurveyLink(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
     transferCompletePageAsString must include(
       s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="What did you think of this service? (opens in new tab)">
          |    What did you think of this service? (opens in new tab)
