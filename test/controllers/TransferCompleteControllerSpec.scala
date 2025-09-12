@@ -1,7 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.GraphQLConfiguration
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.http.Status.FORBIDDEN
 import play.api.mvc.Result
@@ -71,6 +71,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         transferStillInProgress = false
       )
       checkTransferCompletePageForCommonElements(transferCompletePageAsString)
+      checkForNonInsetSurveyLink(transferCompletePageAsString)
     }
 
     "render the success page if the export was triggered successfully for a judgment user" in {
@@ -90,7 +91,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
           |                        </div>""".stripMargin
       )
       transferCompletePageAsString must include(
-        """                    <p class="govuk-body">You will be notified by email once the judgment has been reviewed and published.</p>"""
+        """                    <p class="govuk-body">You will be notified by email once the judgment/update has been reviewed and published.</p>"""
       )
       transferCompletePageAsString must include(
         """                    <p class="govuk-body">Do not delete the original file you uploaded until you have been notified.</p>"""
@@ -106,7 +107,8 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         userType = "judgment",
         transferStillInProgress = false
       )
-      checkTransferCompletePageForCommonElements(transferCompletePageAsString, survey = "5YDPSA")
+      checkTransferCompletePageForCommonElements(transferCompletePageAsString)
+      checkForSurveyLink((transferCompletePageAsString), survey = "5YDPSA")
     }
   }
 
@@ -150,13 +152,14 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val messagingService = mock[MessagingService]
+    val config = new ApplicationConfig(app.configuration)
 
     val keycloakConfiguration = path match {
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
       case "admin"    => getValidTNAUserKeycloakConfiguration()
       case _          => getValidStandardUserKeycloakConfiguration
     }
-    new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, messagingService)
+    new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, messagingService, config)
   }
 
   private def callTransferComplete(path: String, consignmentId: UUID = UUID.randomUUID()): Future[Result] = {
@@ -174,7 +177,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def checkTransferCompletePageForCommonElements(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
+  private def checkTransferCompletePageForCommonElements(transferCompletePageAsString: String) = {
     transferCompletePageAsString must include("<title>Transfer complete - Transfer Digital Records - GOV.UK</title>")
     transferCompletePageAsString must include(
       """                        <h1 class="govuk-panel__title">
@@ -184,6 +187,18 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     transferCompletePageAsString must include(
       """                    <h2 class="govuk-heading-m">What happens next</h2>""".stripMargin
     )
+  }
+
+  private def checkForSurveyLink(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
+    transferCompletePageAsString must include(s"""<div class="govuk-inset-text">""")
+    transferCompletePageAsString must include(
+      s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="Give your feedback on this service">
+         |        Give your feedback on this service</a>
+         |        (opens in new tab)""".stripMargin
+    )
+  }
+
+  private def checkForNonInsetSurveyLink(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
     transferCompletePageAsString must include(
       s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="What did you think of this service? (opens in new tab)">
          |    What did you think of this service? (opens in new tab)
