@@ -57,7 +57,7 @@
                         https://caselaw.nationalarchives.gov.uk</a>.
                     </p>
                     <p class="govuk-body">
-                        Sending judgments via TDR is in two stages:
+                        Sending judgments via TDR is in three stages:
                     </p>
                     <ul class="govuk-list govuk-list--bullet">
                         <li>First you will upload your judgment onto TDR </li>
@@ -93,7 +93,7 @@
 
                     <h3 class="govuk-heading-s" id="contact-us">Contact us</h3>
                     <p class="govuk-body">
-                        If you have a query regarding asking for a TDR account, the transfer process, the status of your transfer, or more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria, email the Judiciary Office Judgments Helpdesk at <a href="mailto:@Messages("judiciary.email")">
+                        If you have a query regarding asking for a TDR account, the transfer process, the status of your transfer, or more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria, email the Judicial Office Judgments Helpdesk at <a href="mailto:@Messages("judiciary.email")">
                     @Messages("judiciary.email")</a>.
                     </p>
                     <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
@@ -109,13 +109,11 @@
                         </li>
                         <li>
                             Once your account is ready, you'll receive an email with the subject <span class="govuk-!-font-weight-bold">
-                            "Register for your Transfer Digital Records (TDR) account - ACTION REQUIRED"</span>
-                            . This email will include important instructions on how to complete your registration.
+                            "Register for your Transfer Digital Records (TDR) account - ACTION REQUIRED"</span>. This email will include important instructions on how to complete your registration.
                         </li>
                         <li>
                             In addition, you’ll get another email with the subject <span class="govuk-!-font-weight-bold">
-                            "Update Your Account"</span>
-                            , which will contain a link. The link will expire in 12 hours, so click it as soon as possible to start your registration. If the link expires, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                            "Update Your Account"</span>, which will contain a link. The link will expire in 12 hours, so click it as soon as possible to start your registration. If the link expires, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
                             to ask for a new one.
                         </li>
                         <li>The registration link will take you to this page:</li>
@@ -140,7 +138,7 @@
                         You will be taken to a <span class="govuk-!-font-weight-bold">"Set new password"</span>
                         page in order to set your own unique password:</p>
                     <img src="@routes.Assets.versioned("images/set-password-page.png")" class="screenshots" alt="Form to set a new password" />
-                    <ol class="govuk-body">
+                    <ol class="govuk-list govuk-list--number">
                         <li>
                             Enter a unique password, using a minimum of 10 characters, into the <span class="govuk-!-font-weight-bold">
                             "New password"</span>
@@ -148,7 +146,7 @@
                             "Confirm password"</span> box. Do not share your password with anyone.</li>
                         <li>Click <span class="govuk-!-font-weight-bold">"Submit"</span>
                             to be taken to the "Sign in to your account" page:</li>
-                        <img src="@routes.Assets.versioned("images/sign-in-link-page.png")" class="screenshots" alt="Page with a link to sign in to your account" />
+                        <img src="@routes.Assets.versioned("images/sign-in-link-page.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Page with a link to sign in to your account" />
                         <li>
                             Click the <span class="govuk-!-font-weight-bold">"sign in to your account"</span>
                             link to be taken to the standard "Sign in to your account" page that you will see each time you sign in to use the service as an existing account holder.
@@ -229,11 +227,11 @@
                         Before you can use the service, you must sign in using Multi-Factor Authentication (MFA) with the authenticator app that you set up on your smartphone, which generates your unique 'one-time password' (OTP) code.
                     </p>
                     <ol class="govuk-list govuk-list--number">
-                        <img src="@routes.Assets.versioned("images/judgment-sign-in-email-password.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Form to enter an email and password" />
+                        <img src="@routes.Assets.versioned("images/judgment-sign-in-email-password.png")" class="screenshots" alt="Form to enter an email and password" />
                         <li>
                             Sign in by entering your email address and password, then click "Sign in" to be taken to the "One-time code" section on this page:
                         </li>
-                        <img src="@routes.Assets.versioned("images/enter-mfa-code-page.png")" class="screenshots" alt="Form to enter the code from the MFA app" />
+                        <img src="@routes.Assets.versioned("images/enter-mfa-code-page.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Form to enter the code from the MFA app" />
                         <li>
                             Make sure you have access to the smart device which has the Authenticator app linked to your Transfer Digital Records account.
                         </li>
@@ -295,7 +293,7 @@
                             Judiciary guidance for the Find case law service from the National Archives</a>
                     </p>
                     <p class="govuk-body">
-                        Press "Continue" when you are ready to move on.
+                        Press "Continue" when you are ready to upload your document.
                     </p>
 
                     <h3 class="govuk-heading-s" id="supp-material">Supplementary material</h3>
@@ -393,7 +391,7 @@
                     <p class="govuk-body">To upload your judgment, you can either:</p>
 
                     <ol class="govuk-list govuk-list--number">
-                        <li>"Choose file" by browsing for a file stored on your computer, or "Drag and drop a single file" into the upload box. The file must be uploaded as a Microsoft Word document (.docx) and you must only upload a single file. Only valid Word files will be visible when using 'Choose file' to browse. If you attempt to 'Drag and drop' a different file format, you will see this error message and must choose a different valid Word file.</li>
+                        <li>"Choose file" by browsing for a file stored on your computer, or "Drag and drop a single file" into the upload box. The file must be uploaded as a Microsoft Word document (.docx) and you must only upload a single file. Only valid Word files will be visible when using 'Choose file' to browse. If you attempt to 'Drag and drop' a different file format, you will see an error message and must choose a different valid Word file.</li>
                         <img src="@routes.Assets.versioned("images/judgment-upload-error.png")" class="screenshots" alt="Judgment upload error page" />
                         <li>
                             <p class="govuk-body">
@@ -416,7 +414,7 @@
                     <p class="govuk-body">
                         Once uploaded, your judgment will be checked to ensure it is suitable for transfer. This will take several minutes so you must keep your browser tab open.
                     </p>
-                    <img src="@routes.Assets.versioned("images/judgment-checking-your-upload.png")" class="screenshots" alt="Checking your upload page" />
+                    <img src="@routes.Assets.versioned("images/judgment-checking-your-upload.png")" class="screenshots govuk-!-padding-top-2 govuk-!-padding-bottom-2" alt="Checking your upload page" />
 
                     <h3 class="govuk-heading-s" id="step-4">Transfer complete</h3>
 
@@ -430,19 +428,17 @@
                     </p>
 
                     <p class="govuk-body">
-                        Clicking on the email link <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
-                        , on the screen, will generate an email.
+                        Clicking on the email link <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>, on the screen, will generate an email.
                     </p>
 
                     <p class="govuk-body">
-                        You can contact <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
-                        , if you need to submit supporting documents or inform us of an anonymisation order.
+                        You can contact <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>, if you need to submit supporting documents, or inform us of an anonymisation order.
                     </p>
 
                     <p class="govuk-body">
                         Make sure you include the following in the email wherever possible:
                     </p>
-                    <ul class="ggovuk-list govuk-list--bullet">
+                    <ul class="govuk-list govuk-list--bullet">
                         <li>the neutral citation</li>
                         <li>the transfer reference: TDR-2024-FKDS</li>
                     </ul>
