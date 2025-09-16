@@ -176,6 +176,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(responseAsString, userType = "standard")
       responseAsString must include("""<svg""")
+      responseAsString must include(s"""<h2 class="govuk-heading-m">Review your metadata</h2>""")
+      responseAsString must include(s"""<p class="govuk-body">Download your metadata file and check if it is correct. This will be downloaded as an Excel file.</p>""")
+      responseAsString must include(
+        s"""<p class="govuk-body">If you would like to add or amend the metadata, return to <a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-link">prepare your metadata.</a></p>"""
+      )
       responseAsString must include(
         s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
       )
