@@ -11,13 +11,16 @@ import services.ConsignmentMetadataService
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import controllers.util.ConsignmentProperty.NeutralCitationData
+import controllers.util.ConsignmentProperty.{JUDGMENT_REFERENCE, NO_NCN, NeutralCitationData}
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.AddOrUpdateConsignmentMetadata
+import play.api.i18n.DefaultMessagesApi
 import testUtils.FrontEndTestHelper
-import scala.concurrent.Future
 
-import java.util.UUID
+import scala.concurrent.Future
+import java.util.{Properties, UUID}
 import scala.concurrent.ExecutionContext
+import scala.io.Source
+import scala.util.Using
 
 class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -37,6 +40,16 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentMetadataService = mock[ConsignmentMetadataService]
+    import scala.jdk.CollectionConverters._
+    val properties = new Properties()
+    Using(Source.fromFile("conf/messages")) { source =>
+      properties.load(source.bufferedReader())
+    }
+    val map = properties.asScala.toMap
+    val testMessages = Map(
+      "default" -> map
+    )
+    val messagesApi = new DefaultMessagesApi(testMessages)
     when(consignmentMetadataService.addOrUpdateConsignmentNeutralCitationNumber(any[UUID], any[NeutralCitationData], any[BearerAccessToken]))
       .thenReturn(Future.successful(List.empty[AddOrUpdateConsignmentMetadata]))
     new JudgmentNeutralCitationController(
@@ -44,7 +57,8 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       graphQLConfiguration,
       getValidJudgmentUserKeycloakConfiguration,
       consignmentService,
-      consignmentMetadataService
+      consignmentMetadataService,
+      messagesApi
     )
   }
 
@@ -111,6 +125,30 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       body must include("There is a problem")
       body must include("update-reasons-error")
       body must include("Neutral citation number must be between 10 and 100 characters")
+    }
+
+    "return BadRequest and show error refence more than 500 characters" in {
+      val consignmentId = UUID.randomUUID()
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+      val longRef = "a" * 501
+
+      val result = controller
+        .validateNCN(consignmentId)
+        .apply(
+          FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation?")
+            .withFormUrlEncodedBody(JUDGMENT_REFERENCE -> longRef, NO_NCN -> "no-ncn-select")
+            .withCSRFToken
+        )
+
+      playStatus(result) mustBe BAD_REQUEST
+      contentType(result) mustBe Some("text/html")
+      val body = contentAsString(result)
+      body must include("There is a problem")
+      body must include("update-reasons-error")
+      body must include("&#39;Provide any details...&#39; must be 500 characters or less")
+      body must include("This field must be 500 characters or less")
     }
 
     "redirect to upload page when NCN is provided" in {

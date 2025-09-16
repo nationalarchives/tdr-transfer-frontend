@@ -1,10 +1,8 @@
-@import helper._
-@import views.html.partials.{backLink, transferReference, neutralCitationFieldsWithReferenceError, neutralCitationHelp}
-@import views.html.helper.form
-@import views.html.helper.CSRF
+@import views.html.helper.{CSRF, form}
+@import views.html.partials.{backLink, neutralCitationHelp, transferReference,neutralCitationFieldsWithReferenceError}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentRef: String, name: String, error: String, ncnValue: Option[String], noNcnSelected: Boolean, judgmentReference: Option[String])(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, name: String, error: String, ncnValue: Option[String], noNcnSelected: Boolean, judgmentReference: Option[String], judgmentReferenceError: Option[String])(implicit request: RequestHeader, messages: Messages)
 @main("Provide neutral citation", name = name, isJudgmentUser = true, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
     <div class="govuk-error-summary" data-module="govuk-error-summary">
 
@@ -29,13 +27,7 @@
 
             @form(routes.JudgmentNeutralCitationController.validateNCN(consignmentId)) {
                 @CSRF.formField
-                <div class="govuk-form-group govuk-form-group--error">
-                    <p id="update-reasons-error" class="govuk-error-message">
-                        <span class="govuk-visually-hidden">Error:</span>@Html(error)
-                    </p>
-                    @neutralCitationFieldsWithReferenceError(ncnValue, noNcnSelected, judgmentReference,None)
-                </div>
-
+                @neutralCitationFieldsWithReferenceError(ncnValue, noNcnSelected, judgmentReference,judgmentReferenceError)
                 @neutralCitationHelp()
 
                 <hr class="govuk-section-break govuk-section-break--m">

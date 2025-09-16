@@ -4,7 +4,7 @@ import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.ConsignmentProperty._
 import org.pac4j.play.scala.SecurityComponents
-import play.api.i18n.I18nSupport
+import play.api.i18n.{I18nSupport, Lang, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentMetadataService, ConsignmentService}
 import uk.gov.nationalarchives.tdr.validation.schema.JsonSchemaDefinition.{BASE_SCHEMA, RELATIONSHIP_SCHEMA}
@@ -21,7 +21,8 @@ class JudgmentNeutralCitationController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val consignmentMetadataService: ConsignmentMetadataService
+    val consignmentMetadataService: ConsignmentMetadataService,
+    val messages: MessagesApi
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -47,9 +48,9 @@ class JudgmentNeutralCitationController @Inject() (
     // Only send judgmentReference if noNeutralCitation is true
     val judgmentReference: Option[String] = if (ncnData.noNeutralCitation) ncnData.judgmentReference else None
 
-    val validated = doValidation(ncnData)
+    val validatedNCN = validateNCNDataValue(ncnData.neutralCitation, NCN).orElse(validateRelationships(ncnData))
 
-    if (validated.isDefined) {
+    if (validatedNCN.isDefined) {
       consignmentService
         .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         .map(reference =>
@@ -58,7 +59,7 @@ class JudgmentNeutralCitationController @Inject() (
               consignmentId,
               reference,
               request.token.name,
-              validated.get,
+              validatedNCN.get,
               ncnData.neutralCitation,
               ncnData.noNeutralCitation,
               judgmentReference
@@ -66,11 +67,31 @@ class JudgmentNeutralCitationController @Inject() (
           )
         )
     } else {
-      val url: String = buildBackURL(consignmentId, ncnData)
-
-      consignmentMetadataService
-        .addOrUpdateConsignmentNeutralCitationNumber(consignmentId, ncnData, request.token.bearerAccessToken)
-        .map(_ => Redirect(url))
+      val validatedNoNCNReference = validateNCNDataValue(ncnData.judgmentReference, JUDGMENT_REFERENCE)
+      implicit val defaultLang: Lang = Lang.defaultLang
+      if (validatedNoNCNReference.isDefined) {
+        consignmentService
+          .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+          .map(reference =>
+            BadRequest(
+              views.html.judgment.judgmentNoNeutralCitationNumberReferenceError(
+                consignmentId,
+                reference,
+                request.token.name,
+                messages("SCHEMA_BASE.judgment_reference.maxLength"), // get this problem message from messages as not a validation error
+                ncnData.neutralCitation,
+                ncnData.noNeutralCitation,
+                judgmentReference,
+                validatedNoNCNReference
+              )
+            )
+          )
+      } else {
+        val url: String = buildBackURL(consignmentId, ncnData)
+        consignmentMetadataService
+          .addOrUpdateConsignmentNeutralCitationNumber(consignmentId, ncnData, request.token.bearerAccessToken)
+          .map(_ => Redirect(url))
+      }
     }
   }
 
@@ -87,30 +108,26 @@ class JudgmentNeutralCitationController @Inject() (
     } else base
   }
 
-  private def doValidation(data: NeutralCitationData): Option[String] = {
-    validateNCNValue(data).orElse(validateRelationships(data))
-  }
-
   private def validateRelationships(data: NeutralCitationData): Option[String] = {
     val validationErrors: Map[String, List[ValidationError]] = validateNeutralCitationData(data, RELATIONSHIP_SCHEMA)
     val errorOption: Option[ValidationError] = validationErrors.headOption.flatMap(x => x._2.headOption)
     validationErrorMessage(errorOption)
   }
 
-  private def validateNCNValue(data: NeutralCitationData): Option[String] = {
-    data.neutralCitation match {
-      case None => None
-      case Some(ncnMetadata) =>
-        if (ncnMetadata.isEmpty) {
-          None
-        } else {
-          val validationErrors: Map[String, List[ValidationError]] = validateNeutralCitationData(data, BASE_SCHEMA)
-
-          val errorOption: Option[ValidationError] = {
-            validationErrors.find(p => p._2.exists(error => error.property == NCN)).flatMap(_._2.headOption)
-          }
-          validationErrorMessage(errorOption)
+  private def validateNCNDataValue(value: Option[String], valueKey: String): Option[String] = {
+    value match {
+      case None | Some("") => None
+      case Some(v) =>
+        val wrapped: Option[String] = Some(v)
+        val neutralCitationData = valueKey match {
+          case JUDGMENT_REFERENCE => NeutralCitationData(judgmentReference = wrapped)
+          case NCN                => NeutralCitationData(neutralCitation = wrapped)
         }
+        val validationErrors: Map[String, List[ValidationError]] = validateNeutralCitationData(neutralCitationData, BASE_SCHEMA)
+        val errorOption: Option[ValidationError] = {
+          validationErrors.find(p => p._2.exists(error => error.property == valueKey)).flatMap(_._2.headOption)
+        }
+        validationErrorMessage(errorOption)
     }
   }
 

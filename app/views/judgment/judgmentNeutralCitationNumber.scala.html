@@ -1,5 +1,5 @@
 @import helper._
-@import views.html.partials.{backLink, transferReference, neutralCitationFields, neutralCitationHelp}
+@import views.html.partials.{backLink, transferReference, neutralCitationFieldsWithReferenceError, neutralCitationHelp}
 
 @import java.util.UUID
 @(consignmentId: UUID, consignmentRef: String, name: String, ncnValue: Option[String], noNcnSelected: Boolean, judgmentReference: Option[String])(implicit request: RequestHeader, messages: Messages)
@@ -10,7 +10,7 @@
 
             @form(routes.JudgmentNeutralCitationController.validateNCN(consignmentId)) {
                 @CSRF.formField
-                @neutralCitationFields(ncnValue, noNcnSelected, judgmentReference)
+                @neutralCitationFieldsWithReferenceError(ncnValue, noNcnSelected, judgmentReference,None)
 
                 @neutralCitationHelp()
 

@@ -46,5 +46,5 @@ object ConsignmentProperty {
     properties
   }
 
-  case class NeutralCitationData(neutralCitation: Option[String], noNeutralCitation: Boolean, judgmentReference: Option[String])
+  case class NeutralCitationData(neutralCitation: Option[String] = None, noNeutralCitation: Boolean = false, judgmentReference: Option[String] = None)
 }
