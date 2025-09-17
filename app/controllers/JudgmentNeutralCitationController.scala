@@ -10,7 +10,6 @@ import services.{ConsignmentMetadataService, ConsignmentService}
 import uk.gov.nationalarchives.tdr.validation.schema.JsonSchemaDefinition.{BASE_SCHEMA, RELATIONSHIP_SCHEMA}
 import uk.gov.nationalarchives.tdr.validation.schema.ValidationError
 
-import java.net.URLEncoder
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -28,14 +27,20 @@ class JudgmentNeutralCitationController @Inject() (
     with I18nSupport {
 
   def addNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val ncnValue: Option[String] = request.getQueryString(NCN).filter(_.nonEmpty)
-    val noNcnSelected: Boolean = request.getQueryString(NO_NCN).exists(_.contains("no-ncn-select"))
-    val effectiveNoNcnSelected = noNcnSelected && ncnValue.isEmpty
-    // UI does not allow both NCN and no NCN to be selected, so only send judgmentReference if noNCN is selected
-    val judgmentReference: Option[String] = if (effectiveNoNcnSelected) request.getQueryString(JUDGMENT_REFERENCE).filter(_.nonEmpty) else None
-    consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      .map(reference => Ok(views.html.judgment.judgmentNeutralCitationNumber(consignmentId, reference, request.token.name, ncnValue, effectiveNoNcnSelected, judgmentReference)))
+    for {
+      neutralCitationData <- consignmentMetadataService.getNeutralCitationData(consignmentId, request.token.bearerAccessToken)
+      consignmentRef <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield Ok(
+      views.html.judgment
+        .judgmentNeutralCitationNumber(
+          consignmentId,
+          consignmentRef,
+          request.token.name,
+          neutralCitationData.neutralCitation,
+          neutralCitationData.noNeutralCitation,
+          neutralCitationData.judgmentReference
+        )
+    )
   }
 
   def validateNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -87,25 +92,12 @@ class JudgmentNeutralCitationController @Inject() (
             )
           )
       } else {
-        val url: String = buildBackURL(consignmentId, ncnData)
+        val url: String = routes.UploadController.judgmentUploadPage(consignmentId).url
         consignmentMetadataService
           .addOrUpdateConsignmentNeutralCitationNumber(consignmentId, ncnData, request.token.bearerAccessToken)
           .map(_ => Redirect(url))
       }
     }
-  }
-
-  private def buildBackURL(consignmentId: UUID, ncnData: NeutralCitationData) = {
-    val params: Seq[(String, String)] = Seq(
-      if (ncnData.neutralCitation.nonEmpty) Some(NCN -> ncnData.neutralCitation.get) else None,
-      if (ncnData.noNeutralCitation) Some(NO_NCN -> "no-ncn-select") else None,
-      if (ncnData.noNeutralCitation) ncnData.judgmentReference.map(reference => JUDGMENT_REFERENCE -> reference) else None
-    ).flatten
-    val base = routes.UploadController.judgmentUploadPage(consignmentId).url
-    if (params.nonEmpty) {
-      val encodedParameters = params.map { case (k, value) => s"$k=${URLEncoder.encode(value, "UTF-8")}" }.mkString("&")
-      s"$base?$encodedParameters"
-    } else base
   }
 
   private def validateRelationships(data: NeutralCitationData): Option[String] = {

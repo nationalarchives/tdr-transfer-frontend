@@ -4,8 +4,9 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import controllers.util.ConsignmentProperty._
+import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.AddOrUpdateConsignmentMetadata
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.{addOrUpdateConsignmentMetadata => aoucm}
-import graphql.codegen.types.{AddOrUpdateConsignmentMetadataInput, ConsignmentMetadata}
+import graphql.codegen.types.{AddOrUpdateConsignmentMetadata => InputConsignmentMetadata, AddOrUpdateConsignmentMetadataInput}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
@@ -38,9 +39,9 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
   "addOrUpdateConsignmentMetadata" should {
     "send the correct variables to the GraphQL API and return the response list" in {
       val metadata = List(
-        ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), "NCN123"),
-        ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), "false"),
-        ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), "")
+        InputConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), "NCN123"),
+        InputConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), "false"),
+        InputConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), "")
       )
       val expectedVariables = Some(aoucm.Variables(AddOrUpdateConsignmentMetadataInput(consignmentId, metadata)))
       val gqlResponse = buildGraphQlSuccessResponse(metadata.map(cm => (cm.propertyName, cm.value)))
@@ -72,7 +73,7 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
         tdrDataLoadHeaderMapper(NO_NCN) -> "true", // boolean as string
         tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE) -> "JR-2"
       )
-      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => ConsignmentMetadata(name, value) }
+      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => InputConsignmentMetadata(name, value) }
       val expectedVariables = Some(aoucm.Variables(AddOrUpdateConsignmentMetadataInput(consignmentId, responseVariablesMetadata)))
       val gqlResponse = buildGraphQlSuccessResponse(expectedMetadataValues)
       when(addOrUpdateClient.getResult(bearerAccessToken, aoucm.document, expectedVariables)).thenReturn(Future.successful(gqlResponse))
@@ -88,13 +89,61 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
         tdrDataLoadHeaderMapper(NO_NCN) -> "true",
         tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE) -> ""
       )
-      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => ConsignmentMetadata(name, value) }
+      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => InputConsignmentMetadata(name, value) }
       val expectedVariables = Some(aoucm.Variables(AddOrUpdateConsignmentMetadataInput(consignmentId, responseVariablesMetadata)))
       val gqlResponse = buildGraphQlSuccessResponse(expectedMetadataValues)
       when(addOrUpdateClient.getResult(bearerAccessToken, aoucm.document, expectedVariables)).thenReturn(Future.successful(gqlResponse))
 
       val result = service.addOrUpdateConsignmentNeutralCitationNumber(consignmentId, data, bearerAccessToken).futureValue
       result.map(r => (r.propertyName, r.value)) should contain theSameElementsInOrderAs expectedMetadataValues
+    }
+  }
+
+  "getNeutralCitationData" should {
+    "map full metadata set to NeutralCitationData with values" in {
+      val consignmentIdLocal = UUID.randomUUID()
+      val token = bearerAccessToken
+      val stubService = new ConsignmentMetadataService(graphQlConfig) {
+        override def getConsignmentMetadata(consignmentId: UUID, fields: List[String], tok: BearerAccessToken): Future[Map[String, String]] = {
+          val ncnKey = tdrDataLoadHeaderMapper(NCN)
+          val noNcnKey = tdrDataLoadHeaderMapper(NO_NCN)
+          val refKey = tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE)
+          Future.successful(
+            Map(
+              ncnKey -> "NCN2025 EWCOP 123",
+              noNcnKey -> "true",
+              refKey -> "Ref-ABC"
+            )
+          )
+        }
+      }
+      val result = stubService.getNeutralCitationData(consignmentIdLocal, token).futureValue
+      result.neutralCitation shouldBe Some("NCN2025 EWCOP 123")
+      result.noNeutralCitation shouldBe true
+      result.judgmentReference shouldBe Some("Ref-ABC")
+    }
+
+    "handle empty and false values producing Nones and false boolean" in {
+      val consignmentIdLocal = UUID.randomUUID()
+      val token = bearerAccessToken
+      val stubService = new ConsignmentMetadataService(graphQlConfig) {
+        override def getConsignmentMetadata(consignmentId: UUID, fields: List[String], tok: BearerAccessToken): Future[Map[String, String]] = {
+          val ncnKey = tdrDataLoadHeaderMapper(NCN)
+          val noNcnKey = tdrDataLoadHeaderMapper(NO_NCN)
+          val refKey = tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE)
+          Future.successful(
+            Map(
+              ncnKey -> "", // empty should become None
+              noNcnKey -> "false",
+              refKey -> "" // empty should become None
+            )
+          )
+        }
+      }
+      val result = stubService.getNeutralCitationData(consignmentIdLocal, token).futureValue
+      result.neutralCitation shouldBe None
+      result.noNeutralCitation shouldBe false
+      result.judgmentReference shouldBe None
     }
   }
 }

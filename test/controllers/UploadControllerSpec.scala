@@ -1,43 +1,43 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{ApplicationConfig, GraphQLConfiguration}
-import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
+import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.StartUpload.startUpload
-import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, StartUploadInput}
-import io.circe.syntax._
-import io.circe.parser.decode
+import graphql.codegen.types._
 import io.circe.generic.auto._
+import io.circe.parser.decode
+import io.circe.syntax._
 import org.mockito.Mockito.when
+import play.api.Configuration
 import play.api.Play.materializer
+import play.api.libs.json._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
-import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
-import play.api.libs.json._
-
-import java.util.UUID
-import scala.collection.immutable.TreeMap
-import scala.concurrent.ExecutionContext
-import org.scalatest.concurrent.ScalaFutures._
-import play.api.Configuration
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, InProgressValue, StatusValue}
+import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import viewsapi.FrontEndInfo
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import java.util.UUID
+import scala.collection.immutable.TreeMap
+import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
 class UploadControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val triggerBackendChecksServer = new WireMockServer(9008)
-  private val configuration: Configuration = mock[Configuration]
   val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
+  val checkPageForStaticElements = new CheckPageForStaticElements
+  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+  private val configuration: Configuration = mock[Configuration]
 
   override def beforeEach(): Unit = {
     triggerBackendChecksServer.start()
@@ -50,9 +50,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
     triggerBackendChecksServer.stop()
   }
-
-  val checkPageForStaticElements = new CheckPageForStaticElements
-  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
@@ -518,7 +515,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
     }
 
-    "show the back button shows no parameters when no ncn sent in request" in {
+    "show the back button shows is to judgment/consignemtid/neutral-citation in request" in {
       val controller = setUpNCNTestController()
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
@@ -531,23 +528,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
       val uploadPageAsString = contentAsString(uploadPage)
       uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/neutral-citation" class="govuk-back-link">Back</a>""")
-    }
-
-    "show the back button shows parameters when ncn sent in request" in {
-      val controller = setUpNCNTestController()
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-
-      setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      setConsignmentTypeResponse(wiremockServer, "judgment")
-
-      val uploadPage = controller
-        .judgmentUploadPage(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload?judgment_neutral_citation=judgmentNeutralCitation").withCSRFToken)
-      val uploadPageAsString = contentAsString(uploadPage)
-      uploadPageAsString must include(
-        """<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/neutral-citation?judgment_neutral_citation=judgmentNeutralCitation" class="govuk-back-link">Back</a>"""
-      )
     }
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {

@@ -5,7 +5,7 @@ import configuration.GraphQLConfiguration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{POST, contentAsString, contentType, redirectLocation, status => playStatus, _}
+import play.api.test.Helpers.{POST, GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import services.ConsignmentService
 import services.ConsignmentMetadataService
 import org.mockito.Mockito._
@@ -36,7 +36,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  private def instantiateController() = {
+  private def instantiateController(ncn: Option[String] = None) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentMetadataService = mock[ConsignmentMetadataService]
@@ -52,6 +52,8 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     val messagesApi = new DefaultMessagesApi(testMessages)
     when(consignmentMetadataService.addOrUpdateConsignmentNeutralCitationNumber(any[UUID], any[NeutralCitationData], any[BearerAccessToken]))
       .thenReturn(Future.successful(List.empty[AddOrUpdateConsignmentMetadata]))
+    when(consignmentMetadataService.getNeutralCitationData(any[UUID], any[BearerAccessToken]))
+      .thenReturn(Future.successful(NeutralCitationData(ncn, noNeutralCitation = false, None)))
     new JudgmentNeutralCitationController(
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
@@ -60,6 +62,45 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       consignmentMetadataService,
       messagesApi
     )
+  }
+
+  "JudgmentNeutralCitationController GET" should {
+    "return OK and show neutral citation form" in {
+      val consignmentId = UUID.randomUUID()
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val result = controller
+        .addNCN(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/neutral-citation").withCSRFToken)
+
+      playStatus(result) mustBe OK
+      contentType(result) mustBe Some("text/html")
+      val body = contentAsString(result)
+      body must include("Provide the neutral citation number (NCN) for the original judgment") // heading text
+      body must include("judgment_neutral_citation") // input name
+      body must include("judgment_no_neutral_citation") // checkbox name
+    }
+    "return OK and show neutral citation form with saved ncn showing" in {
+      val consignmentId = UUID.randomUUID()
+      val ncn = "[2024] EWCOP 123 (T1)"
+      val controller = instantiateController(Some(ncn))
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val result = controller
+        .addNCN(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/neutral-citation").withCSRFToken)
+
+      playStatus(result) mustBe OK
+      contentType(result) mustBe Some("text/html")
+      val body = contentAsString(result)
+      body must include("Provide the neutral citation number (NCN) for the original judgment") // heading text
+      body must include(ncn)
+      body must include("judgment_neutral_citation") // input name
+      body must include("judgment_no_neutral_citation") // checkbox name
+    }
   }
 
   "JudgmentNeutralCitationController POST" should {
@@ -166,7 +207,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
         )
       playStatus(result) mustBe SEE_OTHER
       val redirect = redirectLocation(result).value
-      redirect must startWith(s"/judgment/$consignmentId/upload?judgment_neutral_citation=")
+      redirect must startWith(s"/judgment/$consignmentId/upload")
     }
 
     "redirect to upload page when 'no-ncn' checkbox selected" in {
@@ -184,7 +225,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
 
       playStatus(result) mustBe SEE_OTHER
       val redirect = redirectLocation(result).value
-      redirect mustBe s"/judgment/$consignmentId/upload?judgment_no_neutral_citation=no-ncn-select&judgment_reference=An+example+reference"
+      redirect mustBe s"/judgment/$consignmentId/upload"
     }
   }
 }

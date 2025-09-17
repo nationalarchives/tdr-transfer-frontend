@@ -102,20 +102,11 @@ class UploadController @Inject() (
 
     def buildBackUrl: String = {
       // TODO when all NCN work complete this is what the fab block should be
-      // if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
+      //  if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
       if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
-        routes.BeforeUploadingController.beforeUploading(consignmentId).url
+        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
       } else {
-        val ncn = request.getQueryString(NCN).filter(_.nonEmpty)
-        val noNcn = request.getQueryString(NO_NCN).filter(_.nonEmpty)
-        val reference = request.getQueryString(JUDGMENT_REFERENCE).filter(_.nonEmpty)
-        val params = Seq(
-          ncn.map(neutralCitation => s"$NCN=$neutralCitation"),
-          noNcn.map(noNeutralCitation => s"$NO_NCN=$noNeutralCitation"),
-          reference.map(reference => s"$JUDGMENT_REFERENCE=$reference")
-        ).flatten
-        val base = routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
-        if (params.nonEmpty) s"$base?${params.mkString("&")}" else base
+        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
       }
     }
 
