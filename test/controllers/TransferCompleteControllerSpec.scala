@@ -87,7 +87,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       )
       transferCompletePageAsString must include(
         """                        <div class="govuk-panel__body govuk-!-font-size-27 govuk-!-margin-top-5">
-          |                            Transfer Reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>
+          |                            Transfer reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>
           |                        </div>""".stripMargin
       )
       transferCompletePageAsString must include(
