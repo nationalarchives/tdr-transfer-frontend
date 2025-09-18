@@ -6,8 +6,10 @@ import controllers.util.ConsignmentProperty._
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.{AddOrUpdateConsignmentMetadata => ResponseConsignmentMetadata}
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.{addOrUpdateConsignmentMetadata => aoucm}
 import graphql.codegen.GetConsignmenetMetadata.{getConsignmentFilesMetadata => gcm}
+import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.types.{AddOrUpdateConsignmentMetadataInput, ConsignmentMetadataFilter, AddOrUpdateConsignmentMetadata => InputConsignmentMetadata}
 import services.ApiErrorHandling._
+import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
 import java.util.UUID
@@ -43,7 +45,7 @@ class ConsignmentMetadataService @Inject() (val graphqlConfiguration: GraphQLCon
     sendApiRequest(addOrUpdateConsignmentMetadataClient, aoucm.document, token, variables).map(_.addOrUpdateConsignmentMetadata)
   }
 
-  def getConsignmentMetadata(consignmentId: UUID, fields: List[String], token: BearerAccessToken): Future[Map[String, String]] = {
+  private def getConsignmentMetadata(consignmentId: UUID, fields: List[String], token: BearerAccessToken): Future[Map[String, String]] = {
     val filter = ConsignmentMetadataFilter(fields)
     val variables = gcm.Variables(consignmentId, Some(filter))
     sendApiRequest(getConsignmentMetadataClient, gcm.document, token, variables).map { data =>
