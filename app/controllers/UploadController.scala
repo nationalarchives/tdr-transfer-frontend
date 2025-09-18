@@ -104,7 +104,7 @@ class UploadController @Inject() (
       // TODO when all NCN work complete this is what the fab block should be
       //  if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
       if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
-        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
+        routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
         routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
       }
