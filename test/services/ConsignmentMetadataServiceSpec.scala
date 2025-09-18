@@ -4,9 +4,10 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import controllers.util.ConsignmentProperty._
-import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.AddOrUpdateConsignmentMetadata
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.{addOrUpdateConsignmentMetadata => aoucm}
-import graphql.codegen.types.{AddOrUpdateConsignmentMetadata => InputConsignmentMetadata, AddOrUpdateConsignmentMetadataInput}
+import graphql.codegen.GetConsignmenetMetadata.getConsignmentFilesMetadata.GetConsignment.ConsignmentMetadata
+import graphql.codegen.GetConsignmenetMetadata.{getConsignmentFilesMetadata => gcm}
+import graphql.codegen.types.{AddOrUpdateConsignmentMetadataInput, ConsignmentMetadataFilter, AddOrUpdateConsignmentMetadata => InputConsignmentMetadata}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
@@ -25,7 +26,9 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
 
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val addOrUpdateClient = mock[GraphQLClient[aoucm.Data, aoucm.Variables]]
+  private val getConsignmentMetadataClient = mock[GraphQLClient[gcm.Data, gcm.Variables]]
   when(graphQlConfig.getClient[aoucm.Data, aoucm.Variables]()).thenReturn(addOrUpdateClient)
+  when(graphQlConfig.getClient[gcm.Data, gcm.Variables]()).thenReturn(getConsignmentMetadataClient)
 
   private val service = new ConsignmentMetadataService(graphQlConfig)
   private val bearerAccessToken = new BearerAccessToken("test-token")
@@ -69,8 +72,8 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
     "map NeutralCitationData with noNeutralCitation = true and judgmentReference provided" in {
       val data = NeutralCitationData(None, noNeutralCitation = true, judgmentReference = Some("JR-2"))
       val expectedMetadataValues = List(
-        tdrDataLoadHeaderMapper(NCN) -> "", // empty because None
-        tdrDataLoadHeaderMapper(NO_NCN) -> "true", // boolean as string
+        tdrDataLoadHeaderMapper(NCN) -> "",
+        tdrDataLoadHeaderMapper(NO_NCN) -> "true",
         tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE) -> "JR-2"
       )
       val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => InputConsignmentMetadata(name, value) }
@@ -103,21 +106,30 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
     "map full metadata set to NeutralCitationData with values" in {
       val consignmentIdLocal = UUID.randomUUID()
       val token = bearerAccessToken
-      val stubService = new ConsignmentMetadataService(graphQlConfig) {
-        override def getConsignmentMetadata(consignmentId: UUID, fields: List[String], tok: BearerAccessToken): Future[Map[String, String]] = {
-          val ncnKey = tdrDataLoadHeaderMapper(NCN)
-          val noNcnKey = tdrDataLoadHeaderMapper(NO_NCN)
-          val refKey = tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE)
-          Future.successful(
-            Map(
-              ncnKey -> "NCN2025 EWCOP 123",
-              noNcnKey -> "true",
-              refKey -> "Ref-ABC"
+      val metadataValues = List[ConsignmentMetadata](
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), "NCN2025 EWCOP 123"),
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), "true"),
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), "Ref-ABC")
+      )
+      val fields = List(tdrDataLoadHeaderMapper(NCN), tdrDataLoadHeaderMapper(NO_NCN), tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE))
+      val filter = ConsignmentMetadataFilter(fields)
+      val variables = Some(gcm.Variables(consignmentIdLocal, Some(filter)))
+      val data = GraphQlResponse(
+        Some(
+          gcm.Data(
+            Some(
+              gcm.GetConsignment(
+                consignmentIdLocal.toString,
+                metadataValues
+              )
             )
           )
-        }
-      }
-      val result = stubService.getNeutralCitationData(consignmentIdLocal, token).futureValue
+        ),
+        Nil
+      )
+      when(getConsignmentMetadataClient.getResult(token, gcm.document, variables)).thenReturn(Future.successful(data))
+
+      val result = service.getNeutralCitationData(consignmentIdLocal, token).futureValue
       result.neutralCitation shouldBe Some("NCN2025 EWCOP 123")
       result.noNeutralCitation shouldBe true
       result.judgmentReference shouldBe Some("Ref-ABC")
@@ -126,21 +138,30 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
     "handle empty and false values producing Nones and false boolean" in {
       val consignmentIdLocal = UUID.randomUUID()
       val token = bearerAccessToken
-      val stubService = new ConsignmentMetadataService(graphQlConfig) {
-        override def getConsignmentMetadata(consignmentId: UUID, fields: List[String], tok: BearerAccessToken): Future[Map[String, String]] = {
-          val ncnKey = tdrDataLoadHeaderMapper(NCN)
-          val noNcnKey = tdrDataLoadHeaderMapper(NO_NCN)
-          val refKey = tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE)
-          Future.successful(
-            Map(
-              ncnKey -> "", // empty should become None
-              noNcnKey -> "false",
-              refKey -> "" // empty should become None
+      val metadataValues = List[ConsignmentMetadata](
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), ""),
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), "false"),
+        ConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), "")
+      )
+      val fields = List(tdrDataLoadHeaderMapper(NCN), tdrDataLoadHeaderMapper(NO_NCN), tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE))
+      val filter = ConsignmentMetadataFilter(fields)
+      val variables = Some(gcm.Variables(consignmentIdLocal, Some(filter)))
+      val data = GraphQlResponse(
+        Some(
+          gcm.Data(
+            Some(
+              gcm.GetConsignment(
+                consignmentIdLocal.toString,
+                metadataValues
+              )
             )
           )
-        }
-      }
-      val result = stubService.getNeutralCitationData(consignmentIdLocal, token).futureValue
+        ),
+        Nil
+      )
+      when(getConsignmentMetadataClient.getResult(token, gcm.document, variables)).thenReturn(Future.successful(data))
+
+      val result = service.getNeutralCitationData(consignmentIdLocal, token).futureValue
       result.neutralCitation shouldBe None
       result.noNeutralCitation shouldBe false
       result.judgmentReference shouldBe None
