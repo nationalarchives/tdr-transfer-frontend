@@ -3,9 +3,9 @@
 @import viewsapi.FrontEndInfo
 @import java.util.UUID
 
-@(consignmentId: UUID, consignmentRef: String, pageHeading1stHalf: String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, pageHeading1stHalf: String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String, backUrl: String)(implicit request: RequestHeader, messages: Messages)
 
-@main(pageHeading1stHalf, name = name, isJudgmentUser = true, backLink = Some(backLink(routes.BeforeUploadingController.beforeUploading(consignmentId).url, "Back"))) {
+@main(pageHeading1stHalf, name = name, isJudgmentUser = true, backLink = Some(backLink(backUrl, "Back"))) {
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">

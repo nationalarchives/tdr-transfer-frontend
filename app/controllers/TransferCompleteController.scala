@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.KeycloakConfiguration
+import configuration.{ApplicationConfig, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -16,7 +16,8 @@ class TransferCompleteController @Inject() (
     val controllerComponents: SecurityComponents,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val messagingService: MessagingService
+    val messagingService: MessagingService,
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -43,7 +44,7 @@ class TransferCompleteController @Inject() (
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>
-        Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name))
+        Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name, applicationConfig.blockJudgmentPressSummaries))
       }
   }
 }
