@@ -15,6 +15,10 @@ object ConsignmentProperty {
   val NCN = "judgment_neutral_citation"
   val NO_NCN = "judgment_no_neutral_citation"
   val JUDGMENT_REFERENCE = "judgment_reference"
+  val JUDGMENT_TYPE = "judgment_type"
+  val JUDGMENT_UPDATE = "judgment_update"
+  val JUDGMENT_UPDATE_TYPE = "judgment_update_type"
+  val JUDGMENT_UPDATE_DETAILS = "judgment_update_details"
 
   private def validateWithSchema(data: ObjectMetadata, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
     MetadataValidationJsonSchema.validateWithSingleSchema(schema, Set(data))
@@ -31,6 +35,14 @@ object ConsignmentProperty {
       )
     )
     validateWithSchema(data, schema)
+  }
+
+  def validateFormData(data: Map[String, String], schema: List[JsonSchemaDefinition]): Map[String, List[ValidationError]] = {
+    val objectMetadata = ObjectMetadata("data", data.map(kv => Metadata(kv._1, kv._2)).toSet)
+    schema.foldLeft(Map.empty[String, List[ValidationError]]) { (error, schema) =>
+      val errors = validateWithSchema(objectMetadata, schema)
+      error ++ errors.map { case (k, v) => k -> (v ++ error.getOrElse(k, Nil)) }
+    }
   }
 
   def validationErrorMessage(errorOption: Option[ValidationError]): Option[String] = {

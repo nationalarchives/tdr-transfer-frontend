@@ -1,0 +1,60 @@
+@import views.html.helper.CSRF
+@import views.html.helper.form
+@import views.html.partials.{errorSummary, transferReference, judgmentUpdateReasonFields}
+@import java.util.UUID
+@import views.html.partials.backLink
+
+@(consignmentId: UUID, consignmentRef: String, name: String, updateReasonIdAndLabels: Seq[(String, String)], formData: JudgmentTypeFormData)(implicit request: RequestHeader, messages: Messages)
+@defining("Tell us more about this document") { title =>
+    @main(title, name = name, isJudgmentUser = true, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
+        @errorSummary(formData.errorSummary)
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+            @form(routes.JudgmentTypeController.submitSelectedDocumentType(consignmentId), (Symbol("novalidate"), "")) {
+                @CSRF.formField
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset" aria-describedby="judgmentType-hint">
+                        <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+                            <h1 class="govuk-fieldset__heading">Tell us about your document</h1>
+                        </legend>
+
+                        <div id="judgmentType-hint" class="govuk-hint">
+                            This will help us to collect the right information from you about the transfer.
+                        </div>
+
+                        <div class="govuk-radios" data-module="govuk-radios">
+                            <div class="govuk-radios__item">
+                                <input class="govuk-radios__input" id="judgmentType" name="@formData.judgmentType.id" type="radio" value="judgment" @{if(formData.judgmentType.value.contains("judgment")) {"checked"}} >
+                                <label class="govuk-label govuk-radios__label" for="judgmentType">
+                                    It's a judgment or decision being transferred for the first time
+                                </label>
+                            </div>
+                            <div class="govuk-radios__item">
+                                <input class="govuk-radios__input" id="judgmentType-2" name="@formData.judgmentType.id" type="radio" value="update" data-aria-controls="conditional-judgmentType-2" @{if(formData.judgmentType.value.contains("update")) {"checked"}}>
+                                <label class="govuk-label govuk-radios__label" for="judgmentType-2">
+                                    It's an update to a judgment or decision
+                                </label>
+                            </div>
+                            <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="conditional-judgmentType-2">
+                            @judgmentUpdateReasonFields(updateReasonIdAndLabels, formData)
+                            </div>
+                            <div class="govuk-radios__item">
+                                <input class="govuk-radios__input" id="judgmentType-3" name="@formData.judgmentType.id" type="radio" value="press_summary" @{if(formData.judgmentType.value.contains("press_summary")) {"checked"}}>
+                                <label class="govuk-label govuk-radios__label" for="judgmentType-3">
+                                    It's a press summary related to a judgment or decision
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="govuk-button-group">
+                    <button class="govuk-button" data-module="govuk-button">
+                        Continue
+                    </button>
+                </div>
+            }
+            </div>
+            @transferReference(consignmentRef, isJudgmentUser = true)
+        </div>
+    }
+}

@@ -5,9 +5,9 @@ import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import controllers.util.ConsignmentProperty._
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.{addOrUpdateConsignmentMetadata => aoucm}
-import graphql.codegen.GetConsignmenetMetadata.getConsignmentFilesMetadata.GetConsignment.ConsignmentMetadata
-import graphql.codegen.GetConsignmenetMetadata.{getConsignmentFilesMetadata => gcm}
-import graphql.codegen.types.{AddOrUpdateConsignmentMetadataInput, ConsignmentMetadataFilter, AddOrUpdateConsignmentMetadata => InputConsignmentMetadata}
+import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
+import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
+import graphql.codegen.types.{AddOrUpdateConsignmentMetadata, AddOrUpdateConsignmentMetadataInput, ConsignmentMetadataFilter}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
@@ -42,9 +42,9 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
   "addOrUpdateConsignmentMetadata" should {
     "send the correct variables to the GraphQL API and return the response list" in {
       val metadata = List(
-        InputConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), "NCN123"),
-        InputConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), "false"),
-        InputConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), "")
+        AddOrUpdateConsignmentMetadata(tdrDataLoadHeaderMapper(NCN), "NCN123"),
+        AddOrUpdateConsignmentMetadata(tdrDataLoadHeaderMapper(NO_NCN), "false"),
+        AddOrUpdateConsignmentMetadata(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), "")
       )
       val expectedVariables = Some(aoucm.Variables(AddOrUpdateConsignmentMetadataInput(consignmentId, metadata)))
       val gqlResponse = buildGraphQlSuccessResponse(metadata.map(cm => (cm.propertyName, cm.value)))
@@ -76,7 +76,7 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
         tdrDataLoadHeaderMapper(NO_NCN) -> "true",
         tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE) -> "JR-2"
       )
-      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => InputConsignmentMetadata(name, value) }
+      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => AddOrUpdateConsignmentMetadata(name, value) }
       val expectedVariables = Some(aoucm.Variables(AddOrUpdateConsignmentMetadataInput(consignmentId, responseVariablesMetadata)))
       val gqlResponse = buildGraphQlSuccessResponse(expectedMetadataValues)
       when(addOrUpdateClient.getResult(bearerAccessToken, aoucm.document, expectedVariables)).thenReturn(Future.successful(gqlResponse))
@@ -92,7 +92,7 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
         tdrDataLoadHeaderMapper(NO_NCN) -> "true",
         tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE) -> ""
       )
-      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => InputConsignmentMetadata(name, value) }
+      val responseVariablesMetadata = expectedMetadataValues.map { case (name, value) => AddOrUpdateConsignmentMetadata(name, value) }
       val expectedVariables = Some(aoucm.Variables(AddOrUpdateConsignmentMetadataInput(consignmentId, responseVariablesMetadata)))
       val gqlResponse = buildGraphQlSuccessResponse(expectedMetadataValues)
       when(addOrUpdateClient.getResult(bearerAccessToken, aoucm.document, expectedVariables)).thenReturn(Future.successful(gqlResponse))

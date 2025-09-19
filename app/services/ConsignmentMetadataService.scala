@@ -5,11 +5,14 @@ import configuration.GraphQLConfiguration
 import controllers.util.ConsignmentProperty._
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.{AddOrUpdateConsignmentMetadata => ResponseConsignmentMetadata}
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.{addOrUpdateConsignmentMetadata => aoucm}
-import graphql.codegen.GetConsignmenetMetadata.{getConsignmentFilesMetadata => gcm}
-import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import graphql.codegen.types.{AddOrUpdateConsignmentMetadataInput, ConsignmentMetadataFilter, AddOrUpdateConsignmentMetadata => InputConsignmentMetadata}
+import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
+import graphql.codegen.types.{
+  AddOrUpdateConsignmentMetadata,
+  AddOrUpdateConsignmentMetadataInput,
+  ConsignmentMetadataFilter,
+  AddOrUpdateConsignmentMetadata => InputConsignmentMetadata
+}
 import services.ApiErrorHandling._
-import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
 import java.util.UUID
@@ -20,7 +23,7 @@ import scala.language.reflectiveCalls
 class ConsignmentMetadataService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val addOrUpdateConsignmentMetadataClient = graphqlConfiguration.getClient[aoucm.Data, aoucm.Variables]()
   private val getConsignmentMetadataClient = graphqlConfiguration.getClient[gcm.Data, gcm.Variables]()
-  val tdrDataLoadHeaderMapper = ConfigUtils.loadConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
+  val tdrDataLoadHeaderMapper: String => String = ConfigUtils.loadConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
 
   def addOrUpdateConsignmentNeutralCitationNumber(
       consignmentId: UUID,
@@ -65,5 +68,18 @@ class ConsignmentMetadataService @Inject() (val graphqlConfiguration: GraphQLCon
         judgmentReference = metadataMap.get(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE)).filter(_.nonEmpty)
       )
     }
+  }
+
+  def convertAndAddConsignmentMetadata(
+      consignmentId: UUID,
+      consignmentMetadata: Map[String, String],
+      token: BearerAccessToken
+  ): Future[List[aoucm.AddOrUpdateConsignmentMetadata]] = {
+    val metadataList = consignmentMetadata.map { case (key, value) =>
+      AddOrUpdateConsignmentMetadata(tdrDataLoadHeaderMapper(key), value)
+    }.toList
+    val input = AddOrUpdateConsignmentMetadataInput(consignmentId, metadataList)
+    val variables = aoucm.Variables(input)
+    sendApiRequest(addOrUpdateConsignmentMetadataClient, aoucm.document, token, variables).map(_.addOrUpdateConsignmentMetadata)
   }
 }
