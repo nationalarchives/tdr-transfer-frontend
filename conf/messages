@@ -52,3 +52,5 @@ draftMetadata.validation.details.ADDITIONAL_HEADER=There was at least one column
 draftMetadata.validation.action.ADDITIONAL_HEADER=The following columns could not be recognised, please remove them from your file and re-upload.
 draftMetadata.validation.details.UNKNOWN=An unknown error was identified.
 draftMetadata.validation.action.UNKNOWN=Please contact your Digital Transfer Advisor on <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a> quoting the Consignment Reference.
+
+SCHEMA_BASE.judgment_reference.maxLength=&#39;Provide any details...&#39; must be 500 characters or less

@@ -1,0 +1,52 @@
+@import helper._
+@import views.html.partials.{backLink, transferReference, neutralCitationFieldsWithReferenceError, neutralCitationHelp}
+@import views.html.helper.form
+@import views.html.helper.CSRF
+
+@import java.util.UUID
+@(consignmentId: UUID, consignmentRef: String, name: String, error: String, ncnValue: Option[String], noNcnSelected: Boolean, judgmentReference: Option[String])(implicit request: RequestHeader, messages: Messages)
+@main("Provide neutral citation", name = name, isJudgmentUser = true, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
+    <div class="govuk-error-summary" data-module="govuk-error-summary">
+
+        <div role="alert">
+            <h2 class="govuk-error-summary__title">
+                There is a problem
+            </h2>
+            <div class="govuk-error-summary__body">
+
+                <ul class="govuk-list govuk-error-summary__list">
+
+                    <li>
+                        <a href="#update-reasons-error">@Html(error)</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>
+
+            @form(routes.JudgmentNeutralCitationController.validateNCN(consignmentId)) {
+                @CSRF.formField
+                <div class="govuk-form-group govuk-form-group--error">
+                    <p id="update-reasons-error" class="govuk-error-message">
+                        <span class="govuk-visually-hidden">Error:</span>@Html(error)
+                    </p>
+                    @neutralCitationFieldsWithReferenceError(ncnValue, noNcnSelected, judgmentReference,None)
+                </div>
+
+                @neutralCitationHelp()
+
+                <hr class="govuk-section-break govuk-section-break--m">
+
+                <div class="govuk-button-group">
+                    <button class="govuk-button" data-module="govuk-button" id="continueButton" type="submit">
+                        Continue
+                    </button>
+                </div>
+            }
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = true)
+    </div>
+}
