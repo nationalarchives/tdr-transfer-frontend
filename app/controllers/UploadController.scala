@@ -99,6 +99,16 @@ class UploadController @Inject() (
   def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
+    def backUrl: String = {
+      // TODO when all NCN work complete this is what the fab block should be
+      //  if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
+      if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
+        routes.BeforeUploadingController.beforeUploading(consignmentId).url
+      } else {
+        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
+      }
+    }
+
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -115,8 +125,10 @@ class UploadController @Inject() (
           Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
-          Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name))
-            .uncache()
+          Ok(
+            views.html.judgment
+              .judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name, backUrl)
+          ).uncache()
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
       }

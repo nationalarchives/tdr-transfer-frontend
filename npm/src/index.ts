@@ -186,4 +186,14 @@ export const renderModules = async () => {
       buttonDisabled.initialiseListeners()
     })
   }
+
+  // Initialise neutral citation input toggle on judgment NCN page(s)
+  const ncnCheckbox = document.querySelector("#no-ncn")
+  const ncnInput = document.querySelector("#neutral-citation")
+  if (ncnCheckbox && ncnInput) {
+    const ncnModule = await import("./judgmentmetadata/neutral-citation")
+    if (typeof ncnModule.initialiseNeutralCitationToggle === "function") {
+      ncnModule.initialiseNeutralCitationToggle()
+    }
+  }
 }
