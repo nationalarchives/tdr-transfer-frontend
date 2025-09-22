@@ -6,11 +6,11 @@
 
 @(consignmentId: UUID, consignmentRef: String, name: String, updateReasonIdAndLabels: Seq[(String, String)], formData: JudgmentTypeFormData)(implicit request: RequestHeader, messages: Messages)
 @defining("Tell us more about this document") { title =>
-    @main(title, name = name, isJudgmentUser = true, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
+    @main(title, name = name, isJudgmentUser = true, backLink = Some(backLink(routes.HomepageController.judgmentHomepage().url, "Back"))) {
         @errorSummary(formData.errorSummary)
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
-            @form(routes.JudgmentTypeController.submitSelectedDocumentType(consignmentId), (Symbol("novalidate"), "")) {
+            @form(routes.JudgmentTypeController.submitJudgmentType(consignmentId), (Symbol("novalidate"), "")) {
                 @CSRF.formField
                 <div class="govuk-form-group">
                     <fieldset class="govuk-fieldset" aria-describedby="judgmentType-hint">
@@ -24,7 +24,7 @@
 
                         <div class="govuk-radios" data-module="govuk-radios">
                             <div class="govuk-radios__item">
-                                <input class="govuk-radios__input" id="judgmentType" name="@formData.judgmentType.id" type="radio" value="judgment" @{if(formData.judgmentType.value.contains("judgment")) {"checked"}} >
+                                <input class="govuk-radios__input" id="judgmentType" name="@formData.judgmentType.id" type="radio" value="judgment" @{if(formData.judgmentType.value.contains("judgment")) {"checked"}}>
                                 <label class="govuk-label govuk-radios__label" for="judgmentType">
                                     It's a judgment or decision being transferred for the first time
                                 </label>

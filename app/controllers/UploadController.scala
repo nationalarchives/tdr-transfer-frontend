@@ -141,8 +141,8 @@ class UploadController @Inject() (
     if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
       routes.BeforeUploadingController.beforeUploading(consignmentId).url
     } else {
-      if (judgmentType.contains("judgment") && judgmentUpdate.contains(false)) {
-        routes.JudgmentTypeController.selectJudgmentType(consignmentId).url
+      if (judgmentType.contains("judgment") && (judgmentUpdate.isEmpty || judgmentUpdate.contains(false))) {
+        routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
         routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
       }

@@ -24,19 +24,6 @@ object ConsignmentProperty {
     MetadataValidationJsonSchema.validateWithSingleSchema(schema, Set(data))
   }
 
-  def validateNeutralCitationData(neutralCitationData: NeutralCitationData, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
-    val data = ObjectMetadata(
-      "data",
-      Set(
-        Metadata(NCN, neutralCitationData.neutralCitation.getOrElse("")),
-        // need yes or no here ad Metadata value expects a string. Converted before final validation
-        Metadata(NO_NCN, if (neutralCitationData.noNeutralCitation) "yes" else "no"),
-        Metadata(JUDGMENT_REFERENCE, neutralCitationData.judgmentReference.getOrElse(""))
-      )
-    )
-    validateWithSchema(data, schema)
-  }
-
   def validateFormData(data: Map[String, String], schema: List[JsonSchemaDefinition]): Map[String, List[ValidationError]] = {
     val objectMetadata = ObjectMetadata("data", data.map(kv => Metadata(kv._1, kv._2)).toSet)
     schema.foldLeft(Map.empty[String, List[ValidationError]]) { (error, schema) =>
@@ -45,7 +32,7 @@ object ConsignmentProperty {
     }
   }
 
-  def validationErrorMessage(errorOption: Option[ValidationError]): Option[String] = {
+  def getErrorMessage(errorOption: Option[ValidationError]): Option[String] = {
     errorOption.map(ve => {
       properties.getProperty(s"${ve.validationProcess}.${ve.property}.${ve.errorKey}", s"${ve.validationProcess}.${ve.property}.${ve.errorKey}")
     })

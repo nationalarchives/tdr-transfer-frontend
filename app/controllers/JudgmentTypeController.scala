@@ -45,7 +45,7 @@ class JudgmentTypeController @Inject() (
     }
   }
 
-  def submitSelectedDocumentType(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def submitJudgmentType(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     {
       val formData = extractFormData(request)
       val metadata = formData.judgmentType.value.head match {
@@ -62,7 +62,7 @@ class JudgmentTypeController @Inject() (
       val validationErrors = ConsignmentProperty.validateFormData(metadata, List(BASE_SCHEMA, RELATIONSHIP_SCHEMA))
       if (validationErrors.exists(_._2.isEmpty)) {
         for {
-          _ <- consignmentMetadataService.convertAndAddConsignmentMetadata(consignmentId, metadata ++ defaultNcnMetadata, request.token.bearerAccessToken)
+          _ <- consignmentMetadataService.addOrUpdateConsignmentMetadata(consignmentId, metadata ++ defaultNcnMetadata, request.token.bearerAccessToken)
         } yield {
           if (metadata(JUDGMENT_TYPE) == "judgment" && metadata(JUDGMENT_UPDATE) == "false") {
             Redirect(controllers.routes.BeforeUploadingController.beforeUploading(consignmentId))
@@ -83,10 +83,10 @@ class JudgmentTypeController @Inject() (
   private def updateFormDateWithErrors(formData: JudgmentTypeFormData, validationErrors: Map[String, List[ValidationError]]): JudgmentTypeFormData = {
     val errors = validationErrors.values.flatten.toSeq
     JudgmentTypeFormData(
-      judgmentType = formData.judgmentType.copy(errors = errors.filter(_.property == JUDGMENT_TYPE).flatMap(ve => validationErrorMessage(Some(ve)))),
-      updateType = formData.updateType.copy(errors = errors.filter(_.property == JUDGMENT_UPDATE_TYPE).flatMap(ve => validationErrorMessage(Some(ve)))),
-      updateDetails = formData.updateDetails.copy(errors = errors.filter(_.property == JUDGMENT_UPDATE_DETAILS).flatMap(ve => validationErrorMessage(Some(ve)))),
-      errorSummary = validationErrors.values.flatten.map(ve => ve.property -> Seq(ConsignmentProperty.validationErrorMessage(Some(ve)).getOrElse(""))).toSeq
+      judgmentType = formData.judgmentType.copy(errors = errors.filter(_.property == JUDGMENT_TYPE).flatMap(ve => getErrorMessage(Some(ve)))),
+      updateType = formData.updateType.copy(errors = errors.filter(_.property == JUDGMENT_UPDATE_TYPE).flatMap(ve => getErrorMessage(Some(ve)))),
+      updateDetails = formData.updateDetails.copy(errors = errors.filter(_.property == JUDGMENT_UPDATE_DETAILS).flatMap(ve => getErrorMessage(Some(ve)))),
+      errorSummary = errors.map(ve => ve.property -> Seq(ConsignmentProperty.getErrorMessage(Some(ve)).getOrElse("")))
     )
   }
 
@@ -101,7 +101,7 @@ class JudgmentTypeController @Inject() (
   private def fillJudgmentTypeFormData(consignmentMetadata: GetConsignment) = {
     val metadata = consignmentMetadata.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
     val existingUpdateType = metadata.get(tdrDataLoadHeaderMapper(JUDGMENT_UPDATE_TYPE)).filter(_.nonEmpty).map(_.split(";").toSeq).getOrElse(Seq.empty)
-    val existingJudgmentType = if (existingUpdateType.nonEmpty) "update" else metadata.getOrElse(tdrDataLoadHeaderMapper(JUDGMENT_TYPE), "")
+    val existingJudgmentType = if (existingUpdateType.nonEmpty) "update" else metadata.getOrElse(tdrDataLoadHeaderMapper(JUDGMENT_TYPE), "judgment")
     val existingUpdateDetails = metadata.getOrElse(tdrDataLoadHeaderMapper(JUDGMENT_UPDATE_DETAILS), "")
     JudgmentTypeFormData(
       FormField(JUDGMENT_TYPE, Seq(existingJudgmentType)),
@@ -109,7 +109,6 @@ class JudgmentTypeController @Inject() (
       FormField(JUDGMENT_UPDATE_DETAILS, Seq(existingUpdateDetails))
     )
   }
-
 }
 
 case class JudgmentTypeFormData(judgmentType: FormField, updateType: FormField, updateDetails: FormField, errorSummary: Seq[(String, Seq[String])] = Nil)

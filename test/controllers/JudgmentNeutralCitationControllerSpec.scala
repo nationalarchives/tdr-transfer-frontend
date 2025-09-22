@@ -1,29 +1,31 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import controllers.util.ConsignmentProperty.{JUDGMENT_REFERENCE, NCN, NO_NCN}
+import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers._
+import org.mockito.Mockito._
 import play.api.Play.materializer
+import play.api.i18n.DefaultMessagesApi
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{POST, GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
-import services.ConsignmentService
-import services.ConsignmentMetadataService
-import org.mockito.Mockito._
-import org.mockito.ArgumentMatchers._
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import controllers.util.ConsignmentProperty.{JUDGMENT_REFERENCE, NO_NCN, NeutralCitationData}
-import graphql.codegen.AddOrUpdateConsignmenetMetadata.addOrUpdateConsignmentMetadata.AddOrUpdateConsignmentMetadata
-import play.api.i18n.DefaultMessagesApi
+import play.api.test.Helpers.{GET, POST, contentAsString, contentType, redirectLocation, status => playStatus, _}
+import services.{ConsignmentMetadataService, ConsignmentService}
 import testUtils.FrontEndTestHelper
 
-import scala.concurrent.Future
 import java.util.{Properties, UUID}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.io.Source
 import scala.util.Using
 
 class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
+  val consignmentMetadataService: ConsignmentMetadataService = mock[ConsignmentMetadataService]
+  val consignmentId: UUID = UUID.randomUUID()
 
   val wiremockServer = new WireMockServer(9006)
 
@@ -36,10 +38,9 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  private def instantiateController(ncn: Option[String] = None) = {
+  private def instantiateController() = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentMetadataService = mock[ConsignmentMetadataService]
     import scala.jdk.CollectionConverters._
     val properties = new Properties()
     Using(Source.fromFile("conf/messages")) { source =>
@@ -50,10 +51,6 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       "default" -> map
     )
     val messagesApi = new DefaultMessagesApi(testMessages)
-    when(consignmentMetadataService.addOrUpdateConsignmentNeutralCitationNumber(any[UUID], any[NeutralCitationData], any[BearerAccessToken]))
-      .thenReturn(Future.successful(List.empty[AddOrUpdateConsignmentMetadata]))
-    when(consignmentMetadataService.getNeutralCitationData(any[UUID], any[BearerAccessToken]))
-      .thenReturn(Future.successful(NeutralCitationData(ncn, noNeutralCitation = false, None)))
     new JudgmentNeutralCitationController(
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
@@ -66,10 +63,9 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
 
   "JudgmentNeutralCitationController GET" should {
     "return OK and show neutral citation form" in {
-      val consignmentId = UUID.randomUUID()
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      setConsignmentReferenceResponse(wiremockServer)
+      setGetConsignmentMetadataResponse(wiremockServer, Nil.some)
 
       val result = controller
         .addNCN(consignmentId)
@@ -78,16 +74,15 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe OK
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      body must include("Provide the neutral citation number (NCN) for the original judgment") // heading text
-      body must include("judgment_neutral_citation") // input name
-      body must include("judgment_no_neutral_citation") // checkbox name
+      checkContent(body)
     }
+
     "return OK and show neutral citation form with saved ncn showing" in {
-      val consignmentId = UUID.randomUUID()
       val ncn = "[2024] EWCOP 123 (T1)"
-      val controller = instantiateController(Some(ncn))
+      val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      setConsignmentReferenceResponse(wiremockServer)
+      val metadata = ConsignmentMetadata("JudgmentNeutralCitation", ncn) :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller
         .addNCN(consignmentId)
@@ -96,16 +91,28 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe OK
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      body must include("Provide the neutral citation number (NCN) for the original judgment") // heading text
-      body must include(ncn)
-      body must include("judgment_neutral_citation") // input name
-      body must include("judgment_no_neutral_citation") // checkbox name
+      checkContent(body, ncn)
+    }
+
+    "return OK and show neutral citation form with saved no-ncn and judgment reference showing" in {
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata = ConsignmentMetadata("JudgmentNoNeutralCitation", "true") :: ConsignmentMetadata("JudgmentReference", "details") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
+
+      val result = controller
+        .addNCN(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/neutral-citation").withCSRFToken)
+
+      playStatus(result) mustBe OK
+      contentType(result) mustBe Some("text/html")
+      val body = contentAsString(result)
+      checkContent(body, noNCN = true, reference = "details")
     }
   }
 
   "JudgmentNeutralCitationController POST" should {
     "return BadRequest and show error when no NCN and checkbox not selected" in {
-      val consignmentId = UUID.randomUUID()
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
@@ -117,13 +124,11 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe BAD_REQUEST
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      body must include("There is a problem")
-      body must include("update-reasons-error")
-      body must include("Provide the neutral citation number (NCN) for the original judgment")
+      checkContent(body)
+      body must include("""<a href="#error-judgment_neutral_citation">Enter a valid NCN, or select &#x27;Original judgment to this update does not have an NCN&#x27;</a>""")
     }
 
     "return BadRequest and show error NCN less than 10 characters" in {
-      val consignmentId = UUID.randomUUID()
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
@@ -139,14 +144,11 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe BAD_REQUEST
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      body must include("There is a problem")
-      body must include("update-reasons-error")
-      body must include("Neutral citation number must be between 10 and 100 characters")
-      body must include("123")
+      checkContent(body, ncn = "123")
+      body must include("""<a href="#error-judgment_neutral_citation">Neutral citation number must be between 10 and 100 characters</a>""")
     }
 
     "return BadRequest and show error NCN more than 100 characters" in {
-      val consignmentId = UUID.randomUUID()
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
@@ -163,13 +165,11 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe BAD_REQUEST
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      body must include("There is a problem")
-      body must include("update-reasons-error")
+      checkContent(body, longNcn)
       body must include("Neutral citation number must be between 10 and 100 characters")
     }
 
-    "return BadRequest and show error refence more than 500 characters" in {
-      val consignmentId = UUID.randomUUID()
+    "return BadRequest and show error reference more than 500 characters" in {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
@@ -179,25 +179,26 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
         .validateNCN(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation?")
-            .withFormUrlEncodedBody(JUDGMENT_REFERENCE -> longRef, NO_NCN -> "no-ncn-select")
+            .withFormUrlEncodedBody(JUDGMENT_REFERENCE -> longRef, NO_NCN -> "true")
             .withCSRFToken
         )
 
       playStatus(result) mustBe BAD_REQUEST
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      body must include("There is a problem")
-      body must include("update-reasons-error")
-      body must include("&#39;Provide any details...&#39; must be 500 characters or less")
-      body must include("This field must be 500 characters or less")
+      checkContent(body, noNCN = true, reference = longRef)
+      body must include("""<a href="#error-judgment_reference">&#x27;Provide any details...&#x27; must be 500 characters or less</a>""")
     }
 
     "redirect to upload page when NCN is provided" in {
-      val consignmentId = UUID.randomUUID()
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val validNcn = "[2025] EWCOP 123 (T1)"
+      val metadata = Map(NCN -> validNcn, NO_NCN -> "false", JUDGMENT_REFERENCE -> "")
+      val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
+      when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
+
       val result = controller
         .validateNCN(consignmentId)
         .apply(
@@ -208,10 +209,10 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe SEE_OTHER
       val redirect = redirectLocation(result).value
       redirect must startWith(s"/judgment/$consignmentId/upload")
+      metadataRowCaptor.getValue mustBe metadata
     }
 
     "redirect to upload page when 'no-ncn' checkbox selected" in {
-      val consignmentId = UUID.randomUUID()
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
@@ -219,7 +220,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
         .validateNCN(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation")
-            .withFormUrlEncodedBody("judgment_no_neutral_citation" -> "no-ncn-select", "judgment_reference" -> "An example reference")
+            .withFormUrlEncodedBody("judgment_no_neutral_citation" -> "true", "judgment_reference" -> "An example reference")
             .withCSRFToken
         )
 
@@ -227,5 +228,24 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       val redirect = redirectLocation(result).value
       redirect mustBe s"/judgment/$consignmentId/upload"
     }
+  }
+
+  def checkContent(body: String, ncn: String = "", noNCN: Boolean = false, reference: String = ""): Unit = {
+    body must include(s"""<a href="/judgment/$consignmentId/tell-us-more" class="govuk-back-link">Back</a>""")
+    body must include("""<h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>""")
+    body must include(s"""<input class="govuk-input ${if (noNCN) "govuk-input--disabled"
+      else ""}" id="neutral-citation" name="judgment_neutral_citation" type="text" value="$ncn" ${if (noNCN) "aria-disabled=\"true\"" else ""}>""")
+    body must include(
+      s"""<input class="govuk-checkboxes__input" id="no-ncn" name="judgment_no_neutral_citation" type="checkbox" value="true" data-aria-controls="conditional-no-ncn" ${if (noNCN)
+          "checked"
+        else ""}>""".stripMargin
+    )
+    body must include(s"""<div class="govuk-checkboxes__conditional ${if (!noNCN) "govuk-checkboxes__conditional--hidden" else ""}" id="conditional-no-ncn">""")
+    if (reference.length > 500)
+      body must include(
+        s"""<input class="govuk-input" id="judgment_reference" name="judgment_reference" type="text" value="$reference" aria-describedby=&quot;judgment-reference-error&quot;>"""
+      )
+    else
+      body must include(s"""<input class="govuk-input" id="judgment_reference" name="judgment_reference" type="text" value="$reference" >""")
   }
 }
