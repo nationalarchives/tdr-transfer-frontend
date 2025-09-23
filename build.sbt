@@ -27,16 +27,16 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.250",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.256",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.427",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.84",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.171",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.295",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.295",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.253",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.258",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.432",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.88",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.177",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.301",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.301",
   "ch.qos.logback" % "logback-classic" % "1.5.18",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.52.0",
+  "io.opentelemetry" % "opentelemetry-api" % "1.54.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.52.0",
   "io.opentelemetry" % "opentelemetry-sdk" % "1.52.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
@@ -49,8 +49,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.2"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.20.0"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.20.0"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
