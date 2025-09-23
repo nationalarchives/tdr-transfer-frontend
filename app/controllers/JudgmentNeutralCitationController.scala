@@ -57,7 +57,7 @@ class JudgmentNeutralCitationController @Inject() (
         Redirect(routes.UploadController.judgmentUploadPage(consignmentId).url)
       }
     } else {
-      val updatedFormData = updateFormDateWithErrors(formData, validationErrors)
+      val updatedFormData = updateFormDataWithErrors(formData, validationErrors)
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       } yield {
@@ -66,7 +66,7 @@ class JudgmentNeutralCitationController @Inject() (
     }
   }
 
-  private def updateFormDateWithErrors(formData: NCNFormData, validationErrors: Map[String, List[ValidationError]]): NCNFormData = {
+  private def updateFormDataWithErrors(formData: NCNFormData, validationErrors: Map[String, List[ValidationError]]): NCNFormData = {
     val errors = validationErrors.values.flatten.toSeq
     NCNFormData(
       neutralCitation = formData.neutralCitation.copy(errors = errors.filter(_.property == NCN).flatMap(ve => getErrorMessage(Some(ve)))),

@@ -10,8 +10,8 @@ import scala.io.Source
 
 object ConsignmentProperty {
   lazy val tdrDataLoadHeaderMapper: String => String = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
-  private lazy val properties = getMessageProperties
   private lazy val metadataConfiguration = ConfigUtils.loadConfiguration
+  private lazy val properties = getMessageProperties
   val NCN = "judgment_neutral_citation"
   val NO_NCN = "judgment_no_neutral_citation"
   val JUDGMENT_REFERENCE = "judgment_reference"
@@ -44,6 +44,4 @@ object ConsignmentProperty {
     properties.load(source.bufferedReader())
     properties
   }
-
-  case class NeutralCitationData(neutralCitation: Option[String] = None, noNeutralCitation: Boolean = false, judgmentReference: Option[String] = None)
 }

@@ -2,10 +2,10 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import controllers.util.ConsignmentProperty.tdrDataLoadHeaderMapper
 import graphql.codegen.AddOrUpdateConsignmenetMetadata.{addOrUpdateConsignmentMetadata => aoucm}
 import graphql.codegen.types.{AddOrUpdateConsignmentMetadata, AddOrUpdateConsignmentMetadataInput}
 import services.ApiErrorHandling._
-import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
 import java.util.UUID
 import javax.inject.Inject
@@ -14,7 +14,6 @@ import scala.language.reflectiveCalls
 
 class ConsignmentMetadataService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val addOrUpdateConsignmentMetadataClient = graphqlConfiguration.getClient[aoucm.Data, aoucm.Variables]()
-  val tdrDataLoadHeaderMapper: String => String = ConfigUtils.loadConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
 
   def addOrUpdateConsignmentMetadata(
       consignmentId: UUID,

@@ -22,11 +22,11 @@
                 @for((id, label) <- updateReasonIdAndLabels) {
                     @checkBox(id, label, formData.updateType.value.contains(label))
                 }
-            <hr class="govuk-section-break govuk-section-break--m clear" style="clear: both !important;" />
-            <div class="govuk-character-count" style="clear: both !important;" data-module="govuk-character-count" data-maxlength="@charLimit">
+            <hr class="govuk-section-break govuk-section-break--m clear" />
+            <div class="govuk-character-count clear" data-module="govuk-character-count" data-maxlength="@charLimit">
                 <div class="govuk-form-group">
                     @errorMessage(formData.updateDetails.id, formData.updateDetails.errors)
-                <label id="more-detail-hint" class="govuk-label"> Add more details about this update (optional): </label>
+                <label for="@formData.updateDetails.id" class="govuk-label"> Add more details about this update (optional): </label>
                 <textarea class="govuk-textarea govuk-js-character-count" rows="5" id="@formData.updateDetails.id" name="@formData.updateDetails.id" wrap="soft" aria-describedby="more-detail-hint">
                     @formData.updateDetails.value.headOption.getOrElse("")
                 </textarea>
