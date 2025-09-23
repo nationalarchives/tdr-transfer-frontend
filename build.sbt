@@ -15,7 +15,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2
 
 val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.0-PLAY3.0"
-val pac4jVersion = "6.2.1"
+val pac4jVersion = "6.2.2"
 val sttpVersion = "3.11.0"
 
 libraryDependencies ++= Seq(
@@ -28,12 +28,12 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.253",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.258",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.432",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.88",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.177",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.301",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.301",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.259",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.433",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.92",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.180",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.303",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.303",
   "ch.qos.logback" % "logback-classic" % "1.5.18",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.54.0",
@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.49.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.48.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.19.0" % Test,
+  "org.mockito" % "mockito-core" % "5.20.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
