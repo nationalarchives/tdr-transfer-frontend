@@ -124,7 +124,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe BAD_REQUEST
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      checkContent(body)
+      checkContent(body, inputError = "govuk-input--error")
       body must include("""<a href="#error-judgment_neutral_citation">Enter a valid NCN, or select &#x27;Original judgment to this update does not have an NCN&#x27;</a>""")
     }
 
@@ -144,7 +144,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe BAD_REQUEST
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      checkContent(body, ncn = "123")
+      checkContent(body, ncn = "123", inputError = "govuk-input--error")
       body must include("""<a href="#error-judgment_neutral_citation">Neutral citation number must be between 10 and 100 characters</a>""")
     }
 
@@ -165,7 +165,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe BAD_REQUEST
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      checkContent(body, longNcn)
+      checkContent(body, ncn = longNcn, inputError = "govuk-input--error")
       body must include("Neutral citation number must be between 10 and 100 characters")
     }
 
@@ -230,11 +230,10 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def checkContent(body: String, ncn: String = "", noNCN: Boolean = false, reference: String = ""): Unit = {
+  def checkContent(body: String, ncn: String = "", noNCN: Boolean = false, reference: String = "", inputError: String = ""): Unit = {
     body must include(s"""<a href="/judgment/$consignmentId/tell-us-more" class="govuk-back-link">Back</a>""")
     body must include("""<h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>""")
-    body must include(s"""<input class="govuk-input ${if (noNCN) "govuk-input--disabled"
-      else ""}" id="neutral-citation" name="judgment_neutral_citation" type="text" value="$ncn" ${if (noNCN) "aria-disabled=\"true\"" else ""}>""")
+    body must include(s"""<input class="govuk-input $inputError" id="neutral-citation" name="judgment_neutral_citation" type="text" value="$ncn" ${if (noNCN) "aria-disabled=\"true\"" else ""}>""")
     body must include(
       s"""<input class="govuk-checkboxes__input" id="no-ncn" name="judgment_no_neutral_citation" type="checkbox" value="true" data-aria-controls="conditional-no-ncn" ${if (noNCN)
           "checked"
@@ -243,9 +242,9 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     body must include(s"""<div class="govuk-checkboxes__conditional ${if (!noNCN) "govuk-checkboxes__conditional--hidden" else ""}" id="conditional-no-ncn">""")
     if (reference.length > 500)
       body must include(
-        s"""<input class="govuk-input" id="judgment_reference" name="judgment_reference" type="text" value="$reference" aria-describedby=&quot;judgment-reference-error&quot;>"""
+        s"""<input class="govuk-input govuk-input--error" id="judgment_reference" name="judgment_reference" type="text" value="$reference" aria-describedby=&quot;judgment-reference-error&quot;>"""
       )
     else
-      body must include(s"""<input class="govuk-input" id="judgment_reference" name="judgment_reference" type="text" value="$reference" >""")
+      body must include(s"""<input class="govuk-input " id="judgment_reference" name="judgment_reference" type="text" value="$reference" >""")
   }
 }

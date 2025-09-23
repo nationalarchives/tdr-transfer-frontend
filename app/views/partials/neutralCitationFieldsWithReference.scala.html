@@ -5,10 +5,10 @@
 @noNeutralCitation = @{formData.noNeutralCitation.value.contains("true")}
 
 <div class="govuk-form-group">
-    <label class="govuk-label" for="neutral-citation">
-        <span class="govuk-body">Enter the NCN for the judgment that this update relates to:</span>
+    <label class="govuk-label govuk-body" for="neutral-citation">
+        <p class="govuk-body">Enter the NCN for the judgment that this update relates to:</p>
     </label>
-    <input class="govuk-input @if(noNeutralCitation) {govuk-input--disabled}" id="neutral-citation" name="@formData.neutralCitation.id" type="text" value="@formData.neutralCitation.value.headOption.getOrElse("")" @if(noNeutralCitation) {aria-disabled="true"}>
+    <input class="govuk-input @{if(formData.neutralCitation.errors.nonEmpty) "govuk-input--error"}" id="neutral-citation" name="@formData.neutralCitation.id" type="text" value="@formData.neutralCitation.value.headOption.getOrElse("")" @if(noNeutralCitation) {aria-disabled="true"}>
 </div>
 <div class="govuk-form-group">
     <fieldset class="govuk-fieldset">
@@ -24,15 +24,14 @@
             </div>
             <div class="govuk-checkboxes__conditional @if(!noNeutralCitation) {govuk-checkboxes__conditional--hidden}" id="conditional-no-ncn">
                 <div class="govuk-form-group @if(formData.judgmentReference.errors.nonEmpty) {govuk-form-group--error}">
-                    @errorMessage(formData.judgmentReference.id, formData.judgmentReference.errors)
                     <label class="govuk-label" for="@formData.judgmentReference.id">
                         Provide any details that would help us identify the document, such as a transfer reference  (optional):
                     </label>
-                    <input class="govuk-input" id="@formData.judgmentReference.id" name="@formData.judgmentReference.id" type="text" value="@formData.judgmentReference.value.headOption.getOrElse("")" @{if(formData.judgmentReference.errors.nonEmpty) {
+                    @errorMessage(formData.judgmentReference.id, formData.judgmentReference.errors)
+                    <input class="govuk-input @{if(formData.judgmentReference.errors.nonEmpty) "govuk-input--error"}" id="@formData.judgmentReference.id" name="@formData.judgmentReference.id" type="text" value="@formData.judgmentReference.value.headOption.getOrElse("")" @{if(formData.judgmentReference.errors.nonEmpty) {
                             "aria-describedby=\"judgment-reference-error\""}}>
                 </div>
             </div>
         </div>
     </fieldset>
 </div>
-

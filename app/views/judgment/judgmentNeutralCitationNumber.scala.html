@@ -3,16 +3,20 @@
 
 @import java.util.UUID
 @import views.html.partials.errorSummary
+@import views.html.partials.errorMessage
 @(consignmentId: UUID, consignmentRef: String, name: String, formData: NCNFormData)(implicit request: RequestHeader, messages: Messages)
 @main("Provide neutral citation", name = name, isJudgmentUser = true, backLink = Some(backLink(routes.JudgmentTypeController.selectJudgmentType(consignmentId).url, "Back"))) {
     @errorSummary(formData.errorSummary)
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>
-
             @form(routes.JudgmentNeutralCitationController.validateNCN(consignmentId)) {
                 @CSRF.formField
-                @neutralCitationFieldsWithReference(formData)
+                <div class="govuk-form-group @{if(formData.neutralCitation.errors.nonEmpty) "govuk-form-group--error"}">
+                    @errorMessage(formData.neutralCitation.id, formData.neutralCitation.errors)
+                    @neutralCitationFieldsWithReference(formData)
+                </div>
+
                 @neutralCitationHelp()
 
                 <hr class="govuk-section-break govuk-section-break--m">
