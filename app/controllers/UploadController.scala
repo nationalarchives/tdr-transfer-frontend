@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.ConsignmentProperty.{JUDGMENT_TYPE, JUDGMENT_UPDATE, tdrDataLoadHeaderMapper}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -99,19 +100,10 @@ class UploadController @Inject() (
   def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
-    def backUrl: String = {
-      // TODO when all NCN work complete this is what the fab block should be
-      //  if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
-      if (frontEndInfoConfiguration.draftMetadataFileName != "TEST_WITHFAB") {
-        routes.BeforeUploadingController.beforeUploading(consignmentId).url
-      } else {
-        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
-      }
-    }
-
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      consignmentMetadata <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
     } yield {
       val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, UploadType).values.headOption.flatten
       val pageHeadingUpload = "Upload document"
@@ -125,12 +117,34 @@ class UploadController @Inject() (
           Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
+          val judgmentType = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(JUDGMENT_TYPE)).map(_.value)
+          val judgmentUpdate = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(JUDGMENT_UPDATE)).map(_.value.toBoolean)
           Ok(
             views.html.judgment
-              .judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name, backUrl)
+              .judgmentUpload(
+                consignmentId,
+                reference,
+                pageHeadingUpload,
+                pageHeadingUploading,
+                frontEndInfoConfiguration.frontEndInfo,
+                request.token.name,
+                buildBackURL(consignmentId, judgmentType, judgmentUpdate)
+              )
           ).uncache()
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
+      }
+    }
+  }
+
+  private def buildBackURL(consignmentId: UUID, judgmentType: Option[String], judgmentUpdate: Option[Boolean]): String = {
+    if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
+      routes.BeforeUploadingController.beforeUploading(consignmentId).url
+    } else {
+      if (judgmentType.contains("judgment") && (judgmentUpdate.isEmpty || judgmentUpdate.contains(false))) {
+        routes.BeforeUploadingController.beforeUploading(consignmentId).url
+      } else {
+        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
       }
     }
   }

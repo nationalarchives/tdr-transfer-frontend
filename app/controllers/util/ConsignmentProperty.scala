@@ -10,30 +10,29 @@ import scala.io.Source
 
 object ConsignmentProperty {
   lazy val tdrDataLoadHeaderMapper: String => String = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
-  private lazy val properties = getMessageProperties
   private lazy val metadataConfiguration = ConfigUtils.loadConfiguration
+  private lazy val properties = getMessageProperties
   val NCN = "judgment_neutral_citation"
   val NO_NCN = "judgment_no_neutral_citation"
   val JUDGMENT_REFERENCE = "judgment_reference"
+  val JUDGMENT_TYPE = "judgment_type"
+  val JUDGMENT_UPDATE = "judgment_update"
+  val JUDGMENT_UPDATE_TYPE = "judgment_update_type"
+  val JUDGMENT_UPDATE_DETAILS = "judgment_update_details"
 
   private def validateWithSchema(data: ObjectMetadata, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
     MetadataValidationJsonSchema.validateWithSingleSchema(schema, Set(data))
   }
 
-  def validateNeutralCitationData(neutralCitationData: NeutralCitationData, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
-    val data = ObjectMetadata(
-      "data",
-      Set(
-        Metadata(NCN, neutralCitationData.neutralCitation.getOrElse("")),
-        // need yes or no here ad Metadata value expects a string. Converted before final validation
-        Metadata(NO_NCN, if (neutralCitationData.noNeutralCitation) "yes" else "no"),
-        Metadata(JUDGMENT_REFERENCE, neutralCitationData.judgmentReference.getOrElse(""))
-      )
-    )
-    validateWithSchema(data, schema)
+  def validateFormData(data: Map[String, String], schema: List[JsonSchemaDefinition]): Map[String, List[ValidationError]] = {
+    val objectMetadata = ObjectMetadata("data", data.map(kv => Metadata(kv._1, kv._2)).toSet)
+    schema.foldLeft(Map.empty[String, List[ValidationError]]) { (error, schema) =>
+      val errors = validateWithSchema(objectMetadata, schema)
+      error ++ errors.map { case (k, v) => k -> (v ++ error.getOrElse(k, Nil)) }
+    }
   }
 
-  def validationErrorMessage(errorOption: Option[ValidationError]): Option[String] = {
+  def getErrorMessage(errorOption: Option[ValidationError]): Option[String] = {
     errorOption.map(ve => {
       properties.getProperty(s"${ve.validationProcess}.${ve.property}.${ve.errorKey}", s"${ve.validationProcess}.${ve.property}.${ve.errorKey}")
     })
@@ -45,6 +44,4 @@ object ConsignmentProperty {
     properties.load(source.bufferedReader())
     properties
   }
-
-  case class NeutralCitationData(neutralCitation: Option[String] = None, noNeutralCitation: Boolean = false, judgmentReference: Option[String] = None)
 }

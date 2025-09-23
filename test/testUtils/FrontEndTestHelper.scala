@@ -7,10 +7,13 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.ConsignmentProperty.JUDGMENT_TYPE
 import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentStatus
 import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
+import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
+import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
@@ -322,6 +325,20 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           "Cursor"
         )
       )
+    )
+  }
+
+  def setGetConsignmentMetadataResponse(wiremockServer: WireMockServer, metadata: Option[List[ConsignmentMetadata]] = None): StubMapping = {
+
+    val client: GraphQLClient[gcm.Data, gcm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcm.Data, gcm.Variables]()
+    val consignment = gcm.GetConsignment("TDR-2024-TEST", metadata.getOrElse(Nil))
+    val data = client.GraphqlData(Some(gcm.Data(consignment.some)))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentMetadata"))
+        .willReturn(okJson(dataString))
     )
   }
 
