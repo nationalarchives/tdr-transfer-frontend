@@ -1,6 +1,7 @@
 package controllers
 
 import auth.UnprotectedPageController
+import configuration.ApplicationConfig
 
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
@@ -12,13 +13,15 @@ import scala.io.Source
 import scala.util.Using
 
 @Singleton
-class HelpController @Inject() (securityComponents: SecurityComponents) extends UnprotectedPageController(securityComponents) with I18nSupport {
+class HelpController @Inject() (securityComponents: SecurityComponents, val applicationConfig: ApplicationConfig)
+    extends UnprotectedPageController(securityComponents)
+    with I18nSupport {
   def help(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser))
   }
 
   def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.judgment.judgmentHelp(request.isLoggedIn, request.name))
+    Ok(views.html.judgment.judgmentHelp(request.isLoggedIn, request.name, applicationConfig.blockJudgmentPressSummaries))
   }
 
   def metadataQuickGuide(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>

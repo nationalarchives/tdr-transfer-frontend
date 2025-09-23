@@ -1,5 +1,6 @@
 package controllers
 
+import configuration.ApplicationConfig
 import play.api.test.Helpers._
 import play.api.test._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
@@ -7,12 +8,13 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 class FaqControllerSpec extends FrontEndTestHelper {
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+  lazy val config = new ApplicationConfig(app.configuration)
 
   "FaqController GET" should {
 
     "render the standard faq page from a new instance of controller if a user is logged out" in {
       // the link is not visible in the footer but you could still visit it if you had the URL
-      val controller = new FaqController(getUnauthorisedSecurityComponents)
+      val controller = new FaqController(getUnauthorisedSecurityComponents, config)
       val faq = controller.faq().apply(FakeRequest(GET, "/"))
       val pageAsString = contentAsString(faq)
 
@@ -23,7 +25,7 @@ class FaqControllerSpec extends FrontEndTestHelper {
     }
 
     "render the standard faq page from a new instance of controller if a user is logged in" in {
-      val controller = new FaqController(getAuthorisedSecurityComponents)
+      val controller = new FaqController(getAuthorisedSecurityComponents, config)
       val faq = controller.faq().apply(FakeRequest(GET, "/"))
       val pageAsString = contentAsString(faq)
 
@@ -36,7 +38,7 @@ class FaqControllerSpec extends FrontEndTestHelper {
 
     "render the judgment faq page from a new instance of controller if a user is logged out" in {
       // the link is not visible in the footer but you could still visit it if you had the URL
-      val controller = new FaqController(getUnauthorisedSecurityComponents)
+      val controller = new FaqController(getUnauthorisedSecurityComponents, config)
       val judgmentFaq = controller.judgmentFaq().apply(FakeRequest(GET, "/"))
       val userType = "judgment"
       val pageAsString = contentAsString(judgmentFaq)
@@ -48,7 +50,7 @@ class FaqControllerSpec extends FrontEndTestHelper {
     }
 
     "render the judgment faq page from a new instance of controller if a user is logged in" in {
-      val controller = new FaqController(getAuthorisedSecurityComponentsForJudgmentUser)
+      val controller = new FaqController(getAuthorisedSecurityComponentsForJudgmentUser, config)
       val judgmentFaq = controller.judgmentFaq().apply(FakeRequest(GET, "/"))
       val userType = "judgment"
       val pageAsString = contentAsString(judgmentFaq)
