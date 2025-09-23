@@ -233,7 +233,9 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
   def checkContent(body: String, ncn: String = "", noNCN: Boolean = false, reference: String = "", inputError: String = ""): Unit = {
     body must include(s"""<a href="/judgment/$consignmentId/tell-us-more" class="govuk-back-link">Back</a>""")
     body must include("""<h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>""")
-    body must include(s"""<input class="govuk-input $inputError" id="neutral-citation" name="judgment_neutral_citation" type="text" value="$ncn" ${if (noNCN) "aria-disabled=\"true\"" else ""}>""")
+    body must include(
+      s"""<input class="govuk-input $inputError" id="neutral-citation" name="judgment_neutral_citation" type="text" value="$ncn" ${if (noNCN) "aria-disabled=\"true\"" else ""}>"""
+    )
     body must include(
       s"""<input class="govuk-checkboxes__input" id="no-ncn" name="judgment_no_neutral_citation" type="checkbox" value="true" data-aria-controls="conditional-no-ncn" ${if (noNCN)
           "checked"
