@@ -4,7 +4,6 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import controllers.util.ConsignmentProperty.{JUDGMENT_REFERENCE, NCN, NO_NCN}
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
@@ -16,6 +15,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import services.{ConsignmentMetadataService, ConsignmentService}
 import testUtils.FrontEndTestHelper
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
 
 import java.util.{Properties, UUID}
 import scala.concurrent.{ExecutionContext, Future}
@@ -179,7 +179,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
         .validateNCN(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/neutral-citation?")
-            .withFormUrlEncodedBody(JUDGMENT_REFERENCE -> longRef, NO_NCN -> "true")
+            .withFormUrlEncodedBody(judgment_reference -> longRef, judgment_no_neutral_citation -> "true")
             .withCSRFToken
         )
 
@@ -195,7 +195,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val validNcn = "[2025] EWCOP 123 (T1)"
-      val metadata = Map(NCN -> validNcn, NO_NCN -> "false", JUDGMENT_REFERENCE -> "")
+      val metadata = Map(judgment_neutral_citation -> validNcn, judgment_no_neutral_citation -> "false", judgment_reference -> "")
       val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
       when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
 

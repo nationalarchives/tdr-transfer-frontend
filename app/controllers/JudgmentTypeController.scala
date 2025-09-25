@@ -9,6 +9,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentMetadataService, ConsignmentService}
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
 import uk.gov.nationalarchives.tdr.validation.schema.JsonSchemaDefinition.{BASE_SCHEMA, RELATIONSHIP_SCHEMA}
 import uk.gov.nationalarchives.tdr.validation.schema.ValidationError
 
@@ -51,20 +52,20 @@ class JudgmentTypeController @Inject() (
       val metadata = formData.judgmentType.value.head match {
         case "update" =>
           Map(
-            JUDGMENT_TYPE -> "judgment",
-            JUDGMENT_UPDATE -> "true",
-            JUDGMENT_UPDATE_TYPE -> formData.updateType.value.mkString(";"),
-            JUDGMENT_UPDATE_DETAILS -> formData.updateDetails.value.headOption.getOrElse("")
+            judgment_type -> "judgment",
+            judgment_update -> "true",
+            judgment_update_type -> formData.updateType.value.mkString(";"),
+            judgment_update_details -> formData.updateDetails.value.headOption.getOrElse("")
           )
-        case _ => Map(JUDGMENT_TYPE -> formData.judgmentType.value.head, JUDGMENT_UPDATE -> "false", JUDGMENT_UPDATE_TYPE -> "", JUDGMENT_UPDATE_DETAILS -> "")
+        case _ => Map(judgment_type -> formData.judgmentType.value.head, judgment_update -> "false", judgment_update_type -> "", judgment_update_details -> "")
       }
-      val defaultNcnMetadata = Map(NCN -> "", NO_NCN -> "", JUDGMENT_REFERENCE -> "")
+      val defaultNcnMetadata = Map(judgment_neutral_citation -> "", judgment_no_neutral_citation -> "", judgment_reference -> "")
       val validationErrors = ConsignmentProperty.validateFormData(metadata, List(BASE_SCHEMA, RELATIONSHIP_SCHEMA))
       if (validationErrors.exists(_._2.isEmpty)) {
         for {
           _ <- consignmentMetadataService.addOrUpdateConsignmentMetadata(consignmentId, metadata ++ defaultNcnMetadata, request.token.bearerAccessToken)
         } yield {
-          if (metadata(JUDGMENT_TYPE) == "judgment" && metadata(JUDGMENT_UPDATE) == "false") {
+          if (metadata(judgment_type) == "judgment" && metadata(judgment_update) == "false") {
             Redirect(controllers.routes.BeforeUploadingController.beforeUploading(consignmentId))
           } else {
             Redirect(controllers.routes.JudgmentNeutralCitationController.addNCN(consignmentId))
@@ -83,30 +84,30 @@ class JudgmentTypeController @Inject() (
   private def updateFormDateWithErrors(formData: JudgmentTypeFormData, validationErrors: Map[String, List[ValidationError]]): JudgmentTypeFormData = {
     val errors = validationErrors.values.flatten.toSeq
     JudgmentTypeFormData(
-      judgmentType = formData.judgmentType.copy(errors = errors.filter(_.property == JUDGMENT_TYPE).flatMap(ve => getErrorMessage(Some(ve)))),
-      updateType = formData.updateType.copy(errors = errors.filter(_.property == JUDGMENT_UPDATE_TYPE).flatMap(ve => getErrorMessage(Some(ve)))),
-      updateDetails = formData.updateDetails.copy(errors = errors.filter(_.property == JUDGMENT_UPDATE_DETAILS).flatMap(ve => getErrorMessage(Some(ve)))),
+      judgmentType = formData.judgmentType.copy(errors = errors.filter(_.property == judgment_type).flatMap(ve => getErrorMessage(Some(ve)))),
+      updateType = formData.updateType.copy(errors = errors.filter(_.property == judgment_update_type).flatMap(ve => getErrorMessage(Some(ve)))),
+      updateDetails = formData.updateDetails.copy(errors = errors.filter(_.property == judgment_update_details).flatMap(ve => getErrorMessage(Some(ve)))),
       errorSummary = errors.map(ve => ve.property -> Seq(ConsignmentProperty.getErrorMessage(Some(ve)).getOrElse("")))
     )
   }
 
   private def extractFormData(request: Request[AnyContent]) = {
     val formData = request.body.asFormUrlEncoded.getOrElse(Map.empty)
-    val judgmentType = FormField(JUDGMENT_TYPE, formData(JUDGMENT_TYPE))
-    val updateReason = FormField(JUDGMENT_UPDATE_TYPE, formData.getOrElse(JUDGMENT_UPDATE_TYPE, Seq.empty))
-    val updateDetails = FormField(JUDGMENT_UPDATE_DETAILS, formData.getOrElse(JUDGMENT_UPDATE_DETAILS, Seq.empty))
+    val judgmentType = FormField(judgment_type, formData(judgment_type))
+    val updateReason = FormField(judgment_update_type, formData.getOrElse(judgment_update_type, Seq.empty))
+    val updateDetails = FormField(judgment_update_details, formData.getOrElse(judgment_update_details, Seq.empty))
     JudgmentTypeFormData(judgmentType, updateReason, updateDetails)
   }
 
   private def fillJudgmentTypeFormData(consignmentMetadata: GetConsignment) = {
     val metadata = consignmentMetadata.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
-    val existingUpdateType = metadata.get(tdrDataLoadHeaderMapper(JUDGMENT_UPDATE_TYPE)).filter(_.nonEmpty).map(_.split(";").toSeq).getOrElse(Seq.empty)
-    val existingJudgmentType = if (existingUpdateType.nonEmpty) "update" else metadata.getOrElse(tdrDataLoadHeaderMapper(JUDGMENT_TYPE), "judgment")
-    val existingUpdateDetails = metadata.getOrElse(tdrDataLoadHeaderMapper(JUDGMENT_UPDATE_DETAILS), "")
+    val existingUpdateType = metadata.get(tdrDataLoadHeaderMapper(judgment_update_type)).filter(_.nonEmpty).map(_.split(";").toSeq).getOrElse(Seq.empty)
+    val existingJudgmentType = if (existingUpdateType.nonEmpty) "update" else metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "judgment")
+    val existingUpdateDetails = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update_details), "")
     JudgmentTypeFormData(
-      FormField(JUDGMENT_TYPE, Seq(existingJudgmentType)),
-      FormField(JUDGMENT_UPDATE_TYPE, existingUpdateType),
-      FormField(JUDGMENT_UPDATE_DETAILS, Seq(existingUpdateDetails))
+      FormField(judgment_type, Seq(existingJudgmentType)),
+      FormField(judgment_update_type, existingUpdateType),
+      FormField(judgment_update_details, Seq(existingUpdateDetails))
     )
   }
 }
