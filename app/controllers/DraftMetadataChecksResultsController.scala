@@ -55,7 +55,7 @@ class DraftMetadataChecksResultsController @Inject() (
                 actionMessage(errorType),
                 detailsMessage(errorType),
                 uploadedFileName,
-                DraftMetadataProgress("Issues found", "orange")
+                DraftMetadataProgress("ISSUES FOUND", "orange")
               )
           } else {
             views.html.draftmetadata
@@ -67,7 +67,7 @@ class DraftMetadataChecksResultsController @Inject() (
                 detailsMessage(errorType),
                 getAffectedProperties(errorReport),
                 uploadedFileName,
-                DraftMetadataProgress("Issues found", "orange")
+                DraftMetadataProgress("ISSUES FOUND", "orange")
               )
           }
         }
