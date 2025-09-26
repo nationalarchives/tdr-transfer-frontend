@@ -1,4 +1,4 @@
-@import views.html.partials.{feedbackSurvey, returnToHomepage, downloadMetadataLink}
+@import views.html.partials.{feedbackSurveyInset, returnToHomepage, downloadMetadataLink}
 @import java.util.UUID
 
 @(consignmentId: UUID, consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
@@ -19,7 +19,7 @@
                         </div>
                     </div>
 
-                    <p class="govuk-body">Your records are not yet preserved so you must not delete the original records.</p>
+                    <p class="govuk-body">Do not delete the original files you uploaded until you have been notified.</p>
 
                     <p class="govuk-body">
                     @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url)
@@ -29,11 +29,10 @@
 
                     <p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.</p>
 
-                    @feedbackSurvey("https://www.smartsurvey.co.uk/s/tdr-feedback/")
+                    @feedbackSurveyInset("https://www.smartsurvey.co.uk/s/tdr-feedback/")
 
                     @returnToHomepage(text = "Return to homepage")
                 </div>
-
             </div>
         }
     }
