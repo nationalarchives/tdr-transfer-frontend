@@ -27,9 +27,7 @@
                 <div class="govuk-form-group">
                     @errorMessage(formData.updateDetails.id, formData.updateDetails.errors)
                 <label for="@formData.updateDetails.id" class="govuk-label"> Add more details about this update (optional): </label>
-                <textarea class="govuk-textarea govuk-js-character-count" rows="5" id="@formData.updateDetails.id" name="@formData.updateDetails.id" wrap="soft" aria-describedby="more-detail-hint">
-                    @formData.updateDetails.value.headOption.getOrElse("")
-                </textarea>
+                <textarea class="govuk-textarea govuk-js-character-count" rows="5" id="@formData.updateDetails.id" name="@formData.updateDetails.id" wrap="soft" aria-describedby="more-detail-hint">@formData.updateDetails.value.headOption.getOrElse("")</textarea>
                 </div>
                 <div id="@formData.updateDetails.id-info" class="govuk-hint govuk-character-count__message">
                     You can enter up to @charLimit characters

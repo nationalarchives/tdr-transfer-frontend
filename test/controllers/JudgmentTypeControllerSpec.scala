@@ -4,7 +4,6 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration}
-import controllers.util.ConsignmentProperty._
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -15,6 +14,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, status => playStatus, _}
 import services.{ConsignmentMetadataService, ConsignmentService}
 import testUtils.FrontEndTestHelper
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,7 +23,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   val consignmentMetadataService: ConsignmentMetadataService = mock[ConsignmentMetadataService]
-  val defaultNcnMetadata: Map[String, String] = Map(NCN -> "", NO_NCN -> "", JUDGMENT_REFERENCE -> "")
+  val defaultNcnMetadata: Map[String, String] = Map(judgment_neutral_citation -> "", judgment_no_neutral_citation -> "", judgment_reference -> "")
   val consignmentId: UUID = UUID.randomUUID()
 
   val wiremockServer = new WireMockServer(9006)
@@ -133,7 +133,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       setGetConsignmentMetadataResponse(wiremockServer)
 
-      val metadata = defaultNcnMetadata ++ Map(JUDGMENT_TYPE -> "judgment", JUDGMENT_UPDATE -> "false", JUDGMENT_UPDATE_TYPE -> "", JUDGMENT_UPDATE_DETAILS -> "")
+      val metadata = defaultNcnMetadata ++ Map(judgment_type -> "judgment", judgment_update -> "false", judgment_update_type -> "", judgment_update_details -> "")
       val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
       when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
 
@@ -156,7 +156,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       setGetConsignmentMetadataResponse(wiremockServer)
 
-      val metadata = defaultNcnMetadata ++ Map(JUDGMENT_TYPE -> "judgment", JUDGMENT_UPDATE -> "true", JUDGMENT_UPDATE_TYPE -> "Typo", JUDGMENT_UPDATE_DETAILS -> "")
+      val metadata = defaultNcnMetadata ++ Map(judgment_type -> "judgment", judgment_update -> "true", judgment_update_type -> "Typo", judgment_update_details -> "")
       val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
       when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
 
@@ -179,7 +179,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       setGetConsignmentMetadataResponse(wiremockServer)
 
-      val metadata = defaultNcnMetadata ++ Map(JUDGMENT_TYPE -> "press_summary", JUDGMENT_UPDATE -> "false", JUDGMENT_UPDATE_TYPE -> "", JUDGMENT_UPDATE_DETAILS -> "")
+      val metadata = defaultNcnMetadata ++ Map(judgment_type -> "press_summary", judgment_update -> "false", judgment_update_type -> "", judgment_update_details -> "")
       val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
       when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
 
