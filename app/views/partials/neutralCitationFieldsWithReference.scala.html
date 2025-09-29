@@ -8,6 +8,7 @@
     <label class="govuk-label govuk-body" for="neutral-citation">
         <p class="govuk-body">Enter the NCN for the judgment that this update relates to:</p>
     </label>
+    @errorMessage(formData.neutralCitation.id, formData.neutralCitation.errors)
     <input class="govuk-input @{if(formData.neutralCitation.errors.nonEmpty) "govuk-input--error"}" id="neutral-citation" name="@formData.neutralCitation.id" type="text" value="@formData.neutralCitation.value.headOption.getOrElse("")" @if(noNeutralCitation) {aria-disabled="true"}>
 </div>
 <div class="govuk-form-group">
