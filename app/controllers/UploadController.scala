@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import controllers.util.ConsignmentProperty.{JUDGMENT_TYPE, JUDGMENT_UPDATE, tdrDataLoadHeaderMapper}
+import controllers.util.ConsignmentProperty.tdrDataLoadHeaderMapper
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -11,6 +11,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services._
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{judgment_type, judgment_update}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -117,8 +118,8 @@ class UploadController @Inject() (
           Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
-          val judgmentType = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(JUDGMENT_TYPE)).map(_.value)
-          val judgmentUpdate = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(JUDGMENT_UPDATE)).map(_.value.toBoolean)
+          val judgmentType = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(judgment_type)).map(_.value)
+          val judgmentUpdate = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(judgment_update)).map(_.value.toBoolean)
           Ok(
             views.html.judgment
               .judgmentUpload(

@@ -12,6 +12,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import java.util.UUID
@@ -39,9 +40,9 @@ class ConsignmentMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
   "addOrUpdateConsignmentMetadata" should {
     "send the correct variables to the GraphQL API and return the response list" in {
       val consignmentMetadata = Map(
-        NCN -> "NCN123",
-        NO_NCN -> "false",
-        JUDGMENT_REFERENCE -> ""
+        judgment_neutral_citation -> "NCN123",
+        judgment_no_neutral_citation -> "false",
+        judgment_reference -> ""
       )
       val metadata = consignmentMetadata.map(cm => AddOrUpdateConsignmentMetadata(tdrDataLoadHeaderMapper(cm._1), cm._2)).toList
       val expectedVariables = Some(aoucm.Variables(AddOrUpdateConsignmentMetadataInput(consignmentId, metadata)))

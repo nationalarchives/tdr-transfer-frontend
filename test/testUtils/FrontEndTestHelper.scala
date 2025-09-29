@@ -7,7 +7,6 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import controllers.util.ConsignmentProperty.JUDGMENT_TYPE
 import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentStatus
 import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}

@@ -12,13 +12,6 @@ object ConsignmentProperty {
   lazy val tdrDataLoadHeaderMapper: String => String = metadataConfiguration.propertyToOutputMapper("tdrDataLoadHeader")
   private lazy val metadataConfiguration = ConfigUtils.loadConfiguration
   private lazy val properties = getMessageProperties
-  val NCN = "judgment_neutral_citation"
-  val NO_NCN = "judgment_no_neutral_citation"
-  val JUDGMENT_REFERENCE = "judgment_reference"
-  val JUDGMENT_TYPE = "judgment_type"
-  val JUDGMENT_UPDATE = "judgment_update"
-  val JUDGMENT_UPDATE_TYPE = "judgment_update_type"
-  val JUDGMENT_UPDATE_DETAILS = "judgment_update_details"
 
   private def validateWithSchema(data: ObjectMetadata, schema: JsonSchemaDefinition): Map[String, List[ValidationError]] = {
     MetadataValidationJsonSchema.validateWithSingleSchema(schema, Set(data))
