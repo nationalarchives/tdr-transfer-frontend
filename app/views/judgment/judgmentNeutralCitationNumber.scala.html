@@ -13,7 +13,6 @@
             @form(routes.JudgmentNeutralCitationController.validateNCN(consignmentId)) {
                 @CSRF.formField
                 <div class="govuk-form-group @{if(formData.neutralCitation.errors.nonEmpty) "govuk-form-group--error"}">
-                    @errorMessage(formData.neutralCitation.id, formData.neutralCitation.errors)
                     @neutralCitationFieldsWithReference(formData)
                 </div>
 
