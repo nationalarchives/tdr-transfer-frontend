@@ -8,6 +8,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.{I18nSupport, Lang, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentMetadataService, ConsignmentService}
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema._
 import uk.gov.nationalarchives.tdr.validation.schema.JsonSchemaDefinition.{BASE_SCHEMA, RELATIONSHIP_SCHEMA}
 import uk.gov.nationalarchives.tdr.validation.schema.ValidationError
 
@@ -41,12 +42,12 @@ class JudgmentNeutralCitationController @Inject() (
   def validateNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val formData = extractFormData(request)
     val metadata = formData.neutralCitation.value.headOption match {
-      case Some(ncn) if ncn.nonEmpty => Map(NCN -> ncn, NO_NCN -> "false", JUDGMENT_REFERENCE -> "")
+      case Some(ncn) if ncn.nonEmpty => Map(judgment_neutral_citation -> ncn, judgment_no_neutral_citation -> "false", judgment_reference -> "")
       case _ =>
         Map(
-          NCN -> "",
-          NO_NCN -> formData.noNeutralCitation.value.contains("true").toString,
-          JUDGMENT_REFERENCE -> formData.judgmentReference.value.head
+          judgment_neutral_citation -> "",
+          judgment_no_neutral_citation -> formData.noNeutralCitation.value.contains("true").toString,
+          judgment_reference -> formData.judgmentReference.value.head
         )
     }
     val validationErrors = validateFormData(metadata, List(BASE_SCHEMA, RELATIONSHIP_SCHEMA))
@@ -69,11 +70,11 @@ class JudgmentNeutralCitationController @Inject() (
   private def updateFormDataWithErrors(formData: NCNFormData, validationErrors: Map[String, List[ValidationError]]): NCNFormData = {
     val errors = validationErrors.values.flatten.toSeq
     NCNFormData(
-      neutralCitation = formData.neutralCitation.copy(errors = errors.filter(_.property == NCN).flatMap(ve => getErrorMessage(Some(ve)))),
-      noNeutralCitation = formData.noNeutralCitation.copy(errors = errors.filter(_.property == NO_NCN).flatMap(ve => getErrorMessage(Some(ve)))),
-      judgmentReference = formData.judgmentReference.copy(errors = errors.filter(_.property == JUDGMENT_REFERENCE).flatMap(ve => getErrorMessage(Some(ve)))),
+      neutralCitation = formData.neutralCitation.copy(errors = errors.filter(_.property == judgment_neutral_citation).flatMap(ve => getErrorMessage(Some(ve)))),
+      noNeutralCitation = formData.noNeutralCitation.copy(errors = errors.filter(_.property == judgment_no_neutral_citation).flatMap(ve => getErrorMessage(Some(ve)))),
+      judgmentReference = formData.judgmentReference.copy(errors = errors.filter(_.property == judgment_reference).flatMap(ve => getErrorMessage(Some(ve)))),
       errorSummary = errors.map(ve => {
-        if (ve.errorKey == "maxLength" && ve.property == JUDGMENT_REFERENCE) {
+        if (ve.errorKey == "maxLength" && ve.property == judgment_reference) {
           ve.property -> Seq(messages("SCHEMA_BASE.judgment_reference.maxLength"))
         } else {
           ve.property -> Seq(getErrorMessage(Some(ve)).getOrElse(""))
@@ -84,25 +85,25 @@ class JudgmentNeutralCitationController @Inject() (
 
   private def extractFormData(request: Request[AnyContent]) = {
     val formData = request.body.asFormUrlEncoded.getOrElse(Map.empty)
-    val neutralCitation = FormField(NCN, formData.getOrElse(NCN, Seq.empty))
-    val noNeutralCitation = FormField(NO_NCN, formData.getOrElse(NO_NCN, Seq.empty))
+    val neutralCitation = FormField(judgment_neutral_citation, formData.getOrElse(judgment_neutral_citation, Seq.empty))
+    val noNeutralCitation = FormField(judgment_no_neutral_citation, formData.getOrElse(judgment_no_neutral_citation, Seq.empty))
     val reference = if (noNeutralCitation.value.contains("true")) {
-      FormField(JUDGMENT_REFERENCE, formData.getOrElse(JUDGMENT_REFERENCE, Seq.empty))
+      FormField(judgment_reference, formData.getOrElse(judgment_reference, Seq.empty))
     } else {
-      FormField(JUDGMENT_REFERENCE, Seq(""))
+      FormField(judgment_reference, Seq(""))
     }
     NCNFormData(neutralCitation, noNeutralCitation, reference)
   }
 
   private def fillNCNFormData(consignmentMetadata: GetConsignment): NCNFormData = {
     val metadata = consignmentMetadata.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
-    val existingNCN = metadata.getOrElse(tdrDataLoadHeaderMapper(NCN), "")
-    val existingNoNCN = metadata.getOrElse(tdrDataLoadHeaderMapper(NO_NCN), "")
-    val existingJudgmentReference = metadata.getOrElse(tdrDataLoadHeaderMapper(JUDGMENT_REFERENCE), "")
+    val existingNCN = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_neutral_citation), "")
+    val existingNoNCN = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_no_neutral_citation), "")
+    val existingJudgmentReference = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_reference), "")
     NCNFormData(
-      FormField(NCN, Seq(existingNCN)),
-      FormField(NO_NCN, Seq(existingNoNCN)),
-      FormField(JUDGMENT_REFERENCE, Seq(existingJudgmentReference))
+      FormField(judgment_neutral_citation, Seq(existingNCN)),
+      FormField(judgment_no_neutral_citation, Seq(existingNoNCN)),
+      FormField(judgment_reference, Seq(existingJudgmentReference))
     )
   }
 }
