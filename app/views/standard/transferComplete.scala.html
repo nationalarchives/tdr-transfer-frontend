@@ -25,11 +25,11 @@
                     @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url)
                     </p>
 
+                    @feedbackSurveyInset("https://www.smartsurvey.co.uk/s/tdr-feedback/")
+
                     <h2 class="govuk-heading-m">What happens next</h2>
 
                     <p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.</p>
-
-                    @feedbackSurveyInset("https://www.smartsurvey.co.uk/s/tdr-feedback/")
 
                     @returnToHomepage(text = "Return to homepage")
                 </div>
