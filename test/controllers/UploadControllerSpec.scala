@@ -6,6 +6,7 @@ import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
+import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.StartUpload.startUpload
 import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, StartUploadInput}
@@ -408,7 +409,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "render the 'upload in progress error' page if a judgment file upload has a 'completedWithIssues' status" in {
       val uploadStatus = CompletedWithIssuesValue
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-
+      setGetConsignmentMetadataResponse(wiremockServer)
       val uploadPage = executeJudgmentsUpload(uploadStatus, consignmentId, applicationConfig)
       val uploadPageAsString = contentAsString(uploadPage)
       status(uploadPage) mustBe OK
@@ -424,10 +425,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
 
       val uploadPage = controller
         .judgmentUploadPage(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload?judgment_neutral_citation=judgmentNeutralCitation").withCSRFToken)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
@@ -489,27 +492,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
           |""".stripMargin)
     }
 
-    "show the judgment upload back to before upload when behind fab blockJudgmentPressSummaries" in {
-      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
-      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+    "show the judgment upload back to before upload for the new judgment transfer" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = new UploadController(
-        getAuthorisedSecurityComponents,
-        graphQLConfiguration,
-        getValidJudgmentUserKeycloakConfiguration,
-        frontEndInfoConfiguration,
-        consignmentService,
-        uploadService,
-        fileStatusService,
-        backendChecksService
-      )
+      val controller = setUpNCNTestController()
 
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
 
       val uploadPage = controller
         .judgmentUploadPage(consignmentId)
@@ -518,19 +509,21 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
     }
 
-    "show the back button shows is to judgment/consignemtid/neutral-citation in request" in {
-      val controller = setUpNCNTestController()
+    "show the judgment upload back to before upload when behind fab blockJudgmentPressSummaries" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = setUpNCNTestController(true)
 
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
 
       val uploadPage = controller
         .judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
       val uploadPageAsString = contentAsString(uploadPage)
-      uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/neutral-citation" class="govuk-back-link">Back</a>""")
+      uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
     }
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
@@ -590,6 +583,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
     setConsignmentTypeResponse(wiremockServer, "judgment")
     setConsignmentReferenceResponse(wiremockServer)
+    val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: Nil
+    setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
 
     controller
       .judgmentUploadPage(consignmentId)
@@ -1107,11 +1102,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def setUpNCNTestController() = {
+  private def setUpNCNTestController(blockJudgmentPressSummaries: Boolean = false) = {
     // -----------------------
     // when code for FAB blockJudgmentPressSummaries remove below
     val frontEndInfoConfigurationTest: ApplicationConfig = mock[ApplicationConfig]
-    when(frontEndInfoConfigurationTest.draftMetadataFileName).thenReturn("TEST_WITHFAB")
+    when(frontEndInfoConfigurationTest.blockJudgmentPressSummaries).thenReturn(blockJudgmentPressSummaries)
     when(frontEndInfoConfigurationTest.frontEndInfo).thenReturn(
       FrontEndInfo(
         "https://mock-api-url.com/graphql",

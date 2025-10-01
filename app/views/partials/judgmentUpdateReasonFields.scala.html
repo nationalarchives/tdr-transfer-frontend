@@ -1,0 +1,39 @@
+@import views.html.partials.errorMessage
+@(
+        updateReasonIdAndLabels: Seq[(String, String)],
+        formData: JudgmentTypeFormData
+)(implicit request: RequestHeader, messages: Messages)
+
+@charLimit = @{"1000"}
+@checkBox(id: String, label: String, isChecked: Boolean) = {
+    <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" id="@id" name="@formData.updateType.id" type="checkbox" value="@label" @{if(isChecked) {"checked"}} >
+        <label class="govuk-label govuk-checkboxes__label" for="@id">
+        @label
+        </label>
+    </div>
+}
+
+    <div class="govuk-form-group @if(formData.errorSummary.nonEmpty) {govuk-form-group--error}">
+        <fieldset class="govuk-fieldset">
+            <div class="govuk-hint">Select the reasons for the update:</div>
+            @errorMessage(formData.updateType.id, formData.updateType.errors)
+            <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
+                @for((id, label) <- updateReasonIdAndLabels) {
+                    @checkBox(id, label, formData.updateType.value.contains(label))
+                }
+            <hr class="govuk-section-break govuk-section-break--m clear" />
+            <div class="govuk-character-count clear" data-module="govuk-character-count" data-maxlength="@charLimit">
+                <div class="govuk-form-group">
+                    @errorMessage(formData.updateDetails.id, formData.updateDetails.errors)
+                <label for="@formData.updateDetails.id" class="govuk-label"> Add more details about this update (optional): </label>
+                <textarea class="govuk-textarea govuk-js-character-count" rows="5" id="@formData.updateDetails.id" name="@formData.updateDetails.id" wrap="soft" aria-describedby="more-detail-hint">@formData.updateDetails.value.headOption.getOrElse("")</textarea>
+                </div>
+                <div id="@formData.updateDetails.id-info" class="govuk-hint govuk-character-count__message">
+                    You can enter up to @charLimit characters
+                </div>
+            </div>
+
+            </div>
+        </fieldset>
+    </div>

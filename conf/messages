@@ -4,7 +4,7 @@ nationalArchives.email=tdr@nationalarchives.gov.uk
 nationalArchives.governmentHelpPointEmail=governmenthelppoint@nationalarchives.gov.uk
 nationalArchives.homepage=https://www.nationalarchives.gov.uk
 nationalArchives.judgmentsEmail=judgments@nationalarchives.gov.uk
-judiciary.email=Judgments@judiciary.uk
+judiciary.email=judgmentshelpdesk@judiciary.uk
 
 transferAgreement.warning=This service is in beta. During this time, only records that are Public Records will be accepted. For more information, visit the <a href="/faq" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>. If you need to transfer records that do not meet this criteria, contact <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a>.
 
@@ -53,4 +53,4 @@ draftMetadata.validation.action.ADDITIONAL_HEADER=The following columns could no
 draftMetadata.validation.details.UNKNOWN=An unknown error was identified.
 draftMetadata.validation.action.UNKNOWN=Please contact your Digital Transfer Advisor on <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a> quoting the Consignment Reference.
 
-SCHEMA_BASE.judgment_reference.maxLength=&#39;Provide any details...&#39; must be 500 characters or less
+SCHEMA_BASE.judgment_reference.maxLength=''Provide any details...'' must be 500 characters or less

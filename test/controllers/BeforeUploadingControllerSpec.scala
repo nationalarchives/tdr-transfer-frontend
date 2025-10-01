@@ -1,7 +1,8 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import play.api.Configuration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -26,6 +27,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  private val configuration: Configuration = mock[Configuration]
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   "BeforeUploadingController GET" should {
@@ -117,12 +119,14 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
 
     new BeforeUploadingController(
       getAuthorisedSecurityComponents,
       new GraphQLConfiguration(app.configuration),
       getValidJudgmentUserKeycloakConfiguration,
-      consignmentService
+      consignmentService,
+      applicationConfig
     )
   }
 }
