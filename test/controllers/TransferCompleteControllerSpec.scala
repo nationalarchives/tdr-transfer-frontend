@@ -53,7 +53,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         |                        </div>""".stripMargin
       )
       transferCompletePageAsString must include(
-        """<p class="govuk-body">Your records are not yet preserved so you must not delete the original records.</p>""".stripMargin
+        """<p class="govuk-body">Do not delete the original files you uploaded until you have been notified.</p>""".stripMargin
       )
       transferCompletePageAsString must include(downloadLinkHTML(consignmentId))
       transferCompletePageAsString must include(
@@ -71,7 +71,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         transferStillInProgress = false
       )
       checkTransferCompletePageForCommonElements(transferCompletePageAsString)
-      checkForNonInsetSurveyLink(transferCompletePageAsString)
+      checkForSurveyLink(transferCompletePageAsString)
     }
 
     "render the success page if the export was triggered successfully for a judgment user" in {
@@ -195,14 +195,6 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="Give your feedback on this service">
          |        Give your feedback on this service</a>
          |        (opens in new tab)""".stripMargin
-    )
-  }
-
-  private def checkForNonInsetSurveyLink(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
-    transferCompletePageAsString must include(
-      s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="What did you think of this service? (opens in new tab)">
-         |    What did you think of this service? (opens in new tab)
-         |    </a>""".stripMargin
     )
   }
 }

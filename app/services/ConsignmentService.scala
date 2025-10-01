@@ -16,6 +16,7 @@ import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
+import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
@@ -46,6 +47,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignmentDetailsForReviewClient = graphqlConfiguration.getClient[gcdfmr.Data, gcdfmr.Variables]()
   private val updateDraftMetadataFileNameClient = graphqlConfiguration.getClient[ucsdmfn.Data, ucsdmfn.Variables]()
   private val getConsignmentForMetadataReviewRequest = graphqlConfiguration.getClient[gcfmrr.Data, gcfmrr.Variables]()
+  private val getConsignmentMetadataClient = graphqlConfiguration.getClient[gcm.Data, gcm.Variables]()
 
   def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables = gfcp.Variables(consignmentId)
@@ -109,8 +111,11 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   }
 
   def createConsignment(seriesId: Option[UUID], token: Token): Future[addConsignment.AddConsignment] = {
-    val consignmentType: String = if (token.isJudgmentUser) { "judgment" }
-    else { "standard" }
+    val consignmentType: String = if (token.isJudgmentUser) {
+      "judgment"
+    } else {
+      "standard"
+    }
     val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(seriesId, consignmentType)
     val variables: addConsignment.Variables = AddConsignment.addConsignment.Variables(addConsignmentInput)
 
@@ -182,7 +187,14 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
     sendApiRequest(updateDraftMetadataFileNameClient, ucsdmfn.document, token, variables)
       .map(data => data.updateClientSideDraftMetadataFileName.get)
   }
+
+  def getConsignmentMetadata(consignmentId: UUID, token: BearerAccessToken): Future[gcm.GetConsignment] = {
+    val variables = new gcm.Variables(consignmentId, None)
+    sendApiRequest(getConsignmentMetadataClient, gcm.document, token, variables)
+      .map(data => data.getConsignment.get)
+  }
 }
+
 object ConsignmentService {
 
   case class StatusTag(text: String, colour: String)
