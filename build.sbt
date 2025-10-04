@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll ExclusionRule(organization = "com.fasterxml.jackson.core"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
-  "io.circe" %% "circe-core" % "0.14.14",
+  "io.circe" %% "circe-core" % "0.14.15",
   "io.circe" %% "circe-generic" % "0.14.14",
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
