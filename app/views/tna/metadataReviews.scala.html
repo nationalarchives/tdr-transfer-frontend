@@ -1,5 +1,4 @@
-@import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
-@(consignments: List[gcfmr.GetConsignmentsForMetadataReview])(implicit messages: Messages, request: RequestHeader)
+@(consignments: List[MetadataReviewRequest])(implicit messages: Messages, request: RequestHeader)
 
 @main("Metadata Reviews", isTnaUser= true) {
   <div class="govuk-grid-row">
@@ -11,10 +10,11 @@
       <table data-module="table-row-expander" class="govuk-table govuk-table--tdr-transfers govuk-!-margin-bottom-2">
         <thead class="govuk-table__head">
           <tr class="govuk-table__row">
-            <th scope="col" class="govuk-table__header">Consignment</th>
+            <th scope="col" class="govuk-table__header metadata-review-columnWidth">Consignment</th>
             <th scope="col" class="govuk-table__header">Status</th>
             <th scope="col" class="govuk-table__header">Department</th>
             <th scope="col" class="govuk-table__header">Series</th>
+            <th scope="col" class="govuk-table__header metadata-review-columnWidth">Date submitted</th>
             <th scope="col" class="govuk-table__header">
               <span class="govuk-visually-hidden">Actions</span>
             </th>
@@ -23,15 +23,16 @@
         <tbody>
         @for((consignment, index) <- consignments.zipWithIndex) {
           <tr class="govuk-table__row">
-            <th scope="row" class="govuk-table__header">@consignment.consignmentReference</th>
+            <th scope="row" class="govuk-table__header">@consignment.consignmentRef</th>
             <td class="govuk-table__cell">
               <strong class="tdr-tag tdr-tag--green">Requested</strong>
             </td>
-            <td class="govuk-table__cell">@consignment.transferringBodyName</td>
-            <td class="govuk-table__cell">@consignment.seriesName</td>
+            <td class="govuk-table__cell">@consignment.body</td>
+            <td class="govuk-table__cell">@consignment.series</td>
+            <td class="govuk-table__cell">@Html(consignment.submittedDateHtml)</td>
             <td class="govuk-table__cell">
               <div class="tdr-link-group">
-                <a href="@routes.MetadataReviewActionController.consignmentMetadataDetails(consignment.consignmentid.get)" class="govuk-link govuk-link--no-visited-state">View request</a>
+                <a href="@routes.MetadataReviewActionController.consignmentMetadataDetails(consignment.consignmentId)" class="govuk-link govuk-link--no-visited-state">View request</a>
               </div>
             </td>
           </tr>
