@@ -30,7 +30,7 @@
                     </label>
                     @errorMessage(formData.judgmentReference.id, formData.judgmentReference.errors)
                     <input class="govuk-input @{if(formData.judgmentReference.errors.nonEmpty) "govuk-input--error"}" id="@formData.judgmentReference.id" name="@formData.judgmentReference.id" type="text" value="@formData.judgmentReference.value.headOption.getOrElse("")" @{if(formData.judgmentReference.errors.nonEmpty) {
-                            "aria-describedby=\"judgment-reference-error\""}}>
+                            Html(s"aria-describedby=\"error-${formData.judgmentReference.id}\"")}}>
                 </div>
             </div>
         </div>

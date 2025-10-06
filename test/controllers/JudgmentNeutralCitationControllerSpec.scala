@@ -244,7 +244,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     body must include(s"""<div class="govuk-checkboxes__conditional ${if (!noNCN) "govuk-checkboxes__conditional--hidden" else ""}" id="conditional-no-ncn">""")
     if (reference.length > 500)
       body must include(
-        s"""<input class="govuk-input govuk-input--error" id="judgment_reference" name="judgment_reference" type="text" value="$reference" aria-describedby=&quot;judgment-reference-error&quot;>"""
+        s"""<input class="govuk-input govuk-input--error" id="judgment_reference" name="judgment_reference" type="text" value="$reference" aria-describedby="error-judgment_reference">"""
       )
     else
       body must include(s"""<input class="govuk-input " id="judgment_reference" name="judgment_reference" type="text" value="$reference" >""")
