@@ -30,31 +30,30 @@ class MetadataReviewController @Inject() (
   private def toMetadataReviewRequest(consignment: GetConsignmentsForMetadataReview): MetadataReviewRequest = {
     val formatter = DateTimeFormatter.ofPattern("d'%s' MMMM yyyy")
     val status = consignment.consignmentStatuses.find(_.statusType == MetadataReviewType.id)
-    val submittedDate = if (status.exists(_.modifiedDatetime.nonEmpty)) {
-      status.map(_.modifiedDatetime.get)
-    } else {
-      status.map(_.createdDatetime)
-    }
+    val submittedDate = status.flatMap(_.modifiedDatetime) orElse status.map(_.createdDatetime)
     MetadataReviewRequest(
       consignmentId = consignment.consignmentid.get,
       consignmentRef = consignment.consignmentReference,
       body = consignment.transferringBodyName.getOrElse(""),
       series = consignment.seriesName.getOrElse(""),
       submittedDate = submittedDate.get,
-      submittedDateHtml = formatDate(formatter, submittedDate.get)
+      submittedDateHtml = formatDate(formatter, submittedDate)
     )
   }
 
-  private def formatDate(formatter: DateTimeFormatter, dateTime: ZonedDateTime): String = {
-    val dayOfMonth = dateTime.getDayOfMonth
-    val date = formatter.format(dateTime).format(getDaySuffix(dayOfMonth))
-    val noOfDays = LocalDate.now().toEpochDay - dateTime.toLocalDate.toEpochDay
-    val days = noOfDays match {
-      case 0   => "Today"
-      case 1   => "Yesterday"
-      case day => s"$day days ago"
-    }
-    s"$date <br> ($days)"
+  private def formatDate(formatter: DateTimeFormatter, zoneDateTime: Option[ZonedDateTime]): String = {
+    zoneDateTime
+      .map(dateTime => {
+        val date = formatter.format(dateTime).format(getDaySuffix(dateTime.getDayOfMonth))
+        val noOfDays = LocalDate.now().toEpochDay - dateTime.toLocalDate.toEpochDay
+        val days = noOfDays match {
+          case 0   => "Today"
+          case 1   => "Yesterday"
+          case day => s"$day days ago"
+        }
+        s"$date <br> ($days)"
+      })
+      .getOrElse("")
   }
 
   private def getDaySuffix(day: Int): String = day match {
