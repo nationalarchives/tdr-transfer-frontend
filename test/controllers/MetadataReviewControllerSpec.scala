@@ -79,11 +79,11 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
 
   def checkForExpectedMetadataReviewPageContent(metadataReviewPageAsString: String): Unit = {
     metadataReviewPageAsString must include("<h1 class=\"govuk-heading-l\">Metadata Reviews</h1>")
-    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header metadata-review-columnWidth">Consignment</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header metadata-review-column-width">Consignment</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Status</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Department</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Series</th>""")
-    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header metadata-review-columnWidth">Date submitted</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header metadata-review-column-width">Date submitted</th>""")
     metadataReviewPageAsString must include(s"""<th scope="col" class="govuk-table__header">
          |              <span class="govuk-visually-hidden">Actions</span>
          |            </th>""".stripMargin)
