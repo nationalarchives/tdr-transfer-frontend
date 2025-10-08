@@ -23,7 +23,7 @@ class UploadController @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
-    val frontEndInfoConfiguration: ApplicationConfig,
+    val applicationConfig: ApplicationConfig,
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val fileStatusService: FileStatusService,
@@ -83,7 +83,7 @@ class UploadController @Inject() (
               Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
-              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, applicationConfig.frontEndInfo, request.token.name))
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
@@ -121,7 +121,7 @@ class UploadController @Inject() (
           val metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
           val judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
           val judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
-          if (!frontEndInfoConfiguration.blockJudgmentPressSummaries && (judgmentType == press_summary || judgmentUpdate) && noNCNDataForJudgmentUpdateOrPressSummaryType(metadata)) {
+          if (!applicationConfig.blockJudgmentPressSummaries && (judgmentType == press_summary || judgmentUpdate) && noNCNDataForJudgmentUpdateOrPressSummaryType(metadata)) {
             Redirect(routes.JudgmentNeutralCitationController.addNCN(consignmentId).url)
           } else {
             Ok(
@@ -131,7 +131,7 @@ class UploadController @Inject() (
                   reference,
                   pageHeadingUpload,
                   pageHeadingUploading,
-                  frontEndInfoConfiguration.frontEndInfo,
+                  applicationConfig.frontEndInfo,
                   request.token.name,
                   buildBackURL(consignmentId, judgmentType, judgmentUpdate)
                 )
@@ -150,7 +150,7 @@ class UploadController @Inject() (
   }
 
   private def buildBackURL(consignmentId: UUID, judgmentType: String, judgmentUpdate: Boolean): String = {
-    if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
+    if (applicationConfig.blockJudgmentPressSummaries) {
       routes.BeforeUploadingController.beforeUploading(consignmentId).url
     } else {
       if (judgmentType == judgment && !judgmentUpdate) {
