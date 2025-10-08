@@ -11,6 +11,9 @@ import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTim
 import services.ConsignmentService
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
+import java.time.{LocalDate, ZonedDateTime}
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import scala.concurrent.ExecutionContext
 
 class MetadataReviewControllerSpec extends FrontEndTestHelper {
@@ -74,18 +77,42 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def checkForExpectedMetadataReviewPageContent(metadataReviewPageAsString: String, consignmentExists: Boolean = true): Unit = {
+  def checkForExpectedMetadataReviewPageContent(metadataReviewPageAsString: String): Unit = {
     metadataReviewPageAsString must include("<h1 class=\"govuk-heading-l\">Metadata Reviews</h1>")
-    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Consignment</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header metadata-review-column-width">Consignment</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Status</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Department</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Series</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header metadata-review-column-width">Date submitted</th>""")
     metadataReviewPageAsString must include(s"""<th scope="col" class="govuk-table__header">
          |              <span class="govuk-visually-hidden">Actions</span>
          |            </th>""".stripMargin)
-    metadataReviewPageAsString must include(s"""<th scope="row" class="govuk-table__header">TDR-2024-TEST</th>""")
-    metadataReviewPageAsString must include(s"""<strong class="tdr-tag tdr-tag--green">Requested</strong>""")
-    metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">TransferringBody</td>""")
-    metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">SeriesName</td>""")
+
+    val formatter = DateTimeFormatter.ofPattern("d'%s' MMMM yyyy")
+
+    (1 to 4)
+      .foreach(count => {
+        val dateTime = if (count == 1) ZonedDateTime.now() else ZonedDateTime.now().minus(count, ChronoUnit.DAYS)
+        val dayOfMonth = dateTime.getDayOfMonth
+        val date = formatter.format(dateTime).format(getDaySuffix(dayOfMonth))
+        val noOfDays = LocalDate.now().toEpochDay - dateTime.toLocalDate.toEpochDay
+        val days = noOfDays match {
+          case 0   => "Today"
+          case 1   => "Yesterday"
+          case day => s"$day days ago"
+        }
+        metadataReviewPageAsString must include(s"""<th scope="row" class="govuk-table__header">TDR-2024-TEST$count</th>""")
+        metadataReviewPageAsString must include(s"""<strong class="tdr-tag tdr-tag--green">Requested</strong>""")
+        metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">TransferringBody$count</td>""")
+        metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">SeriesName$count</td>""")
+        metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">$date <br> ($days)</td>""")
+      })
+  }
+
+  private def getDaySuffix(day: Int): String = day match {
+    case 1 | 21 | 31 => "st"
+    case 2 | 22      => "nd"
+    case 3 | 23      => "rd"
+    case _           => "th"
   }
 }
