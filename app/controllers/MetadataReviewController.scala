@@ -36,7 +36,7 @@ class MetadataReviewController @Inject() (
       consignmentRef = consignment.consignmentReference,
       body = consignment.transferringBodyName.getOrElse(""),
       series = consignment.seriesName.getOrElse(""),
-      submittedDate = submittedDate.get,
+      submittedDate = submittedDate.getOrElse(ZonedDateTime.now()),
       submittedDateHtml = formatDate(formatter, submittedDate)
     )
   }
