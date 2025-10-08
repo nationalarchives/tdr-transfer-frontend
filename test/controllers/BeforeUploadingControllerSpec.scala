@@ -1,7 +1,10 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
+import org.mockito.Mockito.when
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
@@ -35,7 +38,8 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val beforeUploadingController = instantiateBeforeUploadingController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      setConsignmentReferenceResponse(wiremockServer)
+      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, metadata.some, "TEST-TDR-2021-GB".some)
 
       val beforeUploadingPage = beforeUploadingController
         .beforeUploading(consignmentId)
@@ -81,6 +85,50 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       )
       beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload" role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
     }
+
+    "redirect to tell-us-more page if the user loads the page after selecting judgment update" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val beforeUploadingController = instantiateBeforeUploadingController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, metadata.some, "TEST-TDR-2021-GB".some)
+
+      val beforeUploadingPage = beforeUploadingController
+        .beforeUploading(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
+
+      playStatus(beforeUploadingPage) mustBe SEE_OTHER
+      redirectLocation(beforeUploadingPage) must be(Some(s"/judgment/$consignmentId/tell-us-more"))
+    }
+
+    "redirect to tell-us-more page if the user loads the page after selecting judgment press_summary" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val beforeUploadingController = instantiateBeforeUploadingController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata = ConsignmentMetadata("JudgmentType", "press_summary") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, metadata.some, "TEST-TDR-2021-GB".some)
+
+      val beforeUploadingPage = beforeUploadingController
+        .beforeUploading(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
+
+      playStatus(beforeUploadingPage) mustBe SEE_OTHER
+      redirectLocation(beforeUploadingPage) must be(Some(s"/judgment/$consignmentId/tell-us-more"))
+    }
+
+    "render the before uploading page for judgments when the blockJudgmentPressSummaries is 'true'" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val beforeUploadingController = instantiateBeforeUploadingController(blockJudgmentPressSummaries = true)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setGetConsignmentMetadataResponse(wiremockServer, Nil.some, "TEST-TDR-2021-GB".some)
+
+      val beforeUploadingPage = beforeUploadingController
+        .beforeUploading(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
+
+      playStatus(beforeUploadingPage) mustBe OK
+      contentType(beforeUploadingPage) mustBe Some("text/html")
+    }
   }
 
   s"The judgment before uploading page" should {
@@ -115,11 +163,13 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   }
 
   private def instantiateBeforeUploadingController(
-      keycloakConfiguration: KeycloakConfiguration = getValidJudgmentUserKeycloakConfiguration
+      keycloakConfiguration: KeycloakConfiguration = getValidJudgmentUserKeycloakConfiguration,
+      blockJudgmentPressSummaries: Boolean = false
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
+    val applicationConfig: ApplicationConfig = mock[ApplicationConfig]
+    when(applicationConfig.blockJudgmentPressSummaries).thenReturn(blockJudgmentPressSummaries)
 
     new BeforeUploadingController(
       getAuthorisedSecurityComponents,

@@ -3,6 +3,7 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration}
+import controllers.util.ConsignmentProperty.press_summary
 import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
@@ -425,7 +426,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      val metadata =
+        ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: ConsignmentMetadata("JudgmentNoNeutralCitation", "true") :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
 
       val uploadPage = controller
@@ -490,6 +492,42 @@ class UploadControllerSpec extends FrontEndTestHelper {
           |                    </p>
           |                </div>
           |""".stripMargin)
+    }
+
+    "redirect to NCN page if the user loads the upload page without entering NCN for judgment update" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = setUpNCNTestController()
+
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata =
+        ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
+
+      val uploadPage = controller
+        .judgmentUploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      status(uploadPage) mustBe SEE_OTHER
+      redirectLocation(uploadPage) must be(Some(s"/judgment/$consignmentId/neutral-citation"))
+    }
+
+    "redirect to NCN page if the user loads the upload page without entering NCN for judgment press_summary" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = setUpNCNTestController()
+
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata =
+        ConsignmentMetadata("JudgmentType", press_summary) :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
+
+      val uploadPage = controller
+        .judgmentUploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      status(uploadPage) mustBe SEE_OTHER
+      redirectLocation(uploadPage) must be(Some(s"/judgment/$consignmentId/neutral-citation"))
     }
 
     "show the judgment upload back to before upload for the new judgment transfer" in {

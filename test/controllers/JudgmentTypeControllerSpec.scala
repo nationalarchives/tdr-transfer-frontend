@@ -4,6 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration}
+import controllers.util.ConsignmentProperty.press_summary
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -72,7 +73,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
     "return OK and show judgment document type page and the press_summary option should be selected when the an press_summary option already saved in the DB" in {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", "press_summary") :: Nil
+      val metadata = ConsignmentMetadata("JudgmentType", press_summary) :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller
@@ -82,7 +83,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
       playStatus(result) mustBe OK
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
-      checkContent(body, "press_summary")
+      checkContent(body, press_summary)
     }
   }
 
@@ -179,7 +180,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       setGetConsignmentMetadataResponse(wiremockServer)
 
-      val metadata = defaultNcnMetadata ++ Map(judgment_type -> "press_summary", judgment_update -> "false", judgment_update_type -> "", judgment_update_details -> "")
+      val metadata = defaultNcnMetadata ++ Map(judgment_type -> press_summary, judgment_update -> "false", judgment_update_type -> "", judgment_update_details -> "")
       val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
       when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
 
@@ -187,7 +188,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
         .submitJudgmentType(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/tell-us-more")
-            .withFormUrlEncodedBody("judgment_type" -> "press_summary")
+            .withFormUrlEncodedBody("judgment_type" -> press_summary)
             .withCSRFToken
         )
 
@@ -209,7 +210,7 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
         ) "checked"
         else ""}>"""
     )
-    body must include(s"""<input class="govuk-radios__input" id="judgmentType-3" name="judgment_type" type="radio" value="press_summary" ${if (judgmentType == "press_summary")
+    body must include(s"""<input class="govuk-radios__input" id="judgmentType-3" name="judgment_type" type="radio" value="press_summary" ${if (judgmentType == press_summary)
         "checked"
       else ""}>""")
     body must include(s"""    <div class="govuk-form-group ${if (judgmentType == "update" && updateReason.isEmpty) "govuk-form-group--error" else ""}">

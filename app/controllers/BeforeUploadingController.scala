@@ -2,10 +2,12 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.ConsignmentProperty.{judgment, tdrDataLoadHeaderMapper}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{judgment_type, judgment_update}
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -28,8 +30,17 @@ class BeforeUploadingController @Inject() (
     } else {
       routes.JudgmentTypeController.selectJudgmentType(consignmentId).url
     }
-    consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      .map(reference => Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, reference, request.token.name, backURL)))
+    for {
+      consignment <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      val metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
+      val judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
+      val judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
+      if (applicationConfig.blockJudgmentPressSummaries || (judgmentType == judgment && !judgmentUpdate)) {
+        Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, consignment.consignmentReference, request.token.name, backURL))
+      } else {
+        Redirect(routes.JudgmentTypeController.selectJudgmentType(consignmentId).url)
+      }
+    }
   }
 }
