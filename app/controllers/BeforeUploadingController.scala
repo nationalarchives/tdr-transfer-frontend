@@ -32,11 +32,12 @@ class BeforeUploadingController @Inject() (
     }
     for {
       consignment <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
+      metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
+      judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
+      judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
+      goToBeforeUploading = judgmentType == judgment && !judgmentUpdate
     } yield {
-      val metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
-      val judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
-      val judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
-      if (applicationConfig.blockJudgmentPressSummaries || (judgmentType == judgment && !judgmentUpdate)) {
+      if (applicationConfig.blockJudgmentPressSummaries || goToBeforeUploading) {
         Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, consignment.consignmentReference, request.token.name, backURL))
       } else {
         Redirect(routes.JudgmentTypeController.selectJudgmentType(consignmentId).url)

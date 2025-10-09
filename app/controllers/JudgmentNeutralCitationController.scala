@@ -33,9 +33,11 @@ class JudgmentNeutralCitationController @Inject() (
   def addNCN(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignment <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
+      metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
+      judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
+      judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "")
     } yield {
-      val metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
-      if (metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "") == press_summary || metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "") == "true") {
+      if (judgmentType == press_summary || judgmentUpdate == "true") {
         val formData = fillNCNFormData(consignment)
         Ok(views.html.judgment.judgmentNeutralCitationNumber(consignmentId, consignment.consignmentReference, request.token.name, formData))
       } else {
