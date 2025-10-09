@@ -87,11 +87,27 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
         rows.length must equal(3)
 
+        rows.head.getCellCount must equal(20)
         rows.head.getCell(0).asString must equal("filepath")
         rows.head.getCell(1).asString must equal("filename")
         rows.head.getCell(2).asString must equal("date last modified")
         rows.head.getCell(3).asString must equal("date of the record")
         rows.head.getCell(4).asString must equal("description")
+        rows.head.getCell(5).asString must equal("former reference")
+        rows.head.getCell(6).asString must equal("closure status")
+        rows.head.getCell(7).asString must equal("closure start date")
+        rows.head.getCell(8).asString must equal("closure period")
+        rows.head.getCell(9).asString must equal("foi exemption code")
+        rows.head.getCell(10).asString must equal("foi schedule date")
+        rows.head.getCell(11).asString must equal("is filename closed")
+        rows.head.getCell(12).asString must equal("alternate filename")
+        rows.head.getCell(13).asString must equal("is description closed")
+        rows.head.getCell(14).asString must equal("alternate description")
+        rows.head.getCell(15).asString must equal("language")
+        rows.head.getCell(16).asString must equal("translated filename")
+        rows.head.getCell(17).asString must equal("copyright")
+        rows.head.getCell(18).asString must equal("related material")
+        rows.head.getCell(19).asString must equal("restrictions on use")
 
         val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
           .find { case (cell, _) => cell.asString == "copyright" }
