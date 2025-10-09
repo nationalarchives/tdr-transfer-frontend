@@ -4,6 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import controllers.util.ConsignmentProperty.{judgment, press_summary}
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
@@ -65,7 +66,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     "return OK and show neutral citation form" in {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      val metadata = ConsignmentMetadata("JudgmentType", judgment) :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller
@@ -82,7 +83,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       val ncn = "[2024] EWCOP 123 (T1)"
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", "press_summary") :: ConsignmentMetadata("JudgmentNeutralCitation", ncn) :: Nil
+      val metadata = ConsignmentMetadata("JudgmentType", press_summary) :: ConsignmentMetadata("JudgmentNeutralCitation", ncn) :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller
@@ -99,7 +100,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val metadata = List(
-        ConsignmentMetadata("JudgmentType", "press_summary"),
+        ConsignmentMetadata("JudgmentType", press_summary),
         ConsignmentMetadata("JudgmentNoNeutralCitation", "true"),
         ConsignmentMetadata("JudgmentReference", "details")
       )
@@ -118,7 +119,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     "redirect to tell-us-more page if the user loads the page without selecting judgment update or press_summary" in {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: Nil
+      val metadata = ConsignmentMetadata("JudgmentType", judgment) :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller

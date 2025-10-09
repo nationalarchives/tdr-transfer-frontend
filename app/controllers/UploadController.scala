@@ -103,7 +103,6 @@ class UploadController @Inject() (
 
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       consignment <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
     } yield {
       val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, UploadType).values.headOption.flatten
@@ -112,10 +111,10 @@ class UploadController @Inject() (
 
       uploadStatus match {
         case Some(InProgressValue.value) | Some(CompletedWithIssuesValue.value) =>
-          Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
+          Ok(views.html.uploadInProgress(consignmentId, consignment.consignmentReference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case Some(CompletedValue.value) =>
-          Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
+          Ok(views.html.uploadHasCompleted(consignmentId, consignment.consignmentReference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
           val metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
@@ -128,7 +127,7 @@ class UploadController @Inject() (
               views.html.judgment
                 .judgmentUpload(
                   consignmentId,
-                  reference,
+                  consignment.consignmentReference,
                   pageHeadingUpload,
                   pageHeadingUploading,
                   applicationConfig.frontEndInfo,

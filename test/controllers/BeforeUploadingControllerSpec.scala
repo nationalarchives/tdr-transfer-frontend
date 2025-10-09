@@ -3,6 +3,7 @@ package controllers
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.ConsignmentProperty.{judgment, press_summary}
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import org.mockito.Mockito.when
 import play.api.Configuration
@@ -90,7 +91,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val beforeUploadingController = instantiateBeforeUploadingController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      val metadata = ConsignmentMetadata("JudgmentType", judgment) :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some, "TEST-TDR-2021-GB".some)
 
       val beforeUploadingPage = beforeUploadingController
@@ -105,7 +106,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val beforeUploadingController = instantiateBeforeUploadingController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", "press_summary") :: Nil
+      val metadata = ConsignmentMetadata("JudgmentType", press_summary) :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some, "TEST-TDR-2021-GB".some)
 
       val beforeUploadingPage = beforeUploadingController
