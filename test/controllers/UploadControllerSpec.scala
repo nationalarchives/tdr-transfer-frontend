@@ -1,5 +1,6 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration}
@@ -410,7 +411,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "render the 'upload in progress error' page if a judgment file upload has a 'completedWithIssues' status" in {
       val uploadStatus = CompletedWithIssuesValue
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      setGetConsignmentMetadataResponse(wiremockServer)
+      setGetConsignmentMetadataResponse(wiremockServer, consignmentRef = "TEST-TDR-2021-GB".some)
       val uploadPage = executeJudgmentsUpload(uploadStatus, consignmentId, applicationConfig)
       val uploadPageAsString = contentAsString(uploadPage)
       status(uploadPage) mustBe OK
@@ -423,12 +424,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = setUpNCNTestController()
 
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val metadata =
         ConsignmentMetadata("JudgmentType", "judgment") :: ConsignmentMetadata("JudgmentUpdate", "true") :: ConsignmentMetadata("JudgmentNoNeutralCitation", "true") :: Nil
-      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata), "TEST-TDR-2021-GB".some)
 
       val uploadPage = controller
         .judgmentUploadPage(consignmentId)
@@ -498,12 +498,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = setUpNCNTestController()
 
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val metadata =
         ConsignmentMetadata("JudgmentType", judgment) :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
-      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata), "TEST-TDR-2021-GB".some)
 
       val uploadPage = controller
         .judgmentUploadPage(consignmentId)
@@ -534,11 +533,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = setUpNCNTestController()
 
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val metadata = ConsignmentMetadata("JudgmentType", judgment) :: Nil
-      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
+      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata), "TEST-TDR-2021-GB".some)
 
       val uploadPage = controller
         .judgmentUploadPage(consignmentId)
@@ -551,7 +549,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = setUpNCNTestController(true)
 
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val metadata = ConsignmentMetadata("JudgmentType", judgment) :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
@@ -620,9 +617,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
     setConsignmentTypeResponse(wiremockServer, "judgment")
-    setConsignmentReferenceResponse(wiremockServer)
     val metadata = ConsignmentMetadata("JudgmentType", judgment) :: Nil
-    setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
+    setGetConsignmentMetadataResponse(wiremockServer, Some(metadata), "TEST-TDR-2021-GB".some)
 
     controller
       .judgmentUploadPage(consignmentId)
