@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import controllers.util.ConsignmentProperty.tdrDataLoadHeaderMapper
+import controllers.util.ConsignmentProperty.{judgment, press_summary, tdrDataLoadHeaderMapper}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -11,7 +11,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services._
-import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{judgment_type, judgment_update}
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{judgment_neutral_citation, judgment_no_neutral_citation, judgment_type, judgment_update}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -23,7 +23,7 @@ class UploadController @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
-    val frontEndInfoConfiguration: ApplicationConfig,
+    val applicationConfig: ApplicationConfig,
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val fileStatusService: FileStatusService,
@@ -83,7 +83,7 @@ class UploadController @Inject() (
               Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
-              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, applicationConfig.frontEndInfo, request.token.name))
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
@@ -103,8 +103,7 @@ class UploadController @Inject() (
 
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      consignmentMetadata <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
+      consignment <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
     } yield {
       val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, UploadType).values.headOption.flatten
       val pageHeadingUpload = "Upload document"
@@ -112,37 +111,48 @@ class UploadController @Inject() (
 
       uploadStatus match {
         case Some(InProgressValue.value) | Some(CompletedWithIssuesValue.value) =>
-          Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
+          Ok(views.html.uploadInProgress(consignmentId, consignment.consignmentReference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case Some(CompletedValue.value) =>
-          Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
+          Ok(views.html.uploadHasCompleted(consignmentId, consignment.consignmentReference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
-          val judgmentType = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(judgment_type)).map(_.value)
-          val judgmentUpdate = consignmentMetadata.consignmentMetadata.find(_.propertyName == tdrDataLoadHeaderMapper(judgment_update)).map(_.value.toBoolean)
-          Ok(
-            views.html.judgment
-              .judgmentUpload(
-                consignmentId,
-                reference,
-                pageHeadingUpload,
-                pageHeadingUploading,
-                frontEndInfoConfiguration.frontEndInfo,
-                request.token.name,
-                buildBackURL(consignmentId, judgmentType, judgmentUpdate)
-              )
-          ).uncache()
+          val metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
+          val judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
+          val judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
+          if (!applicationConfig.blockJudgmentPressSummaries && (judgmentType == press_summary || judgmentUpdate) && noNCNDataForJudgmentUpdateOrPressSummaryType(metadata)) {
+            Redirect(routes.JudgmentNeutralCitationController.addNCN(consignmentId).url)
+          } else {
+            Ok(
+              views.html.judgment
+                .judgmentUpload(
+                  consignmentId,
+                  consignment.consignmentReference,
+                  pageHeadingUpload,
+                  pageHeadingUploading,
+                  applicationConfig.frontEndInfo,
+                  request.token.name,
+                  buildBackURL(consignmentId, judgmentType, judgmentUpdate)
+                )
+            ).uncache()
+          }
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
       }
     }
   }
 
-  private def buildBackURL(consignmentId: UUID, judgmentType: Option[String], judgmentUpdate: Option[Boolean]): String = {
-    if (frontEndInfoConfiguration.blockJudgmentPressSummaries) {
+  private def noNCNDataForJudgmentUpdateOrPressSummaryType(metadata: Map[String, String]): Boolean = {
+    val existingNCN = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_neutral_citation), "")
+    val existingNoNCN = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_no_neutral_citation), "")
+    existingNCN.isEmpty && existingNoNCN.isEmpty
+  }
+
+  private def buildBackURL(consignmentId: UUID, judgmentType: String, judgmentUpdate: Boolean): String = {
+    if (applicationConfig.blockJudgmentPressSummaries) {
       routes.BeforeUploadingController.beforeUploading(consignmentId).url
     } else {
-      if (judgmentType.contains("judgment") && (judgmentUpdate.isEmpty || judgmentUpdate.contains(false))) {
+      if (judgmentType == judgment && !judgmentUpdate) {
         routes.BeforeUploadingController.beforeUploading(consignmentId).url
       } else {
         routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
