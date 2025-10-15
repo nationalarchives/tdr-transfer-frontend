@@ -25,7 +25,7 @@
     <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
 
     </head>
-    <body class="govuk-template__body js-enabled">
+    <body class="govuk-template__body js-enabled govuk-frontend-supported">
         <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
         <header class="govuk-header" role="banner" data-module="govuk-header">
             <div class="govuk-header__container govuk-width-container tna-header">
@@ -117,7 +117,7 @@
         @if(isLoggedIn) {
             <dialog class="timeout-dialog" role="dialog" aria-modal="true" aria-labelledby="timeout-heading">
                 <div>
-                    <h2 class="govuk-heading-m" id="timeout-heading">You have been inactive for more than 55 minutes.</h2>
+                    <h2 class="govuk-heading-m" id="timeout-heading">You have been inactive for more than 115 minutes.</h2>
                 <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
             </div>
             <div class="govuk-button-group">

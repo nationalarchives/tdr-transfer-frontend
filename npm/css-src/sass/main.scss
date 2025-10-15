@@ -1,5 +1,5 @@
 @import 'overrides/all';
-@import '../../node_modules/govuk-frontend/govuk/all';
+@import '../../node_modules/govuk-frontend/dist/govuk/all';
 @import '../../node_modules/@nationalarchives/tdr-components/dist/all';
 
 @import 'header';
@@ -92,4 +92,12 @@ address {
 
 address span {
   display: block;
+}
+
+.clear {
+  margin-top: auto;
+}
+
+.metadata-review-column-width {
+  width: 20% !important;
 }

@@ -1,11 +1,13 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.ConsignmentProperty.{judgment, tdrDataLoadHeaderMapper}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{judgment_type, judgment_update}
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -16,14 +18,30 @@ class BeforeUploadingController @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
-    val consignmentService: ConsignmentService
+    val consignmentService: ConsignmentService,
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
 
   def beforeUploading(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      .map(reference => Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, reference, request.token.name)))
+    val backURL = if (applicationConfig.blockJudgmentPressSummaries) {
+      routes.HomepageController.homepage().url
+    } else {
+      routes.JudgmentTypeController.selectJudgmentType(consignmentId).url
+    }
+    for {
+      consignment <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
+      metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
+      judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
+      judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
+      goToBeforeUploading = judgmentType == judgment && !judgmentUpdate
+    } yield {
+      if (applicationConfig.blockJudgmentPressSummaries || goToBeforeUploading) {
+        Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, consignment.consignmentReference, request.token.name, backURL))
+      } else {
+        Redirect(routes.JudgmentTypeController.selectJudgmentType(consignmentId).url)
+      }
+    }
   }
 }

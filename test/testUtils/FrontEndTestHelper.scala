@@ -11,9 +11,10 @@ import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentS
 import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
+import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
+import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcsu}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
@@ -22,6 +23,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{ConsignmentStatuses => ecs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview, getConsignmentsForMetadataReview => gcfmr}
+import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
@@ -60,7 +62,7 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
-import services.Statuses.{InProgressValue, SeriesType, StatusType, StatusValue}
+import services.Statuses._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.KeycloakUtils.UserDetails
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -68,6 +70,7 @@ import viewsapi.FrontEndInfo
 
 import java.io.File
 import java.net.URI
+import java.time.temporal.ChronoUnit
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -249,10 +252,21 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def setGetConsignmentsForMetadataReviewResponse(wiremockServer: WireMockServer): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfmr.Data, gcfmr.Variables]()
-    val consignment =
-      gcfmr.GetConsignmentsForMetadataReview(Some(UUID.fromString("fe214a75-cfc4-4767-a7ab-e9b4b2ca700d")), "TDR-2024-TEST", Some("SeriesName"), Some("TransferringBody"))
-    val getConsignmentsForReviewResponse: getConsignmentsForMetadataReview.Data = gcfmr.Data(List(consignment))
-    val data = client.GraphqlData(Some(getConsignmentsForReviewResponse))
+    val consignments = (1 to 4)
+      .map(value => {
+        val consignmentId = UUID.randomUUID()
+        val status = gcfmr.GetConsignmentsForMetadataReview
+          .ConsignmentStatuses(MetadataReviewType.id, InProgressValue.value, ZonedDateTime.now().minus(value, ChronoUnit.DAYS), if (value == 1) ZonedDateTime.now().some else None)
+        gcfmr.GetConsignmentsForMetadataReview(
+          Some(consignmentId),
+          s"TDR-2024-TEST$value",
+          Some(s"SeriesName$value"),
+          Some(s"TransferringBody$value"),
+          List(status)
+        )
+      })
+      .toList
+    val data = client.GraphqlData(Some(gcfmr.Data(consignments)))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
     wiremockServer.stubFor(
@@ -322,6 +336,20 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           "Cursor"
         )
       )
+    )
+  }
+
+  def setGetConsignmentMetadataResponse(wiremockServer: WireMockServer, metadata: Option[List[ConsignmentMetadata]] = None, consignmentRef: Option[String] = None): StubMapping = {
+
+    val client: GraphQLClient[gcm.Data, gcm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcm.Data, gcm.Variables]()
+    val consignment = gcm.GetConsignment(consignmentRef.getOrElse("TDR-2024-TEST"), metadata.getOrElse(Nil))
+    val data = client.GraphqlData(Some(gcm.Data(consignment.some)))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentMetadata"))
+        .willReturn(okJson(dataString))
     )
   }
 

@@ -1,0 +1,32 @@
+@import views.html.helper.{CSRF, form}
+@import views.html.partials.{backLink, neutralCitationHelp, transferReference,neutralCitationFieldsWithReference}
+
+@import java.util.UUID
+@import views.html.partials.errorSummary
+@import views.html.partials.errorMessage
+@(consignmentId: UUID, consignmentRef: String, name: String, formData: NCNFormData)(implicit request: RequestHeader, messages: Messages)
+@main("Provide neutral citation", name = name, isJudgmentUser = true, backLink = Some(backLink(routes.JudgmentTypeController.selectJudgmentType(consignmentId).url, "Back"))) {
+    @errorSummary(formData.errorSummary)
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">Provide the neutral citation number (NCN) for the original judgment</h1>
+            @form(routes.JudgmentNeutralCitationController.validateNCN(consignmentId)) {
+                @CSRF.formField
+                <div class="govuk-form-group @{if(formData.neutralCitation.errors.nonEmpty) "govuk-form-group--error"}">
+                    @neutralCitationFieldsWithReference(formData)
+                </div>
+
+                @neutralCitationHelp()
+
+                <hr class="govuk-section-break govuk-section-break--m">
+
+                <div class="govuk-button-group">
+                    <button class="govuk-button" data-module="govuk-button" id="continueButton" type="submit">
+                        Continue
+                    </button>
+                </div>
+            }
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = true)
+    </div>
+}

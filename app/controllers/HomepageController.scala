@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.KeycloakConfiguration
+import configuration.{ApplicationConfig, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -14,13 +14,22 @@ import scala.concurrent.ExecutionContext
 class HomepageController @Inject() (
     val controllerComponents: SecurityComponents,
     val keycloakConfiguration: KeycloakConfiguration,
-    val consignmentService: ConsignmentService
+    val consignmentService: ConsignmentService,
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
 
   def judgmentHomepageSubmit(): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
-    consignmentService.createConsignment(None, request.token).map(consignment => Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get)))
+    consignmentService
+      .createConsignment(None, request.token)
+      .map(consignment =>
+        if (applicationConfig.blockJudgmentPressSummaries) {
+          Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get))
+        } else {
+          Redirect(routes.JudgmentTypeController.selectJudgmentType(consignment.consignmentid.get))
+        }
+      )
   }
 
   def homepageSubmit(): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
@@ -44,7 +53,7 @@ class HomepageController @Inject() (
   def judgmentHomepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewTransfers = true))
+        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewTransfers = true, applicationConfig.blockJudgmentPressSummaries))
       } else if (request.token.isStandardUser) {
         Redirect(routes.HomepageController.homepage())
       } else {

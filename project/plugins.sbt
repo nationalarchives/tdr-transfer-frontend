@@ -1,4 +1,4 @@
-addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.8")
+addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.9")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.5")
 resolvers += Resolver.jcenterRepo
 addSbtPlugin("com.github.sbt" % "sbt-digest" % "2.1.0")
