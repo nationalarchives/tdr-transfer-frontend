@@ -4,6 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import controllers.util.ConsignmentProperty.{judgment, press_summary}
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
@@ -65,7 +66,8 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     "return OK and show neutral citation form" in {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      setGetConsignmentMetadataResponse(wiremockServer, Nil.some)
+      val metadata = ConsignmentMetadata("JudgmentType", judgment) :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller
         .addNCN(consignmentId)
@@ -81,7 +83,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       val ncn = "[2024] EWCOP 123 (T1)"
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentNeutralCitation", ncn) :: Nil
+      val metadata = ConsignmentMetadata("JudgmentType", press_summary) :: ConsignmentMetadata("JudgmentNeutralCitation", ncn) :: Nil
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller
@@ -97,7 +99,11 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     "return OK and show neutral citation form with saved no-ncn and judgment reference showing" in {
       val controller = instantiateController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentNoNeutralCitation", "true") :: ConsignmentMetadata("JudgmentReference", "details") :: Nil
+      val metadata = List(
+        ConsignmentMetadata("JudgmentType", press_summary),
+        ConsignmentMetadata("JudgmentNoNeutralCitation", "true"),
+        ConsignmentMetadata("JudgmentReference", "details")
+      )
       setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
 
       val result = controller
@@ -108,6 +114,20 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
       contentType(result) mustBe Some("text/html")
       val body = contentAsString(result)
       checkContent(body, noNCN = true, reference = "details")
+    }
+
+    "redirect to tell-us-more page if the user loads the page without selecting judgment update or press_summary" in {
+      val controller = instantiateController()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val metadata = ConsignmentMetadata("JudgmentType", judgment) :: Nil
+      setGetConsignmentMetadataResponse(wiremockServer, metadata.some)
+
+      val result = controller
+        .addNCN(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/neutral-citation").withCSRFToken)
+
+      playStatus(result) mustBe SEE_OTHER
+      redirectLocation(result) must be(Some(s"/judgment/$consignmentId/tell-us-more"))
     }
   }
 
@@ -244,7 +264,7 @@ class JudgmentNeutralCitationControllerSpec extends FrontEndTestHelper {
     body must include(s"""<div class="govuk-checkboxes__conditional ${if (!noNCN) "govuk-checkboxes__conditional--hidden" else ""}" id="conditional-no-ncn">""")
     if (reference.length > 500)
       body must include(
-        s"""<input class="govuk-input govuk-input--error" id="judgment_reference" name="judgment_reference" type="text" value="$reference" aria-describedby=&quot;judgment-reference-error&quot;>"""
+        s"""<input class="govuk-input govuk-input--error" id="judgment_reference" name="judgment_reference" type="text" value="$reference" aria-describedby="error-judgment_reference">"""
       )
     else
       body must include(s"""<input class="govuk-input " id="judgment_reference" name="judgment_reference" type="text" value="$reference" >""")
