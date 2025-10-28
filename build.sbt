@@ -8,7 +8,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
-scalaVersion := "2.13.16"
+scalaVersion := "2.13.17"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2" % Test
@@ -22,27 +22,27 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll ExclusionRule(organization = "com.fasterxml.jackson.core"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
-  "io.circe" %% "circe-core" % "0.14.14",
-  "io.circe" %% "circe-generic" % "0.14.14",
+  "io.circe" %% "circe-core" % "0.14.15",
+  "io.circe" %% "circe-generic" % "0.14.15",
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.254",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.259",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.437",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.94",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.181",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.305",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.305",
-  "ch.qos.logback" % "logback-classic" % "1.5.18",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.256",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.260",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.438",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.98",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.185",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.311",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.311",
+  "ch.qos.logback" % "logback-classic" % "1.5.20",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.54.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.52.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.52.0",
+  "io.opentelemetry" % "opentelemetry-api" % "1.55.0",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.55.0",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.55.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.50.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.48.0-alpha",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.51.0",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.51.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.20.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
