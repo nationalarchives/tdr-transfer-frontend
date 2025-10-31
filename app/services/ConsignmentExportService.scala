@@ -29,7 +29,7 @@ class ConsignmentExportService @Inject() (val ws: WSClient, val configuration: C
       .flatMap(r =>
         r.status match {
           case 200 => Future(true)
-          case _ =>
+          case _   =>
             logger.error(s"Export api response ${r.status} ${r.body}")
             Future.failed(new Exception(s"Call to export API has returned a non 200 response for consignment $consignmentId"))
         }

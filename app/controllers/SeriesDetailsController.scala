@@ -50,7 +50,7 @@ class SeriesDetailsController @Inject() (
         seriesStatus = consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType).values.headOption.flatten
       } yield seriesStatus match {
         case Some(CompletedValue.value) => Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
-        case _ =>
+        case _                          =>
           consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
           Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
       }
