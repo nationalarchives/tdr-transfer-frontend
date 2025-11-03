@@ -55,7 +55,7 @@ class CheckPageForStaticElements() {
     page must include(
       """    <dialog class="timeout-dialog" role="dialog" aria-modal="true" aria-labelledby="timeout-heading">
         |                <div>
-        |                    <h2 class="govuk-heading-m" id="timeout-heading">You have been inactive for more than 115 minutes.</h2>
+        |                    <h2 class="govuk-heading-m" id="timeout-heading">You have been inactive for more than 175 minutes.</h2>
         |                <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
         |            </div>
         |            <div class="govuk-button-group">
