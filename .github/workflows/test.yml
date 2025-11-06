@@ -8,10 +8,10 @@ on:
       - dependabot/**
 permissions:
   id-token: write
-  contents: read
+  contents: write
 jobs:
   test:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@main
+    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@1c56dd1e838340ab53c7dc55dbbb974a062a6ae9 # v0.0.6
     with:
       repo-name: tdr-transfer-frontend
       test-command: |
