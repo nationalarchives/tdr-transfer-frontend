@@ -127,7 +127,7 @@ export class S3Upload {
     const params: PutObjectCommandInput = {
       Key: key,
       Bucket: this.uploadUrl,
-      ACL: "bucket-owner-read",
+      ACL: "bucket-owner-full-control",
       Body: fileWithPath.file
     }
 
