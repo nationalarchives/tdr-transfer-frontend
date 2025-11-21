@@ -58,5 +58,7 @@ export const frontendInfo: IFrontEndInfo = {
   uploadUrl: "https://example.com",
   authUrl: "",
   clientId: "",
-  realm: ""
+  realm: "",
+  ifNoneMatch: "*",
+  acl: "bucket-owner-full-control"
 }

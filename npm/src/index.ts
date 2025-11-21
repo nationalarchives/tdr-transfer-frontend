@@ -19,6 +19,8 @@ export interface IFrontEndInfo {
   region: string
   clientId: string
   realm: string
+  ifNoneMatch: string
+  acl: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
@@ -34,6 +36,9 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
   const clientIdElement: HTMLInputElement | null =
     document.querySelector(".client-id")
   const realmElement: HTMLInputElement | null = document.querySelector(".realm")
+  const ifNoneMatchElement: HTMLInputElement | null =
+    document.querySelector(".ifNoneMatch")
+  const aclElement: HTMLInputElement | null = document.querySelector(".acl")
   if (
     apiUrlElement &&
     stageElement &&
@@ -41,7 +46,9 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
     uploadUrlElement &&
     authUrlElement &&
     clientIdElement &&
-    realmElement
+    realmElement &&
+    ifNoneMatchElement &&
+    aclElement
   ) {
     return {
       apiUrl: apiUrlElement.value,
@@ -50,7 +57,9 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
       uploadUrl: uploadUrlElement.value,
       authUrl: authUrlElement.value,
       clientId: clientIdElement.value,
-      realm: realmElement.value
+      realm: realmElement.value,
+      ifNoneMatch: ifNoneMatchElement.value,
+      acl: aclElement.value
     }
   } else {
     return Error("The front end information is missing")

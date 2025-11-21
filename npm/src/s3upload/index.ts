@@ -1,7 +1,8 @@
 import {
   S3Client,
   ServiceOutputTypes,
-  PutObjectCommandInput
+  PutObjectCommandInput,
+  ObjectCannedACL
 } from "@aws-sdk/client-s3"
 
 import { Upload } from "@aws-sdk/lib-storage"
@@ -35,10 +36,19 @@ export interface IUploadResult {
 export class S3Upload {
   client: S3Client
   uploadUrl: string
+  ifNoneMatch: string
+  acl: string
 
-  constructor(client: S3Client, uploadUrl: string) {
+  constructor(
+    client: S3Client,
+    uploadUrl: string,
+    ifNoneMatch: string,
+    acl: string
+  ) {
     this.client = client
     this.uploadUrl = uploadUrl.split("//")[1]
+    this.ifNoneMatch = ifNoneMatch
+    this.acl = acl
   }
 
   uploadToS3: (
@@ -127,8 +137,9 @@ export class S3Upload {
     const params: PutObjectCommandInput = {
       Key: key,
       Bucket: this.uploadUrl,
-      ACL: "bucket-owner-full-control",
-      Body: fileWithPath.file
+      ACL: this.acl as ObjectCannedACL,
+      Body: fileWithPath.file,
+      IfNoneMatch: this.ifNoneMatch
     }
 
     const progress = new Upload({ client: this.client, params })
