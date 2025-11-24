@@ -19,8 +19,8 @@ export interface IFrontEndInfo {
   region: string
   clientId: string
   realm: string
-  ifNoneMatch: string
-  acl: string
+  ifNoneMatchHeaderValue: string
+  aclHeaderValue: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
@@ -36,9 +36,9 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
   const clientIdElement: HTMLInputElement | null =
     document.querySelector(".client-id")
   const realmElement: HTMLInputElement | null = document.querySelector(".realm")
-  const ifNoneMatchElement: HTMLInputElement | null =
-    document.querySelector(".ifNoneMatch")
-  const aclElement: HTMLInputElement | null = document.querySelector(".acl")
+  const ifNoneMatchHeaderElement: HTMLInputElement | null =
+    document.querySelector(".ifNoneMatchHeader")
+  const aclHeaderElement: HTMLInputElement | null = document.querySelector(".aclHeader")
   if (
     apiUrlElement &&
     stageElement &&
@@ -47,8 +47,8 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
     authUrlElement &&
     clientIdElement &&
     realmElement &&
-    ifNoneMatchElement &&
-    aclElement
+    ifNoneMatchHeaderElement &&
+    aclHeaderElement
   ) {
     return {
       apiUrl: apiUrlElement.value,
@@ -58,8 +58,8 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
       authUrl: authUrlElement.value,
       clientId: clientIdElement.value,
       realm: realmElement.value,
-      ifNoneMatch: ifNoneMatchElement.value,
-      acl: aclElement.value
+      ifNoneMatchHeaderValue: ifNoneMatchHeaderElement.value,
+      aclHeaderValue: aclHeaderElement.value
     }
   } else {
     return Error("The front end information is missing")

@@ -151,8 +151,8 @@ function setUpFileUploader(mockKeycloak?: Keycloak): FileUploader {
     authUrl: "",
     clientId: "",
     realm: "",
-    ifNoneMatch: "*",
-    acl: "bucket-owner-full-control",
+    ifNoneMatchHeaderValue: "*",
+    aclHeaderValue: "bucket-owner-full-control",
   }
 
   return new FileUploader(

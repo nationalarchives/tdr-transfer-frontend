@@ -61,8 +61,8 @@ export class FileUploader {
       new S3Upload(
         client,
         frontendInfo.uploadUrl,
-        frontendInfo.ifNoneMatch,
-        frontendInfo.acl
+        frontendInfo.ifNoneMatchHeaderValue,
+        frontendInfo.aclHeaderValue
       )
     )
     this.stage = frontendInfo.stage

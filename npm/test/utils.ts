@@ -59,6 +59,6 @@ export const frontendInfo: IFrontEndInfo = {
   authUrl: "",
   clientId: "",
   realm: "",
-  ifNoneMatch: "*",
-  acl: "bucket-owner-full-control"
+  ifNoneMatchHeaderValue: "*",
+  aclHeaderValue: "bucket-owner-full-control"
 }

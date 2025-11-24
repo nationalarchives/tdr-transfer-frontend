@@ -36,19 +36,19 @@ export interface IUploadResult {
 export class S3Upload {
   client: S3Client
   uploadUrl: string
-  ifNoneMatch: string
-  acl: string
+  ifNoneMatchHeaderValue: string
+  aclHeaderValue: string
 
   constructor(
     client: S3Client,
     uploadUrl: string,
-    ifNoneMatch: string,
-    acl: string
+    ifNoneMatchHeaderValue: string,
+    aclHeaderValue: string
   ) {
     this.client = client
     this.uploadUrl = uploadUrl.split("//")[1]
-    this.ifNoneMatch = ifNoneMatch
-    this.acl = acl
+    this.ifNoneMatchHeaderValue = ifNoneMatchHeaderValue
+    this.aclHeaderValue = aclHeaderValue
   }
 
   uploadToS3: (
@@ -137,9 +137,9 @@ export class S3Upload {
     const params: PutObjectCommandInput = {
       Key: key,
       Bucket: this.uploadUrl,
-      ACL: this.acl as ObjectCannedACL,
+      ACL: this.aclHeaderValue as ObjectCannedACL,
       Body: fileWithPath.file,
-      IfNoneMatch: this.ifNoneMatch
+      IfNoneMatch: this.ifNoneMatchHeaderValue
     }
 
     const progress = new Upload({ client: this.client, params })
