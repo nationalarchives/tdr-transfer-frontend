@@ -17,6 +17,8 @@ const getFrontEndInfoHtml: () => string = () => {
     <input type="hidden" class="auth-url">
     <input type="hidden" class="client-id">
     <input type="hidden" class="realm">
+    <input type="hidden" class="ifNoneMatch">
+    <input type="hidden" class="acl">
   `.toString()
 }
 
