@@ -38,7 +38,8 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
   const realmElement: HTMLInputElement | null = document.querySelector(".realm")
   const ifNoneMatchHeaderElement: HTMLInputElement | null =
     document.querySelector(".ifNoneMatchHeader")
-  const aclHeaderElement: HTMLInputElement | null = document.querySelector(".aclHeader")
+  const aclHeaderElement: HTMLInputElement | null =
+    document.querySelector(".aclHeader")
   if (
     apiUrlElement &&
     stageElement &&
