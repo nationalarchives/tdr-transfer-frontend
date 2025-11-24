@@ -41,7 +41,7 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
       .flatMap(r =>
         r.status match {
           case 200 => Future(true)
-          case _ =>
+          case _   =>
             logger.error(s"Draft metadata validation api response ${r.status} ${r.body}")
             Future.failed(new Exception(s"Call to draft metadata validator failed API has returned a non 200 response for consignment $consignmentId"))
         }

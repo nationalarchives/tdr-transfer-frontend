@@ -92,7 +92,7 @@ class TransferAgreementPart2Controller @Inject() (
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
         transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType).values.headOption.flatten
         result <- transferAgreementStatus match {
-          case Some(CompletedValue.value) => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
+          case Some(CompletedValue.value)  => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
           case Some(InProgressValue.value) =>
             transferAgreementService
               .addTransferAgreementPart2(consignmentId, request.token.bearerAccessToken, formData)

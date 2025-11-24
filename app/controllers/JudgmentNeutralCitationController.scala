@@ -50,7 +50,7 @@ class JudgmentNeutralCitationController @Inject() (
     val formData = extractFormData(request)
     val metadata = formData.neutralCitation.value.headOption match {
       case Some(ncn) if ncn.nonEmpty => Map(judgment_neutral_citation -> ncn, judgment_no_neutral_citation -> "false", judgment_reference -> "")
-      case _ =>
+      case _                         =>
         Map(
           judgment_neutral_citation -> "",
           judgment_no_neutral_citation -> formData.noNeutralCitation.value.contains("true").toString,
