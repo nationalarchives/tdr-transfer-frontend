@@ -112,7 +112,7 @@ class ConfirmTransferController @Inject() (
           exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
           result <- exportStatus match {
             case Some(CompletedValue.value) => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
-            case None =>
+            case None                       =>
               for {
                 _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
                 _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)

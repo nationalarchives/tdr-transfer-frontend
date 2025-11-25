@@ -99,7 +99,7 @@ class ViewTransfersController @Inject() (
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
         toFileChecksAction(s, judgmentType, consignmentId)
       case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
-      case s if s.containsStatuses(TransferAgreementType) =>
+      case s if s.containsStatuses(TransferAgreementType)        =>
         toTransferAgreementAction(s.find(_.statusType == TransferAgreementType.id).get, consignmentId)
       case s if s.containsStatuses(SeriesType) =>
         toSeriesAction(s.find(_.statusType == SeriesType.id).get, consignmentId)
@@ -110,7 +110,7 @@ class ViewTransfersController @Inject() (
 
   private def toDraftMetadataAction(status: ConsignmentStatuses, consignmentId: UUID) = {
     status.value match {
-      case CompletedValue.value => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
+      case CompletedValue.value           => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
       case CompletedWithIssuesValue.value =>
         UserAction(InProgress.value, routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, Resume.value)
       case _ => UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
