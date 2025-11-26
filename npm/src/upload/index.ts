@@ -58,7 +58,12 @@ export class FileUploader {
     const client = new S3Client(config)
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
-      new S3Upload(client, frontendInfo.uploadUrl)
+      new S3Upload(
+        client,
+        frontendInfo.uploadUrl,
+        frontendInfo.ifNoneMatchHeaderValue,
+        frontendInfo.aclHeaderValue
+      )
     )
     this.stage = frontendInfo.stage
     this.keycloak = keycloak as IKeycloakInstance

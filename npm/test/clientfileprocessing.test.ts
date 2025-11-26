@@ -23,7 +23,7 @@ beforeEach(() => {
 
 class S3UploadMock extends S3Upload {
   constructor() {
-    super(new S3Client({}), "")
+    super(new S3Client({}), "", "", "")
   }
 
   uploadToS3: (
@@ -370,7 +370,7 @@ test("Error thrown if S3 upload fails", async () => {
   mockS3UploadFailure("Some S3 error")
 
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
-  const s3Upload = new S3Upload(new S3Client({}), "")
+  const s3Upload = new S3Upload(new S3Client({}), "", "", "")
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
 
   await expect(
