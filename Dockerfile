@@ -3,7 +3,7 @@ FROM alpine:3
 RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontendgroup
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
-RUN apk update && apk upgrade p11-kit busybox expat libretls zlib openssl libcrypto3 libssl3 && apk add bash unzip && \
+RUN apk update && apk upgrade p11-kit busybox expat libretls zlib openssl libcrypto3 libssl3 && apk add bash unzip tini && \
     apk add openjdk17 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
     unzip -qq tdr-transfer-frontend-*.zip
 ADD https://github.com/aws-observability/aws-otel-java-instrumentation/releases/download/v1.32.6/aws-opentelemetry-agent.jar /opt/aws-opentelemetry-agent.jar
@@ -12,7 +12,7 @@ RUN chown -R frontenduser /play /opt/aws-opentelemetry-agent.jar
 
 USER frontenduser
 
-ENTRYPOINT ["/opt/wiz/sensor/wiz-sensor", "daemon", "--"]
+ENTRYPOINT ["tini", "--", "/opt/wiz/sensor/wiz-sensor", "daemon", "--"]
 CMD  tdr-transfer-frontend-*/bin/tdr-transfer-frontend \
                         -Dplay.http.secret.key=$PLAY_SECRET_KEY \
                         -Dconfig.resource=application.$ENVIRONMENT.conf \
