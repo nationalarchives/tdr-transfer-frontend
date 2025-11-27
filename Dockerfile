@@ -12,6 +12,7 @@ RUN chown -R frontenduser /play /opt/aws-opentelemetry-agent.jar
 
 USER frontenduser
 
+ENTRYPOINT ["/opt/wiz/sensor/wiz-sensor", "daemon", "--"]
 CMD  tdr-transfer-frontend-*/bin/tdr-transfer-frontend \
                         -Dplay.http.secret.key=$PLAY_SECRET_KEY \
                         -Dconfig.resource=application.$ENVIRONMENT.conf \
