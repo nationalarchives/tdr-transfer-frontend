@@ -41,13 +41,13 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.937.0",
+    "@aws-sdk/client-s3": "^3.940.0",
     "@aws-sdk/lib-storage": "^3.556.0",
     "@aws-sdk/protocol-http": "^3.374.0",
     "@aws-sdk/querystring-builder": "^3.374.0",
-    "@nationalarchives/file-information": "^1.0.638",
+    "@nationalarchives/file-information": "^1.0.640",
     "@nationalarchives/tdr-components": "1.0.64",
-    "@nationalarchives/tdr-generated-graphql": "1.0.528",
+    "@nationalarchives/tdr-generated-graphql": "1.0.530",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
     "graphql": "^16.10.0",
@@ -60,7 +60,7 @@
     "util": "^0.12.5",
     "webpack": "^5.103.0",
     "webpack-cli": "^6.0.1",
-    "uuid": "^9.0.1"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.27.1",
@@ -69,7 +69,7 @@
     "@smithy/types": "4.9.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/jest": "^30.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
     "@typescript-eslint/parser": "^8.32.1",
     "aws-sdk-client-mock": "^4.1.0",
     "babel-jest": "^30.2.0",
