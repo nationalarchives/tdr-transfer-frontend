@@ -97,9 +97,8 @@ export const renderModules = async () => {
         const clientFileProcessing =
           new metadataUploadModule.ClientFileMetadataUpload()
         const uploadModule = await import("./upload")
-        const nextPageModule = await import(
-          "./nextpageredirect/next-page-redirect"
-        )
+        const nextPageModule =
+          await import("./nextpageredirect/next-page-redirect")
 
         new uploadModule.FileUploader(
           clientFileProcessing,
@@ -123,9 +122,8 @@ export const renderModules = async () => {
       if (!errorHandlingModule.isError(keycloak)) {
         const isJudgmentUser = keycloak.tokenParsed?.judgment_user
         const checksModule = await import("./checks")
-        const nextPageModule = await import(
-          "./nextpageredirect/next-page-redirect"
-        )
+        const nextPageModule =
+          await import("./nextpageredirect/next-page-redirect")
         //interval for page reload set at 80% of token validity period
         const checksPageRefreshInterval =
           (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.8
