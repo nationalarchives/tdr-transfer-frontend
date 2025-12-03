@@ -101,31 +101,6 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must not include transfersForReviewButton
     }
 
-    "render alternative judgement homepage content with an authenticated judgment user when blockJudgmentPressSummaries is true" in {
-      val configuration: Configuration = mock[Configuration]
-      when(configuration.get[Boolean]("featureAccessBlock.blockJudgmentPressSummaries")).thenReturn(true)
-      val fabConfig = new ApplicationConfig(configuration)
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, fabConfig)
-      val userType = "judgment"
-      val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, s"/$userType/homepage").withCSRFToken)
-      val homepagePageAsString = contentAsString(homepagePage)
-      status(homepagePage) mustBe OK
-      contentType(homepagePage) mustBe Some("text/html")
-      homepagePageAsString must include("Welcome to the Transfer Digital Records service")
-      homepagePageAsString must include("You can use this service to:")
-      homepagePageAsString must include("transfer judgments and decisions")
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
-      homepagePageAsString must include("""<h2 class="govuk-heading-m">If this is an update to an existing judgment or decision</h2>""")
-      homepagePageAsString must include("""<p class="govuk-body">You can use this service to transfer an update or revision to a previously transferred document.</p>""")
-      homepagePageAsString must include("""<p class="govuk-body">Transfer the document in the same way as any judgment or decision, by clicking "Start your transfer" above.</p>""")
-      homepagePageAsString must include(
-        """<p class="govuk-body">Once you have successfully completed the transfer you will need to email us. More information will be provided after the transfer.</p>"""
-      )
-      homepagePageAsString must include("""<h2 class="govuk-heading-m">Contact the publishing editors</h2>""")
-      homepagePageAsString must not include viewTransferButton
-      homepagePageAsString must not include transfersForReviewButton
-    }
-
     "render the DTA review homepage page with an authenticated tna user" in {
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService, config)
       val userType = "tna"
@@ -273,12 +248,6 @@ class HomepageControllerSpec extends FrontEndTestHelper {
        |        </ul>""".stripMargin)
       pageAsString must include("Start your transfer")
       pageAsString must include("""<form action="/judgment/homepage" method="POST" novalidate="">""")
-      pageAsString must include("""<h2 class="govuk-heading-m">Service update – October 2025</h2>""")
-      pageAsString must include("""<p class="govuk-body">You can now upload amendments and press summaries to existing judgments or decisions.</p>""")
-      pageAsString must include(
-        """<p class="govuk-body">When you select "Start your transfer", choose the document type and enter the Neutral Citation Number (NCN) of the original judgment or decision.</p>"""
-      )
-      pageAsString must include("""<p class="govuk-body">If there’s no NCN, you’ll need to provide extra details.</p>""")
       pageAsString must include("""<h2 class="govuk-heading-m">Further support</h2>""")
     } else {
       pageAsString must include("Start transfer")
