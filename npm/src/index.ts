@@ -97,9 +97,7 @@ export const renderModules = async () => {
         const clientFileProcessing =
           new metadataUploadModule.ClientFileMetadataUpload()
         const uploadModule = await import("./upload")
-        const nextPageModule = await import(
-          "./nextpageredirect/next-page-redirect"
-        )
+        const nextPageModule = await import("./nextpageredirect/next-page-redirect")
 
         new uploadModule.FileUploader(
           clientFileProcessing,
