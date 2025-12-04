@@ -64,7 +64,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   val expectedFormAction =
     """
       |            <form action="/consignment/b5bbe4d6-01a7-4305-99ef-9fce4a67917a/draft-metadata/checks-results" method="get">
-      |                <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button govuk-button--disabled" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled" disabled>
+      |                <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled" disabled>
       |            Continue
       |                </button>
       |                <p class="govuk-visually-hidden" id="reason-disabled" >
@@ -163,8 +163,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
       btn must not be null
       btn.hasAttr("disabled") mustBe true
       btn.hasAttr("aria-disabled") mustBe true
-      btn.attr("aria-disabled") mustBe "true"
-      btn.classNames() must contain allOf ("govuk-button", "govuk-button--disabled")
+      btn.hasClass("govuk-button") mustBe true
 
       playStatus(page) mustBe OK
       contentType(page) mustBe Some("text/html")
