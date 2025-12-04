@@ -4,7 +4,7 @@ const prefixId = "prefix-id"
 
 test("displayChecksCompletedBanner unhides the button removes the disabled reason and displays banner when called", () => {
   document.body.innerHTML = `<div id="${prefixId}-completed-banner" hidden></div>
-                            <a id="prefix-id-continue" class="govuk-button--disabled" aria-describedby="reason-disabled" aria-disabled="true"></a>
+                            <a id="prefix-id-continue" aria-describedby="reason-disabled" aria-disabled="true" disabled></a>
                             <p id="reason-disabled"></p>
                             `
   displayChecksCompletedBanner(prefixId)
@@ -16,9 +16,7 @@ test("displayChecksCompletedBanner unhides the button removes the disabled reaso
   const disabledReason = document.querySelector("#reason-disabled")
 
   expect(notificationBanner!.getAttribute("hidden")).toBeNull()
-  expect(
-      continueButton!.classList.contains("govuk-button--disabled")
-  ).toBeFalsy()
+  expect(continueButton!.hasAttribute("disabled")).toBe(false)
   expect(continueButton!.getAttribute("aria-disabled")).toBe("false")
   expect(continueButton!.getAttribute("aria-described-by")).toBeNull()
   expect(disabledReason).toBeNull()
@@ -40,7 +38,7 @@ test("displayChecksCompletedBanner doesn't display banner if 'continue' button i
 })
 
 test("displayChecksCompletedBanner doesn't enable 'continue' button if display banner is missing", () => {
-  document.body.innerHTML = `<a id="${prefixId}-continue" class="govuk-button--disabled" aria-disabled="true"></a>`  // no banner exists in the HTML
+  document.body.innerHTML = `<a id="${prefixId}-continue" aria-disabled="true" disabled></a>`  // no banner exists in the HTML
   displayChecksCompletedBanner(prefixId)
 
   const notificationBanner = document.querySelector(
@@ -50,8 +48,6 @@ test("displayChecksCompletedBanner doesn't enable 'continue' button if display b
 
   expect(continueButton).not.toBeNull()
   expect(notificationBanner).toBeNull()
-  expect(
-      continueButton!.classList.contains("govuk-button--disabled")
-  ).toBeTruthy()
+  expect(continueButton!.hasAttribute("disabled")).toBe(true)
   expect(continueButton!.getAttribute("aria-disabled")).toBeTruthy()
 })
