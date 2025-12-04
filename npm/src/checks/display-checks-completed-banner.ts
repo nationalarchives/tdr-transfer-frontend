@@ -17,6 +17,7 @@ export const displayChecksCompletedBanner: (prefixId: string) => void = (
     continueButton.classList.remove("govuk-button--disabled")
     continueButton.setAttribute("aria-disabled", "false")
     continueButton.removeAttribute("aria-describedby")
+    continueButton.removeAttribute("disabled")
     reasonDisabled.remove()
   }
 }
