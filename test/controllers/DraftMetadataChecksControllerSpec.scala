@@ -9,6 +9,7 @@ import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
+import org.jsoup.Jsoup
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers._
@@ -63,10 +64,10 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   val expectedFormAction =
     """
       |            <form action="/consignment/b5bbe4d6-01a7-4305-99ef-9fce4a67917a/draft-metadata/checks-results" method="get">
-      |                <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button govuk-button--disabled" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled">
+      |                <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button govuk-button--disabled" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled" disabled>
       |            Continue
       |                </button>
-      |                <p class="govuk-visually-hidden" id="reason-disabled">
+      |                <p class="govuk-visually-hidden" id="reason-disabled" >
       |                This button will be enabled when we have finished checking your metadata.
       |                </p>
       |            </form>
@@ -157,6 +158,14 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
 
       val pageAsString: String = contentAsString(page)
 
+      val doc = Jsoup.parse(pageAsString)
+      val btn = doc.select("#draft-metadata-checks-continue").first()
+      btn must not be null
+      btn.hasAttr("disabled") mustBe true
+      btn.hasAttr("aria-disabled") mustBe true
+      btn.attr("aria-disabled") mustBe "true"
+      btn.classNames() must contain allOf ("govuk-button", "govuk-button--disabled")
+
       playStatus(page) mustBe OK
       contentType(page) mustBe Some("text/html")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = "Standard")
@@ -167,7 +176,10 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
       pageAsString must include(expectedBody)
       pageAsString must include(expectedInput)
       pageAsString must include(expectedNotificationBanner)
-      pageAsString must include(expectedFormAction)
+
+      pageAsString must include(s"<form action=\"/consignment/$consignmentId/draft-metadata/checks-results\" method=\"get\">")
+      pageAsString must include("id=\"reason-disabled\"")
+      pageAsString must include("This button will be enabled when we have finished checking your metadata.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
