@@ -6,62 +6,84 @@ import org.scalatestplus.mockito.MockitoSugar
 import services.Statuses._
 
 class StatusesSpec extends AnyWordSpec with MockitoSugar {
-
   "StatusTypes" should {
     "have the correct field values" in {
-      Statuses.SeriesType.id should equal("Series")
-      Statuses.SeriesType.nonJudgmentStatus shouldBe true
+      ClientChecksType.id should equal("ClientChecks")
+      ClientChecksType.nonJudgmentStatus shouldBe false
 
-      Statuses.TransferAgreementType.id should equal("TransferAgreement")
-      Statuses.TransferAgreementType.nonJudgmentStatus shouldBe true
+      ConfirmTransferType.id should equal("ConfirmTransfer")
+      ConfirmTransferType.nonJudgmentStatus shouldBe true
 
-      Statuses.ClientChecksType.id should equal("ClientChecks")
-      Statuses.ClientChecksType.nonJudgmentStatus shouldBe false
+      DraftMetadataType.id should equal("DraftMetadata")
+      DraftMetadataType.nonJudgmentStatus shouldBe true
 
-      Statuses.UploadType.id should equal("Upload")
-      Statuses.UploadType.nonJudgmentStatus shouldBe false
+      ExportType.id should equal("Export")
+      ExportType.nonJudgmentStatus shouldBe false
 
-      Statuses.ServerAntivirusType.id should equal("ServerAntivirus")
-      Statuses.ServerAntivirusType.nonJudgmentStatus shouldBe false
+      MetadataReviewType.id should equal("MetadataReview")
+      MetadataReviewType.nonJudgmentStatus shouldBe true
 
-      Statuses.ServerChecksumType.id should equal("ServerChecksum")
-      Statuses.ServerChecksumType.nonJudgmentStatus shouldBe false
+      SeriesType.id should equal("Series")
+      SeriesType.nonJudgmentStatus shouldBe true
 
-      Statuses.ServerFFIDType.id should equal("ServerFFID")
-      Statuses.ServerFFIDType.nonJudgmentStatus shouldBe false
+      ServerAntivirusType.id should equal("ServerAntivirus")
+      ServerAntivirusType.nonJudgmentStatus shouldBe false
 
-      Statuses.ConfirmTransferType.id should equal("ConfirmTransfer")
-      Statuses.ConfirmTransferType.nonJudgmentStatus shouldBe true
+      ServerChecksumType.id should equal("ServerChecksum")
+      ServerChecksumType.nonJudgmentStatus shouldBe false
 
-      Statuses.ExportType.id should equal("Export")
-      Statuses.ExportType.nonJudgmentStatus shouldBe false
+      ServerFFIDType.id should equal("ServerFFID")
+      ServerFFIDType.nonJudgmentStatus shouldBe false
 
-      Statuses.UnrecognisedType.id should equal("Unrecognised")
-      Statuses.UnrecognisedType.nonJudgmentStatus shouldBe false
+      ServerRedactionType.id should equal("ServerRedaction")
+      ServerRedactionType.nonJudgmentStatus shouldBe false
+
+      TransferAgreementType.id should equal("TransferAgreement")
+      TransferAgreementType.nonJudgmentStatus shouldBe true
+
+      UnrecognisedType.id should equal("Unrecognised")
+      UnrecognisedType.nonJudgmentStatus shouldBe false
+
+      UploadType.id should equal("Upload")
+      UploadType.nonJudgmentStatus shouldBe false
     }
   }
 
   "StatusValues" should {
     "have the correct value" in {
-      Statuses.CompletedValue.value should equal("Completed")
-      Statuses.FailedValue.value should equal("Failed")
-      Statuses.CompletedWithIssuesValue.value should equal("CompletedWithIssues")
-      Statuses.InProgressValue.value should equal("InProgress")
+      CompletedValue.value should equal("Completed")
+      CompletedWithIssuesValue.value should equal("CompletedWithIssues")
+      FailedValue.value should equal("Failed")
+      InProgressValue.value should equal("InProgress")
     }
   }
 
   "toStatusType" should {
     "return the correct 'status type' based on input string" in {
-      Statuses.toStatusType("Series") shouldBe SeriesType
-      Statuses.toStatusType("TransferAgreement") shouldBe TransferAgreementType
-      Statuses.toStatusType("ClientChecks") shouldBe ClientChecksType
-      Statuses.toStatusType("Upload") shouldBe UploadType
-      Statuses.toStatusType("ServerAntivirus") shouldBe ServerAntivirusType
-      Statuses.toStatusType("ServerChecksum") shouldBe ServerChecksumType
-      Statuses.toStatusType("ServerFFID") shouldBe ServerFFIDType
-      Statuses.toStatusType("ConfirmTransfer") shouldBe ConfirmTransferType
-      Statuses.toStatusType("Export") shouldBe ExportType
-      Statuses.toStatusType("someRandomValue") shouldBe UnrecognisedType
+      toStatusType("ClientChecks") shouldBe ClientChecksType
+      toStatusType("ConfirmTransfer") shouldBe ConfirmTransferType
+      toStatusType("DraftMetadata") shouldBe DraftMetadataType
+      toStatusType("Export") shouldBe ExportType
+      toStatusType("MetadataReview") shouldBe MetadataReviewType
+      toStatusType("Series") shouldBe SeriesType
+      toStatusType("ServerAntivirus") shouldBe ServerAntivirusType
+      toStatusType("ServerChecksum") shouldBe ServerChecksumType
+      toStatusType("ServerFFID") shouldBe ServerFFIDType
+      toStatusType("ServerRedaction") shouldBe ServerRedactionType
+      toStatusType("someRandomValue") shouldBe UnrecognisedType
+      toStatusType("TransferAgreement") shouldBe TransferAgreementType
+      toStatusType("Upload") shouldBe UploadType
+    }
+  }
+
+  "clientChecksStatuses" should {
+    "contain the correct status types" in {
+      clientChecksStatuses.size shouldBe 5
+      clientChecksStatuses.contains(ClientChecksType) shouldBe true
+      clientChecksStatuses.contains(ServerAntivirusType) shouldBe true
+      clientChecksStatuses.contains(ServerChecksumType) shouldBe true
+      clientChecksStatuses.contains(ServerFFIDType) shouldBe true
+      clientChecksStatuses.contains(ServerRedactionType) shouldBe true
     }
   }
 }

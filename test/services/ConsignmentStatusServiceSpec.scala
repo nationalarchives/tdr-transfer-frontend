@@ -50,8 +50,72 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
     ConsignmentStatuses(statusId4, consignmentId, "Export", "Completed", someDateTime, None)
   )
 
+  val clientChecksStatuses: List[ConsignmentStatuses] = List(
+    ConsignmentStatuses(UUID.randomUUID(), consignmentId, ClientChecksType.id, CompletedValue.value, someDateTime, None),
+    ConsignmentStatuses(UUID.randomUUID(), consignmentId, ServerChecksumType.id, CompletedValue.value, someDateTime, None),
+    ConsignmentStatuses(UUID.randomUUID(), consignmentId, ServerFFIDType.id, CompletedValue.value, someDateTime, None),
+    ConsignmentStatuses(UUID.randomUUID(), consignmentId, ServerAntivirusType.id, CompletedValue.value, someDateTime, None),
+    ConsignmentStatuses(UUID.randomUUID(), consignmentId, ServerRedactionType.id, CompletedValue.value, someDateTime, None)
+  )
+
   override def afterEach(): Unit = {
     Mockito.reset(getConsignmentStatusClient)
+  }
+
+  "clientChecksStatuses" should {
+    "return all the status values for client checks statuses only" in {
+      val data = Option(
+        gcs.Data(
+          Option(
+            gcs.GetConsignment(
+              None,
+              None,
+              statuses ++ clientChecksStatuses
+            )
+          )
+        )
+      )
+
+      val response = GraphQlResponse(data, Nil)
+
+      when(getConsignmentStatusClient.getResult(token, gcs.document, Some(gcs.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+
+      val result = consignmentStatusService.clientChecksStatuses(consignmentId, token).futureValue
+      result.size shouldBe 5
+      result(ClientChecksType).get shouldBe CompletedValue.value
+      result(ServerAntivirusType).get shouldBe CompletedValue.value
+      result(ServerChecksumType).get shouldBe CompletedValue.value
+      result(ServerFFIDType).get shouldBe CompletedValue.value
+      result(ServerRedactionType).get shouldBe CompletedValue.value
+    }
+
+    "return empty values for client checks statuses only where statuses not present" in {
+      val data = Option(
+        gcs.Data(
+          Option(
+            gcs.GetConsignment(
+              None,
+              None,
+              statuses
+            )
+          )
+        )
+      )
+
+      val response = GraphQlResponse(data, Nil)
+
+      when(getConsignmentStatusClient.getResult(token, gcs.document, Some(gcs.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+
+      val result = consignmentStatusService.clientChecksStatuses(consignmentId, token).futureValue
+      result.size shouldBe 5
+      result(ClientChecksType) shouldBe None
+      result(ServerAntivirusType) shouldBe None
+      result(ServerChecksumType) shouldBe None
+      result(ServerFFIDType) shouldBe None
+      result(ServerRedactionType) shouldBe None
+    }
   }
 
   "getStatusValues" should {

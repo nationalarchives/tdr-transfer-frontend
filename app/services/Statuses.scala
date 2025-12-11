@@ -7,16 +7,19 @@ object Statuses {
     val nonJudgmentStatus: Boolean
   }
 
-  sealed trait StatusValue { val value: String }
+  sealed trait StatusValue {
+    val value: String
+  }
 
   object StatusValue {
     def apply(id: String): StatusValue = id match {
       case CompletedWithIssuesValue.value => CompletedWithIssuesValue
-      case CompletedValue.value           => CompletedValue
-      case InProgressValue.value          => InProgressValue
-      case FailedValue.value              => FailedValue
+      case CompletedValue.value => CompletedValue
+      case InProgressValue.value => InProgressValue
+      case FailedValue.value => FailedValue
     }
   }
+
   case object SeriesType extends StatusType {
     val id: String = "Series"
     val nonJudgmentStatus: Boolean = true
@@ -52,6 +55,11 @@ object Statuses {
     val nonJudgmentStatus: Boolean = false
   }
 
+  case object ServerRedactionType extends StatusType {
+    val id: String = "ServerRedaction"
+    val nonJudgmentStatus: Boolean = false
+  }
+
   case object ConfirmTransferType extends StatusType {
     val id: String = "ConfirmTransfer"
     val nonJudgmentStatus: Boolean = true
@@ -77,28 +85,39 @@ object Statuses {
     val nonJudgmentStatus: Boolean = true
   }
 
-  case object CompletedValue extends StatusValue { val value: String = "Completed" }
+  case object CompletedValue extends StatusValue {
+    val value: String = "Completed"
+  }
 
-  case object CompletedWithIssuesValue extends StatusValue { val value: String = "CompletedWithIssues" }
+  case object CompletedWithIssuesValue extends StatusValue {
+    val value: String = "CompletedWithIssues"
+  }
 
-  case object InProgressValue extends StatusValue { val value: String = "InProgress" }
+  case object InProgressValue extends StatusValue {
+    val value: String = "InProgress"
+  }
 
-  case object FailedValue extends StatusValue { val value: String = "Failed" }
+  case object FailedValue extends StatusValue {
+    val value: String = "Failed"
+  }
 
   def toStatusType(statusType: String): StatusType = {
     statusType match {
-      case ExportType.id            => ExportType
-      case ConfirmTransferType.id   => ConfirmTransferType
-      case ServerFFIDType.id        => ServerFFIDType
-      case ServerChecksumType.id    => ServerChecksumType
-      case ServerAntivirusType.id   => ServerAntivirusType
-      case ClientChecksType.id      => ClientChecksType
-      case UploadType.id            => UploadType
+      case ExportType.id => ExportType
+      case ConfirmTransferType.id => ConfirmTransferType
+      case ServerFFIDType.id => ServerFFIDType
+      case ServerChecksumType.id => ServerChecksumType
+      case ServerAntivirusType.id => ServerAntivirusType
+      case ClientChecksType.id => ClientChecksType
+      case UploadType.id => UploadType
       case TransferAgreementType.id => TransferAgreementType
-      case SeriesType.id            => SeriesType
-      case DraftMetadataType.id     => DraftMetadataType
-      case MetadataReviewType.id    => MetadataReviewType
-      case _                        => UnrecognisedType
+      case SeriesType.id => SeriesType
+      case DraftMetadataType.id => DraftMetadataType
+      case MetadataReviewType.id => MetadataReviewType
+      case ServerRedactionType.id => ServerRedactionType
+      case _ => UnrecognisedType
     }
   }
+
+  val clientChecksStatuses: Set[StatusType] = Set(ClientChecksType, ServerAntivirusType, ServerFFIDType, ServerChecksumType, ServerRedactionType)
 }

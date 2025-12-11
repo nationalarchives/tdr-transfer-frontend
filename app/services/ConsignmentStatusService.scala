@@ -9,7 +9,7 @@ import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.types.ConsignmentStatusInput
 import services.ApiErrorHandling._
-import services.Statuses.{FailedValue, StatusType, StatusValue}
+import services.Statuses._
 
 import java.util.UUID
 import javax.inject.Inject
@@ -19,6 +19,13 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
   private val getConsignmentStatusClient = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val addConsignmentStatusClient = graphqlConfiguration.getClient[acs.Data, acs.Variables]()
   private val updateConsignmentStatusClient = graphqlConfiguration.getClient[ucs.Data, ucs.Variables]()
+
+  def clientChecksStatuses(consignmentId: UUID, token: BearerAccessToken): Future[Map[StatusType, Option[String]]] = {
+    for {
+      consignmentStatuses <- getConsignmentStatuses(consignmentId, token)
+      clientChecksStatuses = getStatusValues(consignmentStatuses, ClientChecksType, ServerAntivirusType, ServerChecksumType, ServerFFIDType, ServerRedactionType)
+    } yield clientChecksStatuses
+  }
 
   def getStatusValues(statuses: List[ConsignmentStatuses], statusTypes: StatusType*): Map[StatusType, Option[String]] = {
     statusTypes
