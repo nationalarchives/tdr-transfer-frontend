@@ -1,33 +1,18 @@
 import {
-  getConsignmentId, getDraftMetadataValidationProgress,
-  getFileChecksProgress, IDraftMetadataValidationProgress,
-  IFileCheckProgress
+  getConsignmentId,
+  getDraftMetadataValidationProgress,
+  getFileChecksProgress,
+  IDraftMetadataValidationProgress
 } from "../src/checks/get-checks-progress"
-import {
-  ConsignmentStatus,
-  GetConsignmentStatusQuery,
-  GetFileCheckProgressQuery
-} from "@nationalarchives/tdr-generated-graphql"
-import { isError } from "../src/errorhandling"
+import {ConsignmentStatus} from "@nationalarchives/tdr-generated-graphql"
+import {isError} from "../src/errorhandling"
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
+
 enableFetchMocks()
 
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 beforeEach(() => fetchMock.resetMocks())
-
-const data: GetFileCheckProgressQuery = {
-  getConsignment: {
-    files: [],
-    totalFiles: 10,
-    allChecksSucceeded: false,
-    fileChecks: {
-      antivirusProgress: { filesProcessed: 2 },
-      ffidProgress: { filesProcessed: 4 },
-      checksumProgress: { filesProcessed: 3 }
-    }
-  }
-}
 
 const consignmentStatusData: ConsignmentStatus[] = [
   {
@@ -56,33 +41,19 @@ const consignmentStatusNoDraftMetadataData: ConsignmentStatus[] = [
   }
 ]
 
-
-const consignmentStatusFailedDraftMetadataData: ConsignmentStatus[] = [
-  {
-    consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
-    consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
-    statusType: "DraftMetadata",
-    value: "Failed",
-    createdDatetime: "CreatedDateTime"
-  }
-]
-
 test("'getFileChecksProgress' returns the correct consignment data with a successful api call", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   document.body.innerHTML = `
     <input id="consignmentId" type="hidden" value="${consignmentId}">
     <input name="csrfToken" value="abcde">
     `
-  fetchMock.mockResponse(JSON.stringify(data.getConsignment))
+  fetchMock.mockResponse(JSON.stringify(true))
 
-  const fileChecksProgress: IFileCheckProgress | Error =
+  const fileChecksProgress: Boolean | Error =
       await getFileChecksProgress()
   expect(isError(fileChecksProgress)).toBe(false)
   if(!isError(fileChecksProgress)) {
-    expect(fileChecksProgress!.antivirusProcessed).toBe(2)
-    expect(fileChecksProgress!.checksumProcessed).toBe(3)
-    expect(fileChecksProgress!.ffidProcessed).toBe(4)
-    expect(fileChecksProgress!.totalFiles).toBe(10)
+    expect(fileChecksProgress).toBe(true)
   }
 })
 
