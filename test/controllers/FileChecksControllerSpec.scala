@@ -5,10 +5,6 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
-import io.circe.Printer
-import io.circe.generic.auto._
-import io.circe.syntax._
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
@@ -18,7 +14,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import play.api.test.WsTestClient.InternalWSClient
-import services.Statuses.{CompletedValue, CompletedWithIssuesValue, UploadType}
+import services.Statuses._
 import services._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -85,6 +81,19 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     )
   }
 
+  private def setStatus(statusType: StatusType, statusValue: StatusValue) =
+    ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), statusType.id, statusValue.value, someDateTime, None)
+
+  private val fileChecksAllSucceededStatuses = clientChecksStatuses.map(s => setStatus(s, CompletedValue)).toList
+
+  private val fileChecksWithIssuesStatuses = clientChecksStatuses.map(s => setStatus(s, CompletedWithIssuesValue)).toList
+
+  private def setUploadStatus(statusValue: StatusValue) = {
+    List(
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, statusValue.value, someDateTime, None)
+    )
+  }
+
   forAll(fileChecks) { userType =>
     "FileChecksController GET" should {
       val (pathName, keycloakConfiguration, expectedTitle, expectedHeading, expectedInstruction, expectedForm) = if (userType == "judgment") {
@@ -128,15 +137,14 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       }
 
       s"render the $userType fileChecks page if the checks are incomplete" in {
-        val filesProcessedWithAntivirus = 6
-
-        val filesProcessedWithChecksum = 12
-        val filesProcessedWithFFID = 8
-        val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
-        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedValue.value, someDateTime, None))
+        val uploadStatus = setUploadStatus(CompletedValue)
+        val clientChecksStatus = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, InProgressValue.value, someDateTime, None)
+        )
+        setConsignmentTypeResponse(wiremockServer, userType)
         setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
-        mockGetFileCheckProgress(dataString, userType)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus ++ clientChecksStatus)
+
         val fileChecksController = initialiseFileChecks(keycloakConfiguration)
 
         val uploadFailed = "false"
@@ -193,14 +201,14 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
       s"render the $userType file checks complete page if the file checks are complete and all checks are successful" in {
         val backendChecksService = mock[BackendChecksService]
-        val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)
+        val uploadStatus = setUploadStatus(InProgressValue)
 
-        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(true))
-        mockGetFileCheckProgress(dataString, userType)
+
+        setConsignmentTypeResponse(wiremockServer, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus ++ fileChecksAllSucceededStatuses)
 
         val fileChecksController = initialiseFileChecks(keycloakConfiguration, backendChecksService = backendChecksService.some)
 
@@ -232,11 +240,11 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       }
 
       s"render the $userType file checks complete page if the file checks are complete and all checks are not successful" in {
-        val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedValue.value, someDateTime, None))
+        val checksFailed = fileChecksWithIssuesStatuses
 
-        mockGetFileCheckProgress(dataString, userType)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
+        setConsignmentTypeResponse(wiremockServer, userType)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus ++ checksFailed)
         setConsignmentReferenceResponse(wiremockServer)
 
         val controller = initialiseFileChecks(keycloakConfiguration)
@@ -261,13 +269,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       }
 
       s"render the $userType error page if the user upload fails and ensure consignment status is updated" in {
-        val filesProcessedWithAntivirus = 6
-        val filesProcessedWithChecksum = 12
-        val filesProcessedWithFFID = 8
-        val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
-
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedValue.value, someDateTime, None))
-        mockGetFileCheckProgress(dataString, userType)
+
+        setConsignmentTypeResponse(wiremockServer, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
@@ -304,15 +308,10 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
       s"render the $userType error page if the user upload succeeds but backendChecks fails to trigger" in {
         val backendChecksService = mock[BackendChecksService]
-        val filesProcessedWithAntivirus = 6
-
-        val filesProcessedWithChecksum = 12
-        val filesProcessedWithFFID = 8
-        val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
-
-        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
+        val uploadStatus = setUploadStatus(InProgressValue)
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
-        mockGetFileCheckProgress(dataString, userType)
+
+        setConsignmentTypeResponse(wiremockServer, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
@@ -349,15 +348,10 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
       s"render the $userType error page if the user upload status is 'CompletedWithIssues'" in {
         val backendChecksService = mock[BackendChecksService]
-        val filesProcessedWithAntivirus = 6
 
-        val filesProcessedWithChecksum = 12
-        val filesProcessedWithFFID = 8
-        val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
-
-        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedWithIssuesValue.value, someDateTime, None))
+        val uploadStatus = setUploadStatus(CompletedWithIssuesValue)
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
-        mockGetFileCheckProgress(dataString, userType)
+        setConsignmentTypeResponse(wiremockServer, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
@@ -431,8 +425,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   "FileChecksController transferProgress" should {
     "return in progress when file checks are still in progress" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
+      val inProgressStatus = List(setStatus(ClientChecksType, InProgressValue))
 
-      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = false), "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = inProgressStatus)
 
       val results = controller
         .transferProgress(consignmentId)
@@ -447,7 +442,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "return CompletedWithIssues when file checks failed" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
-      mockGetFileCheckProgress(progressData(40, 40, 40, allChecksSucceeded = false), "standard")
+      val failedStatuses = clientChecksStatuses.map(s => setStatus(s, CompletedWithIssuesValue))
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = failedStatuses.toList)
 
       val results = controller
         .transferProgress(consignmentId)
@@ -462,11 +459,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "return Completed when file checks are succeeded and export is InProgress" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
-      mockGetFileCheckProgress(progressData(40, 40, 40, allChecksSucceeded = true), "standard")
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", "InProgress", someDateTime, None)
-      )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      val exportProgress = List(setStatus(ExportType, InProgressValue))
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = exportProgress ++ fileChecksAllSucceededStatuses)
 
       val results = controller
         .transferProgress(consignmentId)
@@ -509,11 +504,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
 
     s"return 'FileChecksFailed' if some file checks have failed" in {
-
+      setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false)
-      mockGetFileCheckProgress(dataString, "judgment")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = fileChecksWithIssuesStatuses)
 
       val fileChecksController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
@@ -522,13 +515,11 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
 
     s"return 'TransferAlreadyCompleted' if the export is already in progress" in {
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", "InProgress", someDateTime, None)
-      )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      val exportStatus = List(setStatus(ExportType, InProgressValue))
+
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = exportStatus)
       setConsignmentReferenceResponse(wiremockServer)
-      val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false)
-      mockGetFileCheckProgress(dataString, "judgment")
 
       val fileChecksController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
@@ -536,8 +527,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       contentAsString(recordCheckResultsPage) mustBe "TransferAlreadyCompleted"
     }
 
-    s"return 'Completed' if the file checks are succeeded and export is triggerred" in {
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
+    s"return 'Completed' if the file checks are succeeded and export is triggered" in {
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = fileChecksAllSucceededStatuses)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
       stubFinalTransferConfirmationResponseWithServer(wiremockServer, consignmentId)
       stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
@@ -546,9 +538,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         post(urlEqualTo(s"/export/$consignmentId"))
           .willReturn(okJson("{}"))
       )
-
-      val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)
-      mockGetFileCheckProgress(dataString, "judgment")
 
       val fileChecksController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
@@ -559,8 +548,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "render an error when export status is unknown value" in {
       val fileCheckResultsController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
 
-      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", "aaaa", someDateTime, None))
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      val unknownExportStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ExportType.id, "aaaa", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = unknownExportStatus)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -571,15 +560,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val failure: Throwable = recordCheckResultsPage.failed.futureValue
       failure mustBe an[Exception]
     }
-  }
-
-  private def mockGetFileCheckProgress(dataString: String, userType: String) = {
-    setConsignmentTypeResponse(wiremockServer, userType)
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getFileCheckProgress"))
-        .willReturn(okJson(dataString))
-    )
   }
 
   forAll(userChecks) { (user, url) =>
@@ -611,31 +591,5 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       .fileChecksPage(consignmentId, None)
       .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks"))
     playStatus(fileChecksPage) mustBe FORBIDDEN
-  }
-
-  private def progressData(
-      filesProcessedWithAntivirus: Int,
-      filesProcessedWithChecksum: Int,
-      filesProcessedWithFFID: Int,
-      allChecksSucceeded: Boolean,
-      fileStatusList: List[String] = List("Success")
-  ): String = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
-    val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
-    val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
-    val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
-    val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
-    val fileStatuses = fileStatusList.map(fileStatus => fileCheck.GetConsignment.Files(Some(fileStatus)))
-    val data: client.GraphqlData = client.GraphqlData(
-      Some(
-        fileCheck.Data(
-          Some(
-            fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileStatuses, fileChecks)
-          )
-        )
-      )
-    )
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    dataString
   }
 }

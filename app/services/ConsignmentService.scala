@@ -49,15 +49,15 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignmentForMetadataReviewRequest = graphqlConfiguration.getClient[gcfmrr.Data, gcfmrr.Variables]()
   private val getConsignmentMetadataClient = graphqlConfiguration.getClient[gcm.Data, gcm.Variables]()
 
-  def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
-    val variables = gfcp.Variables(consignmentId)
-    sendApiRequest(getFileCheckProgressClient, gfcp.document, token, variables).map(data => {
-      data.getConsignment match {
-        case Some(progress) => progress
-        case None           => throw new RuntimeException(s"No data found for file checks for consignment $consignmentId")
-      }
-    })
-  }
+//  def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
+//    val variables = gfcp.Variables(consignmentId)
+//    sendApiRequest(getFileCheckProgressClient, gfcp.document, token, variables).map(data => {
+//      data.getConsignment match {
+//        case Some(progress) => progress
+//        case None           => throw new RuntimeException(s"No data found for file checks for consignment $consignmentId")
+//      }
+//    })
+//  }
 
   def getConsignmentDetails(consignmentId: UUID, token: BearerAccessToken): Future[getConsignment.GetConsignment] = {
     val variables: getConsignment.Variables = new getConsignment.Variables(consignmentId)
