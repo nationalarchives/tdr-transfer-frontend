@@ -1,4 +1,4 @@
-import {IDraftMetadataValidationProgress} from "./get-checks-progress"
+import { IDraftMetadataValidationProgress } from "./get-checks-progress"
 
 export const hasDraftMetadataValidationCompleted: (
   validationProgress: IDraftMetadataValidationProgress

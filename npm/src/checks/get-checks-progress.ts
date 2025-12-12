@@ -1,5 +1,5 @@
-import {ConsignmentStatus} from "@nationalarchives/tdr-generated-graphql"
-import {isError} from "../errorhandling"
+import { ConsignmentStatus } from "@nationalarchives/tdr-generated-graphql"
+import { isError } from "../errorhandling"
 
 export interface IProgress {}
 

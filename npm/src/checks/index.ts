@@ -1,5 +1,5 @@
-import {hasDraftMetadataValidationCompleted} from "./verify-checks-have-completed"
-import {displayChecksCompletedBanner} from "./display-checks-completed-banner"
+import { hasDraftMetadataValidationCompleted } from "./verify-checks-have-completed"
+import { displayChecksCompletedBanner } from "./display-checks-completed-banner"
 import {
   continueTransfer,
   getDraftMetadataValidationProgress,
@@ -7,7 +7,7 @@ import {
   getTransferProgress,
   IDraftMetadataValidationProgress
 } from "./get-checks-progress"
-import {isError} from "../errorhandling"
+import { isError } from "../errorhandling"
 
 export class Checks {
   checkJudgmentTransferProgress: (
@@ -49,8 +49,7 @@ export class Checks {
 
       const intervalId: ReturnType<typeof setInterval> = setInterval(
         async () => {
-          const checksCompleted: Boolean | Error =
-            await getFileChecksProgress()
+          const checksCompleted: Boolean | Error = await getFileChecksProgress()
           if (!isError(checksCompleted)) {
             if (checksCompleted) {
               clearInterval(intervalId)
