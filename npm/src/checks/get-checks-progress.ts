@@ -3,20 +3,13 @@ import { isError } from "../errorhandling"
 
 export interface IProgress {}
 
-export interface IFileCheckProgress extends IProgress {
-  antivirusProcessed: number
-  checksumProcessed: number
-  ffidProcessed: number
-  totalFiles: number
-}
-
 export interface IDraftMetadataValidationProgress extends IProgress {
   progressStatus: string | undefined
 }
 
 export interface ITransferProgress extends IProgress {
   fileChecksStatus: string | undefined
-  exportStatus: string | undefined
+  transferComplete: Boolean
 }
 
 export const getConsignmentId: () => string | Error = () => {
@@ -85,11 +78,7 @@ export const getTransferProgress: () => Promise<Boolean | Error> = async () => {
       document.querySelector("#transferProgress")
     transferProgressInput.value = transferProgress.fileChecksStatus
 
-    return (
-      transferProgress.fileChecksStatus === "CompletedWithIssues" ||
-      (transferProgress.fileChecksStatus === "Completed" &&
-        transferProgress.exportStatus !== undefined)
-    )
+    return transferProgress.transferComplete
   } else
     return Error(
       `Failed to retrieve progress for file checks: ${progress.message}`

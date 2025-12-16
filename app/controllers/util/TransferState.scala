@@ -2,7 +2,6 @@ package controllers.util
 
 import com.google.inject.Inject
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import controllers.{FileChecksProgress, TransferProgress}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import services.ConsignmentStatusService
 import services.Statuses._
@@ -10,7 +9,7 @@ import services.Statuses._
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class TransferState @Inject()(val statusService: ConsignmentStatusService)(implicit val ec: ExecutionContext) {
+class TransferState @Inject() (val statusService: ConsignmentStatusService)(implicit val ec: ExecutionContext) {
   def getFileChecksProgress(consignmentId: UUID, token: BearerAccessToken): Future[FileChecksProgress] = {
     for {
       statuses <- statusService.getConsignmentStatuses(consignmentId, token)
@@ -24,18 +23,33 @@ class TransferState @Inject()(val statusService: ConsignmentStatusService)(impli
     FileChecksProgress(allChecksSucceeded = checksSucceeded, allChecksCompleted = checksCompleted)
   }
 
+  private def toTransferProgress(statuses: List[ConsignmentStatuses]) = {
+    val fileChecksProgress = toFileChecksProgress(statuses)
+    val exportStatus = getStatusValues(statuses, Set(ExportType)).values.headOption.flatten
+    val transferComplete = fileChecksProgress match {
+      case _ if fileChecksProgress.allChecksCompleted && (exportStatus.nonEmpty || !fileChecksProgress.allChecksSucceeded) => true
+      case _                                                                                                               => false
+    }
+    val progress = fileChecksProgress match {
+      case _ if fileChecksProgress.allChecksSucceeded                                           => CompletedValue
+      case _ if fileChecksProgress.allChecksCompleted && !fileChecksProgress.allChecksSucceeded => CompletedWithIssuesValue
+      case _                                                                                    => InProgressValue
+    }
+    TransferProgress(progress.value, transferComplete = transferComplete)
+  }
+
   def getTransferProgress(consignmentId: UUID, token: BearerAccessToken): Future[TransferProgress] = {
     for {
       statuses <- statusService.getConsignmentStatuses(consignmentId, token)
-      fileChecksProgress = toFileChecksProgress(statuses)
-      result = fileChecksProgress match {
-        case progress if progress.allChecksCompleted && progress.allChecksSucceeded =>
-          val exportStatus = getStatusValues(statuses, Set(ExportType)).values.headOption.flatten
-          TransferProgress(CompletedValue.value, exportStatus.getOrElse(""))
-        case progress if progress.allChecksCompleted && !progress.allChecksSucceeded => TransferProgress(CompletedWithIssuesValue.value)
-        case _ => TransferProgress(InProgressValue.value)
-      }
-    } yield result
+    } yield toTransferProgress(statuses)
+  }
+
+  def getJudgmentTransferProgress(consignmentId: UUID, token: BearerAccessToken): Future[JudgmentTransferProgress] = {
+    for {
+      statuses <- statusService.getConsignmentStatuses(consignmentId, token)
+      transferComplete = toTransferProgress(statuses).transferComplete
+      allFileChecksSucceeded = toFileChecksProgress(statuses).allChecksSucceeded
+    } yield JudgmentTransferProgress(transferComplete, allFileChecksSucceeded)
   }
 
   private def fileChecksCompleted(fileCheckStatuses: Map[StatusType, Option[String]]): Boolean = {
@@ -53,10 +67,17 @@ class TransferState @Inject()(val statusService: ConsignmentStatusService)(impli
   }
 
   private def getStatusValues(statuses: List[ConsignmentStatuses], statusTypes: Set[StatusType]): Map[StatusType, Option[String]] = {
-    statusTypes.map(t => {
+    statusTypes
+      .map(t => {
         val value = statuses.find(_.statusType == t.id).map(_.value)
         t -> value
       })
       .toMap
   }
 }
+
+case class FileChecksProgress(allChecksSucceeded: Boolean, allChecksCompleted: Boolean)
+
+case class TransferProgress(fileChecksStatus: String, transferComplete: Boolean)
+
+case class JudgmentTransferProgress(transferComplete: Boolean, allFileChecksSucceeded: Boolean)

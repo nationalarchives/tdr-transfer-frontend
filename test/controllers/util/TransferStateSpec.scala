@@ -1,7 +1,6 @@
 package controllers.util
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import controllers.{FileChecksProgress, TransferProgress}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -37,7 +36,8 @@ class TransferStateSpec extends FrontEndTestHelper {
     ("file checks completed with issues", fileChecksWithIssuesStatuses, FileChecksProgress(allChecksSucceeded = false, allChecksCompleted = true))
   )
 
-  forAll(fileChecksStates) { (description, statuses, expectedState) => {
+  forAll(fileChecksStates) { (description, statuses, expectedState) =>
+    {
       "getFileChecksState" should {
         s"return the correct file checks state for $description" in {
           when(statusService.getConsignmentStatuses(any[UUID], any[BearerAccessToken])).thenReturn(Future(statuses))
@@ -49,15 +49,19 @@ class TransferStateSpec extends FrontEndTestHelper {
   }
 
   val transferStates: TableFor3[String, List[ConsignmentStatuses], TransferProgress] = Table(
-    ("Description", "Consignment Statuses","Expected Transfer State"),
-    ("all file checks completed and export triggered", fileChecksAllSucceededStatuses :+ setStatus(ExportType, CompletedValue),
-      TransferProgress(CompletedValue.value, CompletedValue.value)),
-    ("all file checks completed and export not triggered", fileChecksAllSucceededStatuses, TransferProgress(CompletedValue.value)),
-    ("file checks not completed", fileChecksInProgress, TransferProgress(InProgressValue.value)),
-    ("file checks completed with issues", fileChecksWithIssuesStatuses, TransferProgress(CompletedWithIssuesValue.value))
+    ("Description", "Consignment Statuses", "Expected Transfer State"),
+    (
+      "all file checks completed and export triggered",
+      fileChecksAllSucceededStatuses :+ setStatus(ExportType, CompletedValue),
+      TransferProgress(CompletedValue.value, transferComplete = true)
+    ),
+    ("all file checks completed and export not triggered", fileChecksAllSucceededStatuses, TransferProgress(CompletedValue.value, transferComplete = false)),
+    ("file checks not completed", fileChecksInProgress, TransferProgress(InProgressValue.value, transferComplete = false)),
+    ("file checks completed with issues", fileChecksWithIssuesStatuses, TransferProgress(CompletedWithIssuesValue.value, transferComplete = true))
   )
 
-  forAll(transferStates) { (description, fileCheckStatuses, expectedState) => {
+  forAll(transferStates) { (description, fileCheckStatuses, expectedState) =>
+    {
       "getTransferState" should {
         s"return the correct transfer progress for $description" in {
           when(statusService.getConsignmentStatuses(any[UUID], any[BearerAccessToken])).thenReturn(Future(fileCheckStatuses))

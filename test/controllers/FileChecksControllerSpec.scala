@@ -439,7 +439,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       playStatus(results) mustBe OK
 
       val transferProgressAsString = contentAsString(results)
-      transferProgressAsString must be("{\"fileChecksStatus\":\"InProgress\",\"exportStatus\":\"\"}")
+      transferProgressAsString must be("{\"fileChecksStatus\":\"InProgress\",\"transferComplete\":false}")
     }
 
     "return CompletedWithIssues when file checks failed" in {
@@ -456,7 +456,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       playStatus(results) mustBe OK
 
       val transferProgressAsString = contentAsString(results)
-      transferProgressAsString must be("{\"fileChecksStatus\":\"CompletedWithIssues\",\"exportStatus\":\"\"}")
+      transferProgressAsString must be("{\"fileChecksStatus\":\"CompletedWithIssues\",\"transferComplete\":true}")
     }
 
     "return Completed when file checks are succeeded and export is InProgress" in {
@@ -473,7 +473,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       playStatus(results) mustBe OK
 
       val transferProgressAsString = contentAsString(results)
-      transferProgressAsString must be("{\"fileChecksStatus\":\"Completed\",\"exportStatus\":\"InProgress\"}")
+      transferProgressAsString must be("{\"fileChecksStatus\":\"Completed\",\"transferComplete\":true}")
     }
 
     "throw an error if the API returns an error" in {
@@ -518,7 +518,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
 
     s"return 'TransferAlreadyCompleted' if the export is already in progress" in {
-      val exportStatus = List(setStatus(ExportType, InProgressValue))
+      val exportStatus = List(setStatus(ExportType, InProgressValue)) ++ fileChecksAllSucceededStatuses
 
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = exportStatus)
