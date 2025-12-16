@@ -4,6 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.TransferState
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.when
@@ -67,6 +68,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     val backendChecks = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, graphQLConfiguration)
+    val transferState: TransferState = new TransferState(consignmentStatusService)
 
     new FileChecksController(
       controllerComponents,
@@ -77,7 +79,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       backendChecksService.getOrElse(backendChecks),
       consignmentStatusService,
       confirmTransferService,
-      consignmentExportService
+      consignmentExportService,
+      transferState
     )
   }
 

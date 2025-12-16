@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import controllers.util.TransferState
 import graphql.codegen.types.ConsignmentStatusInput
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
@@ -29,35 +29,14 @@ class FileChecksController @Inject() (
     val backendChecksService: BackendChecksService,
     val consignmentStatusService: ConsignmentStatusService,
     val confirmTransferService: ConfirmTransferService,
-    val consignmentExportService: ConsignmentExportService
+    val consignmentExportService: ConsignmentExportService,
+    val transferState: TransferState
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
 
+  implicit val fileChecksProgressEncoder: Encoder[FileChecksProgress] = deriveEncoder[FileChecksProgress]
   implicit val jsonEncoder: Encoder[TransferProgress] = deriveEncoder[TransferProgress]
-
-  private def getFileCheckStatuses(statuses: List[ConsignmentStatuses]) = {
-    consignmentStatusService.getStatusValues(statuses, ClientChecksType, ServerAntivirusType, ServerChecksumType, ServerFFIDType, ServerRedactionType)
-  }
-
-  private def fileChecksCompleted(consignmentStatuses: List[ConsignmentStatuses]): Boolean = {
-    val fileCheckStatuses = getFileCheckStatuses(consignmentStatuses)
-    val clientChecksStatus = fileCheckStatuses(ClientChecksType).getOrElse("")
-    clientChecksStatus.nonEmpty && clientChecksStatus != InProgressValue.value
-  }
-
-  private def allChecksSucceeded(consignmentStatuses: List[ConsignmentStatuses]): Boolean = {
-    val statusValues = getFileCheckStatuses(consignmentStatuses).values.flatten
-    statusValues.size == clientChecksStatuses.size && statusValues.forall(_ == CompletedValue.value)
-  }
-
-  private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)(implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
-    for {
-      statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      completed = fileChecksCompleted(statuses)
-      checksSucceeded = allChecksSucceeded(statuses)
-    } yield FileChecksProgress(checksSucceeded, completed)
-  }
 
   private def handleFailedUpload(consignmentId: UUID, consignmentRef: String, isJudgmentUser: Boolean, token: BearerAccessToken)(implicit request: Request[AnyContent]) = {
     for {
@@ -83,24 +62,16 @@ class FileChecksController @Inject() (
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     for {
-      statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+      progress <- transferState.getFileChecksProgress(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val checksCompleted = fileChecksCompleted(statuses)
+      val checksCompleted = progress.allChecksCompleted
       Ok(checksCompleted.asJson.noSpaces)
     }
   }
 
   def transferProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     for {
-      statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      result = statuses match {
-        case s if fileChecksCompleted(s) && allChecksSucceeded(s) =>
-          val exportStatus = consignmentStatusService.getStatusValues(s, ExportType).values.headOption.flatten
-          TransferProgress(CompletedValue.value, exportStatus.getOrElse(""))
-        case s if !fileChecksCompleted(s) => TransferProgress(InProgressValue.value)
-        case s if fileChecksCompleted(s) && !allChecksSucceeded(s) => TransferProgress(CompletedWithIssuesValue.value)
-//        case _ => TransferProgress(InProgressValue.value)
-      }
+      result <- transferState.getTransferProgress(consignmentId, request.token.bearerAccessToken)
     } yield Ok(result.asJson.noSpaces)
   }
 
@@ -143,12 +114,12 @@ class FileChecksController @Inject() (
       backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
       fileChecks <-
         if (backendChecksTriggered && uploadStatus.get.value != CompletedWithIssuesValue.value) {
-          getFileChecksProgress(request, consignmentId)
+          transferState.getFileChecksProgress(consignmentId, request.token.bearerAccessToken)
         } else {
           throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
         }
     } yield {
-      if (fileChecks.completed) {
+      if (fileChecks.allChecksCompleted) {
         Ok(
           views.html.fileChecksProgressAlreadyConfirmed(
             consignmentId,
@@ -171,20 +142,14 @@ class FileChecksController @Inject() (
     }
   }
 
-  private def judgmentTransferCompleted(exportStatus: Option[String]): Boolean = {
-    exportStatus match {
-      case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) => true
-      case _ => false
-    }
-  }
-
   private def JudgmentCompleteTransfer(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[String] = {
     for {
-      statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      exportStatus = consignmentStatusService.getStatusValues(statuses, ExportType).values.headOption.flatten
-      r <- exportStatus match {
-        case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) => Future("TransferAlreadyCompleted")
-        case None if allChecksSucceeded(statuses) =>
+      progress <- transferState.getFileChecksProgress(consignmentId, request.token.bearerAccessToken)
+      transferProgress <- transferState.getTransferProgress(consignmentId, request.token.bearerAccessToken)
+      exportStatus = transferProgress.exportStatus
+      result <- exportStatus match {
+        case InProgressValue.value | CompletedValue.value | FailedValue.value => Future("TransferAlreadyCompleted")
+        case "" if progress.allChecksSucceeded =>
           val token: BearerAccessToken = request.token.bearerAccessToken
           val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
           for {
@@ -192,35 +157,10 @@ class FileChecksController @Inject() (
             _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
             _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
           } yield "Completed"
-        case None if !allChecksSucceeded(statuses) => Future("FileChecksFailed")
+        case "" if !progress.allChecksSucceeded => Future("FileChecksFailed")
         case _ => throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")
       }
-    } yield r
-
-
-//      result <- exportStatus match {
-//        case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
-//          Future("TransferAlreadyCompleted")
-//        case None =>
-//          for {
-//            fileCheck <- consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
-//            result <-
-//              if (fileCheck.allChecksSucceeded) {
-//                val token: BearerAccessToken = request.token.bearerAccessToken
-//                val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
-//                for {
-//                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
-//                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
-//                  _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
-//                } yield "Completed"
-//              } else {
-//                Future("FileChecksFailed")
-//              }
-//          } yield result
-//        case _ =>
-//          throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")
-//      }
-//    } yield result
+    } yield result
   }
 
   private def waitForFileChecksToBeCompleted(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Unit] = {
@@ -232,8 +172,8 @@ class FileChecksController @Inject() (
       if (remainingIntervals <= 0) {
         Future.unit
       } else {
-        getFileChecksProgress(request, consignmentId).flatMap { progress =>
-          if (progress.completed) {
+        transferState.getFileChecksProgress(consignmentId, request.token.bearerAccessToken).flatMap { progress =>
+          if (progress.allChecksCompleted) {
             Future.unit
           } else {
             Future {
@@ -248,9 +188,6 @@ class FileChecksController @Inject() (
   }
 }
 
-case class FileChecksProgress(
-    allChecksSucceeded: Boolean,
-    completed: Boolean
-)
+case class FileChecksProgress(allChecksSucceeded: Boolean, allChecksCompleted: Boolean)
 
 case class TransferProgress(fileChecksStatus: String, exportStatus: String = "")
