@@ -38,8 +38,8 @@ class TransferStateSpec extends FrontEndTestHelper {
 
   forAll(fileChecksStates) { (description, statuses, expectedState) =>
     {
-      "getFileChecksState" should {
-        s"return the correct file checks state for $description" in {
+      "getFileChecksProgress" should {
+        s"return the correct file checks progress for $description" in {
           when(statusService.getConsignmentStatuses(any[UUID], any[BearerAccessToken])).thenReturn(Future(statuses))
           val result = state.getFileChecksProgress(UUID.randomUUID(), mock[BearerAccessToken]).futureValue
           result shouldEqual expectedState
@@ -49,7 +49,7 @@ class TransferStateSpec extends FrontEndTestHelper {
   }
 
   val transferStates: TableFor3[String, List[ConsignmentStatuses], TransferProgress] = Table(
-    ("Description", "Consignment Statuses", "Expected Transfer State"),
+    ("Description", "Consignment Statuses", "Expected Transfer Progress"),
     (
       "all file checks completed and export triggered",
       fileChecksAllSucceededStatuses :+ setStatus(ExportType, CompletedValue),
@@ -66,6 +66,30 @@ class TransferStateSpec extends FrontEndTestHelper {
         s"return the correct transfer progress for $description" in {
           when(statusService.getConsignmentStatuses(any[UUID], any[BearerAccessToken])).thenReturn(Future(fileCheckStatuses))
           val result = state.getTransferProgress(UUID.randomUUID(), mock[BearerAccessToken]).futureValue
+          result shouldEqual expectedState
+        }
+      }
+    }
+  }
+
+  val judgmentTransferStates: TableFor3[String, List[ConsignmentStatuses], JudgmentTransferProgress] = Table(
+    ("Description", "Consignment Statuses", "Expected Judgment Transfer Progress"),
+    (
+      "all file checks completed and export triggered",
+      fileChecksAllSucceededStatuses :+ setStatus(ExportType, CompletedValue),
+      JudgmentTransferProgress(transferComplete = true, allFileChecksSucceeded = true)
+    ),
+    ("all file checks completed and export not triggered", fileChecksAllSucceededStatuses, JudgmentTransferProgress(transferComplete = false, allFileChecksSucceeded = true)),
+    ("file checks not completed", fileChecksInProgress, JudgmentTransferProgress(transferComplete = false, allFileChecksSucceeded = false)),
+    ("file checks completed with issues", fileChecksWithIssuesStatuses, JudgmentTransferProgress(transferComplete = true, allFileChecksSucceeded = false))
+  )
+
+  forAll(judgmentTransferStates) { (description, statuses, expectedState) =>
+    {
+      "getJudgmentTransferProgress" should {
+        s"return the correct judgment transfer progress for $description" in {
+          when(statusService.getConsignmentStatuses(any[UUID], any[BearerAccessToken])).thenReturn(Future(statuses))
+          val result = state.getJudgmentTransferProgress(UUID.randomUUID(), mock[BearerAccessToken]).futureValue
           result shouldEqual expectedState
         }
       }
