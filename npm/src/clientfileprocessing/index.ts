@@ -8,6 +8,7 @@ import {
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
+import {ICompleteLoadInfo, ILoadErrors, TransferService} from "../transfer-service";
 import {
   IEntryWithPath,
   isDirectory,
@@ -18,6 +19,7 @@ export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
   clientFileExtractMetadata: ClientFileExtractMetadata
   s3Upload: S3Upload
+  transferService: TransferService
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
@@ -26,6 +28,7 @@ export class ClientFileProcessing {
     this.clientFileMetadataUpload = clientFileMetadataUpload
     this.clientFileExtractMetadata = new ClientFileExtractMetadata()
     this.s3Upload = s3Upload
+    this.transferService = new TransferService()
   }
 
   renderWeightedPercent = (weightedPercent: number) => {
@@ -66,7 +69,8 @@ export class ClientFileProcessing {
     files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo,
     stage: string,
-    userId: string | undefined
+    userId: string | undefined,
+    bearerAccessToken: string | Error
   ): Promise<void | Error> {
     const uploadResult =
       await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
@@ -82,26 +86,33 @@ export class ClientFileProcessing {
         )
 
       if (!isError(metadata)) {
-        const tdrFiles =
-          await this.clientFileMetadataUpload.saveClientFileMetadata(
-            uploadFilesInfo.consignmentId,
-            metadata,
-            emptyFolders
-          )
-        if (!isError(tdrFiles)) {
           const uploadResult = await this.s3Upload.uploadToS3(
             uploadFilesInfo.consignmentId,
             userId,
-            tdrFiles,
+            metadata,
             this.s3ProgressCallback,
             stage
           )
-          if (isError(uploadResult)) {
+          if (!isError(uploadResult)) {
+            const loadInfo: ICompleteLoadInfo = {
+              expectedNumberFiles: metadata.length,
+              loadedNumberFiles: metadata.length,
+              loadErrors: []
+            }
+            await this.transferService.completeLoad(uploadFilesInfo.consignmentId, bearerAccessToken, loadInfo)
+          }
+          else {
+            const loadError: ILoadErrors = {
+              message: uploadResult.message
+            }
+            const loadInfo: ICompleteLoadInfo = {
+              expectedNumberFiles: metadata.length,
+              loadedNumberFiles: metadata.length,
+              loadErrors: [loadError]
+            }
+            await this.transferService.completeLoad(uploadFilesInfo.consignmentId, bearerAccessToken, loadInfo)
             return uploadResult
           }
-        } else {
-          return tdrFiles
-        }
       } else {
         return metadata
       }

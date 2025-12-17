@@ -95,7 +95,8 @@ export class FileUploader {
         files,
         uploadFilesInfo,
         this.stage,
-        this.keycloak.tokenParsed?.sub
+        this.keycloak.tokenParsed?.sub,
+        refreshedToken
       )
 
       if (isError(processResult)) {

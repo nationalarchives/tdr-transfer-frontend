@@ -1,20 +1,11 @@
-import {
-  S3Client,
-  ServiceOutputTypes,
-  PutObjectCommandInput,
-  ObjectCannedACL
-} from "@aws-sdk/client-s3"
+import {ObjectCannedACL, PutObjectCommandInput, S3Client, ServiceOutputTypes} from "@aws-sdk/client-s3"
 
-import { Upload } from "@aws-sdk/lib-storage"
-import {
-  IFileWithPath,
-  TProgressFunction
-} from "@nationalarchives/file-information"
-import { isError } from "../errorhandling"
-import {
-  AddFileStatusInput,
-  FileStatus
-} from "@nationalarchives/tdr-generated-graphql"
+import {Upload} from "@aws-sdk/lib-storage"
+import {IFileMetadata, IFileWithPath, TProgressFunction} from "@nationalarchives/file-information"
+import {isError} from "../errorhandling"
+import {AddFileStatusInput, FileStatus} from "@nationalarchives/tdr-generated-graphql"
+import {v4 as uuidv4} from "uuid";
+import { IClientSideMetadata } from "../asset-upload";
 
 export interface ITdrFileWithPath {
   fileId: string
@@ -54,7 +45,7 @@ export class S3Upload {
   uploadToS3: (
     consignmentId: string,
     userId: string | undefined,
-    iTdrFilesWithPath: ITdrFileWithPath[],
+    iTdrFilesWithPath: IFileMetadata[],
     callback: TProgressFunction,
     stage: string
   ) => Promise<IUploadResult | Error> = async (
@@ -65,12 +56,14 @@ export class S3Upload {
     stage
   ) => {
     if (userId) {
+      //TODO: call transfer service to get object key prefixes
+      const objectKeyPrefix = `${userId}/networkdrive/${consignmentId}`
       const totalFiles = iTdrFilesWithPath.length
       const totalChunks: number = iTdrFilesWithPath.reduce(
         (fileSizeTotal, tdrFileWithPath) =>
           fileSizeTotal +
-          (tdrFileWithPath.fileWithPath.file.size
-            ? tdrFileWithPath.fileWithPath.file.size
+          (tdrFileWithPath.file.size
+            ? tdrFileWithPath.file.size
             : 1),
         0
       )
@@ -78,10 +71,15 @@ export class S3Upload {
       const sendData: ServiceOutputTypes[] = []
       const fileIdsOfFilesThatFailedToUpload: string[] = []
       for (const tdrFileWithPath of iTdrFilesWithPath) {
+        const matchId = uuidv4()
+        const metadataObjectKey = `${objectKeyPrefix}/metadata/${matchId}.metadata`
+        const recordObjectKey = `${objectKeyPrefix}/records/${matchId}`
+
+        const metadata = this.convertToClientSideMetadata(false, matchId, userId, consignmentId, tdrFileWithPath)
+        await this.uploadMetadata(metadataObjectKey, JSON.stringify(metadata))
+
         const uploadResult = await this.uploadSingleFile(
-          consignmentId,
-          userId,
-          stage,
+          recordObjectKey,
           tdrFileWithPath,
           callback,
           {
@@ -94,12 +92,12 @@ export class S3Upload {
           uploadResult?.$metadata !== undefined &&
           uploadResult.$metadata.httpStatusCode != 200
         ) {
-          await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
-          fileIdsOfFilesThatFailedToUpload.push(tdrFileWithPath.fileId)
+          // await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
+          fileIdsOfFilesThatFailedToUpload.push(matchId)
         }
         sendData.push(uploadResult)
-        processedChunks += tdrFileWithPath.fileWithPath.file.size
-          ? tdrFileWithPath.fileWithPath.file.size
+        processedChunks += tdrFileWithPath.file.size
+          ? tdrFileWithPath.file.size
           : 1
       }
 
@@ -117,35 +115,46 @@ export class S3Upload {
     }
   }
 
-  private uploadSingleFile: (
-    consignmentId: string,
-    userId: string,
-    stage: string,
-    tdrFileWithPath: ITdrFileWithPath,
-    updateProgressCallback: TProgressFunction,
-    progressInfo: IFileProgressInfo
+  private uploadMetadata: (
+      key: string,
+      body: string
   ) => Promise<ServiceOutputTypes> = (
-    consignmentId,
-    userId,
-    stage,
-    tdrFileWithPath,
-    updateProgressCallback,
-    progressInfo
-  ) => {
-    const { fileWithPath, fileId } = tdrFileWithPath
-    const key = `${userId}/${consignmentId}/${fileId}`
+      key,
+      body) => {
     const params: PutObjectCommandInput = {
       Key: key,
       Bucket: this.uploadUrl,
       ACL: this.aclHeaderValue as ObjectCannedACL,
-      Body: fileWithPath.file,
+      Body: body,
+      IfNoneMatch: this.ifNoneMatchHeaderValue
+    }
+    const progress = new Upload({ client: this.client, params })
+    return progress.done()
+  }
+
+  private uploadSingleFile: (
+    key: string,
+    tdrFileWithPath: IFileMetadata,
+    updateProgressCallback: TProgressFunction,
+    progressInfo: IFileProgressInfo
+  ) => Promise<ServiceOutputTypes> = (
+    key,
+    tdrFileWithPath,
+    updateProgressCallback,
+    progressInfo
+  ) => {
+    const params: PutObjectCommandInput = {
+      Key: key,
+      Bucket: this.uploadUrl,
+      ACL: this.aclHeaderValue as ObjectCannedACL,
+      Body: tdrFileWithPath.file,
       IfNoneMatch: this.ifNoneMatchHeaderValue
     }
 
     const progress = new Upload({ client: this.client, params })
 
     const { processedChunks, totalChunks, totalFiles } = progressInfo
-    if (fileWithPath.file.size >= 1) {
+    if (tdrFileWithPath.file.size >= 1) {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
         const loaded = ev.loaded
@@ -219,6 +228,31 @@ export class S3Upload {
       return Error(`Add file status failed: ${result.statusText}`)
     } else {
       return (await result.json()) as FileStatus
+    }
+  }
+
+  private convertToClientSideMetadata: (
+      isEmptyDirectory: boolean,
+      matchId: string,
+      userId: string,
+      consignmentId: string,
+      sourceMetadata: IFileMetadata
+  ) => IClientSideMetadata = (
+      isEmptyDirectory,
+      matchId,
+      userId,
+      consignmentId,
+      sourceMetadata) => {
+    const { checksum, path, lastModified, file, size } = sourceMetadata
+    const pathWithoutSlash = path.startsWith("/") ? path.substring(1) : path
+    return {
+      checksum: checksum,
+      fileSize: size,
+      originalPath: pathWithoutSlash,
+      lastModified: lastModified.getTime(),
+      transferId: consignmentId,
+      userId: userId,
+      matchId: matchId
     }
   }
 }
