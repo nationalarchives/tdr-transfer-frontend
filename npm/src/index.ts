@@ -19,6 +19,8 @@ export interface IFrontEndInfo {
   region: string
   clientId: string
   realm: string
+  ifNoneMatchHeaderValue: string
+  aclHeaderValue: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
@@ -34,6 +36,10 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
   const clientIdElement: HTMLInputElement | null =
     document.querySelector(".client-id")
   const realmElement: HTMLInputElement | null = document.querySelector(".realm")
+  const ifNoneMatchHeaderElement: HTMLInputElement | null =
+    document.querySelector(".ifNoneMatchHeader")
+  const aclHeaderElement: HTMLInputElement | null =
+    document.querySelector(".aclHeader")
   if (
     apiUrlElement &&
     stageElement &&
@@ -41,7 +47,9 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
     uploadUrlElement &&
     authUrlElement &&
     clientIdElement &&
-    realmElement
+    realmElement &&
+    ifNoneMatchHeaderElement &&
+    aclHeaderElement
   ) {
     return {
       apiUrl: apiUrlElement.value,
@@ -50,7 +58,9 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
       uploadUrl: uploadUrlElement.value,
       authUrl: authUrlElement.value,
       clientId: clientIdElement.value,
-      realm: realmElement.value
+      realm: realmElement.value,
+      ifNoneMatchHeaderValue: ifNoneMatchHeaderElement.value,
+      aclHeaderValue: aclHeaderElement.value
     }
   } else {
     return Error("The front end information is missing")
@@ -87,9 +97,8 @@ export const renderModules = async () => {
         const clientFileProcessing =
           new metadataUploadModule.ClientFileMetadataUpload()
         const uploadModule = await import("./upload")
-        const nextPageModule = await import(
-          "./nextpageredirect/next-page-redirect"
-        )
+        const nextPageModule =
+          await import("./nextpageredirect/next-page-redirect")
 
         new uploadModule.FileUploader(
           clientFileProcessing,
@@ -113,9 +122,8 @@ export const renderModules = async () => {
       if (!errorHandlingModule.isError(keycloak)) {
         const isJudgmentUser = keycloak.tokenParsed?.judgment_user
         const checksModule = await import("./checks")
-        const nextPageModule = await import(
-          "./nextpageredirect/next-page-redirect"
-        )
+        const nextPageModule =
+          await import("./nextpageredirect/next-page-redirect")
         //interval for page reload set at 80% of token validity period
         const checksPageRefreshInterval =
           (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.8

@@ -1149,7 +1149,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
         "https://mock-upload-url.com",
         "https://mock-auth-url.com",
         "mockClientId",
-        "mockRealm"
+        "mockRealm",
+        "",
+        ""
       )
     )
     // -----------------------
