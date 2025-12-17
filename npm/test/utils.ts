@@ -44,7 +44,18 @@ export const createMockKeycloakInstance: (
     loadUserInfo: jest.fn(),
     loadUserProfile: jest.fn(),
     token: "fake-auth-token",
-    didInitialize: true
+    didInitialize: true,
+    // Added base Keycloak properties to satisfy IKeycloakInstance typing
+    authenticated: true,
+    responseMode: "query",
+    responseType: "code",
+    flow: "standard",
+    realm: "test-realm",
+    clientId: "test-client",
+    refreshToken: "fake-refresh-token",
+    tokenTimeout: 0,
+    timeSkew: 0,
+    loginRequired: false
   } as IKeycloakInstance
 }
 
@@ -58,5 +69,7 @@ export const frontendInfo: IFrontEndInfo = {
   uploadUrl: "https://example.com",
   authUrl: "",
   clientId: "",
-  realm: ""
+  realm: "",
+  ifNoneMatchHeaderValue: "*",
+  aclHeaderValue: "bucket-owner-full-control"
 }

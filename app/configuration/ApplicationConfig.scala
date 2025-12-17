@@ -15,7 +15,9 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
     get("upload.url"),
     get("auth.url"),
     get("auth.clientId"),
-    get("auth.realm")
+    get("auth.realm"),
+    get("s3Upload.ifNoneMatchHeaderValue"),
+    get("s3Upload.aclHeaderValue")
   )
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
