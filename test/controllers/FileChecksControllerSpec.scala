@@ -399,7 +399,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "call the fileCheckProgress endpoint" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
-      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val fileChecksResults = controller
         .fileCheckProgress(consignmentId)
