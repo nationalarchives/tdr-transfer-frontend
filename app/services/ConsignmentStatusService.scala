@@ -9,7 +9,7 @@ import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.types.ConsignmentStatusInput
 import services.ApiErrorHandling._
-import services.Statuses.{FailedValue, StatusType, StatusValue}
+import services.Statuses._
 
 import java.util.UUID
 import javax.inject.Inject

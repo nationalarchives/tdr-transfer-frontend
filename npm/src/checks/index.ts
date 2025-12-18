@@ -1,15 +1,11 @@
-import {
-  hasDraftMetadataValidationCompleted,
-  haveFileChecksCompleted
-} from "./verify-checks-have-completed"
+import { hasDraftMetadataValidationCompleted } from "./verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "./display-checks-completed-banner"
 import {
   continueTransfer,
   getDraftMetadataValidationProgress,
-  getTransferProgress,
   getFileChecksProgress,
-  IDraftMetadataValidationProgress,
-  IFileCheckProgress
+  getTransferProgress,
+  IDraftMetadataValidationProgress
 } from "./get-checks-progress"
 import { isError } from "../errorhandling"
 
@@ -53,10 +49,8 @@ export class Checks {
 
       const intervalId: ReturnType<typeof setInterval> = setInterval(
         async () => {
-          const fileChecksProgress: IFileCheckProgress | Error =
-            await getFileChecksProgress()
-          if (!isError(fileChecksProgress)) {
-            const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
+          const checksCompleted: Boolean | Error = await getFileChecksProgress()
+          if (!isError(checksCompleted)) {
             if (checksCompleted) {
               clearInterval(intervalId)
               clearInterval(refreshPageIntervalId)
@@ -64,7 +58,7 @@ export class Checks {
             }
           } else {
             clearInterval(refreshPageIntervalId)
-            return fileChecksProgress
+            return checksCompleted
           }
         },
         10000
