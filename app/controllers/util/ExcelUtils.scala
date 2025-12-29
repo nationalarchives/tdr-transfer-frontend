@@ -1,7 +1,6 @@
 package controllers.util
 
 import controllers.util.DateUtils.convertToLocalDateOrString
-import controllers.util.ExcelBasedOrdering.compare
 import controllers.util.GuidanceUtils.{ALL_COLUMNS, GuidanceColumnWriter, approximatedRowHeight}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
@@ -78,7 +77,7 @@ object ExcelUtils {
     for ((dataType, colNo) <- dataTypes.zipWithIndex) {
       dataType match {
         case "date" => ws.range(1, colNo, rows.tail.length, colNo).style.format("yyyy-MM-dd").set()
-        case _      =>
+        case _      => ws.range(1, colNo, rows.tail.length, colNo).style.format("@").set() // Format as text
       }
     }
 
