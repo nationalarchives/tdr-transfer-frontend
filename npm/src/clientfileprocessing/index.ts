@@ -1,19 +1,18 @@
-import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
-import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
-import {
-  IFileMetadata,
-  IFileWithPath,
-  IProgressInformation
-} from "@nationalarchives/file-information"
-import { S3Upload } from "../s3upload"
-import { FileUploadInfo } from "../upload/form/upload-form"
-import { isError } from "../errorhandling"
+import {ClientFileMetadataUpload} from "../clientfilemetadataupload"
+import {ClientFileExtractMetadata} from "../clientfileextractmetadata"
+import {IFileMetadata, IFileWithPath, IProgressInformation} from "@nationalarchives/file-information"
+import {S3Upload} from "../s3upload"
+import {FileUploadInfo} from "../upload/form/upload-form"
+import {isError} from "../errorhandling"
 import {ICompleteLoadInfo, ILoadErrors, TransferService} from "../transfer-service";
-import {
-  IEntryWithPath,
-  isDirectory,
-  isFile
-} from "../upload/form/get-files-from-drag-event"
+import {IEntryWithPath, isDirectory, isFile} from "../upload/form/get-files-from-drag-event"
+import {ServiceOutputTypes} from "@aws-sdk/client-s3";
+
+export interface IUploadResult {
+  sendData: ServiceOutputTypes[]
+  processedChunks: number
+  totalChunks: number
+}
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -86,12 +85,11 @@ export class ClientFileProcessing {
         )
 
       if (!isError(metadata)) {
-          const uploadResult = await this.s3Upload.uploadToS3(
-            uploadFilesInfo.consignmentId,
-            userId,
-            metadata,
-            this.s3ProgressCallback,
-            stage
+          const uploadResult = await this.upload(
+              userId,
+              uploadFilesInfo.consignmentId,
+              metadata,
+              stage
           )
           if (!isError(uploadResult)) {
             const loadInfo: ICompleteLoadInfo = {
@@ -119,5 +117,25 @@ export class ClientFileProcessing {
     } else {
       return uploadResult
     }
+  }
+
+  private upload: (
+      userId: string,
+      consignmentId: string,
+      assets: IFileMetadata[],
+      stage: string
+  ) => Promise<Error | IUploadResult > = async (
+      userId,
+      consignmentId,
+      assets,
+      stage
+  ) => {
+      return await this.s3Upload.uploadToS3(
+          consignmentId,
+          userId,
+          assets,
+          this.s3ProgressCallback,
+          stage
+      )
   }
 }

@@ -5,7 +5,8 @@ import {IFileMetadata, IFileWithPath, TProgressFunction} from "@nationalarchives
 import {isError} from "../errorhandling"
 import {AddFileStatusInput, FileStatus} from "@nationalarchives/tdr-generated-graphql"
 import {v4 as uuidv4} from "uuid";
-import { IClientSideMetadata } from "../asset-upload";
+import {IClientSideMetadata} from "../asset-upload";
+import {IUploadResult} from "../clientfileprocessing";
 
 export interface ITdrFileWithPath {
   fileId: string
@@ -16,12 +17,6 @@ interface IFileProgressInfo {
   processedChunks: number
   totalChunks: number
   totalFiles: number
-}
-
-export interface IUploadResult {
-  sendData: ServiceOutputTypes[]
-  processedChunks: number
-  totalChunks: number
 }
 
 export class S3Upload {
