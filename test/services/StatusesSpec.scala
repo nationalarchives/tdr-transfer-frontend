@@ -10,42 +10,55 @@ class StatusesSpec extends AnyWordSpec with MockitoSugar {
     "have the correct field values" in {
       ClientChecksType.id should equal("ClientChecks")
       ClientChecksType.nonJudgmentStatus shouldBe false
+      ClientChecksType.fileCheckStatus shouldBe false
 
       ConfirmTransferType.id should equal("ConfirmTransfer")
       ConfirmTransferType.nonJudgmentStatus shouldBe true
+      ConfirmTransferType.fileCheckStatus shouldBe false
 
       DraftMetadataType.id should equal("DraftMetadata")
       DraftMetadataType.nonJudgmentStatus shouldBe true
+      DraftMetadataType.fileCheckStatus shouldBe false
 
       ExportType.id should equal("Export")
       ExportType.nonJudgmentStatus shouldBe false
+      ExportType.fileCheckStatus shouldBe false
 
       MetadataReviewType.id should equal("MetadataReview")
       MetadataReviewType.nonJudgmentStatus shouldBe true
+      MetadataReviewType.fileCheckStatus shouldBe false
 
       SeriesType.id should equal("Series")
       SeriesType.nonJudgmentStatus shouldBe true
+      SeriesType.fileCheckStatus shouldBe false
 
       ServerAntivirusType.id should equal("ServerAntivirus")
       ServerAntivirusType.nonJudgmentStatus shouldBe false
+      ServerAntivirusType.fileCheckStatus shouldBe true
 
       ServerChecksumType.id should equal("ServerChecksum")
       ServerChecksumType.nonJudgmentStatus shouldBe false
+      ServerChecksumType.fileCheckStatus shouldBe true
 
       ServerFFIDType.id should equal("ServerFFID")
       ServerFFIDType.nonJudgmentStatus shouldBe false
+      ServerFFIDType.fileCheckStatus shouldBe true
 
       ServerRedactionType.id should equal("ServerRedaction")
       ServerRedactionType.nonJudgmentStatus shouldBe false
+      ServerRedactionType.fileCheckStatus shouldBe true
 
       TransferAgreementType.id should equal("TransferAgreement")
       TransferAgreementType.nonJudgmentStatus shouldBe true
+      TransferAgreementType.fileCheckStatus shouldBe false
 
       UnrecognisedType.id should equal("Unrecognised")
       UnrecognisedType.nonJudgmentStatus shouldBe false
+      UnrecognisedType.fileCheckStatus shouldBe false
 
       UploadType.id should equal("Upload")
       UploadType.nonJudgmentStatus shouldBe false
+      UploadType.fileCheckStatus shouldBe false
     }
   }
 
@@ -73,17 +86,6 @@ class StatusesSpec extends AnyWordSpec with MockitoSugar {
       toStatusType("someRandomValue") shouldBe UnrecognisedType
       toStatusType("TransferAgreement") shouldBe TransferAgreementType
       toStatusType("Upload") shouldBe UploadType
-    }
-  }
-
-  "clientChecksStatuses" should {
-    "contain the correct status types" in {
-      clientChecksStatuses.size shouldBe 5
-      clientChecksStatuses.contains(ClientChecksType) shouldBe true
-      clientChecksStatuses.contains(ServerAntivirusType) shouldBe true
-      clientChecksStatuses.contains(ServerChecksumType) shouldBe true
-      clientChecksStatuses.contains(ServerFFIDType) shouldBe true
-      clientChecksStatuses.contains(ServerRedactionType) shouldBe true
     }
   }
 }
