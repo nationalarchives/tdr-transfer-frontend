@@ -38,6 +38,10 @@ class ViewTransfersController @Inject() (
     def filterNonJudgmentStatuses: List[ConsignmentStatuses] = {
       statuses.map(s => toStatusType(s.statusType) -> s).filterNot(_._1.nonJudgmentStatus).map(_._2)
     }
+
+    def filterFileChecksStatuses: List[ConsignmentStatuses] = {
+      statuses.map(s => toStatusType(s.statusType) -> s).filter(_._1.fileCheckStatus).map(_._2)
+    }
   }
 
   def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
@@ -147,12 +151,12 @@ class ViewTransfersController @Inject() (
       routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url
     }
 
-    val fileChecksStatuses: List[String] =
-      statuses.filter(s => s.statusType == ServerAntivirusType.id || s.statusType == ServerChecksumType.id || s.statusType == ServerFFIDType.id).map(_.value)
+    val fileChecksStatuses: List[String] = statuses.filterFileChecksStatuses.map(_.value)
+
     fileChecksStatuses match {
       case fcs if fcs.contains(FailedValue.value) || fcs.contains(CompletedWithIssuesValue.value) =>
         UserAction(Failed.value, resultsUrl, Errors.value)
-      case fcs if fcs.contains(InProgressValue.value) || fcs.size < 3 =>
+      case fcs if fcs.contains(InProgressValue.value) || fcs.size < 4 =>
         UserAction(InProgress.value, checksUrl, Resume.value)
       case _ =>
         UserAction(InProgress.value, resultsUrl, Resume.value)

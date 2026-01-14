@@ -37,6 +37,10 @@ object ConsignmentStatusesOptions {
   private val checksumFailed: Map[StatusType, StatusValue] = Map(ServerChecksumType -> FailedValue)
   private val checksumWithIssues: Map[StatusType, StatusValue] = Map(ServerChecksumType -> CompletedWithIssuesValue)
   private val checksumCompleted: Map[StatusType, StatusValue] = Map(ServerChecksumType -> CompletedValue)
+  private val redactionInProgress: Map[StatusType, StatusValue] = Map(ServerRedactionType -> InProgressValue)
+  private val redactionFailed: Map[StatusType, StatusValue] = Map(ServerRedactionType -> FailedValue)
+  private val redactionWithIssues: Map[StatusType, StatusValue] = Map(ServerRedactionType -> CompletedWithIssuesValue)
+  private val redactionCompleted: Map[StatusType, StatusValue] = Map(ServerRedactionType -> CompletedValue)
   private val ffidInProgress: Map[StatusType, StatusValue] = Map(ServerFFIDType -> InProgressValue)
   private val ffidFailed: Map[StatusType, StatusValue] = Map(ServerFFIDType -> FailedValue)
   private val ffidWithIssues: Map[StatusType, StatusValue] = Map(ServerFFIDType -> CompletedWithIssuesValue)
@@ -50,6 +54,9 @@ object ConsignmentStatusesOptions {
   private val exportInProgress: Map[StatusType, StatusValue] = Map(ExportType -> InProgressValue)
   private val exportFailed: Map[StatusType, StatusValue] = Map(ExportType -> FailedValue)
   private val exportCompleted: Map[StatusType, StatusValue] = Map(ExportType -> CompletedValue)
+
+  private val allFileChecksCompleted: Map[StatusType, StatusValue] =
+    antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ redactionCompleted
 
   val expectedStandardStatesAndStatuses: TableFor5[String, List[ConsignmentStatuses], String, String, String] = Table(
     ("expected transfer state", "statuses", "action url", "transfer state", "action text"),
@@ -263,9 +270,49 @@ object ConsignmentStatusesOptions {
       "View errors"
     ),
     (
+      "FFID file check completed",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted
+          ++ ffidCompleted
+      ),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "Redaction file check in progress",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted
+          ++ checksumCompleted ++ ffidCompleted ++ redactionInProgress
+      ),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "Redaction file check failed",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted
+          ++ checksumCompleted ++ ffidCompleted ++ redactionFailed
+      ),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "Redaction file check completed with issues",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted
+          ++ checksumCompleted ++ ffidCompleted ++ redactionWithIssues
+      ),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
       "all file checks completed",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
       ),
       "/file-checks-results",
       "In Progress",
@@ -274,7 +321,8 @@ object ConsignmentStatusesOptions {
     (
       "draft metadata completed with issues",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ draftMetadataCompletedWithIssues,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompletedWithIssues,
         includeDefaultStatuses = false
       ),
       "/draft-metadata/checks-results",
@@ -284,7 +332,8 @@ object ConsignmentStatusesOptions {
     (
       "draft metadata completed",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ draftMetadataCompleted,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompleted,
         includeDefaultStatuses = false
       ),
       "/additional-metadata/download-metadata",
@@ -294,7 +343,8 @@ object ConsignmentStatusesOptions {
     (
       "metadata review in progress",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ metadataReviewInProgress,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ metadataReviewInProgress,
         includeDefaultStatuses = false
       ),
       "/metadata-review/review-progress",
@@ -304,7 +354,8 @@ object ConsignmentStatusesOptions {
     (
       "metadata review rejected",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ metadataReviewCompletedWithIssues,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ metadataReviewCompletedWithIssues,
         includeDefaultStatuses = false
       ),
       "/metadata-review/review-progress",
@@ -314,7 +365,8 @@ object ConsignmentStatusesOptions {
     (
       "metadata review accepted",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ metadataReviewCompleted,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ metadataReviewCompleted,
         includeDefaultStatuses = false
       ),
       "/metadata-review/review-progress",
@@ -324,7 +376,8 @@ object ConsignmentStatusesOptions {
     (
       "confirm transfer completed with no additional metadata",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ confirmCompleted
       ),
       "/transfer-complete",
       "In Progress",
@@ -333,7 +386,8 @@ object ConsignmentStatusesOptions {
     (
       "confirm transfer completed with additional metadata entered",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ draftMetadataCompleted ++ metadataReviewCompleted ++ confirmCompleted,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompleted ++ metadataReviewCompleted ++ confirmCompleted,
         includeDefaultStatuses = false
       ),
       "/transfer-complete",
@@ -343,7 +397,8 @@ object ConsignmentStatusesOptions {
     (
       "export in progress",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportInProgress
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ confirmCompleted ++ exportInProgress
       ),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
@@ -352,7 +407,8 @@ object ConsignmentStatusesOptions {
     (
       "export in progress with metadata entered",
       generateStatuses(
-        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ draftMetadataCompleted ++ metadataReviewCompleted ++ confirmCompleted ++ exportInProgress,
+        clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted ++ metadataReviewCompleted
+          ++ confirmCompleted ++ exportInProgress,
         includeDefaultStatuses = false
       ),
       "/additional-metadata/download-metadata/csv",
@@ -362,7 +418,8 @@ object ConsignmentStatusesOptions {
     (
       "export failed",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportFailed
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ confirmCompleted ++ exportFailed
       ),
       "mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Export failure",
       "Failed",
@@ -371,7 +428,8 @@ object ConsignmentStatusesOptions {
     (
       "export failed with metadata entered",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ draftMetadataCompleted ++ metadataReviewCompleted ++ confirmCompleted ++ exportFailed,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompleted ++ metadataReviewCompleted ++ confirmCompleted ++ exportFailed,
         includeDefaultStatuses = false
       ),
       "mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Export failure",
@@ -381,7 +439,8 @@ object ConsignmentStatusesOptions {
     (
       "export completed",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportCompleted
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ confirmCompleted ++ exportCompleted
       ),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
@@ -390,7 +449,8 @@ object ConsignmentStatusesOptions {
     (
       "export completed with metadata entered",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ draftMetadataCompleted ++ metadataReviewCompleted ++ confirmCompleted ++ exportCompleted,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompleted ++ metadataReviewCompleted ++ confirmCompleted ++ exportCompleted,
         includeDefaultStatuses = false
       ),
       "/additional-metadata/download-metadata/csv",
@@ -571,9 +631,48 @@ object ConsignmentStatusesOptions {
       "View errors"
     ),
     (
-      "all file checks completed",
+      "FFID file check completed",
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted
+      ),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "Redaction file check in progress",
+      generateStatuses(
+        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted
+          ++ redactionInProgress
+      ),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "Redaction file check failed",
+      generateStatuses(
+        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted
+          ++ redactionFailed
+      ),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "Redaction file check completed with issues",
+      generateStatuses(
+        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted
+          ++ redactionWithIssues
+      ),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "all file checks completed",
+      generateStatuses(
+        clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
       ),
       "/file-checks-results",
       "In Progress",
@@ -582,7 +681,7 @@ object ConsignmentStatusesOptions {
     (
       "export in progress",
       generateStatuses(
-        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportInProgress
+        clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted ++ confirmCompleted ++ exportInProgress
       ),
       "/transfer-complete",
       "Transferred",
@@ -591,7 +690,8 @@ object ConsignmentStatusesOptions {
     (
       "export failed",
       generateStatuses(
-        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportFailed
+        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ redactionCompleted
+          ++ confirmCompleted ++ exportFailed
       ),
       "mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Export failure",
       "Failed",
@@ -600,7 +700,7 @@ object ConsignmentStatusesOptions {
     (
       "export completed",
       generateStatuses(
-        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportCompleted
+        clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted ++ confirmCompleted ++ exportCompleted
       ),
       "/transfer-complete",
       "Transferred",
