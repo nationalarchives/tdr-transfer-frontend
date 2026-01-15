@@ -3,7 +3,6 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.types.ConsignmentStatusInput
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
@@ -35,13 +34,6 @@ class FileChecksController @Inject() (
     with I18nSupport {
 
   implicit val jsonEncoder: Encoder[TransferProgress] = deriveEncoder[TransferProgress]
-
-  private def fileChecksCompleted(consignmentStatuses: List[ConsignmentStatuses]): Boolean = {
-    val fileCheckStatuses =
-      consignmentStatusService.getStatusValues(consignmentStatuses, ClientChecksType, ServerAntivirusType, ServerChecksumType, ServerFFIDType, ServerRedactionType)
-    val clientChecksStatus = fileCheckStatuses(ClientChecksType).getOrElse("")
-    clientChecksStatus.nonEmpty && clientChecksStatus != InProgressValue.value
-  }
 
   private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)(implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
     consignmentService
@@ -80,12 +72,10 @@ class FileChecksController @Inject() (
   }
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
-    for {
-      statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-    } yield {
-      val checksCompleted = fileChecksCompleted(statuses)
-      Ok(checksCompleted.asJson.noSpaces)
-    }
+    consignmentService
+      .fileCheckProgress(consignmentId, request.token.bearerAccessToken)
+      .map(_.asJson.noSpaces)
+      .map(Ok(_))
   }
 
   def transferProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
