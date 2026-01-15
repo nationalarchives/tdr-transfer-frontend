@@ -1,4 +1,7 @@
-import { ConsignmentStatus } from "@nationalarchives/tdr-generated-graphql"
+import {
+  Consignment,
+  ConsignmentStatus
+} from "@nationalarchives/tdr-generated-graphql"
 import { isError } from "../errorhandling"
 
 export interface IProgress {}
@@ -59,13 +62,19 @@ export const getDraftMetadataValidationProgress: () => Promise<
 }
 
 export const getFileChecksProgress: () => Promise<
-  Boolean | Error
+  IFileCheckProgress | Error
 > = async () => {
   const progress = await getProgress("file-check-progress")
   if (!isError(progress)) {
-    const response = progress as Boolean
+    const response = progress as Consignment
     if (response) {
-      return response
+      const fileChecks = response.fileChecks
+      return {
+        antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
+        checksumProcessed: fileChecks.checksumProgress.filesProcessed,
+        ffidProcessed: fileChecks.ffidProgress.filesProcessed,
+        totalFiles: response.totalFiles
+      }
     } else {
       return Error(
         `No file checks progress metadata found for consignment: ${response}`
