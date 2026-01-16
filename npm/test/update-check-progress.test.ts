@@ -16,9 +16,9 @@ const mockDisplayChecksCompletedBanner = {
   displayChecksCompletedBanner: jest.fn()
 }
 
-import { Checks } from "../src/checks"
-import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../src/checks/verify-checks-have-completed"
-import { displayChecksCompletedBanner } from "../src/checks/display-checks-completed-banner"
+import {Checks} from "../src/checks"
+import {hasDraftMetadataValidationCompleted} from "../src/checks/verify-checks-have-completed"
+import {displayChecksCompletedBanner} from "../src/checks/display-checks-completed-banner"
 
 beforeAll(() => {
   //stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
@@ -69,22 +69,13 @@ const typesOfValidationProgress: {
 }
 
 const typesOfProgress: {
-  [key: string]: {} | null
+  [key: string]: Boolean | null
 } = {
   noData: null,
-  inProgress: {
-    antivirusProcessed: 1,
-    checksumProcessed: 2,
-    ffidProcessed: 1,
-    totalFiles: 2
-  },
-  complete: {
-    antivirusProcessed: 2,
-    checksumProcessed: 2,
-    ffidProcessed: 2,
-    totalFiles: 2
-  }
+  inProgress: false,
+  complete: true
 }
+
 const typesOfTransferProgress: {
   [key: string]: {} | null
 } = {
@@ -98,6 +89,7 @@ const typesOfTransferProgress: {
     exportStatus: "InProgress"
   }
 }
+
 const checks = new Checks()
 
 const mockGetDraftMetadataValidationProgress: (progressType: string) => void = (progressType) => {
@@ -161,7 +153,6 @@ test("'updateFileCheckProgress' shows a standard user, the notification banner a
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(displayChecksCompletedBanner).toHaveBeenCalled()
 })
 
@@ -228,7 +219,6 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
@@ -270,7 +260,6 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
