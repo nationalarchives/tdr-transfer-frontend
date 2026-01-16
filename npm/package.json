@@ -98,6 +98,11 @@
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1"
   },
+  "overrides": {
+    "stylelint-config-sass-guidelines": {
+      "stylelint": "$stylelint"
+    }
+  },
   "lint-staged": {
     "./**/*.{ts,md}": "eslint",
     "css-src/sass/**/*.scss": "stylelint"
