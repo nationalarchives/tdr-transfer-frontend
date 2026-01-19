@@ -17,7 +17,7 @@ const mockDisplayChecksCompletedBanner = {
 }
 
 import {Checks} from "../src/checks"
-import {hasDraftMetadataValidationCompleted} from "../src/checks/verify-checks-have-completed"
+import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../src/checks/verify-checks-have-completed"
 import {displayChecksCompletedBanner} from "../src/checks/display-checks-completed-banner"
 
 beforeAll(() => {
@@ -69,11 +69,21 @@ const typesOfValidationProgress: {
 }
 
 const typesOfProgress: {
-  [key: string]: Boolean | null
+  [key: string]: {} | null
 } = {
   noData: null,
-  inProgress: false,
-  complete: true
+  inProgress: {
+    antivirusProcessed: 1,
+    checksumProcessed: 2,
+    ffidProcessed: 1,
+    totalFiles: 2
+  },
+  complete: {
+    antivirusProcessed: 2,
+    checksumProcessed: 2,
+    ffidProcessed: 2,
+    totalFiles: 2
+  }
 }
 
 const typesOfTransferProgress: {
@@ -153,6 +163,7 @@ test("'updateFileCheckProgress' shows a standard user, the notification banner a
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
+  expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(displayChecksCompletedBanner).toHaveBeenCalled()
 })
 
@@ -219,6 +230,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
+  expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
@@ -260,6 +272,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
   await jest.runOnlyPendingTimers()
 
+  expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 

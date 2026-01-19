@@ -2,17 +2,31 @@ import {
   getConsignmentId,
   getDraftMetadataValidationProgress,
   getFileChecksProgress,
-  IDraftMetadataValidationProgress
+  IDraftMetadataValidationProgress,
+  IFileCheckProgress
 } from "../src/checks/get-checks-progress"
-import {ConsignmentStatus} from "@nationalarchives/tdr-generated-graphql"
-import {isError} from "../src/errorhandling"
-import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
+import { ConsignmentStatus, GetFileCheckProgressQuery } from "@nationalarchives/tdr-generated-graphql"
+import { isError } from "../src/errorhandling"
+import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 
 enableFetchMocks()
 
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 beforeEach(() => fetchMock.resetMocks())
+
+const data: GetFileCheckProgressQuery = {
+  getConsignment: {
+    files: [],
+    totalFiles: 10,
+    allChecksSucceeded: false,
+    fileChecks: {
+      antivirusProgress: { filesProcessed: 2 },
+      ffidProgress: { filesProcessed: 4 },
+      checksumProgress: { filesProcessed: 3 }
+    }
+  }
+}
 
 const consignmentStatusData: ConsignmentStatus[] = [
   {
@@ -47,13 +61,16 @@ test("'getFileChecksProgress' returns the correct consignment data with a succes
     <input id="consignmentId" type="hidden" value="${consignmentId}">
     <input name="csrfToken" value="abcde">
     `
-  fetchMock.mockResponse(JSON.stringify(true))
+  fetchMock.mockResponse(JSON.stringify(data.getConsignment))
 
-  const fileChecksProgress: Boolean | Error =
+  const fileChecksProgress: IFileCheckProgress | Error =
       await getFileChecksProgress()
   expect(isError(fileChecksProgress)).toBe(false)
   if(!isError(fileChecksProgress)) {
-    expect(fileChecksProgress).toBe(true)
+    expect(fileChecksProgress!.antivirusProcessed).toBe(2)
+    expect(fileChecksProgress!.checksumProcessed).toBe(3)
+    expect(fileChecksProgress!.ffidProcessed).toBe(4)
+    expect(fileChecksProgress!.totalFiles).toBe(10)
   }
 })
 
