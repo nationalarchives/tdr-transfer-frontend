@@ -5,7 +5,7 @@ on:
       - master
 jobs:
   pre-deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@5d4fee21ed08f053613a7706e28623c0adc0f5f4 # v0.0.10
+    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@f52edf22c81f568202369a3b31da0277541b0507 # v0.0.11
     with:
       java-version: '17'
       repo-name: tdr-transfer-frontend
