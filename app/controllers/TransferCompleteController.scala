@@ -44,7 +44,7 @@ class TransferCompleteController @Inject() (
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>
-        Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name, applicationConfig.blockJudgmentPressSummaries))
+        Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name))
       }
   }
 }

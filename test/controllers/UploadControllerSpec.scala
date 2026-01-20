@@ -545,21 +545,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
     }
 
-    "show the judgment upload back to before upload when behind fab blockJudgmentPressSummaries" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = setUpNCNTestController(true)
-
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      setConsignmentTypeResponse(wiremockServer, "judgment")
-      val metadata = ConsignmentMetadata("JudgmentType", judgment) :: ConsignmentMetadata("JudgmentUpdate", "true") :: Nil
-      setGetConsignmentMetadataResponse(wiremockServer, Some(metadata))
-
-      val uploadPage = controller
-        .judgmentUploadPage(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
-      val uploadPageAsString = contentAsString(uploadPage)
-      uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
-    }
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
       val uploadStatus = InProgressValue
@@ -1136,11 +1121,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def setUpNCNTestController(blockJudgmentPressSummaries: Boolean = false) = {
-    // -----------------------
-    // when code for FAB blockJudgmentPressSummaries remove below
+  private def setUpNCNTestController() = {
     val frontEndInfoConfigurationTest: ApplicationConfig = mock[ApplicationConfig]
-    when(frontEndInfoConfigurationTest.blockJudgmentPressSummaries).thenReturn(blockJudgmentPressSummaries)
     when(frontEndInfoConfigurationTest.frontEndInfo).thenReturn(
       FrontEndInfo(
         "https://mock-api-url.com/graphql",
@@ -1154,7 +1136,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
         ""
       )
     )
-    // -----------------------
     val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
@@ -1165,7 +1146,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
       getValidJudgmentUserKeycloakConfiguration,
-      // when code for FAB blockJudgmentPressSummaries replace below with frontEndInfoConfiguration,
       frontEndInfoConfigurationTest,
       consignmentService,
       uploadService,

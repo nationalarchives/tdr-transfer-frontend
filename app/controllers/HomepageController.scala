@@ -23,13 +23,7 @@ class HomepageController @Inject() (
   def judgmentHomepageSubmit(): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
     consignmentService
       .createConsignment(None, request.token)
-      .map(consignment =>
-        if (applicationConfig.blockJudgmentPressSummaries) {
-          Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get))
-        } else {
-          Redirect(routes.JudgmentTypeController.selectJudgmentType(consignment.consignmentid.get))
-        }
-      )
+      .map(consignment => Redirect(routes.JudgmentTypeController.selectJudgmentType(consignment.consignmentid.get)))
   }
 
   def homepageSubmit(): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
@@ -53,7 +47,7 @@ class HomepageController @Inject() (
   def judgmentHomepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewTransfers = true, applicationConfig.blockJudgmentPressSummaries))
+        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewTransfers = true))
       } else if (request.token.isStandardUser) {
         Redirect(routes.HomepageController.homepage())
       } else {

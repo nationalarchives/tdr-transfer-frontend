@@ -25,11 +25,7 @@ class BeforeUploadingController @Inject() (
     with I18nSupport {
 
   def beforeUploading(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val backURL = if (applicationConfig.blockJudgmentPressSummaries) {
-      routes.HomepageController.homepage().url
-    } else {
-      routes.JudgmentTypeController.selectJudgmentType(consignmentId).url
-    }
+    val backURL = routes.JudgmentTypeController.selectJudgmentType(consignmentId).url
     for {
       consignment <- consignmentService.getConsignmentMetadata(consignmentId, request.token.bearerAccessToken)
       metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
@@ -37,7 +33,7 @@ class BeforeUploadingController @Inject() (
       judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
       goToBeforeUploading = judgmentType == judgment && !judgmentUpdate
     } yield {
-      if (applicationConfig.blockJudgmentPressSummaries || goToBeforeUploading) {
+      if (goToBeforeUploading) {
         Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, consignment.consignmentReference, request.token.name, backURL))
       } else {
         Redirect(routes.JudgmentTypeController.selectJudgmentType(consignmentId).url)

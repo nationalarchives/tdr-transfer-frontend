@@ -1,5 +1,5 @@
 @import views.html.partials.judgmentHelpContentOriginal
-@(isLoggedIn: Boolean, name: String, blockPressSummaries: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
 @defining("Transferring Judgments to The National Archives") { title =>
     @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
         <div class="govuk-grid-row">
@@ -7,9 +7,7 @@
                 <h1 class="govuk-heading-l" id="transferring-judgments">@title</h1>
 
                 <h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to using Transfer Digital Records (TDR)</h2>
-                @if(blockPressSummaries) {
-                    @judgmentHelpContentOriginal()
-                } else {
+
                     <nav aria-label="List">
                         <ul class="govuk-list govuk-list--bullet">
                             <li><a href="#about">About this service</a></li>
@@ -536,7 +534,6 @@
                     <p class="govuk-body">
                         Digital file checking that includes anti-virus check, file authentication, and file-format identification.
                     </p>
-                }
             </div>
         </div>
     }

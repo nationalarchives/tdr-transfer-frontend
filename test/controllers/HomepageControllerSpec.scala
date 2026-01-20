@@ -167,30 +167,6 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       wiremockServer.getAllServeEvents.size should equal(1)
     }
 
-    "create a new consignment for a judgment user when the blockJudgmentPressSummaries FAB is true" in {
-      val config: ApplicationConfig = mock[ApplicationConfig]
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, config)
-
-      val consignmentId = UUID.fromString("6c5756a9-dd7a-437c-9396-33b227e53768")
-      val addConsignment = AddConsignment(Option(consignmentId), None, "Consignment-Ref")
-      val client = graphqlConfig.getClient[Data, Variables]()
-      val dataString = client.GraphqlData(Option(Data(addConsignment))).asJson.printWith(Printer(dropNullValues = false, ""))
-
-      when(config.blockJudgmentPressSummaries).thenReturn(true)
-
-      wiremockServer.stubFor(
-        post(urlEqualTo("/graphql"))
-          .willReturn(okJson(dataString))
-      )
-
-      val redirect = controller
-        .judgmentHomepageSubmit()
-        .apply(FakeRequest(POST, "/judgment/homepage").withCSRFToken)
-
-      redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/before-uploading")
-      wiremockServer.getAllServeEvents.size should equal(1)
-    }
-
     "show an error if the consignment couldn't be created" in {
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, config)
       wiremockServer.stubFor(

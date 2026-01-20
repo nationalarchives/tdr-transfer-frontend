@@ -21,7 +21,7 @@ class HelpController @Inject() (securityComponents: SecurityComponents, val appl
   }
 
   def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.judgment.judgmentHelp(request.isLoggedIn, request.name, applicationConfig.blockJudgmentPressSummaries))
+    Ok(views.html.judgment.judgmentHelp(request.isLoggedIn, request.name))
   }
 
   def metadataQuickGuide(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
