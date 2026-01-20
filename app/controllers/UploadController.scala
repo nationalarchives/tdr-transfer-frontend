@@ -149,10 +149,10 @@ class UploadController @Inject() (
   }
 
   private def buildBackURL(consignmentId: UUID, judgmentType: String, judgmentUpdate: Boolean): String = {
-      if (judgmentType == judgment && !judgmentUpdate) {
-        routes.BeforeUploadingController.beforeUploading(consignmentId).url
-      } else {
-        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
-      }
+    if (judgmentType == judgment && !judgmentUpdate) {
+      routes.BeforeUploadingController.beforeUploading(consignmentId).url
+    } else {
+      routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
     }
+  }
 }

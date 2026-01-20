@@ -545,7 +545,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("""<a href="/judgment/c2efd3e6-6664-4582-8c28-dcf891f60e68/before-uploading" class="govuk-back-link">Back</a>""")
     }
 
-
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
       val uploadStatus = InProgressValue
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")

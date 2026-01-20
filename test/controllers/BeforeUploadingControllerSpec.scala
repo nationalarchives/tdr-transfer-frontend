@@ -31,7 +31,6 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   "BeforeUploadingController GET" should {
