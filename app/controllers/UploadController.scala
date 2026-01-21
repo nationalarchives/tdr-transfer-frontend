@@ -132,7 +132,7 @@ class UploadController @Inject() (
                   pageHeadingUploading,
                   applicationConfig.frontEndInfo,
                   request.token.name,
-                  buildBackURL(consignmentId, judgmentType, judgmentUpdate)
+                  buildJudgmentBackURL(consignmentId, judgmentType, judgmentUpdate)
                 )
             ).uncache()
           }
@@ -148,7 +148,7 @@ class UploadController @Inject() (
     existingNCN.isEmpty && existingNoNCN.isEmpty
   }
 
-  private def buildBackURL(consignmentId: UUID, judgmentType: String, judgmentUpdate: Boolean): String = {
+  private def buildJudgmentBackURL(consignmentId: UUID, judgmentType: String, judgmentUpdate: Boolean): String = {
     if (judgmentType == judgment && !judgmentUpdate) {
       routes.BeforeUploadingController.beforeUploading(consignmentId).url
     } else {
