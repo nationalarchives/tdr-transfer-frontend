@@ -1121,7 +1121,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
   }
 
   private def setUpController() = {
-
     val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
