@@ -16,6 +16,6 @@ class FaqController @Inject() (securityComponents: SecurityComponents, val appli
   }
 
   def judgmentFaq(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.judgment.judgmentFaq(request.isLoggedIn, request.name, applicationConfig.blockJudgmentPressSummaries))
+    Ok(views.html.judgment.judgmentFaq(request.isLoggedIn, request.name))
   }
 }
