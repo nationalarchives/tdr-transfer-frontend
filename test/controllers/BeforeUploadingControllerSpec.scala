@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.ConsignmentProperty.{judgment, press_summary}
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
-import org.mockito.Mockito.when
+
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
@@ -31,7 +31,6 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  private val configuration: Configuration = mock[Configuration]
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   "BeforeUploadingController GET" should {
@@ -116,20 +115,6 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       playStatus(beforeUploadingPage) mustBe SEE_OTHER
       redirectLocation(beforeUploadingPage) must be(Some(s"/judgment/$consignmentId/tell-us-more"))
     }
-
-    "render the before uploading page for judgments when the blockJudgmentPressSummaries is 'true'" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val beforeUploadingController = instantiateBeforeUploadingController(blockJudgmentPressSummaries = true)
-      setConsignmentTypeResponse(wiremockServer, "judgment")
-      setGetConsignmentMetadataResponse(wiremockServer, Nil.some, "TEST-TDR-2021-GB".some)
-
-      val beforeUploadingPage = beforeUploadingController
-        .beforeUploading(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
-
-      playStatus(beforeUploadingPage) mustBe OK
-      contentType(beforeUploadingPage) mustBe Some("text/html")
-    }
   }
 
   s"The judgment before uploading page" should {
@@ -164,13 +149,11 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   }
 
   private def instantiateBeforeUploadingController(
-      keycloakConfiguration: KeycloakConfiguration = getValidJudgmentUserKeycloakConfiguration,
-      blockJudgmentPressSummaries: Boolean = false
+      keycloakConfiguration: KeycloakConfiguration = getValidJudgmentUserKeycloakConfiguration
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val applicationConfig: ApplicationConfig = mock[ApplicationConfig]
-    when(applicationConfig.blockJudgmentPressSummaries).thenReturn(blockJudgmentPressSummaries)
 
     new BeforeUploadingController(
       getAuthorisedSecurityComponents,

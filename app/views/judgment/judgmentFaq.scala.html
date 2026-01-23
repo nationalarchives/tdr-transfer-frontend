@@ -1,4 +1,4 @@
-@(isLoggedIn: Boolean, name: String, blockPressSummaries: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
 @defining("Frequently Asked Questions") { title =>
     @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
         <div class="govuk-grid-row">
@@ -58,7 +58,7 @@
                     Free-to-download apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store' for Android.
                 </p>
 
-                <h3 class="govuk-heading-s"id="how-to-set-up-mfa-and-otp">
+                <h3 class="govuk-heading-s" id="how-to-set-up-mfa-and-otp">
                     How do I set up MFA and my one-time password (OTP)?</h3>
                 <p class="govuk-body">
                     When you register as a new TDR user, follow the registration steps in the TDR Judgments User Guide to set up a TDR account in the authenticator app on a smartphone that you have access to. You only need to configure this once for it to generate a code for each time you sign in.
@@ -137,7 +137,7 @@
 
                 <h3 class="govuk-heading-s" id="can-upload-multiple-files">Can I upload multiple files?</h3>
                 <p class="govuk-body">
-                    No, you can only upload a single file each time. This file must be an approved judgment @if(!blockPressSummaries) {or press summary }in the form of a Microsoft Word (.docx) document only.
+                    No, you can only upload a single file each time. This file must be an approved judgment or press summary in the form of a Microsoft Word (.docx) document only.
                 </p>
 
                 <h3 class="govuk-heading-s" id="can-upload-folders">Can I upload folders?</h3>
@@ -153,11 +153,6 @@
                     at <a href="mailto:@Messages("judiciary.email")">@Messages("judiciary.email")</a>
                     to discuss the best way to transfer records if they are not stored on a physical or networked drive.
                 </p>
-                @if(blockPressSummaries) {
-                    <p class="govuk-body">
-                        In the future, TDR will begin accepting judgments transferred directly from the cloud.
-                    </p>
-                }
 
                 <h3 class="govuk-heading-s" id="want-to-upload-additional-documents">
                     I want to upload additional documents alongside a judgment</h3>
@@ -165,15 +160,9 @@
                     At the moment, this service is for uploading approved judgment documents only. If you need to add supplementary material, email the documents to <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
                     , quoting the transfer reference of your judgment.
                 </p>
-                @if(!blockPressSummaries) {
                     <p class="govuk-body">
                         You can use the email link on the "Transfer complete" page to automatically generate an email with the transfer reference in the subject field via your default email account.
                     </p>
-                } else {
-                    <p class="govuk-body">
-                        You can use the email link on the TDR “Check your file before uploading” to automatically generate an email with the transfer reference in the subject field via your default email account.
-                    </p>
-                }
 
                 <h3 class="govuk-heading-s" id="my-judgment-has-not-yet-been-approved-can-still-upload-it">
                     My judgment has not yet been approved by a judge, can I still upload it?</h3>
@@ -219,26 +208,10 @@
 
                 <h3 class="govuk-heading-s" id="what-happens-if-my-file-fails-the-checks">
                     What happens if my file fails the checks?</h3>
-                @if(!blockPressSummaries) {
                     <p class="govuk-body">
                         In the event that your file fails the checks, follow the on screen instructions to resolve the issues highlighted by the system. If you are still having problems, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
                         describing the issue and any steps taken.
                     </p>
-                } else {
-                    <p class="govuk-body">
-                        If you receive a notification that your file has failed our checks, please check the following:
-                    </p>
-                    <ul class="govuk-body">
-                        <li>That your internet connection is stable and strong</li>
-                        <li>That your file is a Microsoft Word document (.docx)</li>
-                        <li>That your file can be opened on your computer and is not corrupted</li>
-                        <li>That your file is not password protected or encrypted</li>
-                    </ul>
-                    <p class="govuk-body">
-                        If you can confirm the above then try again. If your file still fails, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
-                        describing the issue and any steps taken.
-                    </p>
-                }
 
                 <h3 class="govuk-heading-s" id="what-is-transfer-reference-number">What is a transfer reference?</h3>
                 <p class="govuk-body">
@@ -254,22 +227,13 @@
                 <h3 class="govuk-heading-s" id="do-need-notification-before-uploading-another-judgment">
                     Do I need to wait for a notification before I upload another judgment?</h3>
                 <p class="govuk-body">
-                @if(!blockPressSummaries) {
                     No, once you have reached the ‘Transfer complete’ page, you may start another transfer.
-                } else {
-                    No, once you have exported one judgment and reached the ‘Transfer complete’ page, you may start another transfer.
-                }
                 </p>
 
                 <h3 class="govuk-heading-s" id="what-happens-if-editorial-error-in-judgment">
                     What happens if there is an editorial error in my judgment?</h3>
                 <p class="govuk-body">
-                @if(!blockPressSummaries) {
                     Judgments do not undergo editorial checks within TDR. This is done by the Find Case Law editorial team after we receive the judgment. If errors are identified, we will contact you. If you are aware of any errors before upload, amend the judgment before you begin the upload into TDR. If you notice an error after the judgment has been transferred from TDR, you can send an update by logging back into TDR and selecting the option 'It's an update to a judgment or decision' on the 'Tell us about your document' page. You can then upload a corrected version of your judgment.
-                } else {
-                    Judgments do not undergo editorial checks within TDR. This is done by the Find Case Law editorial team after we receive the judgment. If errors are identified, we will contact you. If you are aware of any errors before upload, amend the judgment before you begin the upload into TDR. If you notice an error after the judgment has been transferred from TDR, contact <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>
-                    with the neutral citation and transfer reference.
-                }
                 </p>
 
                 <h2 class="govuk-heading-s" id="not-been-notified-judgment-published">

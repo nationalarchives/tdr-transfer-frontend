@@ -120,7 +120,7 @@ class UploadController @Inject() (
           val metadata = consignment.consignmentMetadata.map(md => md.propertyName -> md.value).toMap
           val judgmentType = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_type), "")
           val judgmentUpdate = metadata.getOrElse(tdrDataLoadHeaderMapper(judgment_update), "false").toBoolean
-          if (!applicationConfig.blockJudgmentPressSummaries && (judgmentType == press_summary || judgmentUpdate) && noNCNDataForJudgmentUpdateOrPressSummaryType(metadata)) {
+          if ((judgmentType == press_summary || judgmentUpdate) && noNCNDataForJudgmentUpdateOrPressSummaryType(metadata)) {
             Redirect(routes.JudgmentNeutralCitationController.addNCN(consignmentId).url)
           } else {
             Ok(
@@ -132,7 +132,7 @@ class UploadController @Inject() (
                   pageHeadingUploading,
                   applicationConfig.frontEndInfo,
                   request.token.name,
-                  buildBackURL(consignmentId, judgmentType, judgmentUpdate)
+                  buildJudgmentBackURL(consignmentId, judgmentType, judgmentUpdate)
                 )
             ).uncache()
           }
@@ -148,15 +148,11 @@ class UploadController @Inject() (
     existingNCN.isEmpty && existingNoNCN.isEmpty
   }
 
-  private def buildBackURL(consignmentId: UUID, judgmentType: String, judgmentUpdate: Boolean): String = {
-    if (applicationConfig.blockJudgmentPressSummaries) {
+  private def buildJudgmentBackURL(consignmentId: UUID, judgmentType: String, judgmentUpdate: Boolean): String = {
+    if (judgmentType == judgment && !judgmentUpdate) {
       routes.BeforeUploadingController.beforeUploading(consignmentId).url
     } else {
-      if (judgmentType == judgment && !judgmentUpdate) {
-        routes.BeforeUploadingController.beforeUploading(consignmentId).url
-      } else {
-        routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
-      }
+      routes.JudgmentNeutralCitationController.addNCN(consignmentId).url
     }
   }
 }
