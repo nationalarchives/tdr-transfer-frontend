@@ -1,4 +1,5 @@
 package controllers
+
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
@@ -22,7 +23,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
-import services.Statuses.{CompletedValue, CompletedWithIssuesValue}
+import services.Statuses.{ClientChecksType, CompletedValue, CompletedWithIssuesValue, FailedValue, StatusValue}
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -121,7 +122,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       resultsPageAsString must include regex buttonToProgress
     }
 
-    "return a redirect to transfer complete for a judgements user when transfer is completed" in {
+    "return a redirect to transfer complete for a judgments user when transfer is completed" in {
       val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
@@ -133,13 +134,32 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       redirectLocation(recordCheckResultsPage).get must be(s"/judgment/$consignmentId/transfer-complete")
     }
 
-    "return a file checks failed page for a judgements user when transfer is completed with issues" in {
+    "return a file checks failed page for a judgments user when transfer is completed with issues" in {
       val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
       val recordCheckResultsPage = fileCheckResultsController
         .judgmentFileCheckResultsPage(consignmentId, Some(CompletedWithIssuesValue.value))
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+      status(recordCheckResultsPage) mustBe 200
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "judgment")
+      resultsPageAsString must include("<title>Results of checks - Transfer Digital Records - GOV.UK</title>")
+      resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of checks</h1>""")
+      resultsPageAsString must include(expectedFailureTitle)
+      resultsPageAsString must include(expectedJudgmentErrorMessage)
+      resultsPageAsString must include(expectedFailureReturnButton)
+    }
+
+    "return a file checks failed page for a judgments user when files checks succeed but failure in overall process" in {
+      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val recordCheckResultsPage = fileCheckResultsController
+        .judgmentFileCheckResultsPage(consignmentId, Some(FailedValue.value))
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
       status(recordCheckResultsPage) mustBe 200
       val resultsPageAsString = contentAsString(recordCheckResultsPage)
@@ -290,6 +310,43 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
         val recordCheckResultsPage = {
           if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None) }
+          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        status(recordCheckResultsPage) mustBe OK
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        resultsPageAsString must include(expectedHeading)
+        resultsPageAsString must include(expectedFailureTitle)
+        resultsPageAsString must include(expectedGenericErrorMessage)
+        resultsPageAsString must include(expectedFailureReturnButton)
+      }
+
+      s"return the $userType error page if file checks have passed but overall process failed" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, Failed.value, ZonedDateTime.now(), None)
+        )
+
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("fileStatusValue")))
+
+        val data = Data(
+          Option(
+            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
+        val client = graphQLConfiguration.getClient[Data, Variables]()
+        val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
+
+        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
+        val recordCheckResultsPage = {
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, Some(FailedValue.value)) }
           else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
@@ -531,10 +588,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val wsClient = new InternalWSClient("http", 9007)
     new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
   }
-  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration): FileChecksResultsController = {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
-    setConsignmentStatusResponse(app.configuration, wiremockServer)
+  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration, clientChecksStatus: StatusValue = CompletedValue): FileChecksResultsController = {
+    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val consignmentStatuses = List(
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, clientChecksStatus.value, ZonedDateTime.now(), None)
+    )
+
+    setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
     val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
 
     val fileChecksData = gfcp.Data(
