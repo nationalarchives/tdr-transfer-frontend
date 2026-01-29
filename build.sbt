@@ -14,7 +14,7 @@ libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2" % Test
 
 val playVersion = "3.0.3"
-val playPac4jVersion = "13.0.1-PLAY3.0"
+val playPac4jVersion = "13.0.0-PLAY3.0"
 val pac4jVersion = "6.3.1"
 val sttpVersion = "3.11.0"
 
