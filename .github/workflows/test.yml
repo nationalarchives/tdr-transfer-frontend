@@ -11,7 +11,7 @@ permissions:
   contents: write
 jobs:
   test:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@f52edf22c81f568202369a3b31da0277541b0507 # v0.0.11
+    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@cd362ffa9386c007c816bfd15a25b6f0a3c3b3d6 # v0.0.14
     with:
       repo-name: tdr-transfer-frontend
       test-command: |
