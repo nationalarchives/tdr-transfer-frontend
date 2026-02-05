@@ -124,9 +124,9 @@ export const renderModules = async () => {
         const checksModule = await import("./checks")
         const nextPageModule =
           await import("./nextpageredirect/next-page-redirect")
-        //interval for page reload set at 80% of token validity period
+        //interval for page reload set at 60% of token validity period
         const checksPageRefreshInterval =
-          (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.8
+          (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.6
         const resultOrError = new checksModule.Checks().updateFileCheckProgress(
           isJudgmentUser,
           nextPageModule.goToNextPage,
