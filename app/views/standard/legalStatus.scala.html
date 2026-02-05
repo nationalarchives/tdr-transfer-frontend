@@ -1,0 +1,53 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import views.html.partials._
+
+@import java.util.UUID
+@import scala.language.postfixOps
+@import viewsapi.FormFunctions.formDataOptions
+@import views.html.helper.form
+
+@import views.html.helper.CSRF
+@(consignmentId: UUID, consignmentRef: String, legalStatusFormData: Form[LegalStatusData], legalStatusFormNameAndLabel: Seq[(String, String)], name: String)(implicit request: RequestHeader, messages: Messages)
+@main("Transfer agreement (part 1)", name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                @transferAgreementHeader(" (part 1)")
+                @errorSummary(
+                    legalStatusFormData.errors.map(p => p.key -> Seq(Messages(s"${p.key}.${p.message}")))
+                )
+                @form(routes.TransferAgreementPart1Controller.transferAgreementSubmit(consignmentId), (Symbol("novalidate"), "")) {
+                    @CSRF.formField
+                    <div class="govuk-form-group">
+                        <fieldset class="govuk-fieldset">
+                            <div class="govuk-form-group  @{if(legalStatusFormData.hasErrors) {"govuk-form-group--error"} else {} }">
+                                <fieldset class="govuk-fieldset" @{if(legalStatusFormData.hasErrors) {"aria-describedby=\"legalStatus-error\""} else {} }>
+                                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+                                      Select the legal status of these records:
+                                    </legend>
+                                    @legalStatusFormData("legalStatus").error match {
+                                        case Some(formError) => {@errorMessage(formError.key, Seq(Messages(s"${formError.key}.${formError.message}")))}
+                                        case None => {}
+                                    }
+                                    <div class="govuk-radios" data-module="govuk-radios" data-govuk-radios-init="">
+                                        @for(nameAndLabel <- legalStatusFormNameAndLabel) {
+                                            @inputRadioButton(nameAndLabel._1,
+                                                Map(
+                                                    Symbol("_label") -> nameAndLabel._2,
+                                                    Symbol("_value") -> nameAndLabel._2,
+                                                    Symbol("_checkedOption") -> legalStatusFormData.shouldOptionBeSelected(nameAndLabel._1),
+                                                )
+                                            )
+                                        }
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </fieldset>
+                    </div>
+                    @transferAgreementNavButtons()
+                }
+            </div>
+            @transferReference(consignmentRef, isJudgmentUser = false)
+        </div>
+    }
+}

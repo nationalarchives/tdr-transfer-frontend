@@ -1,14 +1,15 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.Statuses.{CompletedValue, InProgressValue, SeriesType, TransferAgreementType}
-import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
+import services.Statuses._
+import services.{ConsignmentMetadataService, ConsignmentService, ConsignmentStatusService, TransferAgreementService}
+import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.legal_status
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -22,7 +23,9 @@ class TransferAgreementPart1Controller @Inject() (
     val transferAgreementService: TransferAgreementService,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService
+    val consignmentStatusService: ConsignmentStatusService,
+    val consignmentMetadataService: ConsignmentMetadataService,
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -36,6 +39,17 @@ class TransferAgreementPart1Controller @Inject() (
 
   private val transferAgreementFormNameAndLabel: Seq[(String, String)] = Seq(
     ("publicRecord", "Public Records")
+  )
+
+  private val legalStatusForm: Form[LegalStatusData] = Form(
+    mapping(
+      "legalStatus" -> nonEmptyText.verifying(_.nonEmpty)
+    )(LegalStatusData.apply)(LegalStatusData.unapply)
+  )
+  private val legalStatusFormNameAndLabel: Seq[(String, String)] = Seq(
+    ("legalStatus", "Public Record(s)"),
+    ("legalStatus", "Welsh Public Record(s)"),
+    ("legalStatus", "Not Public Record(s)")
   )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])(implicit
@@ -79,10 +93,57 @@ class TransferAgreementPart1Controller @Inject() (
   }
 
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    loadStandardPageBasedOnTaStatus(consignmentId, Ok, transferAgreementForm)
+    if (applicationConfig.blockLegalStatus) {
+      loadStandardPageBasedOnTaStatus(consignmentId, Ok, transferAgreementForm)
+    } else {
+      for {
+        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+        statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType).values.headOption.flatten
+      } yield {
+        statusesToValue match {
+          case Some(CompletedValue.value) =>
+            Ok(views.html.standard.legalStatus(consignmentId, reference, legalStatusForm, legalStatusFormNameAndLabel, request.token.name)).uncache()
+          case _ => Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId))
+
+        }
+      }
+    }
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    if (applicationConfig.blockLegalStatus) {
+      submitTransferAgreement(consignmentId)
+    } else {
+      val errorFunction: Form[LegalStatusData] => Future[Result] = { formWithErrors: Form[LegalStatusData] =>
+        for {
+          reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+        } yield BadRequest(views.html.standard.legalStatus(consignmentId, reference, formWithErrors, legalStatusFormNameAndLabel, request.token.name)).uncache()
+      }
+      val successFunction: LegalStatusData => Future[Result] = { formData: LegalStatusData =>
+        for {
+          _ <- consignmentMetadataService.addOrUpdateConsignmentMetadata(consignmentId, Map(legal_status -> formData.legalStatus), request.token.bearerAccessToken)
+          consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+          statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType).values.headOption.flatten
+          result <- statusesToValue match {
+            case Some(_) => Future(Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
+            case None    =>
+              consignmentStatusService.addConsignmentStatus(consignmentId, TransferAgreementType.id, InProgressValue.value, request.token.bearerAccessToken).map { _ =>
+                Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId))
+              }
+          }
+        } yield result
+      }
+      val formValidationResult: Form[LegalStatusData] = legalStatusForm.bindFromRequest()
+
+      formValidationResult.fold(
+        errorFunction,
+        successFunction
+      )
+    }
+  }
+
+  private def submitTransferAgreement(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Result] = {
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
       loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
     }
@@ -115,3 +176,4 @@ class TransferAgreementPart1Controller @Inject() (
 }
 
 case class TransferAgreementData(publicRecord: Boolean, english: Option[Boolean])
+case class LegalStatusData(legalStatus: String)

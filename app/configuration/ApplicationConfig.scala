@@ -30,6 +30,8 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val blockSkipMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockSkipMetadataReview")
 
+  val blockLegalStatus: Boolean = configuration.get[Boolean]("featureAccessBlock.blockLegalStatus")
+
   val draft_metadata_s3_bucket_name: String = configuration.get[String]("draft_metadata_s3_bucket_name")
 
   val draftMetadataFileName: String = configuration.get[String]("draftMetadata.fileName")
