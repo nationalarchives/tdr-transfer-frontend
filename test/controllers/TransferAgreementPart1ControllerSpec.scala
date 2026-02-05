@@ -229,7 +229,6 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
       val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
       when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
 
-
       val controller: TransferAgreementPart1Controller =
         instantiateTransferAgreementPart1Controller(
           getAuthorisedSecurityComponents,
@@ -257,7 +256,6 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
       val metadata = Map(legal_status -> legalStatus)
       val metadataRowCaptor: ArgumentCaptor[Map[String, String]] = ArgumentCaptor.forClass(classOf[Map[String, String]])
       when(consignmentMetadataService.addOrUpdateConsignmentMetadata(any[UUID], metadataRowCaptor.capture(), any[BearerAccessToken])).thenReturn(Future.successful(Nil))
-
 
       val controller: TransferAgreementPart1Controller =
         instantiateTransferAgreementPart1Controller(
@@ -660,7 +658,9 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
     pageAsString must include("Select the legal status of these records:")
 
     List("Public Record(s)", "Welsh Public Record(s)", "Not Public Record(s)").foreach { option =>
-      pageAsString must include(s"""<input  class="govuk-radios__input" id="legalStatus-${option.toLowerCase.replaceAll(" ", "-")}" name="legalStatus" type="radio" value="$option"/>""")
+      pageAsString must include(
+        s"""<input  class="govuk-radios__input" id="legalStatus-${option.toLowerCase.replaceAll(" ", "-")}" name="legalStatus" type="radio" value="$option"/>"""
+      )
       pageAsString must include(s"""<label class="govuk-label govuk-radios__label" for="legalStatus-${option.toLowerCase.replaceAll(" ", "-")}">
                                    |       ${option}
                                    |    </label>""".stripMargin)
@@ -677,11 +677,11 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
   }
 
   def instantiateTransferAgreementPart1Controller(
-                                                   securityComponents: SecurityComponents,
-                                                   config: Configuration,
-                                                   keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration,
-                                                   blockLegalStatus: Boolean = true
-                                                 ): TransferAgreementPart1Controller = {
+      securityComponents: SecurityComponents,
+      config: Configuration,
+      keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration,
+      blockLegalStatus: Boolean = true
+  ): TransferAgreementPart1Controller = {
 
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
