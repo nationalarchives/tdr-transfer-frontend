@@ -54,4 +54,4 @@ draftMetadata.validation.details.UNKNOWN=An unknown error was identified.
 draftMetadata.validation.action.UNKNOWN=Please contact your Digital Transfer Advisor on <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a> quoting the Consignment Reference.
 
 SCHEMA_BASE.judgment_reference.maxLength=''Provide any details...'' must be 500 characters or less
-legalStatus.error.required=Select the appropriate option for your records
+legal_status.error.required=Select the appropriate option for your records
