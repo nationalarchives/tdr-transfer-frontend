@@ -43,13 +43,13 @@ class TransferAgreementPart1Controller @Inject() (
 
   private val legalStatusForm: Form[LegalStatusData] = Form(
     mapping(
-      "legalStatus" -> nonEmptyText.verifying(_.nonEmpty)
+      legal_status -> nonEmptyText.verifying(_.nonEmpty)
     )(LegalStatusData.apply)(LegalStatusData.unapply)
   )
   private val legalStatusFormNameAndLabel: Seq[(String, String)] = Seq(
-    ("legalStatus", "Public Record(s)"),
-    ("legalStatus", "Welsh Public Record(s)"),
-    ("legalStatus", "Not Public Record(s)")
+    (legal_status, "Public Record(s)"),
+    (legal_status, "Welsh Public Record(s)"),
+    (legal_status, "Not Public Record(s)")
   )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])(implicit
@@ -105,7 +105,6 @@ class TransferAgreementPart1Controller @Inject() (
           case Some(CompletedValue.value) =>
             Ok(views.html.standard.legalStatus(consignmentId, reference, legalStatusForm, legalStatusFormNameAndLabel, request.token.name)).uncache()
           case _ => Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId))
-
         }
       }
     }

@@ -78,7 +78,7 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
       redirectLocation(transferAgreementPage).get must equal(s"/consignment/$consignmentId/series")
     }
 
-    "render the series page with an authenticated user if series status is not 'Completed' when blockLegalStatus is 'false'" in {
+    "redirect to series page if series status is not 'Completed' when blockLegalStatus is 'false'" in {
       val consignmentId = UUID.randomUUID()
 
       val controller: TransferAgreementPart1Controller =
@@ -238,13 +238,13 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
         )
       val transferAgreementSubmit = controller
         .transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest().withFormUrlEncodedBody(("legalStatus", legalStatus)).withCSRFToken)
+        .apply(FakeRequest().withFormUrlEncodedBody((legal_status, legalStatus)).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
       redirectLocation(transferAgreementSubmit) must be(Some("/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued"))
       metadataRowCaptor.getValue mustBe metadata
     }
 
-    "create a transfer agreement when a valid form is submitted and don't set the TransferAgreement status is already present in DB when blockLegalStatus is 'false'" in {
+    "create a transfer agreement when a valid form is submitted and do not set the TransferAgreement status when already present in DB, and blockLegalStatus is 'false'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), TransferAgreementType.id, InProgress.value, someDateTime, None))
 
@@ -266,7 +266,7 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
         )
       val transferAgreementSubmit = controller
         .transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest().withFormUrlEncodedBody(("legalStatus", legalStatus)).withCSRFToken)
+        .apply(FakeRequest().withFormUrlEncodedBody((legal_status, legalStatus)).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
       redirectLocation(transferAgreementSubmit) must be(Some("/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued"))
       metadataRowCaptor.getValue mustBe metadata
@@ -659,9 +659,9 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
 
     List("Public Record(s)", "Welsh Public Record(s)", "Not Public Record(s)").foreach { option =>
       pageAsString must include(
-        s"""<input  class="govuk-radios__input" id="legalStatus-${option.toLowerCase.replaceAll(" ", "-")}" name="legalStatus" type="radio" value="$option"/>"""
+        s"""<input  class="govuk-radios__input" id="legal_status-${option.toLowerCase.replaceAll(" ", "-")}" name="legal_status" type="radio" value="$option"/>"""
       )
-      pageAsString must include(s"""<label class="govuk-label govuk-radios__label" for="legalStatus-${option.toLowerCase.replaceAll(" ", "-")}">
+      pageAsString must include(s"""<label class="govuk-label govuk-radios__label" for="legal_status-${option.toLowerCase.replaceAll(" ", "-")}">
                                    |       ${option}
                                    |    </label>""".stripMargin)
     }

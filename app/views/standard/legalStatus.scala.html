@@ -7,6 +7,7 @@
 @import views.html.helper.form
 
 @import views.html.helper.CSRF
+@import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.legal_status
 @(consignmentId: UUID, consignmentRef: String, legalStatusFormData: Form[LegalStatusData], legalStatusFormNameAndLabel: Seq[(String, String)], name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement (part 1)", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -25,7 +26,7 @@
                                     <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
                                       Select the legal status of these records:
                                     </legend>
-                                    @legalStatusFormData("legalStatus").error match {
+                                    @legalStatusFormData(legal_status).error match {
                                         case Some(formError) => {@errorMessage(formError.key, Seq(Messages(s"${formError.key}.${formError.message}")))}
                                         case None => {}
                                     }
