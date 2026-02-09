@@ -1,4 +1,4 @@
-@(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean, blockLegalStatus: Boolean)(implicit messages: Messages, request: RequestHeader)
 @defining("User Help Guide") { title =>
   @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
     <div class="govuk-grid-row">
@@ -280,45 +280,81 @@
             <p class="govuk-body">
                 A 'Consignment reference' is a unique identifier assigned at the beginning of your transfer. This will be displayed in the top right corner of every page throughout the process. Quote this reference if you need to contact us about your transfer.
             </p>
-            <p class="govuk-body">
-                You can hide the reference and make it visible again by clicking the blue arrow next to 'Consignment reference'.
-            </p>
-            <img src="@routes.Assets.versioned("images/standard-select-series-page.png")" class="screenshots" alt="TDR select series page" />
-            <h3 class="govuk-heading-s" id="select-series">Step 1: Select series reference</h3>
-            <ol class="govuk-body">
-                <li>Your series reference during beta will be pre-populated and will appear in the drop-down list.
-                    You should select the correct series reference from the drop-down menu and click 'Continue'.</li>
-                <li>If you cannot see the correct series reference or you need to add a new one, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.</li>
-                <img src="@routes.Assets.versioned("images/standard-selected-series-page.png")" class="screenshots" alt="TDR series selected page" />
-            </ol>
+            @if(blockLegalStatus) {
+                <p class="govuk-body">
+                    You can hide the reference and make it visible again by clicking the blue arrow next to 'Consignment reference'.
+                </p>
+                <img src="@routes.Assets.versioned("images/standard-select-series-page.png")" class="screenshots" alt="TDR select series page" />
+                <h3 class="govuk-heading-s" id="select-series">Step 1: Select series reference</h3>
+                <ol class="govuk-body">
+                    <li>Your series reference during beta will be pre-populated and will appear in the drop-down list.
+                        You should select the correct series reference from the drop-down menu and click 'Continue'.</li>
+                    <li>If you cannot see the correct series reference or you need to add a new one, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.</li>
+                    <img src="@routes.Assets.versioned("images/standard-selected-series-page.png")" class="screenshots" alt="TDR series selected page" />
+                </ol>
 
-            <h3 class="govuk-heading-s" id="transfer-agreement">Step 2: Transfer agreement</h3>
-            <p class="govuk-body">
-                Before you upload records, you must confirm that, to the best of your knowledge, your records meet our criteria.
-            </p>
-            <p class="govuk-body">
-                During beta, records must meet the following criteria:
-            </p>
-            <ul class="govuk-list govuk-list--bullet">
-                <li>Records must be Public Records</li>
-                <li>The Departmental Records Officer (DRO) must have signed off the appraisal and selection decision </li>
-                <li>The Departmental Records Officer (DRO) must have signed off the sensitivity review</li>
-            </ul>
-            <p class="govuk-body">
-                For more information on what is meant by the above terms, please see our <a href="#glossary">Glossary</a>
-            </p>
-            <p class="govuk-body">
-                The transfer agreement is in two parts.
-            </p>
-            <ol class="govuk-body">
-                <li>In the first part you must click each box to confirm that the records are Public Records and Crown Copyright.
-                    Click 'Agree and continue' when you are ready to proceed.</li>
-                <img src="@routes.Assets.versioned("images/standard-TA-1.png")" class="screenshots" alt="Transfer Agreement part 1 page" />
-                <li>The second part, you must click each box to confirm that the Departmental Records Officer (DRO) has signed off the sensitivity review, appraisal and selection decision.
-                    Click ‘Agree and continue’ when you are ready to proceed. If you cannot confirm this information, you must close your browser and contact your transfer advisor.</li>
-                <img src="@routes.Assets.versioned("images/standard-TA-2.png")" class="screenshots" alt="Transfer Agreement part 2 page"/>
-            </ol>
+                <h3 class="govuk-heading-s" id="transfer-agreement">Step 2: Transfer agreement</h3>
+                <p class="govuk-body">
+                    Before you upload records, you must confirm that, to the best of your knowledge, your records meet our criteria.
+                </p>
+                <p class="govuk-body">
+                    During beta, records must meet the following criteria:
+                </p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>Records must be Public Records</li>
+                    <li>The Departmental Records Officer (DRO) must have signed off the appraisal and selection decision </li>
+                    <li>The Departmental Records Officer (DRO) must have signed off the sensitivity review</li>
+                </ul>
+                <p class="govuk-body">
+                    For more information on what is meant by the above terms, please see our <a href="#glossary">Glossary</a>
+                </p>
+                <p class="govuk-body">
+                    The transfer agreement is in two parts.
+                </p>
+                <ol class="govuk-body">
+                    <li>In the first part you must click each box to confirm that the records are Public Records and Crown Copyright.
+                        Click 'Agree and continue' when you are ready to proceed.</li>
+                    <img src="@routes.Assets.versioned("images/standard-TA-1.png")" class="screenshots" alt="Transfer Agreement part 1 page" />
+                    <li>The second part, you must click each box to confirm that the Departmental Records Officer (DRO) has signed off the sensitivity review, appraisal and selection decision.
+                        Click ‘Agree and continue’ when you are ready to proceed. If you cannot confirm this information, you must close your browser and contact your transfer advisor.</li>
+                    <img src="@routes.Assets.versioned("images/standard-TA-2.png")" class="screenshots" alt="Transfer Agreement part 2 page"/>
+                </ol>
+            } else {
+                <h3 class="govuk-heading-s" id="select-series">Step 1: Select series reference</h3>
+                <ol class="govuk-body">
+                    <li>Your series reference during beta will be pre-populated and will appear in the drop-down list.
+                        You should select the correct series reference from the drop-down menu and click 'Continue'.</li>
+                    <li>If you cannot see the correct series reference or you need to add a new one, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.</li>
+                    <img src="@routes.Assets.versioned("images/standard-selected-series-page.png")" class="screenshots" alt="TDR select series page" />
+                </ol>
+                <h3 class="govuk-heading-s" id="transfer-agreement">Step 2: Transfer agreement</h3>
+                <p class="govuk-body">
+                    Before you upload records, you must confirm that, to the best of your knowledge, your records meet our criteria.
+                </p>
+                <p class="govuk-body">
+                    During beta, records must meet the following criteria:
+                </p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>Records must be either Public Record(s), Welsh Public Record(s) or Not Public Record(s)</li>
+                    <li>The Departmental Records Officer (DRO) must have signed off the appraisal and selection decision </li>
+                    <li>The Departmental Records Officer (DRO) must have signed off the sensitivity review</li>
+                </ul>
+                <p class="govuk-body">
+                    For more information on what is meant by the above terms, please see our <a href="#glossary">Glossary</a>
+                </p>
+                <p class="govuk-body">
+                    The transfer agreement is in two parts.
+                </p>
+                <ol class="govuk-body">
+                    <li>In the first part you must select the legal status of these records. The options are : Public Record(s), Welsh Public Record(s) or Not Public Record(s):<br>
+                        <img src="@routes.Assets.versioned("images/standard-TA-Part1.png")" class="screenshots" alt="Transfer Agreement part 1 page" />
+                        Select an option and then click 'Agree and continue' when you are ready to proceed.</li><br>
 
+                    <li>The second part, you must click each box to confirm that the Departmental Records Officer (DRO) has signed off the  appraisal and selection decision and sensitivity review. <br>
+                        <img src="@routes.Assets.versioned("images/standard-TA-Part2.png")" class="screenshots" alt="Transfer Agreement part 2 page"/>
+                        Click ‘Agree and continue’ when you are ready to proceed. If you cannot confirm this information, you must close your browser and contact your transfer advisor.</li>
+                </ol>
+            }
             <h3 class="govuk-heading-s" id="upload-records">Step 3: Upload your records</h3>
             <p class="govuk-body">
                 Before you begin, ensure your internet connection is stable and strong.
