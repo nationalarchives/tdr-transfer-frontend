@@ -17,7 +17,7 @@ class HelpController @Inject() (securityComponents: SecurityComponents, val appl
     extends UnprotectedPageController(securityComponents)
     with I18nSupport {
   def help(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser))
+    Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser, applicationConfig.blockLegalStatus))
   }
 
   def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
