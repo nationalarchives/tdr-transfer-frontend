@@ -25,7 +25,7 @@ class HelpController @Inject() (securityComponents: SecurityComponents, val appl
   }
 
   def metadataQuickGuide(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    val METADATA_GUIDANCE_LOCATION = "/guidance/metadata-template.json"
+    val METADATA_GUIDANCE_LOCATION = ConfigUtils.mapToMetadataEnvironmentFile("/guidance/metadata-template.json")
     val nodeSchema = getClass.getResourceAsStream(METADATA_GUIDANCE_LOCATION)
     val source = Source.fromInputStream(nodeSchema)
     val guideContent = Using(source)(_.mkString).get
