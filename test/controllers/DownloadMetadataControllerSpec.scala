@@ -87,7 +87,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
         rows.length must equal(3)
 
-        rows.head.getCellCount must equal(21)
+        rows.head.getCellCount must equal(22)
         rows.head.getCell(0).asString must equal("filepath")
         rows.head.getCell(1).asString must equal("filename")
         rows.head.getCell(2).asString must equal("date last modified")
@@ -109,6 +109,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         rows.head.getCell(18).asString must equal("related material")
         rows.head.getCell(19).asString must equal("restrictions on use")
         rows.head.getCell(20).asString must equal("evidence provided by")
+        rows.head.getCell(21).asString must equal("note")
 
         val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
           .find { case (cell, _) => cell.asString == "copyright" }
