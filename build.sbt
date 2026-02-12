@@ -52,6 +52,7 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2
 
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.20.2"
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.20.2"
+dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
