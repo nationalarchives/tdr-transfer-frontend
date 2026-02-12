@@ -1,0 +1,13 @@
+@(fieldName: String, attributes: Map[Symbol, Any])(implicit messages: Messages)
+
+@value = {@attributes.get(Symbol("_value"))}
+@label = {@attributes.get(Symbol("_label"))}
+@checkedStatus = {@attributes.get(Symbol("_checkedOption"))}
+@fieldId = @{s"$fieldName-${value.toString().replaceAll(" ", "-").toLowerCase()}"}
+
+<div class="govuk-radios__item">
+    <input @checkedStatus class="govuk-radios__input" id="@fieldId" name="@fieldName" type="radio" value="@value"/>
+    <label class="govuk-label govuk-radios__label" for="@fieldId">
+       @label
+    </label>
+</div>
