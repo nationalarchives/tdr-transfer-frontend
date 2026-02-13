@@ -14,7 +14,7 @@ libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2" % Test
 
 val playVersion = "3.0.3"
-val playPac4jVersion = "13.0.1-PLAY3.0"
+val playPac4jVersion = "13.0.2-PLAY3.0"
 val pac4jVersion = "6.3.1"
 val sttpVersion = "3.11.0"
 
@@ -27,14 +27,14 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.267",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.270",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.449",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.107",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.189",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.271",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.272",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.451",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.116",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.195",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.317",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.317",
-  "ch.qos.logback" % "logback-classic" % "1.5.27",
+  "ch.qos.logback" % "logback-classic" % "1.5.29",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.55.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.55.0",
@@ -50,8 +50,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.20.2"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.20.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.21.0"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.21.0"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 disablePlugins(PlayLogback)
