@@ -17,7 +17,7 @@ class HelpController @Inject() (securityComponents: SecurityComponents, val appl
     extends UnprotectedPageController(securityComponents)
     with I18nSupport {
   def help(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser))
+    Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser, applicationConfig.blockLegalStatus))
   }
 
   def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
@@ -25,7 +25,7 @@ class HelpController @Inject() (securityComponents: SecurityComponents, val appl
   }
 
   def metadataQuickGuide(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    val METADATA_GUIDANCE_LOCATION = "/guidance/metadata-template.json"
+    val METADATA_GUIDANCE_LOCATION = ConfigUtils.mapToMetadataEnvironmentFile("/guidance/metadata-template.json")
     val nodeSchema = getClass.getResourceAsStream(METADATA_GUIDANCE_LOCATION)
     val source = Source.fromInputStream(nodeSchema)
     val guideContent = Using(source)(_.mkString).get
