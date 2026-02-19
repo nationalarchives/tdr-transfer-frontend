@@ -14,7 +14,7 @@ libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2" % Test
 
 val playVersion = "3.0.3"
-val playPac4jVersion = "13.0.1-PLAY3.0"
+val playPac4jVersion = "13.0.2-PLAY3.0"
 val pac4jVersion = "6.3.1"
 val sttpVersion = "3.11.0"
 
@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-sdk" % "1.59.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.53.0",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.54.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.53.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.21.0" % Test,
