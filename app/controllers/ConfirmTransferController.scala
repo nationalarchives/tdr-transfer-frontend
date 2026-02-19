@@ -35,7 +35,7 @@ class ConfirmTransferController @Inject() (
   val finalTransferConfirmationForm: Form[FinalTransferConfirmationData] = Form(
     mapping(
       "transferLegalCustody" -> boolean
-        .verifying("Transferral of legal custody of all records must be confirmed before proceeding", b => b)
+        .verifying("Transferral of custody of all records must be confirmed before proceeding", b => b)
     )(FinalTransferConfirmationData.apply)(FinalTransferConfirmationData.unapply)
   )
 
