@@ -34,8 +34,6 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
 
   val checkPageForStaticElements = new CheckPageForStaticElements
 
-  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-
   "metadataReviewStatusPage GET" should {
     "render the default metadata review status page with an authenticated user" in {
       val consignmentId = UUID.randomUUID()

@@ -3,6 +3,13 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
+import graphql.codegen.types.ConsignmentStatusInput
+import io.circe._
+import io.circe.generic.semiauto._
+import io.circe.parser.decode
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
@@ -16,7 +23,7 @@ import play.api.mvc.{MultipartFormData, Result}
 import play.api.test.CSRFTokenHelper._
 import play.api.test.Helpers.{status => playStatus, _}
 import play.api.test.{FakeHeaders, FakeRequest}
-import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, FileError, UploadService}
+import services._
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import testUtils.FrontEndTestHelper
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -111,12 +118,14 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   }
 
   "DraftMetadataUploadController saveDraftMetadata" should {
-    "redirect to draft metadata checks page when upload successful" in {
+    "redirect to draft metadata checks page when upload successful and set the 'DraftMetadataUpload' status to 'Completed'" in {
       val uploadServiceMock = mock[UploadService]
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
       setUpdateConsignmentStatus(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
       val consignmentServiceMock = mock[ConsignmentService]
       when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
@@ -131,11 +140,63 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
       val redirect = redirectLocation(response)
       redirect.getOrElse(s"incorrect redirect $redirect") must include regex "/consignment/*.*/draft-metadata/checks"
+      val updateConsignmentStatusInput = captureUpdateConsignmentStatusInput()
+
+      updateConsignmentStatusInput.statusType shouldBe "DraftMetadataUpload"
+      updateConsignmentStatusInput.statusValue shouldBe Some("Completed")
     }
 
-    "render error page when upload unsuccessful when no file uploaded" in {
+    "set the 'DraftMetadataUpload' status to 'InProgress', and update it to 'Completed' after a successful upload and validation" in {
+      val uploadServiceMock = mock[UploadService]
+      when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
+      val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
+      setUpdateConsignmentStatus(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setAddConsignmentStatusResponse(wiremockServer)
+
+      val consignmentServiceMock = mock[ConsignmentService]
+      when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
+        .thenReturn(Future.successful(1))
+      setUpdateClientSideFileNameResponse(wiremockServer)
+
+      val draftMetadataServiceMock = mock[DraftMetadataService]
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
+      val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
+
+      playStatus(response) mustBe 303
+
+      val redirect = redirectLocation(response)
+      redirect.getOrElse(s"incorrect redirect $redirect") must include regex "/consignment/*.*/draft-metadata/checks"
+
+      val addConsignmentStatusInput = captureAddConsignmentStatusInput()
+      addConsignmentStatusInput.statusType shouldBe "DraftMetadataUpload"
+      addConsignmentStatusInput.statusValue shouldBe Some("InProgress")
+
+      val updateConsignmentStatusInput = captureUpdateConsignmentStatusInput()
+      updateConsignmentStatusInput.statusType shouldBe "DraftMetadataUpload"
+      updateConsignmentStatusInput.statusValue shouldBe Some("Completed")
+    }
+
+    "redirect to metadata checks page, and don't run the draft metadata upload and validation if a previous upload is already in progres" in {
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "InProgress", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val response = requestFileUpload(mock[UploadService], mock[DraftMetadataService])
+
+      playStatus(response) mustBe 303
+
+      val redirect = redirectLocation(response)
+      redirect.getOrElse(s"incorrect redirect $redirect") must include regex "/consignment/*.*/draft-metadata/checks"
+    }
+
+    "render error page when upload unsuccessful when no file uploaded and set the 'DraftMetadataUpload' status to 'CompletedWithIssue'" in {
       val uploadServiceMock = mock[UploadService]
       setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "CompletedWithIssue", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+      setUpdateConsignmentStatus(wiremockServer)
+
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn("wrong name")
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
@@ -146,12 +207,19 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
       playStatus(response) mustBe 200
 
+      val updateConsignmentStatusInput = captureUpdateConsignmentStatusInput()
+
+      updateConsignmentStatusInput.statusType shouldBe "DraftMetadataUpload"
+      updateConsignmentStatusInput.statusValue shouldBe Some("CompletedWithIssues")
       contentAsString(response) must include("There is a problem")
     }
 
     "render error page when upload success but trigger fails" in {
       val uploadServiceMock = mock[UploadService]
       setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+      setUpdateConsignmentStatus(wiremockServer)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
@@ -161,13 +229,19 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200
+      val updateConsignmentStatusInput = captureUpdateConsignmentStatusInput()
 
+      updateConsignmentStatusInput.statusType shouldBe "DraftMetadataUpload"
+      updateConsignmentStatusInput.statusValue shouldBe Some("CompletedWithIssues")
       contentAsString(response) must include("There is a problem")
     }
 
     "render error page when upload successful but file name update fails" in {
       val uploadServiceMock = mock[UploadService]
       setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+      setUpdateConsignmentStatus(wiremockServer)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]]))
@@ -181,9 +255,28 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200
+      val updateConsignmentStatusInput = captureUpdateConsignmentStatusInput()
 
+      updateConsignmentStatusInput.statusType shouldBe "DraftMetadataUpload"
+      updateConsignmentStatusInput.statusValue shouldBe Some("CompletedWithIssues")
       contentAsString(response) must include("There is a problem")
     }
+  }
+
+  private def captureAddConsignmentStatusInput(): ConsignmentStatusInput = {
+    decode[AddConsignmentStatusGraphqlRequestData](
+      getServeEvent(wiremockServer, "addConsignmentStatus").get.getRequest.getBodyAsString
+    ).getOrElse(AddConsignmentStatusGraphqlRequestData("", acs.Variables(ConsignmentStatusInput(UUID.fromString(consignmentId.toString), "", None, None))))
+      .variables
+      .addConsignmentStatusInput
+  }
+
+  private def captureUpdateConsignmentStatusInput(): ConsignmentStatusInput = {
+    decode[UpdateConsignmentStatusGraphqlRequestData](
+      getServeEvent(wiremockServer, "updateConsignmentStatus").get.getRequest.getBodyAsString
+    ).getOrElse(UpdateConsignmentStatusGraphqlRequestData("", ucs.Variables(ConsignmentStatusInput(UUID.fromString(consignmentId.toString), "", None, None))))
+      .variables
+      .updateConsignmentStatusInput
   }
 
   private def instantiateDraftMetadataUploadController(
@@ -236,4 +329,12 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
     controller.saveDraftMetadata(UUID.randomUUID()).apply(request)
   }
+
+  case class UpdateConsignmentStatusGraphqlRequestData(query: String, variables: ucs.Variables)
+  case class AddConsignmentStatusGraphqlRequestData(query: String, variables: acs.Variables)
+  implicit val afmVariablesDecoder: Decoder[ucs.Variables] = deriveDecoder
+  implicit val acsVariablesDecoder: Decoder[acs.Variables] = deriveDecoder
+  implicit val consignmentStatusInputDecoder: Decoder[ConsignmentStatusInput] = deriveDecoder
+  implicit val updateConsignmentStatusGraphqlRequestDataDecoder: Decoder[UpdateConsignmentStatusGraphqlRequestData] = deriveDecoder
+  implicit val addConsignmentStatusGraphqlRequestDataDecoder: Decoder[AddConsignmentStatusGraphqlRequestData] = deriveDecoder
 }

@@ -55,7 +55,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
-  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 

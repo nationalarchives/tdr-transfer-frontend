@@ -3,7 +3,7 @@ package testUtils
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
@@ -22,7 +22,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{ConsignmentStatuses => ecs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
-import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview, getConsignmentsForMetadataReview => gcfmr}
+import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
 import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
@@ -76,11 +76,13 @@ import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.language.existentials
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
+  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   implicit class AwaitFuture[T](future: Future[T]) {
     def await(timeout: Duration = 2.seconds): T = {
@@ -642,6 +644,11 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         .withRequestBody(equalToJson(query))
         .willReturn(okJson(dataString))
     )
+  }
+
+  def getServeEvent(wiremockGraphqlServer: WireMockServer, request: String): Option[ServeEvent] = {
+    val events = wiremockGraphqlServer.getAllServeEvents
+    events.asScala.find(event => event.getRequest.getBodyAsString.contains(request))
   }
 
   def toDummyConsignmentStatuses(statusMap: Map[StatusType, StatusValue], dummyConsignmentId: UUID = UUID.randomUUID()): List[ConsignmentStatuses] =
