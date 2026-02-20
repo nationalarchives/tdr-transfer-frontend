@@ -33,7 +33,6 @@ class TransferAgreementPart2ControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val expectedConfirmationMessage = "You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor."
