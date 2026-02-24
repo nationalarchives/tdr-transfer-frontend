@@ -16,7 +16,9 @@
 
     <div class="govuk-form-group @if(formData.errorSummary.nonEmpty) {govuk-form-group--error}">
         <fieldset class="govuk-fieldset">
-            <div class="govuk-hint">Select the reasons for the update:</div>
+            <legend class="govuk-fieldset__legend govuk-hint">
+                Select the reasons for the update:
+            </legend>
             @errorMessage(formData.updateType.id, formData.updateType.errors)
             <div class="govuk-checkboxes govuk-checkboxes--small" data-module="govuk-checkboxes">
                 @for((id, label) <- updateReasonIdAndLabels) {
