@@ -51,8 +51,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
   val checkPageForStaticElements = new CheckPageForStaticElements
 
-  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-
   "SeriesDetailsController GET" should {
 
     "render the correct series details page with an authenticated user" in {
