@@ -118,7 +118,7 @@ class TransferAgreementPart1Controller @Inject() (
         statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType).values.headOption.flatten
         result <- statusesToValue match {
           case Some(_) => Future(Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
-          case None =>
+          case None    =>
             consignmentStatusService.addConsignmentStatus(consignmentId, TransferAgreementType.id, InProgressValue.value, request.token.bearerAccessToken).map { _ =>
               Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId))
             }
