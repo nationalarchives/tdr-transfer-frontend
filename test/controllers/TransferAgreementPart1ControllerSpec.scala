@@ -464,7 +464,7 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
   def instantiateTransferAgreementPart1Controller(
       securityComponents: SecurityComponents,
       config: Configuration,
-      keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration,
+      keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration
   ): TransferAgreementPart1Controller = {
 
     val graphQLConfiguration = new GraphQLConfiguration(config)
