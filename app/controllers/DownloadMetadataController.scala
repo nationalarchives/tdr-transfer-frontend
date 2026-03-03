@@ -41,6 +41,14 @@ class DownloadMetadataController @Inject() (
     }
   }
 
+  def downloadInvalidMetadataFile(): Unit = {
+    implicit request: Request[AnyContent] =>
+      //Retrieve bucket ket for file
+      //Retrieve uploaded CSV from S3 bucket
+      //Convert to excel
+      //Add guidance worksheet
+  }
+
   def downloadMetadataFile(consignmentId: UUID, downloadType: Option[String]): Action[AnyContent] = standardAndTnaUserAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded metadata for consignmentId: $consignmentId")
