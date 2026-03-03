@@ -1,23 +1,21 @@
 package controllers
 
 import auth.UnprotectedPageController
-import configuration.ApplicationConfig
-
-import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
+import javax.inject.{Inject, Singleton}
 import scala.io.Source
 import scala.util.Using
 
 @Singleton
-class HelpController @Inject() (securityComponents: SecurityComponents, val applicationConfig: ApplicationConfig)
+class HelpController @Inject() (securityComponents: SecurityComponents)
     extends UnprotectedPageController(securityComponents)
     with I18nSupport {
   def help(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser, applicationConfig.blockLegalStatus))
+    Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser))
   }
 
   def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>

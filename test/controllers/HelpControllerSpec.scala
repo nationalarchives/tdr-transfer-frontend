@@ -8,13 +8,12 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 class HelpControllerSpec extends FrontEndTestHelper {
 
   val checkPageForStaticElements = new CheckPageForStaticElements
-  lazy val config = new ApplicationConfig(app.configuration)
 
   "HelpController GET" should {
 
     "render the standard help page from a new instance of controller if a user is logged out" in {
       // the link is not visible in the footer but you could still visit it if you had the URL
-      val controller = new HelpController(getUnauthorisedSecurityComponents, config)
+      val controller = new HelpController(getUnauthorisedSecurityComponents)
       val help = controller.help().apply(FakeRequest(GET, "/"))
       val pageAsString = contentAsString(help)
 
@@ -25,7 +24,7 @@ class HelpControllerSpec extends FrontEndTestHelper {
     }
 
     "render the standard help page from a new instance of controller if a user is logged in" in {
-      val controller = new HelpController(getAuthorisedSecurityComponents, config)
+      val controller = new HelpController(getAuthorisedSecurityComponents)
       val help = controller.help().apply(FakeRequest(GET, "/"))
       val userType = "standard"
       val pageAsString = contentAsString(help)
@@ -39,7 +38,7 @@ class HelpControllerSpec extends FrontEndTestHelper {
 
     "render the judgment help page from a new instance of controller if a user is logged out" in {
       // the link is not visible in the footer but you could still visit it if you had the URL
-      val controller = new HelpController(getUnauthorisedSecurityComponents, config)
+      val controller = new HelpController(getUnauthorisedSecurityComponents)
       val judgmentHelp = controller.judgmentHelp().apply(FakeRequest(GET, "/"))
       val userType = "judgment"
       val pageAsString = contentAsString(judgmentHelp)
@@ -51,7 +50,7 @@ class HelpControllerSpec extends FrontEndTestHelper {
     }
 
     "render the judgment help page from a new instance of controller if a user is logged in" in {
-      val controller = new HelpController(getAuthorisedSecurityComponentsForJudgmentUser, config)
+      val controller = new HelpController(getAuthorisedSecurityComponentsForJudgmentUser)
       val judgmentHelp = controller.judgmentHelp().apply(FakeRequest(GET, "/"))
       val userType = "judgment"
       val pageAsString = contentAsString(judgmentHelp)
@@ -64,7 +63,7 @@ class HelpControllerSpec extends FrontEndTestHelper {
     }
 
     "render the metadata quick guide page from a new instance of controller" in {
-      val controller = new HelpController(getUnauthorisedSecurityComponents, config)
+      val controller = new HelpController(getUnauthorisedSecurityComponents)
       val metadataGuide = controller.metadataQuickGuide().apply(FakeRequest(GET, "/help/metadataquickguide"))
       val pageAsString = contentAsString(metadataGuide)
 
