@@ -51,46 +51,6 @@ class TransferAgreementPart1Controller @Inject() (
     (legal_status, "Not Public Record(s)")
   )
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])(implicit
-      request: Request[AnyContent]
-  ): Future[Result] = {
-    for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      statuses = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType, SeriesType)
-      transferAgreementStatus: Option[String] = statuses.get(TransferAgreementType).flatten
-      seriesStatus: Option[String] = statuses.get(SeriesType).flatten
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-    } yield {
-      val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
-      val warningMessage = Messages("transferAgreement.warning")
-      val fieldSetLegend = "I confirm that all records are:"
-      seriesStatus match {
-        case Some(CompletedValue.value) =>
-          transferAgreementStatus match {
-            case Some(InProgressValue.value) | Some(CompletedValue.value) =>
-              Ok(
-                views.html.standard.transferAgreementPart1AlreadyConfirmed(
-                  consignmentId,
-                  reference,
-                  transferAgreementForm,
-                  formAndLabel,
-                  warningMessage,
-                  fieldSetLegend,
-                  request.token.name
-                )
-              )
-                .uncache()
-            case None =>
-              httpStatus(views.html.standard.transferAgreementPart1(consignmentId, reference, taForm, formAndLabel, warningMessage, fieldSetLegend, request.token.name))
-                .uncache()
-            case _ =>
-              throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
-          }
-        case _ => Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId))
-      }
-    }
-  }
-
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -133,36 +93,6 @@ class TransferAgreementPart1Controller @Inject() (
     )
   }
 
-  private def submitTransferAgreement(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Result] = {
-    val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
-      loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
-    }
-
-    val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
-      val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
-
-      for {
-        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType).values.headOption.flatten
-        result <- transferAgreementStatus match {
-          case Some(InProgressValue.value) => Future(Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
-          case None                        =>
-            transferAgreementService
-              .addTransferAgreementPart1(consignmentId, request.token.bearerAccessToken, formData)
-              .map(_ => Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
-          case _ =>
-            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
-        }
-      } yield result
-    }
-
-    val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
-
-    formValidationResult.fold(
-      errorFunction,
-      successFunction
-    )
-  }
 }
 
 case class TransferAgreementData(publicRecord: Boolean, english: Option[Boolean])
