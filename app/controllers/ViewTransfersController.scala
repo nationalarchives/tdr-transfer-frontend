@@ -99,7 +99,7 @@ class ViewTransfersController @Inject() (
       case s if s.containsStatuses(MetadataReviewType) =>
         UserAction(InProgress.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
       case s if s.containsStatuses(DraftMetadataType) =>
-        toDraftMetadataAction(s.find(_.statusType == DraftMetadataType.id).get, consignmentId)
+        toDraftMetadataAction(s.find(_.statusType == DraftMetadataType.id).get, consignmentId, s.find(_.statusType == ClientChecksType.id))
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
         toFileChecksAction(s, judgmentType, consignmentId)
       case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
@@ -112,8 +112,12 @@ class ViewTransfersController @Inject() (
     }
   }
 
-  private def toDraftMetadataAction(status: ConsignmentStatuses, consignmentId: UUID) = {
-    status.value match {
+  private def toDraftMetadataAction(draftMetadataStatus: ConsignmentStatuses, consignmentId: UUID, clientChecksStatus: Option[ConsignmentStatuses]) = {
+    draftMetadataStatus.value match {
+      case _ if clientChecksStatus.nonEmpty && clientChecksStatus.get.value == CompletedWithIssuesValue.value =>
+        UserAction(Failed.value, routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url, Errors.value)
+      case _ if clientChecksStatus.nonEmpty && clientChecksStatus.get.value == InProgressValue.value =>
+        UserAction(InProgress.value, routes.FileChecksController.fileChecksPage(consignmentId, None).url, Resume.value)
       case CompletedValue.value           => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
       case CompletedWithIssuesValue.value =>
         UserAction(InProgress.value, routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, Resume.value)

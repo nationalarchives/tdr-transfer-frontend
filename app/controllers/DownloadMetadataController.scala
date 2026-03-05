@@ -55,7 +55,7 @@ class DownloadMetadataController @Inject() (
       for {
         metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
         downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType.getOrElse("MetadataDownloadTemplate")).sortBy(_.columnIndex)
-        csvFile <- draftMetadataService.getOriginalDraftMetadataCsv()
+        csvFile <- draftMetadataService.getOriginalDraftMetadataCsv(consignmentId)
         excelFile = ExcelUtils.originalCsvToExcel(
           metadata.consignmentReference,
           csvFile,
