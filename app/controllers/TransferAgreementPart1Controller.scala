@@ -29,17 +29,6 @@ class TransferAgreementPart1Controller @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  val transferAgreementForm: Form[TransferAgreementData] = Form(
-    mapping(
-      "publicRecord" -> boolean
-        .verifying("All records must be confirmed as public before proceeding", b => b)
-    )(publicRecord => TransferAgreementData(publicRecord, None))(data => Option(data.publicRecord))
-  )
-
-  private val transferAgreementFormNameAndLabel: Seq[(String, String)] = Seq(
-    ("publicRecord", "Public Records")
-  )
-
   private val legalStatusForm: Form[LegalStatusData] = Form(
     mapping(
       legal_status -> nonEmptyText.verifying(_.nonEmpty)
@@ -95,5 +84,4 @@ class TransferAgreementPart1Controller @Inject() (
 
 }
 
-case class TransferAgreementData(publicRecord: Boolean, english: Option[Boolean])
 case class LegalStatusData(legalStatus: String)
