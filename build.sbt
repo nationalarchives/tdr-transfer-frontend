@@ -46,7 +46,8 @@ libraryDependencies ++= Seq(
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.22.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
-  "org.jsoup" % "jsoup" % "1.22.1" % Test
+  "org.jsoup" % "jsoup" % "1.22.1" % Test,
+  "com.github.tototoshi" %% "scala-csv" % "2.0.0"
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 

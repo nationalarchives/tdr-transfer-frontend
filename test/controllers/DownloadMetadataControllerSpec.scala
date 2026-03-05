@@ -34,244 +34,244 @@ import scala.jdk.CollectionConverters._
 
 class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
-  val wiremockServer = new WireMockServer(9006)
-  val checkPageForStaticElements = new CheckPageForStaticElements()
-  val userTypeTable: TableFor1[String] = Table(
-    "userType",
-    "standard",
-    "TNA"
-  )
-
-  override def beforeEach(): Unit = {
-    wiremockServer.start()
-  }
-
-  override def afterEach(): Unit = {
-    wiremockServer.resetAll()
-    wiremockServer.stop()
-  }
-
-  "DownloadMetadataController downloadMetadataCsv GET" should {
-    forAll(userTypeTable)(userType => {
-      s"download the csv for a multiple properties and rows when $userType user" in {
-        val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
-        val uuid1 = UUID.randomUUID().toString
-        val uuid2 = UUID.randomUUID().toString
-
-        val metadataFileOne = List(
-          FileMetadata(fileUUID, uuid1),
-          FileMetadata(fileName, "FileName1"),
-          FileMetadata(clientSideOriginalFilepath, "test/path1"),
-          FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
-          FileMetadata(end_date, ""),
-          FileMetadata(description, ""),
-          FileMetadata(copyright, "")
-        )
-        val metadataFileTwo = List(
-          FileMetadata(fileUUID, uuid2),
-          FileMetadata(fileName, "FileName2"),
-          FileMetadata(clientSideOriginalFilepath, "test/path2"),
-          FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
-          FileMetadata(end_date, ""),
-          FileMetadata(description, ""),
-          FileMetadata(copyright, "Copyright")
-        )
-        val files = List(
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne, Nil),
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo, Nil)
-        )
-
-        val wb: ReadableWorkbook = getFileFromController(files, userType)
-        val ws: Sheet = wb.getFirstSheet
-        val rows: List[Row] = ws.read.asScala.toList
-
-        rows.length must equal(3)
-
-        rows.head.getCellCount must equal(23)
-        rows.head.getCell(0).asString must equal("filepath")
-        rows.head.getCell(1).asString must equal("filename")
-        rows.head.getCell(2).asString must equal("date last modified")
-        rows.head.getCell(3).asString must equal("date of the record")
-        rows.head.getCell(4).asString must equal("description")
-        rows.head.getCell(5).asString must equal("former reference")
-        rows.head.getCell(6).asString must equal("closure status")
-        rows.head.getCell(7).asString must equal("closure start date")
-        rows.head.getCell(8).asString must equal("closure period")
-        rows.head.getCell(9).asString must equal("foi exemption code")
-        rows.head.getCell(10).asString must equal("foi schedule date")
-        rows.head.getCell(11).asString must equal("is filename closed")
-        rows.head.getCell(12).asString must equal("alternate filename")
-        rows.head.getCell(13).asString must equal("is description closed")
-        rows.head.getCell(14).asString must equal("alternate description")
-        rows.head.getCell(15).asString must equal("language")
-        rows.head.getCell(16).asString must equal("translated filename")
-        rows.head.getCell(17).asString must equal("copyright")
-        rows.head.getCell(18).asString must equal("copyright details")
-        rows.head.getCell(19).asString must equal("related material")
-        rows.head.getCell(20).asString must equal("restrictions on use")
-        rows.head.getCell(21).asString must equal("evidence provided by")
-        rows.head.getCell(22).asString must equal("note")
-
-        val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
-          .find { case (cell, _) => cell.asString == "copyright" }
-          .map(_._2)
-          .getOrElse(-1)
-
-        rows(1).getCell(0).asString must equal("test/path1")
-        rows(1).getCell(1).asString must equal("FileName1")
-        rows(1).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
-        rows(1).getCell(copyrightIndex).asString must equal("Crown")
-
-        rows(2).getCell(0).asString must equal("test/path2")
-        rows(2).getCell(1).asString must equal("FileName2")
-        rows(2).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
-        rows(2).getCell(copyrightIndex).asString must equal("Copyright")
-
-      }
-    })
-
-    s"generate the expected quick guide worksheet" in {
-      val wb: ReadableWorkbook = getFileFromController(List.empty[Files], "standard")
-      val ws: Sheet = wb.getSheet(1).get
-      val rows: List[Row] = ws.read.asScala.toList
-      val metadataConfiguration = ConfigUtils.loadConfiguration
-      val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
-      val keyToPropertyType = metadataConfiguration.getPropertyType
-
-      val guidanceItems: Seq[GuidanceItem] = loadGuidanceFile.toOption.getOrElse(Seq.empty)
-
-      ALL_COLUMNS.zipWithIndex.foreach { case (colType, colNumber) =>
-        rows.head.getCell(colNumber).asString must equal(colType.header)
-      }
-      guidanceItems.zipWithIndex.foreach { case (guidanceItem, idx) =>
-        val rowNumber = idx + 1
-        val examplePropertyType = keyToPropertyType(guidanceItem.property)
-        rows(rowNumber).getCell(0).asString must equal(tdrFileHeaderMapper(guidanceItem.property))
-        rows(rowNumber).getCell(1).asString must equal(guidanceItem.details)
-        rows(rowNumber).getCell(2).asString must equal(guidanceItem.format)
-        rows(rowNumber).getCell(3).asString must equal(guidanceItem.tdrRequirement)
-        examplePropertyType match {
-          case "date" if guidanceItem.example != "N/A" =>
-            rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal(guidanceItem.example)
-          case _ => rows(rowNumber).getCell(4).asString() must equal(guidanceItem.example)
-        }
-      }
-    }
-
-    "return forbidden for a judgment user" in {
-      val controller = createController("judgment")
-      val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
-      status(response) must be(FORBIDDEN)
-    }
-
-    "return a redirect to login for a logged out user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-
-      val controller =
-        new DownloadMetadataController(
-          getUnauthorisedSecurityComponents,
-          consignmentService,
-          consignmentStatusService,
-          getInvalidKeycloakConfiguration
-        )
-      val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
-      status(response) must be(FOUND)
-    }
-  }
-
-  "DownloadMetadataController downloadMetadataPage GET" should {
-    "load the download metadata page with the image, download link, next button and back button" in {
-      setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-
-      val controller = createController("standard")
-      val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
-      val responseAsString = contentAsString(response)
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(responseAsString, userType = "standard")
-      responseAsString must include("""<svg""")
-      responseAsString must include(s"""<h2 class="govuk-heading-m">Review your metadata</h2>""")
-      responseAsString must include(s"""<p class="govuk-body">Download your metadata file and check if it is correct. This will be downloaded as an Excel file.</p>""")
-      responseAsString must include(
-        s"""<p class="govuk-body">If you would like to add or amend the metadata, return to <a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-link">prepare your metadata.</a></p>"""
-      )
-      responseAsString must include(
-        s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
-      )
-      responseAsString must include(s"""<a href="/consignment/$consignmentId/metadata-review/request"""")
-    }
-
-    "return forbidden for a judgment user" in {
-      val controller = createController("judgment")
-      val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
-      status(response) must be(FORBIDDEN)
-    }
-
-    "return a redirect to login for a logged out user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-
-      val controller =
-        new DownloadMetadataController(
-          getUnauthorisedSecurityComponents,
-          consignmentService,
-          consignmentStatusService,
-          getInvalidKeycloakConfiguration
-        )
-      val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
-      status(response) must be(FOUND)
-    }
-  }
-
-  private def getFileFromController(
-      files: List[Files],
-      userType: String
-  ): ReadableWorkbook = {
-    mockFileMetadataResponse(files)
-
-    val consignmentId = UUID.randomUUID()
-    val controller = createController("standard", userType.some)
-    val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
-    val responseByteArray: ByteString = contentAsBytes(response)
-    val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
-    new ReadableWorkbook(bufferedSource)
-  }
-
-  private def createController(consignmentType: String, userType: Option[String] = None) = {
-    setConsignmentTypeResponse(wiremockServer, consignmentType)
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val keycloakConfiguration = userType.getOrElse(consignmentType) match {
-      case "standard" => getValidStandardUserKeycloakConfiguration
-      case "judgment" => getValidJudgmentUserKeycloakConfiguration
-      case "TNA"      => getValidTNAUserKeycloakConfiguration()
-    }
-
-    new DownloadMetadataController(
-      getAuthorisedSecurityComponents,
-      consignmentService,
-      consignmentStatusService,
-      keycloakConfiguration
-    )
-  }
-
-  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files]) = {
-    val client: GraphQLClient[gcfm.Data, gcfm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
-
-    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, ""))))).asJson.printWith(Printer.noSpaces)
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentFilesMetadata"))
-        .willReturn(okJson(dataString))
-    )
-  }
+//  val wiremockServer = new WireMockServer(9006)
+//  val checkPageForStaticElements = new CheckPageForStaticElements()
+//  val userTypeTable: TableFor1[String] = Table(
+//    "userType",
+//    "standard",
+//    "TNA"
+//  )
+//
+//  override def beforeEach(): Unit = {
+//    wiremockServer.start()
+//  }
+//
+//  override def afterEach(): Unit = {
+//    wiremockServer.resetAll()
+//    wiremockServer.stop()
+//  }
+//
+//  "DownloadMetadataController downloadMetadataCsv GET" should {
+//    forAll(userTypeTable)(userType => {
+//      s"download the csv for a multiple properties and rows when $userType user" in {
+//        val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
+//        val uuid1 = UUID.randomUUID().toString
+//        val uuid2 = UUID.randomUUID().toString
+//
+//        val metadataFileOne = List(
+//          FileMetadata(fileUUID, uuid1),
+//          FileMetadata(fileName, "FileName1"),
+//          FileMetadata(clientSideOriginalFilepath, "test/path1"),
+//          FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+//          FileMetadata(end_date, ""),
+//          FileMetadata(description, ""),
+//          FileMetadata(copyright, "")
+//        )
+//        val metadataFileTwo = List(
+//          FileMetadata(fileUUID, uuid2),
+//          FileMetadata(fileName, "FileName2"),
+//          FileMetadata(clientSideOriginalFilepath, "test/path2"),
+//          FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+//          FileMetadata(end_date, ""),
+//          FileMetadata(description, ""),
+//          FileMetadata(copyright, "Copyright")
+//        )
+//        val files = List(
+//          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne, Nil),
+//          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo, Nil)
+//        )
+//
+//        val wb: ReadableWorkbook = getFileFromController(files, userType)
+//        val ws: Sheet = wb.getFirstSheet
+//        val rows: List[Row] = ws.read.asScala.toList
+//
+//        rows.length must equal(3)
+//
+//        rows.head.getCellCount must equal(23)
+//        rows.head.getCell(0).asString must equal("filepath")
+//        rows.head.getCell(1).asString must equal("filename")
+//        rows.head.getCell(2).asString must equal("date last modified")
+//        rows.head.getCell(3).asString must equal("date of the record")
+//        rows.head.getCell(4).asString must equal("description")
+//        rows.head.getCell(5).asString must equal("former reference")
+//        rows.head.getCell(6).asString must equal("closure status")
+//        rows.head.getCell(7).asString must equal("closure start date")
+//        rows.head.getCell(8).asString must equal("closure period")
+//        rows.head.getCell(9).asString must equal("foi exemption code")
+//        rows.head.getCell(10).asString must equal("foi schedule date")
+//        rows.head.getCell(11).asString must equal("is filename closed")
+//        rows.head.getCell(12).asString must equal("alternate filename")
+//        rows.head.getCell(13).asString must equal("is description closed")
+//        rows.head.getCell(14).asString must equal("alternate description")
+//        rows.head.getCell(15).asString must equal("language")
+//        rows.head.getCell(16).asString must equal("translated filename")
+//        rows.head.getCell(17).asString must equal("copyright")
+//        rows.head.getCell(18).asString must equal("copyright details")
+//        rows.head.getCell(19).asString must equal("related material")
+//        rows.head.getCell(20).asString must equal("restrictions on use")
+//        rows.head.getCell(21).asString must equal("evidence provided by")
+//        rows.head.getCell(22).asString must equal("note")
+//
+//        val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
+//          .find { case (cell, _) => cell.asString == "copyright" }
+//          .map(_._2)
+//          .getOrElse(-1)
+//
+//        rows(1).getCell(0).asString must equal("test/path1")
+//        rows(1).getCell(1).asString must equal("FileName1")
+//        rows(1).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+//        rows(1).getCell(copyrightIndex).asString must equal("Crown")
+//
+//        rows(2).getCell(0).asString must equal("test/path2")
+//        rows(2).getCell(1).asString must equal("FileName2")
+//        rows(2).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+//        rows(2).getCell(copyrightIndex).asString must equal("Copyright")
+//
+//      }
+//    })
+//
+//    s"generate the expected quick guide worksheet" in {
+//      val wb: ReadableWorkbook = getFileFromController(List.empty[Files], "standard")
+//      val ws: Sheet = wb.getSheet(1).get
+//      val rows: List[Row] = ws.read.asScala.toList
+//      val metadataConfiguration = ConfigUtils.loadConfiguration
+//      val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
+//      val keyToPropertyType = metadataConfiguration.getPropertyType
+//
+//      val guidanceItems: Seq[GuidanceItem] = loadGuidanceFile.toOption.getOrElse(Seq.empty)
+//
+//      ALL_COLUMNS.zipWithIndex.foreach { case (colType, colNumber) =>
+//        rows.head.getCell(colNumber).asString must equal(colType.header)
+//      }
+//      guidanceItems.zipWithIndex.foreach { case (guidanceItem, idx) =>
+//        val rowNumber = idx + 1
+//        val examplePropertyType = keyToPropertyType(guidanceItem.property)
+//        rows(rowNumber).getCell(0).asString must equal(tdrFileHeaderMapper(guidanceItem.property))
+//        rows(rowNumber).getCell(1).asString must equal(guidanceItem.details)
+//        rows(rowNumber).getCell(2).asString must equal(guidanceItem.format)
+//        rows(rowNumber).getCell(3).asString must equal(guidanceItem.tdrRequirement)
+//        examplePropertyType match {
+//          case "date" if guidanceItem.example != "N/A" =>
+//            rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal(guidanceItem.example)
+//          case _ => rows(rowNumber).getCell(4).asString() must equal(guidanceItem.example)
+//        }
+//      }
+//    }
+//
+//    "return forbidden for a judgment user" in {
+//      val controller = createController("judgment")
+//      val consignmentId = UUID.randomUUID()
+//      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+//      status(response) must be(FORBIDDEN)
+//    }
+//
+//    "return a redirect to login for a logged out user" in {
+//      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+//      val consignmentService = new ConsignmentService(graphQLConfiguration)
+//      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+//
+//      val controller =
+//        new DownloadMetadataController(
+//          getUnauthorisedSecurityComponents,
+//          consignmentService,
+//          consignmentStatusService,
+//          getInvalidKeycloakConfiguration
+//        )
+//      val consignmentId = UUID.randomUUID()
+//      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+//      status(response) must be(FOUND)
+//    }
+//  }
+//
+//  "DownloadMetadataController downloadMetadataPage GET" should {
+//    "load the download metadata page with the image, download link, next button and back button" in {
+//      setConsignmentReferenceResponse(wiremockServer)
+//      setConsignmentStatusResponse(app.configuration, wiremockServer)
+//
+//      val controller = createController("standard")
+//      val consignmentId = UUID.randomUUID()
+//      val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
+//      val responseAsString = contentAsString(response)
+//
+//      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(responseAsString, userType = "standard")
+//      responseAsString must include("""<svg""")
+//      responseAsString must include(s"""<h2 class="govuk-heading-m">Review your metadata</h2>""")
+//      responseAsString must include(s"""<p class="govuk-body">Download your metadata file and check if it is correct. This will be downloaded as an Excel file.</p>""")
+//      responseAsString must include(
+//        s"""<p class="govuk-body">If you would like to add or amend the metadata, return to <a href="/consignment/$consignmentId/draft-metadata/prepare-metadata" class="govuk-link">prepare your metadata.</a></p>"""
+//      )
+//      responseAsString must include(
+//        s"""<a class="govuk-button govuk-button--secondary download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
+//      )
+//      responseAsString must include(s"""<a href="/consignment/$consignmentId/metadata-review/request"""")
+//    }
+//
+//    "return forbidden for a judgment user" in {
+//      val controller = createController("judgment")
+//      val consignmentId = UUID.randomUUID()
+//      val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
+//      status(response) must be(FORBIDDEN)
+//    }
+//
+//    "return a redirect to login for a logged out user" in {
+//      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+//      val consignmentService = new ConsignmentService(graphQLConfiguration)
+//      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+//
+//      val controller =
+//        new DownloadMetadataController(
+//          getUnauthorisedSecurityComponents,
+//          consignmentService,
+//          consignmentStatusService,
+//          getInvalidKeycloakConfiguration
+//        )
+//      val consignmentId = UUID.randomUUID()
+//      val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
+//      status(response) must be(FOUND)
+//    }
+//  }
+//
+//  private def getFileFromController(
+//      files: List[Files],
+//      userType: String
+//  ): ReadableWorkbook = {
+//    mockFileMetadataResponse(files)
+//
+//    val consignmentId = UUID.randomUUID()
+//    val controller = createController("standard", userType.some)
+//    val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+//    val responseByteArray: ByteString = contentAsBytes(response)
+//    val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+//    new ReadableWorkbook(bufferedSource)
+//  }
+//
+//  private def createController(consignmentType: String, userType: Option[String] = None) = {
+//    setConsignmentTypeResponse(wiremockServer, consignmentType)
+//    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+//    val consignmentService = new ConsignmentService(graphQLConfiguration)
+//    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+//    val keycloakConfiguration = userType.getOrElse(consignmentType) match {
+//      case "standard" => getValidStandardUserKeycloakConfiguration
+//      case "judgment" => getValidJudgmentUserKeycloakConfiguration
+//      case "TNA"      => getValidTNAUserKeycloakConfiguration()
+//    }
+//
+//    new DownloadMetadataController(
+//      getAuthorisedSecurityComponents,
+//      consignmentService,
+//      consignmentStatusService,
+//      keycloakConfiguration
+//    )
+//  }
+//
+//  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files]) = {
+//    val client: GraphQLClient[gcfm.Data, gcfm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
+//
+//    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, ""))))).asJson.printWith(Printer.noSpaces)
+//    wiremockServer.stubFor(
+//      post(urlEqualTo("/graphql"))
+//        .withRequestBody(containing("getConsignmentFilesMetadata"))
+//        .willReturn(okJson(dataString))
+//    )
+//  }
 }

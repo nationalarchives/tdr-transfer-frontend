@@ -31,6 +31,18 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
 
   implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)
 
+  def preloadedDraftMetadata(consignmentId: UUID, token: Token): Future[Boolean] = {
+    Future(false)
+  }
+
+  def getOriginalDraftMetadataCsv(consignmentId: UUID, fileName: String = "draft-metadata.csv"): Future[Array[Byte]] = {
+    val csv: Future[ResponseBytes[GetObjectResponse]] =
+      downloadService.downloadFile(applicationConfig.draft_metadata_s3_bucket_name, s"$consignmentId/$fileName")
+    csv.map(responseBytes => {
+      responseBytes.asByteArray()
+    })
+  }
+
   def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: Token): Future[Boolean] = {
     logger.info(s"Draft metadata validator was triggered by ${token.userId} for consignment:$consignmentId")
     val url = s"${configuration.get[String]("metadatavalidation.baseUrl")}/draft-metadata/validate/$consignmentId/$uploadFileName"

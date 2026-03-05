@@ -7,7 +7,7 @@ import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.G
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils
 
@@ -20,7 +20,8 @@ class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val keycloakConfiguration: KeycloakConfiguration
+    val keycloakConfiguration: KeycloakConfiguration,
+    val draftMetadataService: DraftMetadataService
 ) extends TokenSecurity
     with Logging {
 
@@ -41,14 +42,6 @@ class DownloadMetadataController @Inject() (
     }
   }
 
-  def downloadInvalidMetadataFile(): Unit = {
-    implicit request: Request[AnyContent] =>
-      //Retrieve bucket ket for file
-      //Retrieve uploaded CSV from S3 bucket
-      //Convert to excel
-      //Add guidance worksheet
-  }
-
   def downloadMetadataFile(consignmentId: UUID, downloadType: Option[String]): Action[AnyContent] = standardAndTnaUserAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded metadata for consignmentId: $consignmentId")
@@ -62,14 +55,13 @@ class DownloadMetadataController @Inject() (
       for {
         metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
         downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType.getOrElse("MetadataDownloadTemplate")).sortBy(_.columnIndex)
-        excelFile = ExcelUtils.createExcelFile(
+        csvFile <- draftMetadataService.getOriginalDraftMetadataCsv()
+        excelFile = ExcelUtils.originalCsvToExcel(
           metadata.consignmentReference,
-          metadata,
+          csvFile,
           downloadDisplayProperties,
           tdrFileHeaderMapper,
           tdrDataLoadHeaderMapper,
-          propertyTypeEvaluator,
-          fileSortColumn,
           metadataConfiguration.getDefaultValue,
           GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
         )

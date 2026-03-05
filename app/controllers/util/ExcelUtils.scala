@@ -1,5 +1,6 @@
 package controllers.util
 
+import com.github.tototoshi.csv.CSVReader
 import controllers.util.DateUtils.convertToLocalDateOrString
 import controllers.util.GuidanceUtils.{ALL_COLUMNS, GuidanceColumnWriter, approximatedRowHeight}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
@@ -9,11 +10,21 @@ import org.dhatim.fastexcel.{BorderSide, BorderStyle, Workbook, Worksheet}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.GuidanceItem
 
+import java.nio.charset.StandardCharsets
 import java.time.LocalDate
+import scala.io.Source
 
 object ExcelUtils {
 
   private val NonEditableColour: String = "CCCCCC"
+
+  private def columnProperties(
+                             downloadFileDisplayProperties: List[DownloadFileDisplayProperty],
+                             keyToTdrFileHeader: String => String
+                           ): List[ColumnProperty] = {
+    downloadFileDisplayProperties.map(displayProperty =>
+      ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))
+  }
 
   def createExcelFile(
       consignmentRef: String,
@@ -26,8 +37,7 @@ object ExcelUtils {
       defaultValue: String => String,
       guidanceItems: Seq[GuidanceItem] = Seq.empty
   ): Array[Byte] = {
-    val colProperties: List[ColumnProperty] =
-      downloadFileDisplayProperties.map(displayProperty => ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))
+    val colProperties: List[ColumnProperty] = columnProperties(downloadFileDisplayProperties, keyToTdrFileHeader)
     val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => keyToPropertyType(dp.key))
     val sortedMetaData = fileMetadata.files.sortBy(_.fileMetadata.find(_.name == sortColumn).map(_.value).getOrElse(""))(ExcelBasedOrdering)
     val fileMetadataRows: List[List[Any]] = createExcelRowData(sortedMetaData, downloadFileDisplayProperties, keyToPropertyType, keyToTdrDataLoadHeader, defaultValue)
@@ -40,6 +50,30 @@ object ExcelUtils {
       keyToTdrFileHeader,
       keyToPropertyType
     )
+  }
+
+  def originalCsvToExcel(
+                  consignmentRef: String,
+                  bytes: Array[Byte],
+                  downloadFileDisplayProperties: List[DownloadFileDisplayProperty],
+                  keyToTdrFileHeader: String => String,
+                  keyToPropertyType: String => String,
+                  defaultValue: String => String,
+                  guidanceItems: Seq[GuidanceItem] = Seq.empty
+                ): Array[Byte] = {
+    val reader = CSVReader.open(Source.fromBytes(bytes))
+    val all = reader.all()
+    val colProperties: List[ColumnProperty] = columnProperties(downloadFileDisplayProperties, keyToTdrFileHeader)
+    val dataTypes: List[String] = downloadFileDisplayProperties.map(dp => keyToPropertyType(dp.key))
+    writeExcel(
+      s"Metadata for $consignmentRef",
+      colProperties,
+      all,
+      dataTypes,
+      guidanceItems,
+      keyToTdrFileHeader,
+      keyToPropertyType,
+      defaultValue)
   }
 
   def writeExcel(
