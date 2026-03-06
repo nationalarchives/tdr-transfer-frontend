@@ -21,7 +21,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
-import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
+import services.{BackendChecksService, ConsignmentService, FileStatusService, StepFunction, UploadService}
 import play.api.libs.json._
 
 import java.util.UUID
@@ -66,7 +66,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -91,7 +92,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -120,7 +122,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -149,7 +152,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -180,7 +184,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -293,7 +298,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -331,7 +337,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -375,7 +382,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -582,7 +590,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
     val fileStatusService = new FileStatusService(graphQLConfiguration)
-    val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+    val stepFunction = new StepFunction(app.configuration)
+    val backendChecksService = new BackendChecksService( app.configuration, stepFunction)
     val controller = new UploadController(
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
@@ -616,7 +625,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
         val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
         val fileStatusService = new FileStatusService(graphQLConfiguration)
-        val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+        val stepFunction = new StepFunction(app.configuration)
+        val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller =
           new UploadController(
@@ -654,7 +664,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
         val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
         val fileStatusService = new FileStatusService(graphQLConfiguration)
-        val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+        val stepFunction = new StepFunction(app.configuration)
+        val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller =
           new UploadController(
@@ -697,7 +708,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
         val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
         val fileStatusService = new FileStatusService(graphQLConfiguration)
-        val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+        val stepFunction = new StepFunction(app.configuration)
+        val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller =
           new UploadController(
@@ -741,7 +753,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val client = graphQLConfiguration.getClient[addFilesAndMetadata.Data, addFilesAndMetadata.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val fileId = UUID.randomUUID()
@@ -786,7 +799,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -813,7 +827,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -851,7 +866,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val client = graphQLConfiguration.getClient[addMultipleFileStatuses.Data, addMultipleFileStatuses.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val fileId = UUID.randomUUID()
       val addFileStatusInput = AddMultipleFileStatusesInput(List(AddFileStatusInput(fileId, "Upload", "Success")))
@@ -895,7 +911,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -922,7 +939,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val fileId = UUID.randomUUID()
       val addFileStatusInput = AddMultipleFileStatusesInput(List(AddFileStatusInput(fileId, "Upload", "Success")))
@@ -961,7 +979,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val client = graphQLConfiguration.getClient[startUpload.Data, startUpload.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val startUploadInput = StartUploadInput(consignmentId, "parent", Some(false))
@@ -1001,7 +1020,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
@@ -1028,7 +1048,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val stepFunction = new StepFunction(app.configuration)
+      val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(
@@ -1125,7 +1146,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
     val fileStatusService = new FileStatusService(graphQLConfiguration)
-    val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+    val stepFunction = new StepFunction(app.configuration)
+    val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
 
     new UploadController(
       getAuthorisedSecurityComponents,

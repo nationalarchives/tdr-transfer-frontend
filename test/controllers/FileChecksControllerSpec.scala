@@ -68,7 +68,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val backendChecks = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+    val stepFunction = new StepFunction(app.configuration)
+    val backendChecks = new BackendChecksService(app.configuration, stepFunction)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, graphQLConfiguration)
 
@@ -196,7 +197,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
-        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(true))
+        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]))).thenReturn(Future.successful(true))
         mockGetFileCheckProgress(dataString, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
@@ -311,7 +312,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
-        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
+        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]))).thenReturn(Future.successful(false))
         mockGetFileCheckProgress(dataString, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
@@ -356,7 +357,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedWithIssuesValue.value, someDateTime, None))
-        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
+        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]))).thenReturn(Future.successful(false))
         mockGetFileCheckProgress(dataString, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)

@@ -17,6 +17,7 @@ val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.1-PLAY3.0"
 val pac4jVersion = "6.3.1"
 val sttpVersion = "3.11.0"
+val awsUtilsVersion = "0.1.317"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -32,8 +33,9 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.452",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.119",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.198",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.317",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.317",
+  "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
+  "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
+  "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
   "ch.qos.logback" % "logback-classic" % "1.5.32",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.59.0",

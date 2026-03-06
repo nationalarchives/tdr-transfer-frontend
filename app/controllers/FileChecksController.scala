@@ -60,7 +60,7 @@ class FileChecksController @Inject() (
 
   private def triggerBackendChecks(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     for {
-      backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId, token.getValue)
+      backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId)
       uploadStatusUpdate =
         if (backendChecksTriggered) {
           CompletedValue
