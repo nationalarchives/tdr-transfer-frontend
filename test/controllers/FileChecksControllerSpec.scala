@@ -64,14 +64,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       backendChecksService: Option[BackendChecksService] = None
   ): FileChecksController = {
 
-    val wsClient = new InternalWSClient("http", 9007)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val stepFunction = new StepFunction(app.configuration)
     val backendChecks = new BackendChecksService(app.configuration, stepFunction)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
-    val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, graphQLConfiguration)
+    val consignmentExportService = new ConsignmentExportService(stepFunction, app.configuration, graphQLConfiguration)
 
     new FileChecksController(
       controllerComponents,

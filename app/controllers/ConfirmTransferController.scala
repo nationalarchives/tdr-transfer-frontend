@@ -116,7 +116,7 @@ class ConfirmTransferController @Inject() (
               for {
                 _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
                 _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)
-                _ <- consignmentExportService.triggerExport(consignmentId, token.toString)
+                _ <- consignmentExportService.triggerExport(consignmentId, request.token)
               } yield Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
             case _ =>
               throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")

@@ -23,7 +23,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue}
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, StepFunction}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
@@ -528,8 +528,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     )
   }
   def exportService(configuration: Configuration): ConsignmentExportService = {
-    val wsClient = new InternalWSClient("http", 9007)
-    new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
+    val stepFunction = new StepFunction(configuration)
+    new ConsignmentExportService(stepFunction, configuration, new GraphQLConfiguration(configuration))
   }
   def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration): FileChecksResultsController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)

@@ -12,6 +12,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.Statuses._
 import services._
+import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -177,12 +178,13 @@ class FileChecksController @Inject() (
             fileCheck <- consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
-                val token: BearerAccessToken = request.token.bearerAccessToken
+                val token: Token = request.token
+                val bearerAccessToken = token.bearerAccessToken
                 val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
                 for {
-                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
-                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
-                  _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, bearerAccessToken, legalCustodyTransferConfirmation)
+                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, bearerAccessToken)
+                  _ <- consignmentExportService.triggerExport(consignmentId, token)
                 } yield "Completed"
               } else {
                 Future("FileChecksFailed")

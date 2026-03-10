@@ -2,6 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import errors.AuthorisationException
@@ -24,7 +25,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import play.api.test.WsTestClient.InternalWSClient
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, StepFunction}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, EnglishLang, FormTester, FrontEndTestHelper}
@@ -39,12 +40,14 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
+  val wiremockSfnServer = new WireMockServer(9003)
   val wiremockServer = new WireMockServer(9006)
   val wiremockExportServer = new WireMockServer(9007)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
     wiremockExportServer.start()
+    wiremockSfnServer.start()
   }
 
   override def afterEach(): Unit = {
@@ -52,6 +55,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     wiremockExportServer.resetAll()
     wiremockServer.stop()
     wiremockExportServer.stop()
+    wiremockSfnServer.resetAll()
   }
 
   val langs: Langs = new EnglishLang
@@ -63,8 +67,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
-    val wsClient = new InternalWSClient("http", 9007)
-    new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
+    val stepFunction = new StepFunction(configuration)
+    new ConsignmentExportService(stepFunction, configuration, new GraphQLConfiguration(configuration))
   }
 
   "ConfirmTransferController GET" should {
@@ -342,6 +346,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlConsignmentSummaryResponse(dataString)
+      mockSfnResponseOk()
       val consignmentStatuses = List(
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
@@ -841,6 +846,14 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
          |                            Transfer your records
          |                        </button>
          |                    </div>""".stripMargin
+    )
+  }
+
+  def mockSfnResponseOk(): StubMapping = {
+    wiremockSfnServer.stubFor(
+      post(anyUrl())
+        .withRequestBody(containing("stateMachineArn"))
+        .willReturn(aResponse().withStatus(200))
     )
   }
 }

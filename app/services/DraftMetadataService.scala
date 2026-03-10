@@ -5,7 +5,6 @@ import configuration.ApplicationConfig
 import io.circe.Decoder
 import io.circe.generic.auto._
 import io.circe.parser.decode
-import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logging}
 import services.StepFunction.StepFunctionInput
 import software.amazon.awssdk.core.ResponseBytes

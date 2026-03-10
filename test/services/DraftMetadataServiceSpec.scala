@@ -1,15 +1,14 @@
 package services
 
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.ApplicationConfig
+import io.circe.Encoder
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, anyString}
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.{ConfigLoader, Configuration}
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
@@ -25,75 +24,59 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
   val uploadFileName = "draft-metadata.csv"
 
   "triggerDraftMetadataValidator" should {
-    "call the correct url" in {
-      val wsClient = mock[WSClient]
-      val request = mock[WSRequest]
+    "trigger the step function with the correct arguments" in {
+      val consignmentId = UUID.randomUUID()
+      val userId = UUID.randomUUID()
+      val stepFunction = mock[StepFunction]
       val config = mock[Configuration]
       val applicationConfig = mock[ApplicationConfig]
       val downloadService = mock[DownloadService]
-      val response = mock[WSResponse]
-      val argumentCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val token = mock[Token]
-      val bearerAccessTokenMock = mock[BearerAccessToken]
-      when(bearerAccessTokenMock.getValue).thenReturn("token")
-      when(token.bearerAccessToken).thenReturn(bearerAccessTokenMock)
-      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
-      when(wsClient.url(argumentCaptor.capture())).thenReturn(request)
-      when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
-      when(response.status).thenReturn(200)
-      when(request.post[String]("{}")).thenReturn(Future(response))
-      val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
-      val consignmentId = UUID.randomUUID()
+      val arnCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val inputCaptor: ArgumentCaptor[DraftMetadataStepFunctionInput] = ArgumentCaptor.forClass(classOf[DraftMetadataStepFunctionInput])
+      val nameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val execIdCaptor: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
+      val encoderCaptor: ArgumentCaptor[Encoder[DraftMetadataStepFunctionInput]] = ArgumentCaptor.forClass(classOf[Encoder[DraftMetadataStepFunctionInput]])
+      when(token.userId).thenReturn(userId)
+      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
+      when(stepFunction.triggerStepFunction(any[String], any[DraftMetadataStepFunctionInput], any[String], any[UUID])(any[Encoder[DraftMetadataStepFunctionInput]]))
+        .thenReturn(Future(true))
+      val service = new DraftMetadataService(stepFunction, config, applicationConfig, downloadService)
+
       service.triggerDraftMetadataValidator(consignmentId, uploadFileName, token).futureValue
-      argumentCaptor.getValue should equal(s"http://localhost/draft-metadata/validate/$consignmentId/$uploadFileName")
+      verify(stepFunction, times(1)).triggerStepFunction(arnCaptor.capture(), inputCaptor.capture(), nameCaptor.capture(), execIdCaptor.capture())(encoderCaptor.capture())
+      arnCaptor.getValue shouldBe "stepFunctionArn"
+      inputCaptor.getValue.consignmentId shouldBe consignmentId.toString
+      inputCaptor.getValue.fileName shouldBe uploadFileName
+      nameCaptor.getValue shouldBe "Metadata Validation"
+      execIdCaptor.getValue shouldBe consignmentId
     }
 
-    "return true if the API response is 200" in {
-      val wsClient = mock[WSClient]
-      val request = mock[WSRequest]
+    "return an error if the step function fails to trigger" in {
+      val stepFunction = mock[StepFunction]
       val config = mock[Configuration]
-      val response = mock[WSResponse]
       val applicationConfig = mock[ApplicationConfig]
       val downloadService = mock[DownloadService]
       val token = mock[Token]
-      val bearerAccessTokenMock = mock[BearerAccessToken]
-      when(bearerAccessTokenMock.getValue).thenReturn("token")
-      when(token.bearerAccessToken).thenReturn(bearerAccessTokenMock)
-      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
-      when(wsClient.url(any[String])).thenReturn(request)
-      when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
-      when(response.status).thenReturn(200)
-      when(request.post[String]("{}")).thenReturn(Future(response))
-      val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
       val consignmentId = UUID.randomUUID()
-      val triggerResponse = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, token).futureValue
-      triggerResponse should equal(true)
-    }
+      val userId = UUID.randomUUID()
 
-    "return an error if the API response is 500" in {
-      val wsClient = mock[WSClient]
-      val request = mock[WSRequest]
-      val config = mock[Configuration]
-      val response = mock[WSResponse]
-      val applicationConfig = mock[ApplicationConfig]
-      val downloadService = mock[DownloadService]
-      val token = mock[Token]
-      val bearerAccessTokenMock = mock[BearerAccessToken]
-      when(bearerAccessTokenMock.getValue).thenReturn("token")
-      when(token.bearerAccessToken).thenReturn(bearerAccessTokenMock)
-      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
-      when(wsClient.url(any[String])).thenReturn(request)
-      when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
-      when(response.status).thenReturn(500)
-      when(request.post[String]("{}")).thenReturn(Future(response))
-      val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
-      val consignmentId = UUID.randomUUID()
-      val exception = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, token).failed.futureValue
-      exception.getMessage should equal(s"Call to draft metadata validator failed API has returned a non 200 response for consignment $consignmentId")
+      when(token.userId).thenReturn(userId)
+      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksStepFunctionInput], any[String], any[UUID])(any[Encoder[BackendChecksStepFunctionInput]]))
+        .thenThrow(new RuntimeException("something went wrong"))
+
+      val service = new DraftMetadataService(stepFunction, config, applicationConfig, downloadService)
+
+      val error = intercept[RuntimeException] {
+        service.triggerDraftMetadataValidator(consignmentId, uploadFileName, token)
+      }
+
+      error.getMessage should equal("something went wrong")
     }
   }
   "getErrorType" should {
-    val wsClient = mock[WSClient]
+    val stepFunction = mock[StepFunction]
     val config = mock[Configuration]
     val downloadService = mock[DownloadService]
 
@@ -114,7 +97,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(config.get[String]("draft_metadata_s3_bucket_name")).thenReturn("bucket")
       val applicationConfig: ApplicationConfig = new ApplicationConfig(config)
       when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
-      val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
+      val service = new DraftMetadataService(stepFunction, config, applicationConfig, downloadService)
 
       Await.result(service.getErrorTypeFromErrorJson(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.NONE
     }
@@ -135,7 +118,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(config.get[String]("draft_metadata_s3_bucket_name")).thenReturn("bucket")
       val applicationConfig: ApplicationConfig = new ApplicationConfig(config)
       when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
-      val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
+      val service = new DraftMetadataService(stepFunction, config, applicationConfig, downloadService)
 
       Await.result(service.getErrorTypeFromErrorJson(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.UNKNOWN
     }
