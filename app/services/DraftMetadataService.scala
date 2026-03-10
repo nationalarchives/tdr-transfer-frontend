@@ -7,6 +7,7 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logging}
+import services.StepFunction.StepFunctionInput
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -25,7 +26,7 @@ case class Error(validationProcess: String, property: String, errorKey: String, 
 case class ValidationErrors(assetId: String, errors: Set[Error], data: List[Metadata] = List.empty[Metadata])
 case class ErrorFileData(consignmentId: UUID, date: String, fileError: FileError.FileError, validationErrors: List[ValidationErrors])
 
-class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration: Configuration, val applicationConfig: ApplicationConfig, val downloadService: DownloadService)(
+class DraftMetadataService @Inject() (val stepFunction: StepFunction, val configuration: Configuration, val applicationConfig: ApplicationConfig, val downloadService: DownloadService)(
     implicit val executionContext: ExecutionContext
 ) extends Logging {
 
@@ -33,19 +34,10 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
 
   def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: Token): Future[Boolean] = {
     logger.info(s"Draft metadata validator was triggered by ${token.userId} for consignment:$consignmentId")
-    val url = s"${configuration.get[String]("metadatavalidation.baseUrl")}/draft-metadata/validate/$consignmentId/$uploadFileName"
-    wsClient
-      .url(url)
-      .addHttpHeaders(("Authorization", token.bearerAccessToken.getValue), ("Content-Type", "application/json"))
-      .post("{}")
-      .flatMap(r =>
-        r.status match {
-          case 200 => Future(true)
-          case _   =>
-            logger.error(s"Draft metadata validation api response ${r.status} ${r.body}")
-            Future.failed(new Exception(s"Call to draft metadata validator failed API has returned a non 200 response for consignment $consignmentId"))
-        }
-      )
+    val stepFunctionArn = s"${configuration.get[String]("metadatavalidation.stepFunctionArn")}"
+    val stepFunctionName = "Metadata Validation"
+    val input = DraftMetadataStepFunctionInput(consignmentId.toString, uploadFileName)
+    stepFunction.triggerStepFunction(stepFunctionArn, input, stepFunctionName, consignmentId)
   }
 
   def getErrorTypeFromErrorJson(consignmentId: UUID): Future[FileError.FileError] = {
@@ -64,3 +56,5 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
       .recoverWith(_ => Future.successful(unknownError))
   }
 }
+
+case class DraftMetadataStepFunctionInput(consignmentId: String, fileName: String) extends StepFunctionInput
