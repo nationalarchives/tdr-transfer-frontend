@@ -15,6 +15,24 @@ Regardless of how you set up the development environment, you will need:
 - IntelliJ with the Scala plugin (or equivalent Scala dev environment)
 - Docker
 
+### Running from WSL2
+
+If you are running locally from WSL2 note the following.
+
+WSL auto generates hosts file so local app entry is lost on shutdown
+
+Add following to `/etc/wsl.conf`:
+```
+[network]
+generateHosts = false
+```
+
+Ensure have `wslconfig` file (`C:\Users\{windows user name}\wslconfig` - note no extension) set up on Windows in the home directory with the following set:
+```
+[wsl2]
+autoProxy=false
+```
+
 ### Frontend development only
 
 Follow these instructions if you want to make changes to the frontend application without needing to set up a full
