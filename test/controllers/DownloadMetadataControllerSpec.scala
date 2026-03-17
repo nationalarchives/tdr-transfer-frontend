@@ -9,6 +9,7 @@ import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
+import graphql.codegen.GetMetadataReviewDetails.{getMetadataReviewDetails => gmrd}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
@@ -19,7 +20,7 @@ import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, MetadataReviewService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
@@ -169,13 +170,15 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val metadataReviewService = new MetadataReviewService(graphQLConfiguration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration
+          getInvalidKeycloakConfiguration,
+          metadataReviewService
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
@@ -217,13 +220,15 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val metadataReviewService = new MetadataReviewService(graphQLConfiguration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration
+          getInvalidKeycloakConfiguration,
+          metadataReviewService
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
@@ -236,6 +241,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       userType: String
   ): ReadableWorkbook = {
     mockFileMetadataResponse(files)
+    mockMetadataReviewDetailsResponse()
 
     val consignmentId = UUID.randomUUID()
     val controller = createController("standard", userType.some)
@@ -250,6 +256,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val metadataReviewService = new MetadataReviewService(graphQLConfiguration)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
@@ -260,7 +267,18 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       consignmentService,
       consignmentStatusService,
-      keycloakConfiguration
+      keycloakConfiguration,
+      metadataReviewService
+    )
+  }
+
+  private def mockMetadataReviewDetailsResponse(): Unit = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gmrd.Data, gmrd.Variables]()
+    val dataString = client.GraphqlData(Some(gmrd.Data(List.empty))).asJson.printWith(Printer.noSpaces)
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getMetadataReviewDetails"))
+        .willReturn(okJson(dataString))
     )
   }
 
