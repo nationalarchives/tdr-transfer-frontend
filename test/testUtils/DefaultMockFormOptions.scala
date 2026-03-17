@@ -36,7 +36,7 @@ object DefaultMockFormOptions {
       "transferLegalCustody",
       "By proceeding with this transfer, I confirm that the Departmental Records Officer (DRO) has agreed to transfer custody of these records to The National Archives.",
       value = "true",
-      errorMessage = "Transferral of legal custody of all records must be confirmed before proceeding",
+      errorMessage = "Transferral of custody of all records must be confirmed before proceeding",
       fieldType = "inputCheckbox"
     )
   )
