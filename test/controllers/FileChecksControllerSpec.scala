@@ -35,18 +35,18 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   val consignmentId: UUID = UUID.fromString("b5bbe4d6-01a7-4305-99ef-9fce4a67917a")
 
   val wiremockServer = new WireMockServer(9006)
-  val wiremockExportServer = new WireMockServer(9007)
+  val wiremockSfnServer = new WireMockServer(9003)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
-    wiremockExportServer.start()
+    wiremockSfnServer.start()
   }
 
   override def afterEach(): Unit = {
     wiremockServer.resetAll()
-    wiremockExportServer.resetAll()
+    wiremockSfnServer.resetAll()
     wiremockServer.stop()
-    wiremockExportServer.stop()
+    wiremockSfnServer.stop()
   }
 
   val fileChecks: TableFor1[String] = Table(
@@ -535,15 +535,16 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       contentAsString(recordCheckResultsPage) mustBe "TransferAlreadyCompleted"
     }
 
-    s"return 'Completed' if the file checks are succeeded and export is triggerred" in {
+    s"return 'Completed' if the file checks are succeeded and export is triggered" in {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentReferenceResponse(wiremockServer)
       stubFinalTransferConfirmationResponseWithServer(wiremockServer, consignmentId)
       stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
 
-      wiremockExportServer.stubFor(
-        post(urlEqualTo(s"/export/$consignmentId"))
-          .willReturn(okJson("{}"))
+      wiremockSfnServer.stubFor(
+        post(anyUrl())
+          .withRequestBody(containing("stateMachineArn"))
+          .willReturn(aResponse().withStatus(200))
       )
 
       val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)

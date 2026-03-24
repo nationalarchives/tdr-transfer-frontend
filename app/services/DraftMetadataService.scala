@@ -25,8 +25,13 @@ case class Error(validationProcess: String, property: String, errorKey: String, 
 case class ValidationErrors(assetId: String, errors: Set[Error], data: List[Metadata] = List.empty[Metadata])
 case class ErrorFileData(consignmentId: UUID, date: String, fileError: FileError.FileError, validationErrors: List[ValidationErrors])
 
-class DraftMetadataService @Inject() (val stepFunction: StepFunction, val configuration: Configuration, val applicationConfig: ApplicationConfig, val downloadService: DownloadService)(
-    implicit val executionContext: ExecutionContext
+class DraftMetadataService @Inject() (
+    val stepFunction: StepFunction,
+    val configuration: Configuration,
+    val applicationConfig: ApplicationConfig,
+    val downloadService: DownloadService
+)(implicit
+    val executionContext: ExecutionContext
 ) extends Logging {
 
   implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)

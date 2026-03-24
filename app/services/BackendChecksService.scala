@@ -12,7 +12,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class BackendChecksService @Inject() (val configuration: Configuration, val stepFunction: StepFunction)(implicit val executionContext: ExecutionContext) extends Logging {
 
-
   implicit val backendChecksStepFunctionInputEncoder: Encoder[BackendChecksStepFunctionInput] = deriveEncoder[BackendChecksStepFunctionInput]
 
   def triggerBackendChecks(consignmentId: UUID): Future[Boolean] = {

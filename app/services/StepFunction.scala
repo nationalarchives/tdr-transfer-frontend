@@ -12,12 +12,13 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class StepFunction @Inject() (
-                               val configuration: Configuration
-                             )(implicit val executionContext: ExecutionContext) extends Logging {
+    val configuration: Configuration
+)(implicit val executionContext: ExecutionContext)
+    extends Logging {
   private val stepFunctionEndpoint: String = s"${configuration.get[String]("stepFunction.endpoint")}"
   private val utils: StepFunctionUtils = StepFunctionUtils(sfnAsyncClient(stepFunctionEndpoint))
 
-  def triggerStepFunction[T <: Product : Encoder](stepFunctionArn: String, input: T, stepFunctionName: String, executionId: UUID): Future[Boolean] = {
+  def triggerStepFunction[T <: Product: Encoder](stepFunctionArn: String, input: T, stepFunctionName: String, executionId: UUID): Future[Boolean] = {
     for {
       _ <- utils
         .startExecution(

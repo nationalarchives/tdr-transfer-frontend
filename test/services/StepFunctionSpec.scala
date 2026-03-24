@@ -59,7 +59,7 @@ class StepFunctionSpec extends AnyFlatSpec with BeforeAndAfterEach with BeforeAn
 
   "triggerStepFunction" should "trigger step function with the correct request" in {
     val config = mock[Configuration]
-    val execId =  UUID.randomUUID()
+    val execId = UUID.randomUUID()
     mockSfnResponseOk()
     when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost:9003")
 
@@ -75,7 +75,7 @@ class StepFunctionSpec extends AnyFlatSpec with BeforeAndAfterEach with BeforeAn
 
   "triggerStepFunction" should "return an error when step function request fails" in {
     val config = mock[Configuration]
-    val execId =  UUID.randomUUID()
+    val execId = UUID.randomUUID()
     mockSfnResponseNotOk()
     when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost:9003")
 
@@ -87,7 +87,7 @@ class StepFunctionSpec extends AnyFlatSpec with BeforeAndAfterEach with BeforeAn
 
     error.getMessage shouldBe
       "The future returned an exception of type: java.lang.RuntimeException, with message: Step function name trigger failed: " +
-        "software.amazon.awssdk.services.sfn.model.SfnException: Service returned HTTP status code 500 (Service: Sfn, Status Code: 500," +
-        " Request ID: null) (SDK Attempt Count: 4)."
+      "software.amazon.awssdk.services.sfn.model.SfnException: Service returned HTTP status code 500 (Service: Sfn, Status Code: 500," +
+      " Request ID: null) (SDK Attempt Count: 4)."
   }
 }

@@ -590,7 +590,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
     val fileStatusService = new FileStatusService(graphQLConfiguration)
     val stepFunction = new StepFunction(app.configuration)
-    val backendChecksService = new BackendChecksService( app.configuration, stepFunction)
+    val backendChecksService = new BackendChecksService(app.configuration, stepFunction)
     val controller = new UploadController(
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
