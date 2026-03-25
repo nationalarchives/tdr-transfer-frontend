@@ -20,4 +20,3 @@ class MetadataReviewService @Inject() (val graphqlConfiguration: GraphQLConfigur
       .map(data => data.getMetadataReviewDetails)
   }
 }
-
