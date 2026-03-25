@@ -35,8 +35,12 @@ class StepFunctionSpec extends AnyFlatSpec with BeforeAndAfterEach with BeforeAn
     wiremockSfnServer.stop()
   }
 
+  override def beforeEach(): Unit = {
+    wiremockSfnServer.start()
+  }
+
   override def afterEach(): Unit = {
-    wiremockSfnServer.resetAll()
+    wiremockSfnServer.stop()
   }
 
   def mockSfnResponseOk(): StubMapping = {

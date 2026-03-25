@@ -54,6 +54,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
     wiremockExportServer.stop()
     wiremockSfnServer.resetAll()
+    wiremockSfnServer.stop()
   }
 
   val langs: Langs = new EnglishLang

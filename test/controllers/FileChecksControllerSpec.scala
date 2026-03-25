@@ -12,6 +12,7 @@ import io.circe.syntax._
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import play.api.test.CSRFTokenHelper.CSRFRequest
@@ -28,7 +29,7 @@ import scala.collection.immutable.TreeMap
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.ListHasAsScala
 
-class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenPropertyChecks {
+class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenPropertyChecks with BeforeAndAfterAll {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val totalFiles: Int = 40
@@ -46,6 +47,10 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     wiremockServer.resetAll()
     wiremockSfnServer.resetAll()
     wiremockServer.stop()
+    wiremockSfnServer.stop()
+  }
+
+  override def afterAll(): Unit = {
     wiremockSfnServer.stop()
   }
 
