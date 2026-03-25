@@ -70,4 +70,6 @@ excludeDependencies ++= Seq(
   ExclusionRule(organization = "com.typesafe.play")
 )
 
+(Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test")
+
 pipelineStages := Seq(digest)
