@@ -214,15 +214,28 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """<p class="govuk-body">Before uploading, all files and folders you wish to transfer must be put into a single, top-level folder.</p>"""
       )
       uploadPageAsString must include(
-        """Individual files must be no bigger than 2GB and you must upload no more than 3000 files per transfer. """ +
-          """The total size of all files for transfer must be no more than 5GB. """ +
-          """To transfer larger files, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>. """ +
-          "If your folder contains file formats that we cannot accept, you may have to start again.</p>"
+        """<p class="govuk-body">
+            System files will be ignored and not uploaded. <a target="_blank" class="govuk-link" rel="noreferrer noopener" href="/faq#file-formats-not-accepted">Find out more (opens in new tab).</a>
+        </p>"""
       )
       uploadPageAsString must include(
-        """We cannot accept files and folders which are password protected, zipped or contain slashes (/ and \) in the name. """ +
-          "You must remove all thumbnail images (thumbs.db) and executable files (.exe). Empty folders will not be transferred."
+        """<details class="govuk-details" data-module="govuk-details">
+          |            <summary class="govuk-details__summary">
+          |                <span class="govuk-details__summary-text">
+          |                    Check limitations on transfer size
+          |                </span>
+          |            </summary>
+          |            <div class="govuk-details__text">
+          |                <ul class="govuk-list govuk-list--bullet">
+          |                    <li>Individual files must be no bigger than 5GB </li>
+          |                    <li>No more than 5000 files per transfer</li>
+          |                    <li>The total size of all files for transfer must be no more than 5GB</li>
+          |                </ul>
+          |                To transfer larger files, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.
+          |            </div>
+          |        </details>""".stripMargin
       )
+      uploadPageAsString must include("""<p class="govuk-body">If your folder contains file formats that we cannot accept, you may have to start again. <a target="_blank" class="govuk-link" rel="noreferrer noopener" href="/faq#file-types-not-accepted">Find out more (opens in new tab).</a></p>""")
       uploadPageAsString must include("""<h2 class="govuk-heading-m">Select a folder to upload</h2>""")
       uploadPageAsString must include(
         """<p class="govuk-body">Click 'Select a folder' to open a dialog box and select a folder. Once selected you will be prompted to confirm your choice.</p>"""
