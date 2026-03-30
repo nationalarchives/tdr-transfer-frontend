@@ -235,7 +235,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
           |            </div>
           |        </details>""".stripMargin
       )
-      uploadPageAsString must include("""<p class="govuk-body">If your folder contains file formats that we cannot accept, you may have to start again. <a target="_blank" class="govuk-link" rel="noreferrer noopener" href="/faq#file-types-not-accepted">Find out more (opens in new tab).</a></p>""")
+      uploadPageAsString must include(
+        """<p class="govuk-body">If your folder contains file formats that we cannot accept, you may have to start again. <a target="_blank" class="govuk-link" rel="noreferrer noopener" href="/faq#file-types-not-accepted">Find out more (opens in new tab).</a></p>"""
+      )
       uploadPageAsString must include("""<h2 class="govuk-heading-m">Select a folder to upload</h2>""")
       uploadPageAsString must include(
         """<p class="govuk-body">Click 'Select a folder' to open a dialog box and select a folder. Once selected you will be prompted to confirm your choice.</p>"""
