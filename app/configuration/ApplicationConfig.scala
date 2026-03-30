@@ -38,5 +38,5 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val notificationSnsTopicArn: String = get("notificationSnsTopicArn")
 
-  val fileChecksTotalTimoutInSeconds: Int = configuration.get[Int]("fileChecksTotalTimoutInSeconds")
+  val fileChecksTotalTimeoutInSeconds: Int = configuration.get[Int]("fileChecksTotalTimeoutInSeconds")
 }
