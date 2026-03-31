@@ -781,6 +781,58 @@ class UploadControllerSpec extends FrontEndTestHelper {
       wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
     }
 
+    "filter out excluded files before sending to the API" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val client = graphQLConfiguration.getClient[addFilesAndMetadata.Data, addFilesAndMetadata.Variables]()
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val fileId = UUID.randomUUID()
+      val allowedFile = ClientSideMetadataInput("folder/allowed-file.txt", "checksum1", 1, 1, "0")
+      val excludedFile = ClientSideMetadataInput("folder/thumbs.db", "checksum2", 1, 1, "1")
+      val clientSideMetadataInput = List(allowedFile, excludedFile)
+      val addFileAndMetadataInput: AddFileAndMetadataInput =
+        AddFileAndMetadataInput(consignmentId, clientSideMetadataInput, Some(List("folder/emptyDir")), None)
+      val data = client.GraphqlData(Option(addFilesAndMetadata.Data(List(AddFilesAndMetadata(fileId, "0")))), Nil)
+      val dataString = data.asJson.noSpaces
+
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("addFilesAndMetadata"))
+          .willReturn(okJson(dataString))
+      )
+
+      val controller = new UploadController(
+        getAuthorisedSecurityComponents,
+        graphQLConfiguration,
+        getValidStandardUserKeycloakConfiguration,
+        frontEndInfoConfiguration,
+        consignmentService,
+        uploadService,
+        fileStatusService,
+        backendChecksService
+      )
+      val saveMetadataResponse = controller
+        .saveClientMetadata()
+        .apply(
+          FakeRequest(POST, s"/save-metadata")
+            .withJsonBody(Json.parse(addFileAndMetadataInput.asJson.noSpaces))
+            .withCSRFToken
+        )
+      val response: String = contentAsString(saveMetadataResponse)
+      val metadataResponse = decode[List[AddFilesAndMetadata]](response).toOption
+      metadataResponse.isDefined must be(true)
+      metadataResponse.get.size must be(1)
+      metadataResponse.get.head.fileId must be(fileId)
+      metadataResponse.get.head.matchId mustBe "0"
+
+      val requestBody = wiremockServer.getAllServeEvents.asScala.head.getRequest.getBodyAsString
+      requestBody must include("allowed-file.txt")
+      requestBody must not include "thumbs.db"
+    }
+
     "throw an error for invalid input data" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)

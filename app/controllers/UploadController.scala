@@ -12,6 +12,7 @@ import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services._
 import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{judgment_neutral_citation, judgment_no_neutral_citation, judgment_type, judgment_update}
+import uk.gov.nationalarchives.tdr.schema.generated.ExcludedFilenames
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -41,12 +42,18 @@ class UploadController @Inject() (
     }
   }
 
+  private def filenameFromPath(path: String): String = path.split("/").last
+
   def saveClientMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
-      case Some(metadataInput) => uploadService.saveClientMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
-      case None                => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+      case Some(metadataInput) =>
+        val filteredFiles = metadataInput.metadataInput.filterNot(m => ExcludedFilenames.isExcluded(filenameFromPath(m.originalPath)))
+        val filteredDirs = metadataInput.emptyDirectories.map(_.filterNot(d => ExcludedFilenames.isExcluded(filenameFromPath(d))))
+        val filteredInput = metadataInput.copy(metadataInput = filteredFiles, emptyDirectories = filteredDirs)
+        uploadService.saveClientMetadata(filteredInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
+      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }
 
