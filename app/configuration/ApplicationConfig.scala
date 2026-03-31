@@ -22,8 +22,6 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
 
-  val metadataValidationBaseUrl: String = configuration.get[String]("metadatavalidation.baseUrl")
-
   val s3Endpoint: String = configuration.get[String]("s3.endpoint")
 
   val snsEndpoint: String = configuration.get[String]("sns.endpoint")

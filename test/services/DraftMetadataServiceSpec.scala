@@ -12,6 +12,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.{ConfigLoader, Configuration}
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
+import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.{BackendChecksInput, MetadataValidationInput}
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
@@ -33,13 +34,13 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       val downloadService = mock[DownloadService]
       val token = mock[Token]
       val arnCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-      val inputCaptor: ArgumentCaptor[DraftMetadataStepFunctionInput] = ArgumentCaptor.forClass(classOf[DraftMetadataStepFunctionInput])
+      val inputCaptor: ArgumentCaptor[MetadataValidationInput] = ArgumentCaptor.forClass(classOf[MetadataValidationInput])
       val nameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val execIdCaptor: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
-      val encoderCaptor: ArgumentCaptor[Encoder[DraftMetadataStepFunctionInput]] = ArgumentCaptor.forClass(classOf[Encoder[DraftMetadataStepFunctionInput]])
+      val encoderCaptor: ArgumentCaptor[Encoder[MetadataValidationInput]] = ArgumentCaptor.forClass(classOf[Encoder[MetadataValidationInput]])
       when(token.userId).thenReturn(userId)
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[DraftMetadataStepFunctionInput], any[String], any[UUID])(any[Encoder[DraftMetadataStepFunctionInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[MetadataValidationInput], any[String], any[UUID])(any[Encoder[MetadataValidationInput]]))
         .thenReturn(Future(true))
       val service = new DraftMetadataService(stepFunction, config, applicationConfig, downloadService)
 
@@ -63,7 +64,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
 
       when(token.userId).thenReturn(userId)
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksStepFunctionInput], any[String], any[UUID])(any[Encoder[BackendChecksStepFunctionInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[UUID])(any[Encoder[BackendChecksInput]]))
         .thenThrow(new RuntimeException("something went wrong"))
 
       val service = new DraftMetadataService(stepFunction, config, applicationConfig, downloadService)

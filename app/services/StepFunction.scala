@@ -4,7 +4,6 @@ import cats.effect.unsafe.implicits.global
 import com.google.inject.Inject
 import io.circe.Encoder
 import play.api.{Configuration, Logging}
-import services.StepFunction.StepFunctionInput
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 

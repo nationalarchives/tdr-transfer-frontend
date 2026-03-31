@@ -8,6 +8,7 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.{ConfigLoader, Configuration}
+import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.BackendChecksInput
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -20,13 +21,13 @@ class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
       val stepFunction = mock[StepFunction]
       val config = mock[Configuration]
       val arnCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-      val inputCaptor: ArgumentCaptor[BackendChecksStepFunctionInput] = ArgumentCaptor.forClass(classOf[BackendChecksStepFunctionInput])
+      val inputCaptor: ArgumentCaptor[BackendChecksInput] = ArgumentCaptor.forClass(classOf[BackendChecksInput])
       val nameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val execIdCaptor: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
-      val encoderCaptor: ArgumentCaptor[Encoder[BackendChecksStepFunctionInput]] = ArgumentCaptor.forClass(classOf[Encoder[BackendChecksStepFunctionInput]])
+      val encoderCaptor: ArgumentCaptor[Encoder[BackendChecksInput]] = ArgumentCaptor.forClass(classOf[Encoder[BackendChecksInput]])
 
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksStepFunctionInput], any[String], any[UUID])(any[Encoder[BackendChecksStepFunctionInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[UUID])(any[Encoder[BackendChecksInput]]))
         .thenReturn(Future(true))
 
       val service = new BackendChecksService(config, stepFunction)
@@ -34,6 +35,7 @@ class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
       verify(stepFunction, times(1)).triggerStepFunction(arnCaptor.capture(), inputCaptor.capture(), nameCaptor.capture(), execIdCaptor.capture())(encoderCaptor.capture())
       arnCaptor.getValue shouldBe "stepFunctionArn"
       inputCaptor.getValue.consignmentId shouldBe consignmentId.toString
+      inputCaptor.getValue.s3SourceBucketPrefix shouldBe consignmentId.toString
       nameCaptor.getValue shouldBe "Backend Checks"
       execIdCaptor.getValue shouldBe consignmentId
     }
@@ -44,7 +46,7 @@ class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
       val consignmentId = UUID.randomUUID()
 
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksStepFunctionInput], any[String], any[UUID])(any[Encoder[BackendChecksStepFunctionInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[UUID])(any[Encoder[BackendChecksInput]]))
         .thenThrow(new RuntimeException("something went wrong"))
 
       val service = new BackendChecksService(config, stepFunction)

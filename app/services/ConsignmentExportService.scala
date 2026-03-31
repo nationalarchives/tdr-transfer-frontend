@@ -7,7 +7,7 @@ import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
 import play.api.{Configuration, Logging}
 import services.ApiErrorHandling._
-import services.StepFunction.StepFunctionInput
+import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.ExportInput
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
@@ -18,7 +18,7 @@ class ConsignmentExportService @Inject() (val stepFunction: StepFunction, val co
     val executionContext: ExecutionContext
 ) extends Logging {
 
-  implicit val exportStepFunctionInputEncoder: Encoder[ExportStepFunctionInput] = deriveEncoder[ExportStepFunctionInput]
+  implicit val exportStepFunctionInputEncoder: Encoder[ExportInput] = deriveEncoder[ExportInput]
 
   def updateTransferInitiated(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -30,9 +30,7 @@ class ConsignmentExportService @Inject() (val stepFunction: StepFunction, val co
     logger.info(s"Export was triggered by ${token.userId} for consignment:$consignmentId")
     val stepFunctionArn = s"${configuration.get[String]("export.stepFunctionArn")}"
     val stepFunctionName = "Export"
-    val input = ExportStepFunctionInput(consignmentId.toString)
+    val input = ExportInput(consignmentId.toString)
     stepFunction.triggerStepFunction(stepFunctionArn, input, stepFunctionName, consignmentId)
   }
 }
-
-case class ExportStepFunctionInput(consignmentId: String) extends StepFunctionInput

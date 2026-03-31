@@ -14,6 +14,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.{ConfigLoader, Configuration}
 import sangria.ast.Document
 import sttp.client3.SttpBackend
+import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.ExportInput
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -33,13 +34,13 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
       val stepFunction = mock[StepFunction]
       val config = mock[Configuration]
       val arnCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-      val inputCaptor: ArgumentCaptor[ExportStepFunctionInput] = ArgumentCaptor.forClass(classOf[ExportStepFunctionInput])
+      val inputCaptor: ArgumentCaptor[ExportInput] = ArgumentCaptor.forClass(classOf[ExportInput])
       val nameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val execIdCaptor: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
-      val encoderCaptor: ArgumentCaptor[Encoder[ExportStepFunctionInput]] = ArgumentCaptor.forClass(classOf[Encoder[ExportStepFunctionInput]])
+      val encoderCaptor: ArgumentCaptor[Encoder[ExportInput]] = ArgumentCaptor.forClass(classOf[Encoder[ExportInput]])
       when(mockToken.userId).thenReturn(userId)
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[ExportStepFunctionInput], any[String], any[UUID])(any[Encoder[ExportStepFunctionInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[UUID])(any[Encoder[ExportInput]]))
         .thenReturn(Future(true))
 
       val service = new ConsignmentExportService(stepFunction, config, graphQLConfiguration)
@@ -50,6 +51,7 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
       nameCaptor.getValue shouldBe "Export"
       execIdCaptor.getValue shouldBe consignmentId
     }
+
     "return an error if the step function fails to trigger" in {
       val stepFunction = mock[StepFunction]
       val config = mock[Configuration]
@@ -60,7 +62,7 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
 
       when(mockToken.userId).thenReturn(userId)
       when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[ExportStepFunctionInput], any[String], any[UUID])(any[Encoder[ExportStepFunctionInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[UUID])(any[Encoder[ExportInput]]))
         .thenThrow(new RuntimeException("something went wrong"))
 
       val service = new ConsignmentExportService(stepFunction, config, graphQLConfiguration)
