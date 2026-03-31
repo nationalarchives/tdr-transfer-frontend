@@ -202,15 +202,39 @@
                     The National Archives accepts records in any language.
                 </p>
 
-                <h3 class="govuk-heading-s" id="file-formats-not-accepted">What file formats are not accepted?</h3>
-                <p class="govuk-body">We cannot accept files that are password protected or encrypted.</p>
-                <p class="govuk-body">We cannot accept files with slashes (/ and \) in the name.</p>
+                <h3 class="govuk-heading-s" id="file-formats-not-accepted">What files will not be uploaded?</h3>
                 <p class="govuk-body">
-                    We also cannot currently accept zip files via TDR. Contact <a href="mailto:@Messages("nationalArchives.email")">
-                @Messages("nationalArchives.email")</a> if you wish to transfer these.
+                    TDR will not upload system files that have no archival value. We identify these based on filename:
                 </p>
-                <p class="govuk-body">If you upload an empty folder it will not be transferred.</p>
-                <p class="govuk-body">If you are able to run a DROID report on your files, check to see if you have any disallowed file types (PUID’s) in your uploads:</p>
+
+                <details class="govuk-details">
+                    <summary class="govuk-details__summary">
+                        <span class="govuk-details__summary-text">
+                            List of filenames that will not be uploaded
+                        </span>
+                    </summary>
+                    <div class="govuk-details__text">
+                        <ul class="govuk-list">
+                            <li>
+                                thumbs.db
+                            </li>
+                            <li>
+                                desktop.ini
+                            </li>
+                            <li>
+                                .DS_Store
+                            </li>
+                        </ul>
+                    </div>
+                </details>
+                <p class="govuk-body">
+                    If you upload an empty folder it will not be transferred.
+                </p>
+
+                <h3 class="govuk-heading-s" id="file-types-not-accepted">What file types are not accepted?</h3>
+                <p class="govuk-body">We cannot accept files with slashes (/ and \) in the filename.</p>
+                <p class="govuk-body">If you are able to run a DROID report on your files, check to see if you have any disallowed file types (PUIDs) in your uploads.</p>
+                <p class="govuk-body">A PUID (PRONOM Unique Identifier) is a unique code used to identify a file format:</p>
                 <details class="govuk-details">
                     <summary class="govuk-details__summary">
                         <span class="govuk-details__summary-text">
@@ -219,6 +243,9 @@
                     </summary>
                     <div class="govuk-details__text">
                         <table class="govuk-table">
+                            <caption class="govuk-table__caption govuk-table__caption--m">
+                                PUID and Puid Descriptions
+                            </caption>
                             <thead class="govuk-table__head">
                                 <tr class="govuk-table__row">
                                     <th scope="col" class="govuk-table__header">PUID</th>
@@ -226,39 +253,42 @@
                                 </tr>
                             </thead>
                             <tbody class="govuk-table__body">
-                                @for(puid <- disallowedPuids) {
-                                    <tr class="govuk-table__row">
-                                        <td class="govuk-table__cell">@puid.puid</td>
-                                        <td class="govuk-table__cell">@puid.puidDescription</td>
-                                    </tr>
-                                }
+                            @for(puid <- disallowedPuids) {
+                                <tr class="govuk-table__row">
+                                    <td class="govuk-table__cell">@puid.puid</td>
+                                    <td class="govuk-table__cell">@puid.puidDescription</td>
+                                </tr>
+                            }
                             </tbody>
                         </table>
                     </div>
                 </details>
 
-                <h3 class="govuk-heading-s">
-                    Do you accept system files, password protected files, executable files, or zip files and folders and how do I identify them?</h3>
+                <h3 class="govuk-heading-s">Do you accept password protected files, executable files, or zip files and folders and how do I identify them?</h3>
                 <p class="govuk-body">
-                    Before you begin a transfer, you can identify file formats by searching your folder for the file extensions (thumbs.db, .exe and .zip). For password protected files, click to view folder options and select 'hidden files and folders'. These files are usually identified as part of your selection and sensitivity review process.
+                    Before starting a transfer, it’s important to check whether your files include any formats that cannot be accepted or may cause issues. You can identify file types by looking at their file extensions (for example: .exe, .zip, .rar). These are usually visible at the end of a filename, though they may be hidden by default. You can enable file-extension visibility through your folder options. If you need help, contact your local IT support team.
                 </p>
                 <p class="govuk-body">
-                    System files, including 'thumbs.db' files, ds_store files, and .lnk files are not usually selected for permanent preservation. We advise you to remove these from your transfer.
+                    These files are usually identified as part of your selection and sensitivity review process.
                 </p>
-
-                <p class="govuk-body">Password protected files are not accepted and must be removed prior to transfer.</p>
+                <h4 class="govuk-heading-s">Executable files</h4>
                 <p class="govuk-body">
-                    Executable files, such as those with a .exe or .msi extension are not usually selected for transfer but there may be a good reason for selecting them. Ensure you are certain that you wish to upload such files prior to transfer.
+                    Executable files (for example, .exe or .msi) are also not usually selected for transfer. However, there may be valid reasons to include them. Only upload these files if you are certain they are required.
+                </p>
+                <h4 class="govuk-heading-s">Password-protected files</h4>
+                <p class="govuk-body">
+                    Password-protected files cannot be accepted and must be removed before you begin your transfer.
+                </p>
+                <h4 class="govuk-heading-s">Zip files and other compressed containers</h4>
+                <p class="govuk-body">
+                    Compressed or “archival container” formats—including .zip, .rar, .7z, .gz, and similar—must be unpacked before transfer. Leaving them compressed is likely to cause the transfer to fail. If you need assistance extracting these files, please speak with your local IT support team.
+                </p>
+                <h4 class="govuk-heading-s">Identifying file types</h4>
+                <p class="govuk-body">
+                    File extensions can help you determine the type of a file, but they are not always reliable because they can be changed easily. They are typically the last part of a filename (for example, .jpg, .docx). If extensions are hidden, you can enable them in your folder settings to support your review process.
                 </p>
                 <p class="govuk-body">
-                    Zips, and similar 'archival container' files including .rar, .7z, .gz and others must be unpacked prior to transfer. Failure to do so will likely cause the transfer to fail. Speak with your local IT Support team if you require assistance with this.
-                </p>
-                <p class="govuk-body">
-                    File format extensions can also be useful for determining file types, however this can be an unreliable approach, since they can be changed easily. Extensions are the end part of a filename that typically look similar to '.jpg' or '.docx'. They are often hidden by default, but can usually be made visible to help with determining file type. Speak with your local IT Support team if you require assistance with this.
-                </p>
-                <p class="govuk-body">
-                    Contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
-                    if you are uncertain about the file formats you have selected for transfer.
+                    If you are unsure about any of the file formats you plan to transfer, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> for guidance.
                 </p>
 
                 <h3 class="govuk-heading-s">Why can’t I drag and drop or upload my records?</h3>
