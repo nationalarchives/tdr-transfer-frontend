@@ -4,11 +4,10 @@ import auth.UnprotectedPageController
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
+import uk.gov.nationalarchives.tdr.schema.generated.MetadataTemplate
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 
 import javax.inject.{Inject, Singleton}
-import scala.io.Source
-import scala.util.Using
 
 @Singleton
 class HelpController @Inject() (securityComponents: SecurityComponents) extends UnprotectedPageController(securityComponents) with I18nSupport {
@@ -21,11 +20,7 @@ class HelpController @Inject() (securityComponents: SecurityComponents) extends 
   }
 
   def metadataQuickGuide(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    val METADATA_GUIDANCE_LOCATION = ConfigUtils.mapToMetadataEnvironmentFile("/guidance/metadata-template.json")
-    val nodeSchema = getClass.getResourceAsStream(METADATA_GUIDANCE_LOCATION)
-    val source = Source.fromInputStream(nodeSchema)
-    val guideContent = Using(source)(_.mkString).get
     val propertyNameMapper = ConfigUtils.loadConfiguration.propertyToOutputMapper("tdrFileHeader")
-    Ok(views.html.metadataquickguide(request.isLoggedIn, request.name, request.isJudgmentUser, guideContent, propertyNameMapper))
+    Ok(views.html.metadataquickguide(request.isLoggedIn, request.name, request.isJudgmentUser, MetadataTemplate.all, propertyNameMapper))
   }
 }
