@@ -12,6 +12,9 @@ import {
   IFileCheckProgress
 } from "./get-checks-progress"
 import { isError } from "../errorhandling"
+import Keycloak from "keycloak-js";
+import {IFrontEndInfo} from "../index";
+import { scheduleTokenRefresh } from "../auth";
 
 export class Checks {
   checkJudgmentTransferProgress: (
@@ -34,36 +37,40 @@ export class Checks {
   updateFileCheckProgress: (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void,
-    checksPageRefreshInterval: number
-  ) => void | Error = (
+    keycloak: Keycloak,
+    frontEndInfo: IFrontEndInfo
+  ) => Promise<void | Error> = async (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void,
-    checksPageRefreshInterval: number
+    keycloak: Keycloak,
+    frontEndInfo: IFrontEndInfo
   ) => {
     if (isJudgmentUser) {
       this.checkJudgmentTransferProgress(goToNextPage)
     } else {
-      const refreshPageIntervalId: ReturnType<typeof setInterval> = setInterval(
-        async () => {
-          clearInterval(intervalId)
-          window.location.reload()
-        },
-        checksPageRefreshInterval
-      )
 
+      const cookiesUrl = `https://app.tdr-integration.nationalarchives.gov.uk/cookies`
+      console.log("+++++ cookiesUrl: " + cookiesUrl)
+        //TODO: this only impacts the 3 hours session token
+      scheduleTokenRefresh(keycloak, cookiesUrl)
       const intervalId: ReturnType<typeof setInterval> = setInterval(
         async () => {
           const fileChecksProgress: IFileCheckProgress | Error =
             await getFileChecksProgress()
           if (!isError(fileChecksProgress)) {
             const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
+              //TODO: force refresh of the token
+              keycloak.updateToken(30)
+              console.log("===> IDTP.exp" + new Date(keycloak.idTokenParsed?.exp * 1000).toString())
+              console.log("===>   TP.exp" + new Date(keycloak.tokenParsed?.exp * 1000).toString())
+              console.log("===>  RTP.exp" + new Date(keycloak.refreshTokenParsed?.exp * 1000).toString())
+              console.log("===>  expired" + (keycloak.isTokenExpired()))
             if (checksCompleted) {
-              clearInterval(intervalId)
-              clearInterval(refreshPageIntervalId)
-              displayChecksCompletedBanner("file-checks")
+             // clearInterval(intervalId)
+             // displayChecksCompletedBanner("file-checks")
             }
-          } else {
-            clearInterval(refreshPageIntervalId)
+         } else {
+           console.log("===> an error in fileChecksProgress")
             return fileChecksProgress
           }
         },

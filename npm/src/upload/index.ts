@@ -84,6 +84,7 @@ export class FileUploader {
     const cookiesUrl = `${this.uploadUrl}/cookies`
     scheduleTokenRefresh(this.keycloak, cookiesUrl)
     const errors: Error[] = []
+      //TODO: what does this do? Is it relevant to the file checks page?
     const cookiesResponse = await fetch(cookiesUrl, {
       credentials: "include",
       headers: { Authorization: `Bearer ${refreshedToken}` }

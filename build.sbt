@@ -19,6 +19,10 @@ val pac4jVersion = "6.3.2"
 val sttpVersion = "3.11.0"
 
 libraryDependencies ++= Seq(
+  "io.spray" %%  "spray-json" % "1.3.6"
+)
+
+libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll ExclusionRule(organization = "com.fasterxml.jackson.core"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,

@@ -9,6 +9,7 @@ export const initialiseSessionTimeout: (
 ) => Promise<void> = async (frontEndInfo: IFrontEndInfo): Promise<void> => {
   const authModule = await import("./index")
   const errorHandlingModule = await import("../errorhandling")
+    console.log("initial session timeout")
   const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
   const now: () => number = () => Math.round(new Date().getTime() / 1000)
   //Set timeToShowDialog to how many seconds from expiry you want the dialog log box to appear

@@ -10,12 +10,19 @@ export const getKeycloakInstance: (
     realm: `${frontEndInfo.realm}`,
     clientId: `${frontEndInfo.clientId}`
   })
+    console.log("++++++ realm: " +  frontEndInfo.realm + " " + frontEndInfo.clientId)
+  keycloakInstance.onTokenExpired = () => console.log("++++++++++ TOKEN EXPIRED ++++++++++")
+
   const errorHandlingModule = await import("../errorhandling")
   try {
     const authenticated = await keycloakInstance.init({
       onLoad: "check-sso",
-      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
+      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login",
+        checkLoginIframe: true,
+
     })
+      //TODO: the timeskew is typically 5-8 seconds
+    console.log("===== timeSkew: " + keycloakInstance.timeSkew)
     if (errorHandlingModule.isError(authenticated)) {
       return authenticated
     } else {
@@ -47,12 +54,20 @@ export const scheduleTokenRefresh: (
 ) => void = (keycloak, cookiesUrl, idleSessionMinValiditySecs = 60) => {
   const refreshToken = keycloak.refreshTokenParsed
   if (refreshToken != undefined && refreshToken.exp != undefined) {
+
+      console.log("-----------------------")
+
     const nowInSecs = Math.round(new Date().getTime() / 1000)
+
     const expInSecs = refreshToken.exp
     //Expiry is a future time, add min validity to the 'now' to check if expiry is about to expire
     const timeoutInMs =
       (expInSecs - (nowInSecs + idleSessionMinValiditySecs)) * 1000
-
+      console.log("--- nowInSec " + nowInSecs)
+      console.log("--- refreshToken.exp " + refreshToken.exp)
+      console.log("--- mas valid " + idleSessionMinValiditySecs)
+      console.log("--- timeout in ms " +  timeoutInMs)
+      console.log("-----------------------")
     setTimeout(() => {
       refreshOrReturnToken(keycloak).then(() => {
         fetch(cookiesUrl, {
@@ -73,8 +88,11 @@ export const refreshOrReturnToken: (
   keycloak,
   tokenMinValidityInSecs = 30
 ) => {
+    console.log("****** REFRESHED ********  AAA")
   if (keycloak.isTokenExpired(tokenMinValidityInSecs)) {
+      console.log("****** REFRESHED ********  BBB")
     if (isRefreshTokenExpired(keycloak.refreshTokenParsed)) {
+        console.log("****** REFRESHED ********  CCC")
       const errorHandlingModule = await import("../errorhandling")
       const error = new errorHandlingModule.LoggedOutError(
         await keycloak.createLoginUrl(),
@@ -83,6 +101,7 @@ export const refreshOrReturnToken: (
       errorHandlingModule.handleUploadError(error)
       return error
     } else {
+        console.log("****** REFRESHED ********  DDD")
       await keycloak.updateToken(tokenMinValidityInSecs).catch((err) => {
         return new Error(err)
       })

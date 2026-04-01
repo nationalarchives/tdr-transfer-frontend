@@ -91,6 +91,7 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     if (!errorHandlingModule.isError(frontEndInfo)) {
       const authModule = await import("./auth")
+        console.log("upload container")
       const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
         const metadataUploadModule = await import("./clientfilemetadataupload")
@@ -118,19 +119,20 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     if (!errorHandlingModule.isError(frontEndInfo)) {
       const authModule = await import("./auth")
+        console.log("file checks container")
       const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
         const isJudgmentUser = keycloak.tokenParsed?.judgment_user
         const checksModule = await import("./checks")
         const nextPageModule =
           await import("./nextpageredirect/next-page-redirect")
-        //interval for page reload set at 60% of token validity period
-        const checksPageRefreshInterval =
-          (keycloak.tokenParsed?.exp * 1000 - Date.now()) * 0.8
+          console.log("===> FAIL AT  TP: " + new Date(keycloak.tokenParsed?.exp * 1000).toString())
+          console.log("===> FAIL AT RTP: " + new Date(keycloak.refreshTokenParsed?.exp * 1000).toString())
         const resultOrError = new checksModule.Checks().updateFileCheckProgress(
           isJudgmentUser,
           nextPageModule.goToNextPage,
-          checksPageRefreshInterval
+            keycloak,
+            frontEndInfo
         )
         if (errorHandlingModule.isError(resultOrError)) {
           errorHandlingModule.handleUploadError(resultOrError)
@@ -148,6 +150,7 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     if (!errorHandlingModule.isError(frontEndInfo)) {
       const authModule = await import("./auth")
+        console.log("dmv  container")
       const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
       if (!errorHandlingModule.isError(keycloak)) {
         const checksModule = await import("./checks")
