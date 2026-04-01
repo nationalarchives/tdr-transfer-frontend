@@ -17,9 +17,7 @@ export const getKeycloakInstance: (
   try {
     const authenticated = await keycloakInstance.init({
       onLoad: "check-sso",
-      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login",
-        checkLoginIframe: true,
-
+      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
     })
       //TODO: the timeskew is typically 5-8 seconds
     console.log("===== timeSkew: " + keycloakInstance.timeSkew)
