@@ -7,7 +7,7 @@ import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.G
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService, MetadataReviewService}
+import services.{ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils
 
@@ -20,8 +20,7 @@ class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val keycloakConfiguration: KeycloakConfiguration,
-    val metadataReviewService: MetadataReviewService
+    val keycloakConfiguration: KeycloakConfiguration
 ) extends TokenSecurity
     with Logging {
 
@@ -54,8 +53,7 @@ class DownloadMetadataController @Inject() (
 
       for {
         metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
-        reviewDetails <- metadataReviewService.getMetadataReviewDetails(consignmentId, request.token.bearerAccessToken)
-        totalSubmissions = reviewDetails.count(_.action == "Submission")
+        totalSubmissions = metadata.metadataReviewLogs.count(_.action == "Submission")
         downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType.getOrElse("MetadataDownloadTemplate")).sortBy(_.columnIndex)
         excelFile = ExcelUtils.createExcelFile(
           metadata.consignmentReference,

@@ -9,7 +9,6 @@ import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
-import graphql.codegen.GetMetadataReviewDetails.{getMetadataReviewDetails => gmrd}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
@@ -20,14 +19,14 @@ import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, ConsignmentStatusService, MetadataReviewService}
+import services.{ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.{GuidanceItem, loadGuidanceFile}
 
 import java.io.ByteArrayInputStream
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -78,8 +77,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           FileMetadata(copyright, "Copyright")
         )
         val files = List(
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne, Nil),
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo, Nil)
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne),
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo)
         )
 
         val wb: ReadableWorkbook = getFileFromController(files, userType)
@@ -170,15 +169,13 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-      val metadataReviewService = new MetadataReviewService(graphQLConfiguration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration,
-          metadataReviewService
+          getInvalidKeycloakConfiguration
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
@@ -220,15 +217,13 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-      val metadataReviewService = new MetadataReviewService(graphQLConfiguration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration,
-          metadataReviewService
+          getInvalidKeycloakConfiguration
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
@@ -240,10 +235,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       files: List[Files],
       userType: String
   ): ReadableWorkbook = {
-    mockFileMetadataResponse(files)
-    mockMetadataReviewDetailsResponse()
-
     val consignmentId = UUID.randomUUID()
+    mockFileMetadataResponse(files, consignmentId)
     val controller = createController("standard", userType.some)
     val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
     val responseByteArray: ByteString = contentAsBytes(response)
@@ -256,7 +249,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val metadataReviewService = new MetadataReviewService(graphQLConfiguration)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
@@ -267,25 +259,20 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       consignmentService,
       consignmentStatusService,
-      keycloakConfiguration,
-      metadataReviewService
+      keycloakConfiguration
     )
   }
 
-  private def mockMetadataReviewDetailsResponse(): Unit = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gmrd.Data, gmrd.Variables]()
-    val dataString = client.GraphqlData(Some(gmrd.Data(List.empty))).asJson.printWith(Printer.noSpaces)
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getMetadataReviewDetails"))
-        .willReturn(okJson(dataString))
-    )
-  }
-
-  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files]) = {
+  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files], consignmentId: UUID) = {
     val client: GraphQLClient[gcfm.Data, gcfm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
-
-    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, ""))))).asJson.printWith(Printer.noSpaces)
+    val metadataReviewLog = gcfm.GetConsignment.MetadataReviewLogs(
+      UUID.randomUUID(),
+      consignmentId,
+      UUID.randomUUID(),
+      "Submission",
+      ZonedDateTime.parse("2021-02-03T10:33:30.414Z")
+    )
+    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, List(metadataReviewLog), ""))))).asJson.printWith(Printer.noSpaces)
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentFilesMetadata"))
