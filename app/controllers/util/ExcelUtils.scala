@@ -5,11 +5,12 @@ import controllers.util.GuidanceUtils.{ALL_COLUMNS, GuidanceColumnWriter, approx
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.dhatim.fastexcel.{BorderSide, BorderStyle, Workbook, Worksheet}
+import org.dhatim.fastexcel.{BorderSide, BorderStyle, HyperLink, Workbook, Worksheet}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.GuidanceItem
 
 import java.time.LocalDate
+import scala.util.matching.Regex
 
 object ExcelUtils {
 
@@ -50,7 +51,6 @@ object ExcelUtils {
       guidanceItems: Seq[GuidanceItem] = Seq.empty,
       keyToTdrFileHeader: String => String = identity,
       keyToPropertyType: String => String = identity,
-      defaultValue: String => String = identity
   ): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
@@ -89,6 +89,43 @@ object ExcelUtils {
 
     xlBas.toByteArray
 
+  }
+
+  def writeExcel(worksheetName: String, rows: List[List[String]]): Array[Byte] = {
+    val xlBas = new ByteArrayOutputStream()
+    val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
+    val ws: Worksheet = wb.newWorksheet(worksheetName)
+
+    ws.range(0, 0, 0, rows.head.length - 1).style().bold().set()
+    for ((row, rowNo) <- rows.zipWithIndex) {
+      for ((col, colNo) <- row.zipWithIndex) {
+        setCellValueAsHyperlinkIfPresent(ws, col, rowNo, colNo)
+      }
+    }
+    wb.finish()
+    xlBas.toByteArray
+  }
+
+  private def setCellValueAsHyperlinkIfPresent(worksheet: Worksheet, content: String, rowNo: Int, colNo: Int): Unit = {
+    // Pattern for Markdown links: [text](url)
+    val markdownLinkPattern: Regex = """\[([^\]]+)\]\(([^)]+)\)""".r
+
+    markdownLinkPattern.findFirstMatchIn(content) match {
+      case Some(matchResult) =>
+        val linkText = matchResult.group(1)
+        val url = matchResult.group(2)
+        // Use HYPERLINK formula which creates a clickable link
+        worksheet.formula(rowNo, colNo, s"HYPERLINK(\"$url\", \"$linkText\")")
+        // Apply Blue font color and underline to make the cell stand out
+        worksheet
+          .range(rowNo, colNo, rowNo, colNo)
+          .style()
+          .fontColor("0000FF") // Standard Blue hex code
+          .underlined()
+          .set()
+      case None =>
+        worksheet.value(rowNo, colNo, content)
+    }
   }
 
   private def buildGuidanceWorksheet(
