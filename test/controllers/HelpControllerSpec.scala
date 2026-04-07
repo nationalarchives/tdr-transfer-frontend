@@ -71,7 +71,7 @@ class HelpControllerSpec extends FrontEndTestHelper {
       contentType(metadataGuide) mustBe Some("text/html")
 
       checkMetadataQuickGuidePage(pageAsString)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "", consignmentExists = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "", consignmentExists = false, faq = true)
     }
   }
 
