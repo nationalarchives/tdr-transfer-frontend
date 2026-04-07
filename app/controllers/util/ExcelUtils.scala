@@ -5,7 +5,7 @@ import controllers.util.GuidanceUtils.{ALL_COLUMNS, GuidanceColumnWriter, approx
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.dhatim.fastexcel.{BorderSide, BorderStyle, HyperLink, Workbook, Worksheet}
+import org.dhatim.fastexcel.{BorderSide, BorderStyle, Workbook, Worksheet}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.GuidanceItem
 
@@ -50,7 +50,7 @@ object ExcelUtils {
       dataTypes: List[String] = Nil,
       guidanceItems: Seq[GuidanceItem] = Seq.empty,
       keyToTdrFileHeader: String => String = identity,
-      keyToPropertyType: String => String = identity,
+      keyToPropertyType: String => String = identity
   ): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
