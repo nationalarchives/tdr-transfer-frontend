@@ -53,6 +53,7 @@ class DownloadMetadataController @Inject() (
 
       for {
         metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
+        totalSubmissions = metadata.metadataReviewLogs.count(_.action == "Submission")
         downloadDisplayProperties = metadataConfiguration.downloadFileDisplayProperties(downloadType.getOrElse("MetadataDownloadTemplate")).sortBy(_.columnIndex)
         excelFile = ExcelUtils.createExcelFile(
           metadata.consignmentReference,
@@ -68,7 +69,7 @@ class DownloadMetadataController @Inject() (
       } yield {
         Ok(excelFile)
           .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-          .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$getCurrentDateTime.xlsx")
+          .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-${getCurrentDateTime}v$totalSubmissions.xlsx")
       }
   }
 

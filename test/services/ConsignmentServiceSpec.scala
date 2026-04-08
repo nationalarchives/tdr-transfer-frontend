@@ -80,7 +80,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       .fill(numberOfFiles)(UUID.randomUUID())
       .map(fileId => {
         val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", fileType), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
-        gcfm.GetConsignment.Files(fileId, Some("FileName"), fileMetadata, Nil)
+        gcfm.GetConsignment.Files(fileId, Some("FileName"), fileMetadata)
       })
   }
 
@@ -264,9 +264,17 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     "return consignment with file metadata for the consignment with default file filter applied" in {
       val fileId = UUID.randomUUID()
       val exemptionCode = "Open"
+      val metadataReviewLog = gcfm.GetConsignment.MetadataReviewLogs(
+        UUID.fromString("a0b1c2d3-e4f5-6789-abcd-ef0123456789"),
+        consignmentId,
+        UUID.fromString("b1c2d3e4-f5a6-789b-cdef-012345678901"),
+        "Submission",
+        ZonedDateTime.parse("2021-02-03T10:33:30.414Z")
+      )
       val graphQlGetConsignmentFilesMetadata =
         gcfm.GetConsignment(
-          List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "Open")), Nil)),
+          List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "Open")))),
+          List(metadataReviewLog),
           "TEST-TDR-2021-GB"
         )
 
@@ -280,6 +288,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
       getConsignmentDetails.files.size should be(1)
       getConsignmentDetails.files.head.fileMetadata.head.value should be(exemptionCode)
+      getConsignmentDetails.metadataReviewLogs.head.consignmentId should be(consignmentId)
     }
 
     "raise an exception if given consignment id does not exist" in {
@@ -404,30 +413,30 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   "areAllFilesClosed" should {
     "return true if all files have a closure type of Closed" in {
       val files = generateMetadata(2, "File", "Closed")
-      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(true)
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, Nil, "")) should equal(true)
     }
 
     "return true if all files are closed but folders are open" in {
       val files = generateMetadata(2, "File", "Closed")
       val folders = generateMetadata(2, "Folder", "Open")
-      val consignment = gcfm.GetConsignment(files ++ folders, "")
+      val consignment = gcfm.GetConsignment(files ++ folders, Nil, "")
       consignmentService.areAllFilesClosed(consignment) should equal(true)
     }
 
     "return true if no files are provided" in {
-      consignmentService.areAllFilesClosed(gcfm.GetConsignment(Nil, "")) should equal(true)
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(Nil, Nil, "")) should equal(true)
     }
 
     "return false if one file is open and the others closed" in {
       val closedFile = generateMetadata(1, "File", "Open")
       val openFiles = generateMetadata(3, "File", "Closed")
-      val consignment = gcfm.GetConsignment(closedFile ++ openFiles, "")
+      val consignment = gcfm.GetConsignment(closedFile ++ openFiles, Nil, "")
       consignmentService.areAllFilesClosed(consignment) should equal(false)
     }
 
     "return false if all files are open" in {
       val files = generateMetadata(3, "File", "Open")
-      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(false)
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, Nil, "")) should equal(false)
     }
   }
 
