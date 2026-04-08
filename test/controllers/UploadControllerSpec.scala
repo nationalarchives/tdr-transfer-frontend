@@ -893,10 +893,16 @@ class UploadControllerSpec extends FrontEndTestHelper {
       metadataResponse.isDefined must be(true)
 
       val requestBody = wiremockServer.getAllServeEvents.asScala.head.getRequest.getBodyAsString
-      requestBody must include("allowed-file.txt")
-      requestBody must not include "thumbs.db"
-      requestBody must include("existingEmptyDir")
-      requestBody must include("folderB")
+      val requestJson = Json.parse(requestBody)
+      val input = requestJson \ "variables" \ "input"
+
+      val metadataPaths = (input \ "metadataInput").as[List[JsValue]].map(v => (v \ "originalPath").as[String])
+      metadataPaths must contain("folderA/allowed-file.txt")
+      metadataPaths must not contain "folderB/thumbs.db"
+
+      val emptyDirs = (input \ "emptyDirectories").as[List[String]]
+      emptyDirs must contain("existingEmptyDir")
+      emptyDirs must contain("folderB")
     }
 
     "throw an error for invalid input data" in {
