@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.ConsignmentProperty.{judgment, press_summary, tdrDataLoadHeaderMapper}
-import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
+import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
@@ -44,14 +44,37 @@ class UploadController @Inject() (
 
   private def filenameFromPath(path: String): String = path.split("/").last
 
+  private def parentDirFromPath(path: String): String = {
+    val parts = path.split("/")
+    if (parts.length > 1) parts.init.mkString("/") else ""
+  }
+
+  private def findNewlyEmptyDirectories(
+      originalFiles: List[ClientSideMetadataInput],
+      filteredFiles: List[ClientSideMetadataInput]
+  ): List[String] = {
+    val parentDirsOfExcluded = originalFiles
+      .filterNot(m => filteredFiles.contains(m))
+      .map(m => parentDirFromPath(m.originalPath))
+      .filter(_.nonEmpty)
+      .toSet
+
+    val remainingFilePaths = filteredFiles.map(_.originalPath)
+
+    parentDirsOfExcluded
+      .filterNot(dir => remainingFilePaths.exists(_.startsWith(dir + "/")))
+      .toList
+  }
+
   def saveClientMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
       case Some(metadataInput) =>
         val filteredFiles = metadataInput.metadataInput.filterNot(m => ExcludedFilenames.isExcluded(filenameFromPath(m.originalPath)))
-        val filteredDirs = metadataInput.emptyDirectories.map(_.filterNot(d => ExcludedFilenames.isExcluded(filenameFromPath(d))))
-        val filteredInput = metadataInput.copy(metadataInput = filteredFiles, emptyDirectories = filteredDirs)
+        val newlyEmptyDirs = findNewlyEmptyDirectories(metadataInput.metadataInput, filteredFiles)
+        val allEmptyDirs = metadataInput.emptyDirectories.map(_ ++ newlyEmptyDirs).orElse(Option.when(newlyEmptyDirs.nonEmpty)(newlyEmptyDirs))
+        val filteredInput = metadataInput.copy(metadataInput = filteredFiles, emptyDirectories = allEmptyDirs)
         uploadService.saveClientMetadata(filteredInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
       case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
