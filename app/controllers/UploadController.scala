@@ -53,12 +53,8 @@ class UploadController @Inject() (
       originalFiles: List[ClientSideMetadataInput],
       filteredFiles: List[ClientSideMetadataInput]
   ): List[String] = {
-    val parentDirsOfExcluded = originalFiles
-      .filterNot(file => filteredFiles.contains(file))
-      .map(file => parentDirFromPath(file.originalPath))
-      .filter(_.nonEmpty)
-      .toSet
-
+    val excludedFiles: Seq[ClientSideMetadataInput] = originalFiles.filterNot(file => filteredFiles.contains(file))
+    val parentDirsOfExcluded: Set[String] = excludedFiles.map(file => parentDirFromPath(file.originalPath)).filter(_.nonEmpty).toSet
     val remainingFilePaths = filteredFiles.map(_.originalPath)
 
     parentDirsOfExcluded
