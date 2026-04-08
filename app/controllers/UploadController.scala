@@ -54,8 +54,8 @@ class UploadController @Inject() (
       filteredFiles: List[ClientSideMetadataInput]
   ): List[String] = {
     val parentDirsOfExcluded = originalFiles
-      .filterNot(m => filteredFiles.contains(m))
-      .map(m => parentDirFromPath(m.originalPath))
+      .filterNot(file => filteredFiles.contains(file))
+      .map(file => parentDirFromPath(file.originalPath))
       .filter(_.nonEmpty)
       .toSet
 
@@ -71,7 +71,7 @@ class UploadController @Inject() (
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
       case Some(metadataInput) =>
-        val filteredFiles = metadataInput.metadataInput.filterNot(m => ExcludedFilenames.isExcluded(filenameFromPath(m.originalPath)))
+        val filteredFiles = metadataInput.metadataInput.filterNot(file => ExcludedFilenames.isExcluded(filenameFromPath(file.originalPath)))
         val newlyEmptyDirs = findNewlyEmptyDirectories(metadataInput.metadataInput, filteredFiles)
         val allEmptyDirs = metadataInput.emptyDirectories.map(_ ++ newlyEmptyDirs).orElse(Option.when(newlyEmptyDirs.nonEmpty)(newlyEmptyDirs))
         val filteredInput = metadataInput.copy(metadataInput = filteredFiles, emptyDirectories = allEmptyDirs)
