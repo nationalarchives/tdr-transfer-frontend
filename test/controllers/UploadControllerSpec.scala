@@ -61,8 +61,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
   private val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
   private def createController(
-                                standardUserKeycloakConfig: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-                                frontEndInfoConfig: ApplicationConfig = frontEndInfoConfiguration
+      standardUserKeycloakConfig: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
+      frontEndInfoConfig: ApplicationConfig = frontEndInfoConfiguration
   ): UploadController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
