@@ -61,8 +61,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
   private val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
   private def createController(
-      standardUserKeycloakConfig: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      frontEndInfoConfig: ApplicationConfig = frontEndInfoConfiguration
+                                userKeycloakConfig: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
+                                frontEndInfoConfig: ApplicationConfig = frontEndInfoConfiguration
   ): UploadController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -72,7 +72,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     new UploadController(
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
-      standardUserKeycloakConfig,
+      userKeycloakConfig,
       frontEndInfoConfig,
       consignmentService,
       uploadService,
@@ -84,7 +84,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
   "UploadController GET upload" should {
 
     "return forbidden for a TNA user" in {
-      val controller = createController(standardUserKeycloakConfig = getValidTNAUserKeycloakConfiguration())
+      val controller = createController(userKeycloakConfig = getValidTNAUserKeycloakConfiguration())
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller
@@ -337,7 +337,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "show the judgment upload page for judgments" in {
-      val controller = createController(standardUserKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
+      val controller = createController(userKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
 
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -410,7 +410,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "redirect to NCN page if the user loads the upload page without entering NCN for judgment update" in {
-      val controller = createController(standardUserKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
+      val controller = createController(userKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
 
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -426,7 +426,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "redirect to NCN page if the user loads the upload page without entering NCN for judgment press_summary" in {
-      val controller = createController(standardUserKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
+      val controller = createController(userKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
 
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -443,7 +443,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "show the judgment upload back to before upload for the new judgment transfer" in {
-      val controller = createController(standardUserKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
+      val controller = createController(userKeycloakConfig = getValidJudgmentUserKeycloakConfiguration)
 
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -489,7 +489,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
   private def executeJudgmentsUpload(uploadStatus: StatusValue) = {
     val controller = createController(
-      standardUserKeycloakConfig = getValidJudgmentUserKeycloakConfiguration,
+      userKeycloakConfig = getValidJudgmentUserKeycloakConfiguration,
       frontEndInfoConfig = applicationConfig
     )
 
@@ -511,7 +511,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
   forAll(userChecks) { (user, url) =>
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
-        val controller = createController(standardUserKeycloakConfig = user)
+        val controller = createController(userKeycloakConfig = user)
 
         setConsignmentStatusResponse(app.configuration, wiremockServer)
 
@@ -533,7 +533,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     s"The $url upload in progress page" should {
       s"return 403 if the url doesn't match the consignment type" in {
-        val controller = createController(standardUserKeycloakConfig = user)
+        val controller = createController(userKeycloakConfig = user)
 
         val consignmentStatuses = List(
           ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
@@ -560,7 +560,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     s"The $url upload has completed page" should {
       s"return 403 if the url doesn't match the consignment type" in {
-        val controller = createController(standardUserKeycloakConfig = user)
+        val controller = createController(userKeycloakConfig = user)
 
         val consignmentStatuses = List(
           ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
