@@ -3,7 +3,7 @@
 @import viewsapi.FrontEndInfo
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentRef: String, pageHeading1stHalf:String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, pageHeading1stHalf:String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String, maxNumberOfFiles: Int, maxFileSizeDisplay: String, maxTransferSizeDisplay: String)(implicit request: RequestHeader, messages: Messages)
 
 @main(pageHeading1stHalf, name = name) {
 <noscript>
@@ -32,9 +32,9 @@
             </summary>
             <div class="govuk-details__text">
                 <ul class="govuk-list govuk-list--bullet">
-                    <li>Individual files must be no bigger than 5GB </li>
-                    <li>No more than 5000 files per transfer</li>
-                    <li>The total size of all files for transfer must be no more than 5GB</li>
+                    <li>Individual files must be no bigger than @maxFileSizeDisplay </li>
+                    <li>No more than @maxNumberOfFiles files per transfer</li>
+                    <li>The total size of all files for transfer must be no more than @maxTransferSizeDisplay</li>
                 </ul>
                 To transfer larger files, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
             </div>
