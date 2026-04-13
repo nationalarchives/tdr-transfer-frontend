@@ -15,7 +15,6 @@ import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMu
 import io.circe.syntax._
 import io.circe.parser.decode
 import io.circe.generic.auto._
-import org.mockito.Mockito.when
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -31,9 +30,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, InProgressValue, StatusValue}
-import viewsapi.FrontEndInfo
 
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import scala.jdk.CollectionConverters._
 
 class UploadControllerSpec extends FrontEndTestHelper {

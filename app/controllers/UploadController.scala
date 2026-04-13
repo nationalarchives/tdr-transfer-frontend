@@ -98,6 +98,12 @@ class UploadController @Inject() (
       val uploadStatus: Option[String] = statusesToValue.get(UploadType).flatten
       val pageHeadingUpload = "Upload your records"
       val pageHeadingUploading = "Uploading your records"
+      val maxNumberOfFiles = applicationConfig.maxNumberOfFiles
+      val maxFileSizeMb = applicationConfig.maxFileSizeMb
+      val maxTransferSizeMb = applicationConfig.maxTransferSizeMb
+
+      val maxFileSizeDisplay = s"${maxFileSizeMb / 1000}GB"
+      val maxTransferSizeDisplay = s"${maxTransferSizeMb / 1000}GB"
 
       transferAgreementStatus match {
         case Some(CompletedValue.value) =>
@@ -109,7 +115,19 @@ class UploadController @Inject() (
               Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
-              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, applicationConfig.frontEndInfo, request.token.name))
+              Ok(
+                views.html.standard.upload(
+                  consignmentId,
+                  reference,
+                  pageHeadingUpload,
+                  pageHeadingUploading,
+                  applicationConfig.frontEndInfo,
+                  request.token.name,
+                  maxNumberOfFiles,
+                  maxFileSizeDisplay,
+                  maxTransferSizeDisplay
+                )
+              )
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
