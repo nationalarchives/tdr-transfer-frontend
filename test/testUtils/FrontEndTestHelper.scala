@@ -389,6 +389,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         ""
       )
     )
+    when(frontEndInfoConfiguration.maxNumberOfFiles).thenReturn(5000)
+    when(frontEndInfoConfiguration.maxTransferSizeMb).thenReturn(5000)
+    when(frontEndInfoConfiguration.maxFileSizeMb).thenReturn(5000)
     frontEndInfoConfiguration
   }
 

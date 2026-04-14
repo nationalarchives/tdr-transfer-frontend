@@ -15,7 +15,25 @@ class FaqController @Inject() (securityComponents: SecurityComponents, val appli
     with I18nSupport {
   def faq(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     val disallowedPuids = DisallowedPuids.all.filter(_.active)
-    Ok(views.html.faq(request.isLoggedIn, request.name, disallowedPuids, Definitions.languages.all, Definitions.foi_codes.all))
+    val maxNumberOfFiles = applicationConfig.maxNumberOfFiles
+    val maxFileSizeMb = applicationConfig.maxFileSizeMb
+    val maxTransferSizeMb = applicationConfig.maxTransferSizeMb
+
+    val maxFileSizeDisplay = s"${maxFileSizeMb / 1000}GB"
+    val maxTransferSizeDisplay = s"${maxTransferSizeMb / 1000}GB"
+
+    Ok(
+      views.html.faq(
+        request.isLoggedIn,
+        request.name,
+        disallowedPuids,
+        Definitions.languages.all,
+        Definitions.foi_codes.all,
+        maxNumberOfFiles,
+        maxFileSizeDisplay,
+        maxTransferSizeDisplay
+      )
+    )
   }
 
   def judgmentFaq(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>

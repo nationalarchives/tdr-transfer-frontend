@@ -39,4 +39,10 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
   val notificationSnsTopicArn: String = get("notificationSnsTopicArn")
 
   val fileChecksTotalTimoutInSeconds: Int = configuration.get[Int]("fileChecksTotalTimoutInSeconds")
+
+  val maxNumberOfFiles: Int = configuration.get[Int]("capacityLimits.maxNumberRecords")
+
+  val maxFileSizeMb: Int = configuration.get[Int]("capacityLimits.maxIndividualFileSizeMb")
+
+  val maxTransferSizeMb: Int = configuration.get[Int]("capacityLimits.maxTransferSizeMb")
 }
