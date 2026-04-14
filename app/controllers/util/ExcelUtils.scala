@@ -106,14 +106,30 @@ object ExcelUtils {
     xlBas.toByteArray
   }
 
+  /** Sets a cell value as a hyperlink if the content contains a hyperlink. Supports both HTML anchor tags (<a href="...">...</a>) and Markdown links ([text](url)). Extracts the
+    * URL and link text, creates a HYPERLINK formula, and applies blue font color with underline.
+    *
+    * @param worksheet
+    *   The worksheet to write to
+    * @param content
+    *   The cell content (may contain a hyperlink)
+    * @param rowNo
+    *   The row number
+    * @param colNo
+    *   The column number
+    */
   private def setCellValueAsHyperlinkIfPresent(worksheet: Worksheet, content: String, rowNo: Int, colNo: Int): Unit = {
+    // Pattern for HTML anchor tags: <a href="url">text</a>
+    val htmlLinkPattern: Regex = """<a\s+href=["']([^"']+)["']>([^<]*)</a>""".r
     // Pattern for Markdown links: [text](url)
     val markdownLinkPattern: Regex = """\[([^\]]+)\]\(([^)]+)\)""".r
 
-    markdownLinkPattern.findFirstMatchIn(content) match {
-      case Some(matchResult) =>
-        val linkText = matchResult.group(1)
-        val url = matchResult.group(2)
+    val htmlMatchResult = htmlLinkPattern.findFirstMatchIn(content)
+    val matchResult = if (htmlMatchResult.isDefined) htmlMatchResult else markdownLinkPattern.findFirstMatchIn(content)
+    matchResult match {
+      case Some(result) =>
+        val linkText = result.group(1)
+        val url = result.group(2)
         // Use HYPERLINK formula which creates a clickable link
         worksheet.formula(rowNo, colNo, s"HYPERLINK(\"$url\", \"$linkText\")")
         // Apply Blue font color and underline to make the cell stand out
@@ -154,12 +170,13 @@ object ExcelUtils {
       gi: GuidanceItem,
       rowNumber: Int
   ): Unit = {
-    setCellValue(
-      worksheet = guidanceWorksheet,
-      value = colType.value(keyToTdrFileHeader, keyToPropertyType)(gi),
-      rowNo = rowNumber,
-      colNo = columnNumber
-    )
+    val value = colType.value(keyToTdrFileHeader, keyToPropertyType)(gi)
+    value match {
+      case _: String =>
+        setCellValueAsHyperlinkIfPresent(guidanceWorksheet, value.toString, rowNumber, columnNumber)
+      case _ =>
+        setCellValue(guidanceWorksheet, value, rowNumber, columnNumber)
+    }
     val styleSetter = guidanceWorksheet.range(rowNumber, columnNumber, rowNumber, columnNumber).style()
     colType.systemPropertyFormatting(gi)(styleSetter)
     colType.columnLevelFormatting(styleSetter)
