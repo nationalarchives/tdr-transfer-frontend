@@ -6,8 +6,8 @@ import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.dhatim.fastexcel.{BorderSide, BorderStyle, Workbook, Worksheet}
-import uk.gov.nationalarchives.tdr.schema.generated.MetadataTemplate.MetadataProperty
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
+import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.GuidanceItem
 
 import java.time.LocalDate
 import scala.util.matching.Regex
@@ -25,7 +25,7 @@ object ExcelUtils {
       keyToPropertyType: String => String,
       sortColumn: String,
       defaultValue: String => String,
-      guidanceItems: Seq[MetadataProperty] = Seq.empty
+      guidanceItems: Seq[GuidanceItem] = Seq.empty
   ): Array[Byte] = {
     val colProperties: List[ColumnProperty] =
       downloadFileDisplayProperties.map(displayProperty => ColumnProperty(keyToTdrFileHeader(displayProperty.key), displayProperty.editable, Some(NonEditableColour)))
@@ -48,7 +48,7 @@ object ExcelUtils {
       columnProperties: List[ColumnProperty] = List.empty,
       rows: List[List[Any]],
       dataTypes: List[String] = Nil,
-      guidanceItems: Seq[MetadataProperty] = Seq.empty,
+      guidanceItems: Seq[GuidanceItem] = Seq.empty,
       keyToTdrFileHeader: String => String = identity,
       keyToPropertyType: String => String = identity
   ): Array[Byte] = {
@@ -146,7 +146,7 @@ object ExcelUtils {
 
   private def buildGuidanceWorksheet(
       wb: Workbook,
-      guidanceItems: Seq[MetadataProperty],
+      guidanceItems: Seq[GuidanceItem],
       keyToTdrFileHeader: String => String,
       keyToPropertyType: String => String
   ): Unit = {
@@ -167,7 +167,7 @@ object ExcelUtils {
       guidanceWorksheet: Worksheet,
       colType: GuidanceColumnWriter,
       columnNumber: Int,
-      gi: MetadataProperty,
+      gi: GuidanceItem,
       rowNumber: Int
   ): Unit = {
     val value = colType.value(keyToTdrFileHeader, keyToPropertyType)(gi)
