@@ -41,27 +41,27 @@ object GuidanceUtils {
 
   case object ColumnTitle extends GuidanceColumnWriter {
     val header = "COLUMN TITLE"
-    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => Any = gi => keyToTdrHeader(gi.property)
+    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => String = gi => keyToTdrHeader(gi.property)
     override def columnLevelFormatting: StyleSetter => Unit = _.bold.set()
   }
 
   case object Details extends GuidanceColumnWriter {
     val header = "DETAILS"
     override val maxColumnWidth: Option[Double] = Some(60.67)
-    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => Any = _.details
+    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => String = _.details
     override def columnLevelFormatting: StyleSetter => Unit = _.wrapText(true).set()
   }
 
   case object Format extends GuidanceColumnWriter {
     val header = "FORMAT"
     override val maxColumnWidth: Option[Double] = Some(37.00)
-    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => Any = _.format
+    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => String = _.format
     override def columnLevelFormatting: StyleSetter => Unit = _.wrapText(true).set()
   }
 
   case object TDRRequirement extends GuidanceColumnWriter {
     val header = "TDR REQUIREMENT"
-    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => Any = _.tdrRequirement
+    def value(keyToTdrHeader: String => String, keyToPropertyType: String => String): GuidanceItem => String = _.tdrRequirement
   }
 
   case object Example extends GuidanceColumnWriter {
