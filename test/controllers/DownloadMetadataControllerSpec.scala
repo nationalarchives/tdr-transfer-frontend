@@ -153,6 +153,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         examplePropertyType match {
           case "date" if guidanceItem.example != "N/A" =>
             rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal(guidanceItem.example)
+          case _ if guidanceItem.example.contains("href") =>
+            rows(rowNumber).getCell(4).getFormula must include("HYPERLINK")
           case _ => rows(rowNumber).getCell(4).asString() must equal(guidanceItem.example)
         }
       }
