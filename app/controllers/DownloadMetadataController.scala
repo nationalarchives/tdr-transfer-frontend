@@ -8,8 +8,8 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, ConsignmentStatusService}
+import uk.gov.nationalarchives.tdr.schema.generated.MetadataTemplate
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
-import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -64,7 +64,7 @@ class DownloadMetadataController @Inject() (
           propertyTypeEvaluator,
           fileSortColumn,
           metadataConfiguration.getDefaultValue,
-          GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
+          MetadataTemplate.all
         )
       } yield {
         Ok(excelFile)
