@@ -124,24 +124,32 @@ object ExcelUtils {
     // Pattern for Markdown links: [text](url)
     val markdownLinkPattern: Regex = """\[([^\]]+)\]\(([^)]+)\)""".r
 
-    val htmlMatchResult = htmlLinkPattern.findFirstMatchIn(content)
-    val matchResult = if (htmlMatchResult.isDefined) htmlMatchResult else markdownLinkPattern.findFirstMatchIn(content)
-    matchResult match {
+    htmlLinkPattern.findFirstMatchIn(content) match {
       case Some(result) =>
-        val linkText = result.group(1)
-        val url = result.group(2)
-        // Use HYPERLINK formula which creates a clickable link
-        worksheet.formula(rowNo, colNo, s"HYPERLINK(\"$url\", \"$linkText\")")
-        // Apply Blue font color and underline to make the cell stand out
-        worksheet
-          .range(rowNo, colNo, rowNo, colNo)
-          .style()
-          .fontColor("0000FF") // Standard Blue hex code
-          .underlined()
-          .set()
+        val url = result.group(1)
+        val linkText = result.group(2)
+        addHyperLink(worksheet, rowNo, colNo, url, linkText)
       case None =>
-        worksheet.value(rowNo, colNo, content)
+        markdownLinkPattern.findFirstMatchIn(content) match {
+          case Some(result) =>
+            val linkText = result.group(1)
+            val url = result.group(2)
+            addHyperLink(worksheet, rowNo, colNo, url, linkText)
+          case None =>
+            worksheet.value(rowNo, colNo, content)
+        }
     }
+  }
+
+  private def addHyperLink(worksheet: Worksheet, rowNo: Int, colNo: Int, url: String, linkText: String): Unit = {
+    worksheet.formula(rowNo, colNo, s"HYPERLINK(\"$url\", \"$linkText\")")
+    // Apply Blue font color and underline to make the cell stand out
+    worksheet
+      .range(rowNo, colNo, rowNo, colNo)
+      .style()
+      .fontColor("0000FF")
+      .underlined()
+      .set()
   }
 
   private def buildGuidanceWorksheet(
@@ -176,11 +184,11 @@ object ExcelUtils {
         setCellValueAsHyperlinkIfPresent(guidanceWorksheet, value.toString, rowNumber, columnNumber)
       case _ =>
         setCellValue(guidanceWorksheet, value, rowNumber, columnNumber)
+        val styleSetter = guidanceWorksheet.range(rowNumber, columnNumber, rowNumber, columnNumber).style()
+        colType.systemPropertyFormatting(gi)(styleSetter)
+        colType.columnLevelFormatting(styleSetter)
+        colType.formatDataType(keyToPropertyType, gi)(styleSetter)
     }
-    val styleSetter = guidanceWorksheet.range(rowNumber, columnNumber, rowNumber, columnNumber).style()
-    colType.systemPropertyFormatting(gi)(styleSetter)
-    colType.columnLevelFormatting(styleSetter)
-    colType.formatDataType(keyToPropertyType, gi)(styleSetter)
   }
 
   private def formatHeaderAndSetColumnWidth(guidanceWorksheet: Worksheet, colType: GuidanceColumnWriter, columnNumber: Int): Unit = {
