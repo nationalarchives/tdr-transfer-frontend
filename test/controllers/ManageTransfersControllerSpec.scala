@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.GraphQLConfiguration
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
-import play.api.http.Status.{FORBIDDEN, FOUND, OK}
+import play.api.http.Status.{FORBIDDEN, FOUND, NOT_FOUND, OK}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
@@ -127,7 +127,8 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       val controller = new ManageTransfersController(
         getValidKeycloakConfiguration,
         getAuthorisedSecurityComponents,
-        new ConsignmentService(new GraphQLConfiguration(app.configuration))
+        new ConsignmentService(new GraphQLConfiguration(app.configuration)),
+        getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> false))
       )
       val response = controller.manageTransfers(None).apply(FakeRequest(GET, "/admin/manage-transfers").withCSRFToken)
 
@@ -138,19 +139,27 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       val controller = new ManageTransfersController(
         getValidKeycloakConfiguration,
         getUnauthorisedSecurityComponents,
-        new ConsignmentService(new GraphQLConfiguration(app.configuration))
+        new ConsignmentService(new GraphQLConfiguration(app.configuration)),
+        getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> false))
       )
       val response = controller.manageTransfers(None).apply(FakeRequest(GET, "/admin/manage-transfers").withCSRFToken)
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
+
+    "return 404 if blockMetadataReviewV2 is true" in {
+      val response = instantiateController(blockMetadataReviewV2 = true).manageTransfers(None).apply(FakeRequest(GET, "/admin/manage-transfers").withCSRFToken)
+
+      status(response) mustBe NOT_FOUND
+    }
   }
 
-  private def instantiateController() = new ManageTransfersController(
+  private def instantiateController(blockMetadataReviewV2: Boolean = false) = new ManageTransfersController(
     getValidTNAUserKeycloakConfiguration(),
     getAuthorisedSecurityComponents,
-    new ConsignmentService(new GraphQLConfiguration(app.configuration))
+    new ConsignmentService(new GraphQLConfiguration(app.configuration)),
+    getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> blockMetadataReviewV2))
   )
 
   private def getDaySuffix(day: Int): String = day match {

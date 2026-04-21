@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.KeycloakConfiguration
+import configuration.{ApplicationConfig, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentReviewDetails.getConsignmentReviewDetails.GetConsignmentReviewDetails
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
@@ -11,23 +11,29 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 import javax.inject.Inject
+import scala.concurrent.Future
 
 class ManageTransfersController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents,
-    val consignmentService: ConsignmentService
+    val consignmentService: ConsignmentService,
+    val applicationConfig: ApplicationConfig
 ) extends TokenSecurity {
 
   private val validTabs = Set("requested", "rejected", "approved", "transferred", "all")
 
   def manageTransfers(tab: Option[String]): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
-    val activeTab = tab.map(_.toLowerCase).filter(validTabs.contains).getOrElse("requested")
-    val statusFilter = if (activeTab == "all") None else Some(activeTab.capitalize)
-    consignmentService
-      .getConsignmentReviewDetails(statusFilter, request.token.bearerAccessToken)
-      .map { reviewDetails =>
-        Ok(views.html.tna.manageTransfers(reviewDetails.map(toConsignmentReviewDetails), activeTab))
-      }
+    if (applicationConfig.blockMetadataReviewV2) {
+      Future.successful(NotFound(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
+    } else {
+      val activeTab = tab.map(_.toLowerCase).filter(validTabs.contains).getOrElse("requested")
+      val statusFilter = if (activeTab == "all") None else Some(activeTab.capitalize)
+      consignmentService
+        .getConsignmentReviewDetails(statusFilter, request.token.bearerAccessToken)
+        .map { reviewDetails =>
+          Ok(views.html.tna.manageTransfers(reviewDetails.map(toConsignmentReviewDetails), activeTab))
+        }
+    }
   }
 
   private def toConsignmentReviewDetails(reviewDetails: GetConsignmentReviewDetails): ConsignmentReviewDetails = {

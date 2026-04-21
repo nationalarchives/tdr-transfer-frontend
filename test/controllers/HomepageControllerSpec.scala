@@ -2,13 +2,11 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverError, urlEqualTo}
-import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
-import configuration.{ApplicationConfig, GraphQLConfiguration}
+import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment.{AddConsignment, Data, Variables}
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, _}
-import play.api.Configuration
 import services.ConsignmentService
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import io.circe.Printer
@@ -21,7 +19,6 @@ import play.api.Play.materializer
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters._
 
 class HomepageControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -108,7 +105,12 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
     "render the DTA review homepage page with an authenticated tna user linking to manage-transfers when blockManageTransfers is false" in {
       val controller =
-        new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService, getApplicationConfig(blockMetadataReviewV2 = false))
+        new HomepageController(
+          getAuthorisedSecurityComponents,
+          getValidTNAUserKeycloakConfiguration(),
+          consignmentService,
+          getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> false))
+        )
       val userType = "tna"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)

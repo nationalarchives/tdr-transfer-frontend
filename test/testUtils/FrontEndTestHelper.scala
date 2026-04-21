@@ -4,6 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
@@ -707,5 +708,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
                               |</a>
                               |""".stripMargin
     linkHTML
+  }
+
+  def getApplicationConfig(overrides: Map[String, Any] = Map.empty): ApplicationConfig = {
+    val baseConfig = overrides.foldLeft(ConfigFactory.load()) { case (conf, (key, value)) =>
+      conf.withValue(key, ConfigValueFactory.fromAnyRef(value))
+    }
+    val config = baseConfig
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
+    new ApplicationConfig(Configuration.from(config))
   }
 }

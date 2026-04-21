@@ -36,7 +36,7 @@
     @for(consignment <- items) {
       <tr class="govuk-table__row">
         <td class="govuk-table__cell">
-          <a class="govuk-link" href="/admin/metadata-review/@consignment.consignmentId">@consignment.consignmentReference</a>
+          <a class="govuk-link" href="@routes.MetadataReviewActionController.consignmentMetadataDetails(consignment.consignmentId)">@consignment.consignmentReference</a>
         </td>
         <td class="govuk-table__cell">
           <strong class="govuk-tag @tagClass(consignment.reviewStatus)">@consignment.reviewStatus</strong>
