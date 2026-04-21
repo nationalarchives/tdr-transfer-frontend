@@ -26,7 +26,7 @@ import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.{GuidanceItem, loadGuidanceFile}
 
 import java.io.ByteArrayInputStream
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -77,8 +77,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           FileMetadata(copyright, "Copyright")
         )
         val files = List(
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne, Nil),
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo, Nil)
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne),
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo)
         )
 
         val wb: ReadableWorkbook = getFileFromController(files, userType)
@@ -153,6 +153,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         examplePropertyType match {
           case "date" if guidanceItem.example != "N/A" =>
             rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal(guidanceItem.example)
+          case _ if guidanceItem.example.contains("href") =>
+            rows(rowNumber).getCell(4).getFormula must include("HYPERLINK")
           case _ => rows(rowNumber).getCell(4).asString() must equal(guidanceItem.example)
         }
       }
@@ -235,9 +237,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       files: List[Files],
       userType: String
   ): ReadableWorkbook = {
-    mockFileMetadataResponse(files)
-
     val consignmentId = UUID.randomUUID()
+    mockFileMetadataResponse(files, consignmentId)
     val controller = createController("standard", userType.some)
     val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
     val responseByteArray: ByteString = contentAsBytes(response)
@@ -264,10 +265,16 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     )
   }
 
-  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files]) = {
+  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files], consignmentId: UUID) = {
     val client: GraphQLClient[gcfm.Data, gcfm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
-
-    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, ""))))).asJson.printWith(Printer.noSpaces)
+    val metadataReviewLog = gcfm.GetConsignment.MetadataReviewLogs(
+      UUID.randomUUID(),
+      consignmentId,
+      UUID.randomUUID(),
+      "Submission",
+      ZonedDateTime.parse("2021-02-03T10:33:30.414Z")
+    )
+    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, List(metadataReviewLog), ""))))).asJson.printWith(Printer.noSpaces)
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentFilesMetadata"))

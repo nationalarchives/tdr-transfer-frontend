@@ -10,6 +10,7 @@ import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayPr
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.GuidanceItem
 
 import java.time.LocalDate
+import scala.util.matching.Regex
 
 object ExcelUtils {
 
@@ -49,8 +50,7 @@ object ExcelUtils {
       dataTypes: List[String] = Nil,
       guidanceItems: Seq[GuidanceItem] = Seq.empty,
       keyToTdrFileHeader: String => String = identity,
-      keyToPropertyType: String => String = identity,
-      defaultValue: String => String = identity
+      keyToPropertyType: String => String = identity
   ): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
@@ -91,6 +91,67 @@ object ExcelUtils {
 
   }
 
+  def writeExcel(worksheetName: String, rows: List[List[String]]): Array[Byte] = {
+    val xlBas = new ByteArrayOutputStream()
+    val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
+    val ws: Worksheet = wb.newWorksheet(worksheetName)
+
+    ws.range(0, 0, 0, rows.head.length - 1).style().bold().set()
+    for ((row, rowNo) <- rows.zipWithIndex) {
+      for ((col, colNo) <- row.zipWithIndex) {
+        setCellValueAsHyperlinkIfPresent(ws, col, rowNo, colNo)
+      }
+    }
+    wb.finish()
+    xlBas.toByteArray
+  }
+
+  /** Sets a cell value as a hyperlink if the content contains a hyperlink. Supports both HTML anchor tags (<a href="...">...</a>) and Markdown links ([text](url)). Extracts the
+    * URL and link text, creates a HYPERLINK formula, and applies blue font color with underline.
+    *
+    * @param worksheet
+    *   The worksheet to write to
+    * @param content
+    *   The cell content (may contain a hyperlink)
+    * @param rowNo
+    *   The row number
+    * @param colNo
+    *   The column number
+    */
+  private def setCellValueAsHyperlinkIfPresent(worksheet: Worksheet, content: String, rowNo: Int, colNo: Int): Unit = {
+    // Pattern for HTML anchor tags: <a href="url">text</a>
+    val htmlLinkPattern: Regex = """<a\s+href=["']([^"']+)["']>([^<]*)</a>""".r
+    // Pattern for Markdown links: [text](url)
+    val markdownLinkPattern: Regex = """\[([^\]]+)\]\(([^)]+)\)""".r
+
+    htmlLinkPattern.findFirstMatchIn(content) match {
+      case Some(result) =>
+        val url = result.group(1)
+        val linkText = result.group(2)
+        addHyperLink(worksheet, rowNo, colNo, url, linkText)
+      case None =>
+        markdownLinkPattern.findFirstMatchIn(content) match {
+          case Some(result) =>
+            val linkText = result.group(1)
+            val url = result.group(2)
+            addHyperLink(worksheet, rowNo, colNo, url, linkText)
+          case None =>
+            worksheet.value(rowNo, colNo, content)
+        }
+    }
+  }
+
+  private def addHyperLink(worksheet: Worksheet, rowNo: Int, colNo: Int, url: String, linkText: String): Unit = {
+    worksheet.formula(rowNo, colNo, s"HYPERLINK(\"$url\", \"$linkText\")")
+    // Apply Blue font color and underline to make the cell stand out
+    worksheet
+      .range(rowNo, colNo, rowNo, colNo)
+      .style()
+      .fontColor("0000FF")
+      .underlined()
+      .set()
+  }
+
   private def buildGuidanceWorksheet(
       wb: Workbook,
       guidanceItems: Seq[GuidanceItem],
@@ -117,16 +178,17 @@ object ExcelUtils {
       gi: GuidanceItem,
       rowNumber: Int
   ): Unit = {
-    setCellValue(
-      worksheet = guidanceWorksheet,
-      value = colType.value(keyToTdrFileHeader, keyToPropertyType)(gi),
-      rowNo = rowNumber,
-      colNo = columnNumber
-    )
-    val styleSetter = guidanceWorksheet.range(rowNumber, columnNumber, rowNumber, columnNumber).style()
-    colType.systemPropertyFormatting(gi)(styleSetter)
-    colType.columnLevelFormatting(styleSetter)
-    colType.formatDataType(keyToPropertyType, gi)(styleSetter)
+    val value = colType.value(keyToTdrFileHeader, keyToPropertyType)(gi)
+    value match {
+      case _: String =>
+        setCellValueAsHyperlinkIfPresent(guidanceWorksheet, value.toString, rowNumber, columnNumber)
+      case _ =>
+        setCellValue(guidanceWorksheet, value, rowNumber, columnNumber)
+        val styleSetter = guidanceWorksheet.range(rowNumber, columnNumber, rowNumber, columnNumber).style()
+        colType.systemPropertyFormatting(gi)(styleSetter)
+        colType.columnLevelFormatting(styleSetter)
+        colType.formatDataType(keyToPropertyType, gi)(styleSetter)
+    }
   }
 
   private def formatHeaderAndSetColumnWidth(guidanceWorksheet: Worksheet, colType: GuidanceColumnWriter, columnNumber: Int): Unit = {
