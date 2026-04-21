@@ -37,7 +37,7 @@ class HomepageController @Inject() (
       } else if (request.token.isStandardUser) {
         Ok(views.html.standard.homepage(request.token.name))
       } else if (request.token.isTNAUser) {
-        Ok(views.html.tna.homepage(request.token.name))
+        Ok(views.html.tna.homepage(request.token.name, applicationConfig.blockMetadataReviewV2))
       } else {
         Ok(views.html.registrationComplete(request.token.name))
       }

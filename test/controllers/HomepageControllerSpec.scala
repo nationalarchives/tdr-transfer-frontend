@@ -2,6 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverError, urlEqualTo}
+import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.AddConsignment.addConsignment.{AddConsignment, Data, Variables}
 import play.api.test.CSRFTokenHelper._
@@ -20,6 +21,7 @@ import play.api.Play.materializer
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters._
 
 class HomepageControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -47,6 +49,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       |</a>""".stripMargin
 
   val transfersForReviewButton: String =
+    """<a href="/admin/manage-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
+
+  val transfersForReviewButtonLegacy: String =
     """<a href="/admin/metadata-review" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
 
   "HomepageController GET" should {
@@ -101,8 +106,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must not include transfersForReviewButton
     }
 
-    "render the DTA review homepage page with an authenticated tna user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService, config)
+    "render the DTA review homepage page with an authenticated tna user linking to manage-transfers when blockManageTransfers is false" in {
+      val controller =
+        new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService, getApplicationConfig(blockMetadataReviewV2 = false))
       val userType = "tna"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -112,6 +118,22 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       homepagePageAsString must include(transfersForReviewButton)
+      homepagePageAsString must not include transfersForReviewButtonLegacy
+    }
+
+    "render the DTA review homepage page with an authenticated tna user linking to metadata-review when blockManageTransfers is true" in {
+      val controller =
+        new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService, getApplicationConfig(blockMetadataReviewV2 = true))
+      val userType = "tna"
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      val homepagePageAsString = contentAsString(homepagePage)
+
+      status(homepagePage) mustBe OK
+      contentType(homepagePage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
+      homepagePageAsString must include(transfersForReviewButtonLegacy)
+      homepagePageAsString must not include transfersForReviewButton
     }
 
     "return a redirect to the judgment homepage page with an authenticated judgment user" in {
@@ -229,5 +251,16 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       pageAsString must include("Start transfer")
       pageAsString must include("""<form action="/homepage" method="POST" novalidate="">""")
     }
+  }
+
+  private def getApplicationConfig(blockMetadataReviewV2: Boolean): ApplicationConfig = {
+    val config: Map[String, ConfigValue] = ConfigFactory
+      .load()
+      .withValue("featureAccessBlock.blockMetadataReviewV2", ConfigValueFactory.fromAnyRef(blockMetadataReviewV2))
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
+    new ApplicationConfig(Configuration.from(config))
   }
 }
