@@ -2,7 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverError, urlEqualTo}
-import configuration.GraphQLConfiguration
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.AddConsignment.addConsignment.{AddConsignment, Data, Variables}
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -125,7 +125,12 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
     "render the DTA review homepage page with an authenticated tna user linking to metadata-review when blockManageTransfers is true" in {
       val controller =
-        new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService, getApplicationConfig(blockMetadataReviewV2 = true))
+        new HomepageController(
+          getAuthorisedSecurityComponents,
+          getValidTNAUserKeycloakConfiguration(),
+          consignmentService,
+          getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> true))
+        )
       val userType = "tna"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -253,16 +258,5 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       pageAsString must include("Start transfer")
       pageAsString must include("""<form action="/homepage" method="POST" novalidate="">""")
     }
-  }
-
-  private def getApplicationConfig(blockMetadataReviewV2: Boolean): ApplicationConfig = {
-    val config: Map[String, ConfigValue] = ConfigFactory
-      .load()
-      .withValue("featureAccessBlock.blockMetadataReviewV2", ConfigValueFactory.fromAnyRef(blockMetadataReviewV2))
-      .entrySet()
-      .asScala
-      .map(e => e.getKey -> e.getValue)
-      .toMap
-    new ApplicationConfig(Configuration.from(config))
   }
 }
