@@ -1,10 +1,14 @@
-@(name:String)(implicit messages: Messages, request: RequestHeader)
+@(name:String, blockMetadataReviewV2: Boolean)(implicit messages: Messages, request: RequestHeader)
 @defining("Welcome to the Transfer Digital Records service") { title =>
     @main(title, name = name, isTnaUser = true) {
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 <h1 class="govuk-heading-l govuk-!-margin-bottom-9">@title</h1>
-                <a href="@routes.MetadataReviewController.metadataReviews()" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>
+                @if(blockMetadataReviewV2) {
+                    <a href="@routes.MetadataReviewController.metadataReviews()" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>
+                } else {
+                    <a href="@routes.ManageTransfersController.manageTransfers(None)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>
+                }
             </div>
         </div>
     }

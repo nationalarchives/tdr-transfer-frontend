@@ -1,0 +1,79 @@
+@(consignments: List[ConsignmentReviewDetails], activeTab: String)(implicit messages: Messages, request: RequestHeader)
+
+@tabLink(tabId: String, label: String) = {
+  <li class="govuk-tabs__list-item @if(activeTab == tabId){govuk-tabs__list-item--selected}">
+    <a class="govuk-tabs__tab"
+       href="@routes.ManageTransfersController.manageTransfers(Some(tabId))"
+       @if(activeTab == tabId){aria-current="page"}>@label</a>
+  </li>
+}
+
+@tagClass(status: String) = @{
+  status.toLowerCase match {
+    case "requested"   => "govuk-tag--red"
+    case "rejected"    => "govuk-tag--yellow"
+    case "approved"    => "govuk-tag--green"
+    case "transferred" => "govuk-tag--grey"
+    case _             => ""
+  }
+}
+
+@statusTable(items: List[ConsignmentReviewDetails]) = {
+  <table class="govuk-table">
+    <caption class="govuk-table__caption govuk-visually-hidden">
+      @activeTab.capitalize transfers
+    </caption>
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Consignment</th>
+        <th scope="col" class="govuk-table__header">Status</th>
+        <th scope="col" class="govuk-table__header">Department</th>
+        <th scope="col" class="govuk-table__header">Series</th>
+        <th scope="col" class="govuk-table__header">Last updated</th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+    @for(consignment <- items) {
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell">
+          <a class="govuk-link" href="@routes.MetadataReviewActionController.consignmentMetadataDetails(consignment.consignmentId)">@consignment.consignmentReference</a>
+        </td>
+        <td class="govuk-table__cell">
+          <strong class="govuk-tag @tagClass(consignment.reviewStatus)">@consignment.reviewStatus</strong>
+        </td>
+        <td class="govuk-table__cell">@consignment.transferringBodyName</td>
+        <td class="govuk-table__cell">@consignment.seriesName</td>
+        <td class="govuk-table__cell">@consignment.lastUpdated</td>
+      </tr>
+    }
+    </tbody>
+  </table>
+}
+
+@main("Manage transfers", isTnaUser = true) {
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+      <h1 class="govuk-heading-l govuk-!-margin-bottom-5">Manage transfers</h1>
+
+      <nav class="govuk-tabs" aria-label="Filter consignments by status">
+        <ul class="govuk-tabs__list">
+          @tabLink("requested", "Requested")
+          @tabLink("rejected", "Rejected")
+          @tabLink("approved", "Approved")
+          @tabLink("transferred", "Transferred")
+          @tabLink("all", "All")
+        </ul>
+
+        <div class="govuk-tabs__panel">
+          @if(consignments.isEmpty) {
+            <p class="govuk-body">There are no @activeTab transfers.</p>
+          } else {
+            @statusTable(consignments)
+          }
+        </div>
+      </nav>
+
+    </div>
+  </div>
+}
