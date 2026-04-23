@@ -70,6 +70,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
 
       result should include("4:30pm")
+      result should not include "04:30pm"
     }
 
     "keep GMT during winter" in {
@@ -78,6 +79,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
 
       result should include("3:30pm")
+      result should not include "03:30pm"
     }
 
   }
