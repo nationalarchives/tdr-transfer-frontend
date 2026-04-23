@@ -33,24 +33,14 @@ export class Checks {
 
   updateFileCheckProgress: (
     isJudgmentUser: boolean,
-    goToNextPage: (formId: string) => void,
-    checksPageRefreshInterval: number
+    goToNextPage: (formId: string) => void
   ) => void | Error = (
     isJudgmentUser: boolean,
-    goToNextPage: (formId: string) => void,
-    checksPageRefreshInterval: number
+    goToNextPage: (formId: string) => void
   ) => {
     if (isJudgmentUser) {
       this.checkJudgmentTransferProgress(goToNextPage)
     } else {
-      const refreshPageIntervalId: ReturnType<typeof setInterval> = setInterval(
-        async () => {
-          clearInterval(intervalId)
-          window.location.reload()
-        },
-        checksPageRefreshInterval
-      )
-
       const intervalId: ReturnType<typeof setInterval> = setInterval(
         async () => {
           const fileChecksProgress: IFileCheckProgress | Error =
@@ -58,13 +48,13 @@ export class Checks {
           if (!isError(fileChecksProgress)) {
             const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
             if (checksCompleted) {
-              clearInterval(intervalId)
-              clearInterval(refreshPageIntervalId)
-              displayChecksCompletedBanner("file-checks")
+              // clearInterval(intervalId)
+              // displayChecksCompletedBanner("file-checks")
             }
           } else {
-            clearInterval(refreshPageIntervalId)
-            return fileChecksProgress
+            console.log("=====> FILE CHECKS ERROR")
+            clearInterval(intervalId)
+            setTimeout( async () => { window.location.reload() }, 10000)
           }
         },
         10000

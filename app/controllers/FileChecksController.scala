@@ -142,7 +142,7 @@ class FileChecksController @Inject() (
           throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
         }
     } yield {
-      if (fileChecks.isComplete) {
+      if (false) {
         Ok(
           views.html.fileChecksProgressAlreadyConfirmed(
             consignmentId,
