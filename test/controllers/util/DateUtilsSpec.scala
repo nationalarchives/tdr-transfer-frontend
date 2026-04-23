@@ -69,7 +69,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       val dateTime = ZonedDateTime.of(2023, 6, 19, 15, 30, 0, 0, ZoneId.of("UTC"))
       val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
 
-      result should include("04:30pm")
+      result should include("4:30pm")
     }
 
     "keep GMT during winter" in {
@@ -77,7 +77,7 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       val dateTime = ZonedDateTime.of(2026, 1, 19, 15, 30, 0, 0, ZoneId.of("UTC"))
       val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
 
-      result should include("03:30pm")
+      result should include("3:30pm")
     }
 
   }

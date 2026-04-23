@@ -15,7 +15,7 @@ object DateUtils {
   def formatWithDaySuffixAndRelative(dateTime: ZonedDateTime, zoneId: ZoneId = ukTimeZone): String = {
     val localDateTime = dateTime.withZoneSameInstant(zoneId)
     val daySuffix = getDaySuffix(localDateTime.getDayOfMonth)
-    val formatted = format(dateTime, s"d'$daySuffix' MMMM yyyy, hh:mma", zoneId)
+    val formatted = format(dateTime, s"d'$daySuffix' MMMM yyyy, h:mma", zoneId)
     // Lowercase only the trailing AM/PM so the month stays capitalised, e.g. "20th April 2026, 10:32am"
     val date =
       if (formatted.endsWith("AM") || formatted.endsWith("PM")) formatted.dropRight(2) + formatted.takeRight(2).toLowerCase
