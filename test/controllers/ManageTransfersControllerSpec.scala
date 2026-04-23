@@ -2,6 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.GraphQLConfiguration
+import controllers.util.DateUtils
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
 import play.api.http.Status.{FORBIDDEN, FOUND, NOT_FOUND, OK}
@@ -11,9 +12,8 @@ import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTim
 import services.ConsignmentService
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.ZonedDateTime
 import scala.concurrent.ExecutionContext
 
 class ManageTransfersControllerSpec extends FrontEndTestHelper {
@@ -112,15 +112,10 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       setGetConsignmentReviewDetailsResponse(wiremockServer)
       val response = instantiateController().manageTransfers(None).apply(FakeRequest(GET, "/admin/manage-transfers").withCSRFToken)
       val pageAsString = contentAsString(response)
-      val formatter = DateTimeFormatter.ofPattern("d'%s' MMMM yyyy, hh:mma")
 
       status(response) mustBe OK
       val dateTime = ZonedDateTime.now().minus(1, ChronoUnit.DAYS)
-      val formatted = formatter.format(dateTime).format(getDaySuffix(dateTime.getDayOfMonth))
-      val date =
-        if (formatted.endsWith("AM") || formatted.endsWith("PM")) formatted.dropRight(2) + formatted.takeRight(2).toLowerCase
-        else formatted
-      pageAsString must include(s"$date (Yesterday)")
+      pageAsString must include(s"${DateUtils.formatWithDaySuffixAndRelative(dateTime)}")
     }
 
     "return 403 if the page is accessed by a non-TNA user" in {
@@ -161,11 +156,4 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
     new ConsignmentService(new GraphQLConfiguration(app.configuration)),
     getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> blockMetadataReviewV2))
   )
-
-  private def getDaySuffix(day: Int): String = day match {
-    case 1 | 21 | 31 => "st"
-    case 2 | 22      => "nd"
-    case 3 | 23      => "rd"
-    case _           => "th"
-  }
 }
