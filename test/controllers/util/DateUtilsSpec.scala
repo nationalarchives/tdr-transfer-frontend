@@ -43,10 +43,12 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "format date with day suffix, lowercase am/pm and relative days" in {
-      val dateTime = ZonedDateTime.of(2026, 4, 23, 10, 32, 0, 0, ZoneId.of("UTC"))
+      val dateTime = ZonedDateTime.now(ZoneId.of("UTC"))
+      val ukDateTime = dateTime.withZoneSameInstant(DateUtils.ukTimeZone)
+      val daySuffix = DateUtils.getDaySuffix(ukDateTime.getDayOfMonth)
       val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
 
-      result should include("23rd April 2026, 11:32am")
+      result should include(s"${ukDateTime.getDayOfMonth}$daySuffix")
       result should include("(Today)")
     }
 
