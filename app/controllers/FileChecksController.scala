@@ -72,6 +72,7 @@ class FileChecksController @Inject() (
   }
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
+    ExpirationDateTest.batToExpDate(request.token.bearerAccessToken.getValue)
     consignmentService
       .fileCheckProgress(consignmentId, request.token.bearerAccessToken)
       .map(_.asJson.noSpaces)
@@ -142,7 +143,7 @@ class FileChecksController @Inject() (
           throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
         }
     } yield {
-      if (fileChecks.isComplete) {
+      if (false) {
         Ok(
           views.html.fileChecksProgressAlreadyConfirmed(
             consignmentId,
