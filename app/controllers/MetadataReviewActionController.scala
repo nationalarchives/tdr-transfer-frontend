@@ -112,8 +112,14 @@ class MetadataReviewActionController @Inject() (
         metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
         action = metadata.metadataReviewLogs.lastOption.map(_.action)
         totalSubmissions = metadata.metadataReviewLogs.count(_.action == "Submission")
-        dateSubmitted = metadata.metadataReviewLogs.lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
+        dateSubmitted = metadata.metadataReviewLogs.filter(_.action == "Submission").lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
+        lastReviewLog = metadata.metadataReviewLogs.filterNot(_.action == "Submission").lastOption
+        lastReviewedByEmail <- lastReviewLog match {
+          case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u.email))
+          case None      => Future.successful(None)
+        }
+        lastUpdated = lastReviewLog.map(log => formatDate(log.eventTime))
       } yield {
         status(
           views.html.tna.metadataReviewActionV2(
@@ -122,6 +128,8 @@ class MetadataReviewActionController @Inject() (
             action.getOrElse("Unknown"),
             totalSubmissions,
             dateSubmitted,
+            lastReviewedByEmail,
+            lastUpdated,
             userDetails.email,
             createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form),
             request.token.isTransferAdviser

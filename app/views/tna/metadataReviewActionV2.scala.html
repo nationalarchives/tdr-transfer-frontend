@@ -4,7 +4,7 @@
 @import views.html.partials.{backLink, errorSummary, inputDropdown, downloadMetadataLink}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @tagClass(status: String) = @{
     status.toLowerCase match {
@@ -92,7 +92,7 @@
                         Total/open/closed records
                     </dt>
                     <dd class="govuk-summary-list__value">
-                        Total: 87;  Open: 73;  Closed: 14;
+                        Total: @consignmentDetails.totalFiles;  Open: @(consignmentDetails.totalFiles - consignmentDetails.totalClosedRecords);  Closed: @consignmentDetails.totalClosedRecords;
                     </dd>
                 </div>
 
@@ -102,7 +102,7 @@
                         Legal status
                     </dt>
                     <dd class="govuk-summary-list__value">
-                        Not Public Record(s)
+                        @consignmentDetails.consignmentMetadata.find(_.propertyName == "LegalStatus").map(_.value).getOrElse("")
                     </dd>
                 </div>
 
@@ -111,10 +111,36 @@
                         Display top level folder
                     </dt>
                     <dd class="govuk-summary-list__value">
-                        No
+                        @(consignmentDetails.includeTopLevelFolder.map(v => if(v) "Yes" else "No").getOrElse(""))
                     </dd>
                 </div>
+
             </dl>
+
+            @if(lastReviewedBy.isDefined || lastUpdated.isDefined) {
+            <dl class="govuk-summary-list">
+                @lastReviewedBy.map { reviewedBy =>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Last reviewed by
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        <a href="mailto:@reviewedBy" class="govuk-link">@reviewedBy</a>
+                    </dd>
+                </div>
+                }
+                @lastUpdated.map { updatedDate =>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Last updated
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @updatedDate
+                    </dd>
+                </div>
+                }
+            </dl>
+            }
 
             @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
 
@@ -171,83 +197,3 @@
         <a href="@routes.ManageTransfersController.manageTransfers()" class="govuk-link  govuk-link--no-visited-state">Back to manage transfers</a>
     </p>
 }
-@* <div class="govuk-grid-row">
-<div class="govuk-grid-column-two-thirds">
-<h1 class="govuk-heading-l govuk-!-margin-bottom-3">
-Transfer details @consignmentDetails.consignmentReference
-</h1>
-
-@errorSummary(
-if(dropdownField.fieldErrors.nonEmpty) {
-List(dropdownField.fieldId -> dropdownField.fieldErrors)
-} else {
-Nil
-}
-)
-
-<dl class="govuk-summary-list">
-<div class="govuk-summary-list__row">
-<dt class="govuk-summary-list__key">
-Department
-</dt>
-<dd class="govuk-summary-list__value">
-@consignmentDetails.transferringBodyName
-</dd>
-</div>
-<div class="govuk-summary-list__row">
-<dt class="govuk-summary-list__key">
-Series
-</dt>
-<dd class="govuk-summary-list__value">
-@consignmentDetails.seriesName
-</dd>
-</div>
-<div class="govuk-summary-list__row">
-<dt class="govuk-summary-list__key">
-Contact email
-</dt>
-<dd class="govuk-summary-list__value">
-@userEmail
-</dd>
-</div>
-</dl>
-
-<h2 class="govuk-heading-m">1. Download and review transfer metadata</h2>
-
-@downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
-
-@if(isTransferAdvisor) {
-<div class="govuk-form-group">
-<h2 class="govuk-label-wrapper">
-<label class="govuk-label govuk-label--m" for="status">
-2. Set the status of this review
-</label>
-</h2>
-
-@form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
-@CSRF.formField
-@inputDropdown(
-dropdownField.fieldId,
-dropdownField.fieldName,
-dropdownField.fieldDescription,
-dropdownField.options,
-dropdownField.selectedOption,
-dropdownField.multiValue,
-Map(
-Symbol("_dynamicForm") -> false,
-),
-dropdownField.fieldErrors,
-"Select a status"
-)
-</div>
-
-<div class="govuk-button-group">
-<button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-Submit
-</button>
-</div>
-}
-}
-</div>
-</div>*@
-
