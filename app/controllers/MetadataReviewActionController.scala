@@ -15,7 +15,9 @@ import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
-import java.util.UUID
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.{Locale, UUID}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -89,19 +91,43 @@ class MetadataReviewActionController @Inject() (
   private def getConsignmentMetadataDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedStatusData])(implicit
       requestHeader: RequestHeader
   ): Future[Result] = {
-    for {
-      consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
-      userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
-    } yield {
-      status(
-        views.html.tna.metadataReviewAction(
-          consignmentId,
-          consignment,
-          userDetails.email,
-          createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form),
-          request.token.isTransferAdviser
+    if (applicationConfig.blockMetadataReviewV2) {
+      for {
+        consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
+        userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
+      } yield {
+        status(
+          views.html.tna.metadataReviewAction(
+            consignmentId,
+            consignment,
+            userDetails.email,
+            createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form),
+            request.token.isTransferAdviser
+          )
         )
-      )
+      }
+    } else {
+      for {
+        consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
+        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
+        action = metadata.metadataReviewLogs.lastOption.map(_.action)
+        totalSubmissions = metadata.metadataReviewLogs.count(_.action == "Submission")
+        dateSubmitted = metadata.metadataReviewLogs.lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
+        userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
+      } yield {
+        status(
+          views.html.tna.metadataReviewActionV2(
+            consignmentId,
+            consignment,
+            action.getOrElse("Unknown"),
+            totalSubmissions,
+            dateSubmitted,
+            userDetails.email,
+            createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form),
+            request.token.isTransferAdviser
+          )
+        )
+      }
     }
   }
 
@@ -122,6 +148,19 @@ class MetadataReviewActionController @Inject() (
       isRequired = true,
       errors.toList
     )
+  }
+
+  private def formatDate(zdt: ZonedDateTime): String = {
+    val day = zdt.getDayOfMonth
+    val suffix = day match {
+      case 1 | 21 | 31 => "st"
+      case 2 | 22      => "nd"
+      case 3 | 23      => "rd"
+      case _           => "th"
+    }
+    val monthYear = zdt.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH))
+    val time      = zdt.format(DateTimeFormatter.ofPattern("hh:mma", Locale.ENGLISH)).toLowerCase
+    s"$day$suffix $monthYear, $time"
   }
 
   private def generateUrlLink(request: Request[AnyContent], route: String): String = {
