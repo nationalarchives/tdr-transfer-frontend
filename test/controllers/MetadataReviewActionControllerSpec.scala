@@ -187,7 +187,18 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val consignmentRef = "TDR-TEST-2024"
       val userEmail = "test@test.com"
       val metadataReviewDecisionEvent =
-        MetadataReviewSubmittedEvent("intg", "consignmentRef", "urlLink", userEmail, "Approved", "transferringBodyName".some, "seriesCode".some, userId.toString, closedRecords = true, 10)
+        MetadataReviewSubmittedEvent(
+          "intg",
+          "consignmentRef",
+          "urlLink",
+          userEmail,
+          "Approved",
+          "transferringBodyName".some,
+          "seriesCode".some,
+          userId.toString,
+          closedRecords = true,
+          10
+        )
       val reviewSubmit = controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
       setUpdateConsignmentStatus(wiremockServer)
       setGetConsignmentDetailsForMetadataReviewResponse()

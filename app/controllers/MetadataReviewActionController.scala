@@ -167,7 +167,7 @@ class MetadataReviewActionController @Inject() (
       case _           => "th"
     }
     val monthYear = zdt.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH))
-    val time      = zdt.format(DateTimeFormatter.ofPattern("hh:mma", Locale.ENGLISH)).toLowerCase
+    val time = zdt.format(DateTimeFormatter.ofPattern("hh:mma", Locale.ENGLISH)).toLowerCase
     s"$day$suffix $monthYear, $time"
   }
 
