@@ -47,7 +47,11 @@
                     <dd class="govuk-summary-list__value">
                         @totalSubmissions
                     </dd>
-
+                    @if(totalSubmissions > 1) {
+                    <dd class="govuk-summary-list__actions">
+                        <a class="govuk-link" href="">View submission history<span class="govuk-visually-hidden">submission number</span></a>
+                    </dd>
+                    }
                 </div>
                 <div class="govuk-summary-list__row">
                     <dt class="govuk-summary-list__key">
@@ -144,10 +148,9 @@
 
             @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
 
-            <hr class="govuk-section-break govuk-section-break--m">
-            <h2 class="govuk-heading-m">Change status for this transfer</h2>
-
-            @if(isTransferAdvisor) {
+            @if(isTransferAdvisor && action.toLowerCase == "submission") {
+                <hr class="govuk-section-break govuk-section-break--m">
+                <h2 class="govuk-heading-m">Change status for this transfer</h2>
                 <div class="govuk-form-group">
                     <label class="govuk-label govuk-visually-hidden" for="transfer-status">
                         Select a status
@@ -188,12 +191,11 @@
                             </button>
                         </div>
                     }
-                    }
-        </div>
+                }
         </div>
     </div>
-
-    <p class="govuk-body govuk-!-margin-top-7">
-        <a href="@routes.ManageTransfersController.manageTransfers()" class="govuk-link  govuk-link--no-visited-state">Back to manage transfers</a>
-    </p>
+        <p class="govuk-body govuk-!-margin-top-7">
+            <a href="@routes.ManageTransfersController.manageTransfers()" class="govuk-link  govuk-link--no-visited-state">Back to manage transfers</a>
+        </p>
+</div>
 }
