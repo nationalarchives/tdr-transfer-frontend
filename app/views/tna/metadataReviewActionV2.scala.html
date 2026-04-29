@@ -41,21 +41,19 @@
                     <h3 class="govuk-notification-banner__heading">
                         Saved to <a class="govuk-notification-banner__link" href="">submission history – @consignmentDetails.consignmentReference</a>
                     </h3>
-
                 </div>
             </div>
             }
 
             <h1 class="govuk-heading-l">Transfer details for @consignmentDetails.consignmentReference</h1>
             <dl class="govuk-summary-list">
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Status
                     </dt>
                     <dd class="govuk-summary-list__value">
                         <strong class="govuk-tag @tagClass(action)">@tagLabel(action)</strong>
                     </dd>
-
                 </div>
                 <div class="govuk-summary-list__row">
                     <dt class="govuk-summary-list__key">
@@ -66,20 +64,19 @@
                     </dd>
                     @if(totalSubmissions > 1) {
                     <dd class="govuk-summary-list__actions">
-                        <a class="govuk-link" href="">View submission history<span class="govuk-visually-hidden">submission number</span></a>
+                        <a class="govuk-link" href="">View submission history<span class="govuk-visually-hidden"> submission number</span></a>
                     </dd>
                     }
                 </div>
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Date submitted
                     </dt>
                     <dd class="govuk-summary-list__value">
                         @dateSubmitted
                     </dd>
-
                 </div>
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Department
                     </dt>
@@ -87,8 +84,7 @@
                     @consignmentDetails.transferringBodyName
                     </dd>
                 </div>
-
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Contact email
                     </dt>
@@ -97,8 +93,7 @@
                         @userEmail</a>
                     </dd>
                 </div>
-
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Series
                     </dt>
@@ -106,9 +101,7 @@
                     @consignmentDetails.seriesName
                     </dd>
                 </div>
-
-
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Total/open/closed records
                     </dt>
@@ -116,9 +109,7 @@
                         Total: @consignmentDetails.totalFiles;  Open: @(consignmentDetails.totalFiles - consignmentDetails.totalClosedRecords);  Closed: @consignmentDetails.totalClosedRecords;
                     </dd>
                 </div>
-
-
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Legal status
                     </dt>
@@ -126,8 +117,7 @@
                         @consignmentDetails.consignmentMetadata.find(_.propertyName == "LegalStatus").map(_.value).getOrElse("")
                     </dd>
                 </div>
-
-                <div class="govuk-summary-list__row">
+                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
                         Display top level folder
                     </dt>
@@ -135,93 +125,87 @@
                         @(consignmentDetails.includeTopLevelFolder.map(v => if(v) "Yes" else "No").getOrElse(""))
                     </dd>
                 </div>
-
             </dl>
 
-            <dl class="govuk-summary-list">
             @if(lastReviewedBy.isDefined || lastUpdated.isDefined) {
-
                 @lastReviewedBy.map { reviewedBy =>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key">
-                        Last reviewed by
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        <a href="mailto:@reviewedBy" class="govuk-link">@reviewedBy</a>
-                    </dd>
-                </div>
-                }
-                @lastUpdated.map { updatedDate =>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key">
-                        Last updated
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @updatedDate
-                    </dd>
-                </div>
+                <dl class="govuk-summary-list">
+                    <div class="govuk-summary-list__row">
+                        <dt class="govuk-summary-list__key">
+                            Last reviewed by
+                        </dt>
+                        <dd class="govuk-summary-list__value">
+                            <a href="mailto:@reviewedBy" class="govuk-link">@reviewedBy</a>
+                        </dd>
+                    </div>
+                    }
+                    @lastUpdated.map { updatedDate =>
+                    <div class="govuk-summary-list__row">
+                        <dt class="govuk-summary-list__key">
+                            Last updated
+                        </dt>
+                        <dd class="govuk-summary-list__value">
+                            @updatedDate
+                        </dd>
+                    </div>
+@*                    <div class="govuk-summary-list__row">*@
+@*                        <dt class="govuk-summary-list__key govuk-!-width-one-quarter">*@
+@*                            Reason for status change*@
+@*                        </dt>*@
+@*                        <dd class="govuk-summary-list__value govuk-!-width-one-half">*@
+@*                            Corrections reviewed confirmed*@
+@*                        </dd>*@
+@*                    </div>*@
+                </dl>
                 }
             }
-                @*<div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter">
-                        Reason for status change
-                    </dt>
-                    <dd class="govuk-summary-list__value govuk-!-width-one-half">
-                        Corrections reviewed confirmed
-                    </dd>
-                </div>*@
-            </dl>
 
             @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
 
             @if(isTransferAdvisor && action.toLowerCase == "submission") {
                 <hr class="govuk-section-break govuk-section-break--m">
                 <h2 class="govuk-heading-m">Change status for this transfer</h2>
-                <div class="govuk-form-group">
-                    <label class="govuk-label govuk-visually-hidden" for="transfer-status">
-                        Select a status
-                    </label>
 
-                    @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
-                        @CSRF.formField
-                        @inputDropdown(
-                            dropdownField.fieldId,
-                            dropdownField.fieldName,
-                            dropdownField.fieldDescription,
-                            dropdownField.options,
-                            dropdownField.selectedOption,
-                            dropdownField.multiValue,
-                            Map(
-                                Symbol("_dynamicForm") -> false,
-                            ),
-                            dropdownField.fieldErrors,
-                            "Select a status"
-                        )
+                @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
+                    @CSRF.formField
+                    @inputDropdown(
+                        dropdownField.fieldId,
+                        dropdownField.fieldName,
+                        dropdownField.fieldDescription,
+                        dropdownField.options,
+                        dropdownField.selectedOption,
+                        dropdownField.multiValue,
+                        Map(
+                            Symbol("_dynamicForm") -> false,
+                        ),
+                        dropdownField.fieldErrors,
+                        "Select a status"
+                    )
 
-                        <div class="govuk-form-group govuk-character-count" data-module="govuk-character-count" data-maxlength="1300">
-                            <label class="govuk-label govuk-label--m" for="status-reason">
-                                Provide a reason for status change
-                            </label>
-                            <div id="status-reason-hint" class="govuk-hint">
-                                Do not include sensitive information as these will go into case files
-                            </div>
-                            <textarea class="govuk-textarea govuk-js-character-count govuk-!-width-two-thirds" id="status-reason" name="statusReason" rows="5" aria-describedby="status-reason-info status-reason-hint"></textarea>
-                            <div id="status-reason-info" class="govuk-hint govuk-character-count__message">
-                                You can enter up to 1300 characters
-                            </div>
+                    <div class="govuk-form-group govuk-character-count" data-module="govuk-character-count" data-maxlength="1300">
+                        <label class="govuk-label govuk-label--m" for="status-reason">
+                            Provide a reason for status change
+                        </label>
+                        <div id="status-reason-hint" class="govuk-hint">
+                            Do not include sensitive information as these will go into case files
                         </div>
-
-                        <div class="govuk-button-group">
-                            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                                Submit
-                            </button>
+                        <textarea class="govuk-textarea govuk-js-character-count govuk-!-width-two-thirds" id="status-reason" name="statusReason" rows="5" aria-describedby="status-reason-info status-reason-hint"></textarea>
+                        <div id="status-reason-info" class="govuk-hint govuk-character-count__message">
+                            You can enter up to 1300 characters
                         </div>
-                    }
+                    </div>
+
+                    <div class="govuk-button-group">
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                            Submit
+                        </button>
+                    </div>
                 }
+            }
         </div>
-            <p class="govuk-body govuk-!-margin-top-8">
-                <a href="@routes.ManageTransfersController.manageTransfers()" class="govuk-link  govuk-link--no-visited-state">Back to manage transfers</a>
-            </p>
     </div>
-</div>
+
+    <p class="govuk-body govuk-!-margin-top-9">
+        <a href="@routes.ManageTransfersController.manageTransfers()" class="govuk-link  govuk-link--no-visited-state">Back to manage transfers</a>
+    </p>
 }

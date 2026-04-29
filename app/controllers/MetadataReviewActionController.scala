@@ -36,7 +36,7 @@ class MetadataReviewActionController @Inject() (
 
   private val selectedDecisionForm: Form[SelectedStatusData] = Form(
     mapping(
-      "status"       -> text.verifying("Select a status", t => t.nonEmpty),
+      "status" -> text.verifying("Select a status", t => t.nonEmpty),
       "statusReason" -> optional(text)
     )(SelectedStatusData.apply)(SelectedStatusData.unapply)
   )
@@ -58,7 +58,7 @@ class MetadataReviewActionController @Inject() (
         consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
-            val notes = if (statusType == MetadataReviewType.id) formData.statusReason else None
+            val notes = if (!applicationConfig.blockMetadataReviewV2 && statusType == MetadataReviewType.id) formData.statusReason else None
             consignmentStatusService.updateConsignmentStatus(
               ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None, notes),
               request.token.bearerAccessToken
@@ -66,7 +66,7 @@ class MetadataReviewActionController @Inject() (
           }
         )
       } yield {
-/*        messagingService.sendMetadataReviewSubmittedNotification(
+        messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
             environment = applicationConfig.frontEndInfo.stage,
             consignmentReference = consignmentDetails.consignmentReference,
@@ -79,9 +79,12 @@ class MetadataReviewActionController @Inject() (
             closedRecords = consignmentDetails.totalClosedRecords > 0,
             totalRecords = consignmentDetails.totalFiles
           )
-        )*/
-        Redirect(routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId))
-          .flashing("success" -> "true")
+        )
+        if (applicationConfig.blockMetadataReviewV2)
+          Redirect(routes.MetadataReviewController.metadataReviews())
+        else
+          Redirect(routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId))
+            .flashing("success" -> "true")
       }
     }
 
@@ -162,10 +165,10 @@ class MetadataReviewActionController @Inject() (
     )
   }
 
-  //TODO double check the time is correct
   private def formatDate(zdt: ZonedDateTime): String = {
-    val daySuffix = DateUtils.getDaySuffix(zdt.withZoneSameInstant(DateUtils.ukTimeZone).getDayOfMonth)
-    val formatted = DateUtils.format(zdt, s"d'$daySuffix' MMMM yyyy, h:mma")
+    val ukZdt = zdt.withZoneSameInstant(DateUtils.ukTimeZone)
+    val daySuffix = DateUtils.getDaySuffix(ukZdt.getDayOfMonth)
+    val formatted = DateUtils.format(zdt, s"d'$daySuffix' MMMM yyyy, hh:mma")
     if (formatted.endsWith("AM") || formatted.endsWith("PM")) formatted.dropRight(2) + formatted.takeRight(2).toLowerCase
     else formatted
   }

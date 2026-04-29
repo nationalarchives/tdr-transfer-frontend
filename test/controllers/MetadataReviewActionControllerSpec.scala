@@ -182,6 +182,82 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       )
     }
 
+    "redirect to the consignment metadata details page when blockMetadataReviewV2 is false after a successful review submission" in {
+      val controller =
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+      val status = CompletedWithIssuesValue.value
+
+      setConsignmentsForMetadataReviewRequestResponse(
+        wiremockServer,
+        consignmentReference = consignmentRef,
+        userId = userId
+      )
+      setUpdateConsignmentStatus(wiremockServer)
+
+      val reviewSubmit =
+        controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
+      playStatus(reviewSubmit) mustBe SEE_OTHER
+      redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review/$consignmentId"))
+      flash(reviewSubmit).get("success") mustBe Some("true")
+    }
+
+    "include notes in the MetadataReview status update when blockMetadataReviewV2 is false" in {
+      val controller =
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+      val status = CompletedWithIssuesValue.value
+      val notes = "Some reason for rejection"
+
+      setConsignmentsForMetadataReviewRequestResponse(
+        wiremockServer,
+        consignmentReference = consignmentRef,
+        userId = userId
+      )
+      setUpdateConsignmentStatus(wiremockServer)
+
+      val reviewSubmit =
+        controller
+          .submitReview(consignmentId, consignmentRef, userEmail)
+          .apply(
+            FakeRequest().withFormUrlEncodedBody(("status", status), ("statusReason", notes)).withCSRFToken
+          )
+      playStatus(reviewSubmit) mustBe SEE_OTHER
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("MetadataReview"))
+          .withRequestBody(containing(notes))
+      )
+    }
+
+    "not include notes in the MetadataReview status update when blockMetadataReviewV2 is true" in {
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
+      val status = CompletedWithIssuesValue.value
+      val notes = "Some reason for rejection"
+
+      setConsignmentsForMetadataReviewRequestResponse(
+        wiremockServer,
+        consignmentReference = consignmentRef,
+        userId = userId
+      )
+      setUpdateConsignmentStatus(wiremockServer)
+
+      val reviewSubmit =
+        controller
+          .submitReview(consignmentId, consignmentRef, userEmail)
+          .apply(
+            FakeRequest().withFormUrlEncodedBody(("status", status), ("statusReason", notes)).withCSRFToken
+          )
+      playStatus(reviewSubmit) mustBe SEE_OTHER
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("MetadataReview"))
+          .withRequestBody(notMatching(s".*$notes.*"))
+      )
+    }
+
     "display errors when an invalid form is submitted" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val consignmentRef = "TDR-TEST-2024"
@@ -284,14 +360,14 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       consignmentId,
       userId,
       "Submission",
-      ZonedDateTime.parse("2024-07-05T08:00:00Z")
+      ZonedDateTime.parse("2024-07-05T07:00:00Z")
     )
     val rejectionLog = gcfm.GetConsignment.MetadataReviewLogs(
       UUID.randomUUID(),
       consignmentId,
       UUID.randomUUID(),
       "Rejection",
-      ZonedDateTime.parse("2024-07-10T10:30:00Z")
+      ZonedDateTime.parse("2024-07-10T09:30:00Z")
     )
 
     "render the V2 metadata details page for a TNA read-only user" in {
@@ -442,6 +518,24 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val pageAsString = contentAsString(page)
 
       pageAsString must include("View submission history")
+    }
+
+    "show a success banner on the consignment metadata details page after a successful review submission" in {
+      setGetConsignmentDetailsForMetadataReviewResponse()
+      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val page = controller
+        .consignmentMetadataDetails(consignmentId)
+        .apply(
+          FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withFlash("success" -> "true").withCSRFToken
+        )
+      val pageAsString = contentAsString(page)
+
+      playStatus(page) mustBe OK
+      pageAsString must include("govuk-notification-banner--success")
+      pageAsString must include("Transfer details updated")
+      pageAsString must include("submission history")
     }
 
     "show includeTopLevelFolder as 'Yes' when true" in {
