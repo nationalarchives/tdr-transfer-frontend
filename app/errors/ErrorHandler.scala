@@ -53,7 +53,7 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
       .exists(profile => {
         val token = profile.asInstanceOf[OidcProfile].getAccessToken.asInstanceOf[BearerAccessToken]
         val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
-        Option(parsedToken.getStringClaim("tna_user")).contains("true")
+        parsedToken.getBooleanClaim("tna_user")
       })
   }
 
