@@ -305,7 +305,7 @@ test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all c
 
   mockTransferProgress("complete")
 
-  checks.updateFileCheckProgress(true, mockGoToNextPage, 300000)
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(mockGoToNextPage).toHaveBeenCalled()
@@ -318,7 +318,7 @@ test("'updateFileCheckProgress' does not call goToNextPage for a judgment user i
   )
   mockTransferProgress("inProgress")
 
-  checks.updateFileCheckProgress(true, mockGoToNextPage, 300000)
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(mockGoToNextPage).toHaveBeenCalled()
@@ -331,7 +331,7 @@ test("'updateFileCheckProgress' does not call goToNextPage for a judgment user i
   )
   mockTransferProgress("noData")
 
-  checks.updateFileCheckProgress(true, mockGoToNextPage, 300000)
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(mockGoToNextPage).not.toHaveBeenCalled()
