@@ -138,7 +138,7 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
       val data: Option[acs.Data] =
         Option(acs.Data(acs.AddConsignmentStatus(consignmentStatusId, consignmentId, SeriesType.id, InProgressValue.value, ZonedDateTime.now(), None)))
       val response = GraphQlResponse(data, Nil)
-      when(addConsignmentStatusClient.getResult(token, acs.document, Some(Variables(ConsignmentStatusInput(consignmentId, SeriesType.id, Some(InProgressValue.value), None)))))
+      when(addConsignmentStatusClient.getResult(token, acs.document, Some(Variables(ConsignmentStatusInput(consignmentId, SeriesType.id, Some(InProgressValue.value), None, None)))))
         .thenReturn(Future.successful(response))
       val result = consignmentStatusService.addConsignmentStatus(consignmentId, SeriesType.id, InProgressValue.value, token).futureValue
 
@@ -154,11 +154,11 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
       val data: Option[ucs.Data] = Option(ucs.Data(Some(1)))
       val response = GraphQlResponse(data, Nil)
       when(
-        updateConsignmentStatusClient.getResult(token, ucs.document, Some(ucs.Variables(ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedValue.value), None))))
+        updateConsignmentStatusClient.getResult(token, ucs.document, Some(ucs.Variables(ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedValue.value), None, None))))
       )
         .thenReturn(Future.successful(response))
 
-      val input = ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedValue.value), None)
+      val input = ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedValue.value), None, None)
       consignmentStatusService.updateConsignmentStatus(input, token).futureValue should equal(1)
     }
   }
