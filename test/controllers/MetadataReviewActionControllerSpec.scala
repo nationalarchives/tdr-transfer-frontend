@@ -479,7 +479,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
   "consignmentStatusUpdates" should {
     "return correct updates when status is CompletedWithIssues" in {
-      val formData = SelectedStatusData(CompletedWithIssuesValue.value)
+      val formData = SelectedStatusData(CompletedWithIssuesValue.value, None)
       val result = consignmentStatusUpdates(formData)
 
       result mustBe Seq(
@@ -489,7 +489,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "return only metadata review status update when status is Completed" in {
-      val formData = SelectedStatusData(CompletedValue.value)
+      val formData = SelectedStatusData(CompletedValue.value, None)
       val result = consignmentStatusUpdates(formData)
 
       result mustBe Seq(

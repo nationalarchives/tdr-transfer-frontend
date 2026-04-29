@@ -15,9 +15,9 @@ import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
+import controllers.util.DateUtils
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.{Locale, UUID}
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,7 +36,8 @@ class MetadataReviewActionController @Inject() (
 
   private val selectedDecisionForm: Form[SelectedStatusData] = Form(
     mapping(
-      "status" -> text.verifying("Select a status", t => t.nonEmpty)
+      "status"       -> text.verifying("Select a status", t => t.nonEmpty),
+      "statusReason" -> optional(text)
     )(SelectedStatusData.apply)(SelectedStatusData.unapply)
   )
 
@@ -57,14 +58,15 @@ class MetadataReviewActionController @Inject() (
         consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
+            val notes = if (statusType == MetadataReviewType.id) formData.statusReason else None
             consignmentStatusService.updateConsignmentStatus(
-              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None),
+              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None, notes),
               request.token.bearerAccessToken
             )
           }
         )
       } yield {
-        messagingService.sendMetadataReviewSubmittedNotification(
+/*        messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
             environment = applicationConfig.frontEndInfo.stage,
             consignmentReference = consignmentDetails.consignmentReference,
@@ -77,8 +79,9 @@ class MetadataReviewActionController @Inject() (
             closedRecords = consignmentDetails.totalClosedRecords > 0,
             totalRecords = consignmentDetails.totalFiles
           )
-        )
-        Redirect(routes.MetadataReviewController.metadataReviews())
+        )*/
+        Redirect(routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId))
+          .flashing("success" -> "true")
       }
     }
 
@@ -132,7 +135,8 @@ class MetadataReviewActionController @Inject() (
             lastUpdated,
             userDetails.email,
             createDropDownField(List(InputNameAndValue("Approved", CompletedValue.value), InputNameAndValue("Rejected", CompletedWithIssuesValue.value)), form),
-            request.token.isTransferAdviser
+            request.token.isTransferAdviser,
+            request.flash.get("success").isDefined
           )
         )
       }
@@ -158,17 +162,12 @@ class MetadataReviewActionController @Inject() (
     )
   }
 
+  //TODO double check the time is correct
   private def formatDate(zdt: ZonedDateTime): String = {
-    val day = zdt.getDayOfMonth
-    val suffix = day match {
-      case 1 | 21 | 31 => "st"
-      case 2 | 22      => "nd"
-      case 3 | 23      => "rd"
-      case _           => "th"
-    }
-    val monthYear = zdt.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH))
-    val time = zdt.format(DateTimeFormatter.ofPattern("hh:mma", Locale.ENGLISH)).toLowerCase
-    s"$day$suffix $monthYear, $time"
+    val daySuffix = DateUtils.getDaySuffix(zdt.withZoneSameInstant(DateUtils.ukTimeZone).getDayOfMonth)
+    val formatted = DateUtils.format(zdt, s"d'$daySuffix' MMMM yyyy, h:mma")
+    if (formatted.endsWith("AM") || formatted.endsWith("PM")) formatted.dropRight(2) + formatted.takeRight(2).toLowerCase
+    else formatted
   }
 
   private def generateUrlLink(request: Request[AnyContent], route: String): String = {
@@ -188,4 +187,4 @@ object MetadataReviewActionController {
   }
 }
 
-case class SelectedStatusData(statusId: String)
+case class SelectedStatusData(statusId: String, statusReason: Option[String])

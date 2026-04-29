@@ -4,7 +4,7 @@
 @import views.html.partials.{backLink, errorSummary, inputDropdown, downloadMetadataLink}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @tagClass(status: String) = @{
     status.toLowerCase match {
@@ -29,6 +29,23 @@
 @main("View Request for Metadata", hasError = dropdownField.fieldErrors.nonEmpty, backLink = None, isTnaUser = true) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
+
+            @if(showSuccessBanner) {
+            <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" data-govuk-notification-banner-init="">
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        Transfer details updated
+                    </h2>
+                </div>
+                <div class="govuk-notification-banner__content">
+                    <h3 class="govuk-notification-banner__heading">
+                        Saved to <a class="govuk-notification-banner__link" href="">submission history – @consignmentDetails.consignmentReference</a>
+                    </h3>
+
+                </div>
+            </div>
+            }
+
             <h1 class="govuk-heading-l">Transfer details for @consignmentDetails.consignmentReference</h1>
             <dl class="govuk-summary-list">
                 <div class="govuk-summary-list__row">
@@ -121,8 +138,9 @@
 
             </dl>
 
-            @if(lastReviewedBy.isDefined || lastUpdated.isDefined) {
             <dl class="govuk-summary-list">
+            @if(lastReviewedBy.isDefined || lastUpdated.isDefined) {
+
                 @lastReviewedBy.map { reviewedBy =>
                 <div class="govuk-summary-list__row">
                     <dt class="govuk-summary-list__key">
@@ -143,8 +161,16 @@
                     </dd>
                 </div>
                 }
-            </dl>
             }
+                @*<div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter">
+                        Reason for status change
+                    </dt>
+                    <dd class="govuk-summary-list__value govuk-!-width-one-half">
+                        Corrections reviewed confirmed
+                    </dd>
+                </div>*@
+            </dl>
 
             @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
 
