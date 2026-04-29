@@ -48,11 +48,10 @@ export class Checks {
           if (!isError(fileChecksProgress)) {
             const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
             if (checksCompleted) {
-              // clearInterval(intervalId)
-              // displayChecksCompletedBanner("file-checks")
+              clearInterval(intervalId)
+              displayChecksCompletedBanner("file-checks")
             }
           } else {
-            console.log("=====> FILE CHECKS ERROR")
             clearInterval(intervalId)
             setTimeout(async () => {
               window.location.reload()
