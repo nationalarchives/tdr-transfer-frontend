@@ -132,7 +132,7 @@ const mockDisplayChecksHaveCompletedBanner: () => void = () =>
 
 test("'updateFileCheckProgress' calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
-  await checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
+  await checks.updateFileCheckProgress(false, mockGoToNextPage)
   jest.runOnlyPendingTimers()
   expect(setInterval).toHaveBeenCalledTimes(2)
 })
@@ -160,7 +160,7 @@ test("'updateFileCheckProgress' shows a standard user, the notification banner a
 
   mockDisplayChecksHaveCompletedBanner()
 
-  checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toHaveBeenCalled()
@@ -227,7 +227,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   )
   mockDisplayChecksHaveCompletedBanner()
 
-  checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toHaveBeenCalled()
@@ -269,7 +269,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   )
   mockDisplayChecksHaveCompletedBanner()
 
-  checks.updateFileCheckProgress(false, mockGoToNextPage, 300000)
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toHaveBeenCalled()
