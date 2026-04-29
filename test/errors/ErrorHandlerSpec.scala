@@ -87,6 +87,23 @@ class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
     response.header.headers("Location") should equal("/view-transfers")
   }
 
+  "forbiddenError" should "show office network message for TNA user" in {
+    implicit val request: Request[_] = FakeRequest()
+    implicit val messages = new DefaultMessagesApi().preferred(request)
+    val content = views.html.forbiddenError("", isLoggedIn = false, isJudgmentUser = false, isTNAUser = true).toString()
+
+    content should include("TNA network")
+  }
+
+  "forbiddenError" should "show restricted users message for non-TNA user" in {
+    implicit val request: Request[_] = FakeRequest()
+    implicit val messages = new DefaultMessagesApi().preferred(request)
+    val content = views.html.forbiddenError("", isLoggedIn = false, isJudgmentUser = false, isTNAUser = false).toString()
+
+    content should include("restricted to certain users only")
+    content should not include "TNA network"
+  }
+
   "redirectUrl" should "return url '/view-transfers' for non-judgment user" in {
     val redirectUrl = errorHandler.redirectUrl(false)
 
