@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.MetadataReviewActionController.consignmentStatusUpdates
-import controllers.util.{DropdownField, InputNameAndValue}
+import controllers.util.{DateUtils, DropdownField, InputNameAndValue}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
@@ -15,7 +15,6 @@ import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
-import controllers.util.DateUtils
 import java.time.ZonedDateTime
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -115,17 +114,17 @@ class MetadataReviewActionController @Inject() (
     } else {
       for {
         consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
-        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
-        action = metadata.metadataReviewLogs.lastOption.map(_.action)
-        totalSubmissions = metadata.metadataReviewLogs.count(_.action == "Submission")
-        dateSubmitted = metadata.metadataReviewLogs.filter(_.action == "Submission").lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
+        action = consignment.metadataReviewLogs.lastOption.map(_.action)
+        totalSubmissions = consignment.metadataReviewLogs.count(_.action == "Submission")
+        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == "Submission").lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
-        lastReviewLog = metadata.metadataReviewLogs.filterNot(_.action == "Submission").lastOption
+        lastReviewLog = consignment.metadataReviewLogs.filterNot(_.action == "Submission").lastOption
         lastReviewedByEmail <- lastReviewLog match {
           case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u.email))
           case None      => Future.successful(None)
         }
         lastUpdated = lastReviewLog.map(log => formatDate(log.eventTime))
+        lastNote = lastReviewLog.flatMap(_.metadataReviewNotes)
       } yield {
         status(
           views.html.tna.metadataReviewActionV2(
@@ -136,6 +135,7 @@ class MetadataReviewActionController @Inject() (
             dateSubmitted,
             lastReviewedByEmail,
             lastUpdated,
+            lastNote,
             userDetails.email,
             createDropDownField(List(InputNameAndValue("Approved", CompletedValue.value), InputNameAndValue("Rejected", CompletedWithIssuesValue.value)), form),
             request.token.isTransferAdviser,

@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.MetadataReviewActionController.consignmentStatusUpdates
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.getConsignmentDetailsForMetadataReview
-import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -309,7 +308,9 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     new MetadataReviewActionController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService, messagingService, config)
   }
 
-  private def setGetConsignmentDetailsForMetadataReviewResponse() = {
+  private def setGetConsignmentDetailsForMetadataReviewResponse(
+      logs: List[getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs] = List.empty
+  ) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[getConsignmentDetailsForMetadataReview.Data, getConsignmentDetailsForMetadataReview.Variables]()
     val data: client.GraphqlData = client.GraphqlData(
       Some(
@@ -325,7 +326,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
               totalFiles = 10,
               consignmentMetadata = List(
                 getConsignmentDetailsForMetadataReview.GetConsignment.ConsignmentMetadata("LegalStatus", "Public Record(s)")
-              )
+              ),
+              metadataReviewLogs = logs
             )
           )
         )
@@ -340,39 +342,27 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     )
   }
 
-  private def setGetConsignmentFilesMetadataResponse(logs: List[gcfm.GetConsignment.MetadataReviewLogs]) = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
-    val dataString = client
-      .GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files = List.empty, metadataReviewLogs = logs, consignmentReference = "TDR-2024-TEST")))))
-      .asJson
-      .printWith(Printer.noSpaces)
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentFilesMetadata"))
-        .willReturn(okJson(dataString))
-    )
-  }
-
   "MetadataReviewActionController GET V2 (blockMetadataReviewV2 = false)" should {
 
-    val submissionLog = gcfm.GetConsignment.MetadataReviewLogs(
+    val submissionLog = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
       UUID.randomUUID(),
       consignmentId,
       userId,
       "Submission",
-      ZonedDateTime.parse("2024-07-05T07:00:00Z")
+      ZonedDateTime.parse("2024-07-05T07:00:00Z"),
+      None
     )
-    val rejectionLog = gcfm.GetConsignment.MetadataReviewLogs(
+    val rejectionLog = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
       UUID.randomUUID(),
       consignmentId,
       UUID.randomUUID(),
       "Rejection",
-      ZonedDateTime.parse("2024-07-10T09:30:00Z")
+      ZonedDateTime.parse("2024-07-10T09:30:00Z"),
+      None
     )
 
     "render the V2 metadata details page for a TNA read-only user" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -384,8 +374,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "render the V2 metadata details page for a transfer advisor" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller =
         instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
@@ -398,8 +387,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "hide the dropdown and notes input for a transfer advisor when action is not submission" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog, rejectionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog))
 
       val controller =
         instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
@@ -413,8 +401,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "show status tag label 'Requested' for a Submission action" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -425,8 +412,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "show status tag label 'Rejected' for a Rejection action" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog, rejectionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -437,8 +423,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "show the correct total submission count" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog, rejectionLog, submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog, submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -450,8 +435,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "show the formatted date submitted from the last Submission log" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -461,8 +445,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "show Last reviewed by and Last updated rows when a non-Submission log exists" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog, rejectionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -475,8 +458,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "not show Last reviewed by and Last updated rows when only Submission logs exist" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -487,8 +469,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "not show Last reviewed by and Last updated rows when there are no review logs" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List.empty)
+      setGetConsignmentDetailsForMetadataReviewResponse(List.empty)
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -499,8 +480,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "not show 'View submission history' link when there is only 1 submission" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -510,8 +490,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "show 'View submission history' link when there are more than 1 submissions" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog, rejectionLog, submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog, submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -521,8 +500,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "show a success banner on the consignment metadata details page after a successful review submission" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller
@@ -536,6 +514,50 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       pageAsString must include("govuk-notification-banner--success")
       pageAsString must include("Transfer details updated")
       pageAsString must include("submission history")
+    }
+
+    "show the reason for status change when the success banner is present" in {
+      val noteText = "Metadata fields are incomplete"
+      val rejectionLogWithNote = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
+        UUID.randomUUID(),
+        consignmentId,
+        UUID.randomUUID(),
+        "Rejection",
+        ZonedDateTime.parse("2024-07-10T09:30:00Z"),
+        Some(noteText)
+      )
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLogWithNote))
+
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val page = controller
+        .consignmentMetadataDetails(consignmentId)
+        .apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withFlash("success" -> "true").withCSRFToken)
+      val pageAsString = contentAsString(page)
+
+      playStatus(page) mustBe OK
+      pageAsString must include("Reason for status change")
+      pageAsString must include(noteText)
+    }
+
+    "not show the reason for status change when the success banner is not present" in {
+      val noteText = "Metadata fields are incomplete"
+      val rejectionLogWithNote = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
+        UUID.randomUUID(),
+        consignmentId,
+        UUID.randomUUID(),
+        "Rejection",
+        ZonedDateTime.parse("2024-07-10T09:30:00Z"),
+        Some(noteText)
+      )
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLogWithNote))
+
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
+      val pageAsString = contentAsString(page)
+
+      playStatus(page) mustBe OK
+      pageAsString must not include "Reason for status change"
+      pageAsString must not include noteText
     }
 
     "show includeTopLevelFolder as 'Yes' when true" in {
@@ -553,7 +575,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
                   totalClosedRecords = 0,
                   includeTopLevelFolder = Some(true),
                   totalFiles = 5,
-                  consignmentMetadata = List.empty
+                  consignmentMetadata = List.empty,
+                  metadataReviewLogs = List(submissionLog)
                 )
               )
             )
@@ -562,7 +585,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
         .asJson
         .printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql")).withRequestBody(containing("getConsignmentDetailsForMetadataReview")).willReturn(okJson(data)))
-      setGetConsignmentFilesMetadataResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)

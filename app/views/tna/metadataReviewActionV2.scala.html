@@ -1,10 +1,10 @@
 @import controllers.util.DropdownField
 @import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 @import helper._
-@import views.html.partials.{backLink, errorSummary, inputDropdown, downloadMetadataLink}
+@import views.html.partials.{downloadMetadataLink, inputDropdown}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], lastNote: Option[String], userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @tagClass(status: String) = @{
     status.toLowerCase match {
@@ -148,19 +148,23 @@
                             @updatedDate
                         </dd>
                     </div>
-@*                    <div class="govuk-summary-list__row">*@
-@*                        <dt class="govuk-summary-list__key govuk-!-width-one-quarter">*@
-@*                            Reason for status change*@
-@*                        </dt>*@
-@*                        <dd class="govuk-summary-list__value govuk-!-width-one-half">*@
-@*                            Corrections reviewed confirmed*@
-@*                        </dd>*@
-@*                    </div>*@
+                    @if(showSuccessBanner) {
+                    <div class="govuk-summary-list__row">
+                        <dt class="govuk-summary-list__key govuk-!-width-one-quarter">
+                            Reason for status change
+                        </dt>
+                        <dd class="govuk-summary-list__value govuk-!-width-one-half">
+                            @lastNote.getOrElse("")
+                        </dd>
+                    </div>
+                    }
                 </dl>
                 }
             }
 
-            @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
+            @if(!showSuccessBanner) {
+                @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
+            }
 
             @if(isTransferAdvisor && action.toLowerCase == "submission") {
                 <hr class="govuk-section-break govuk-section-break--m">
@@ -205,7 +209,7 @@
         </div>
     </div>
 
-    <p class="govuk-body govuk-!-margin-top-9">
+    <p class="govuk-body govuk-!-margin-top-8">
         <a href="@routes.ManageTransfersController.manageTransfers()" class="govuk-link  govuk-link--no-visited-state">Back to manage transfers</a>
     </p>
 }
