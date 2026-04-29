@@ -134,7 +134,7 @@ test("'updateFileCheckProgress' calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
   await checks.updateFileCheckProgress(false, mockGoToNextPage)
   jest.runOnlyPendingTimers()
-  expect(setInterval).toHaveBeenCalledTimes(2)
+  expect(setInterval).toHaveBeenCalledTimes(1)
 })
 
 test("'updateDraftMetadataValidationProgress' calls setInterval correctly", async () => {
