@@ -591,6 +591,27 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       contentAsString(page) must include("Yes")
     }
+
+    "return a bad request with an error when statusReason exceeds the maximum character limit" in {
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
+
+      val controller =
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+      val statusValue = CompletedWithIssuesValue.value
+      val oversizedReason = "a" * 1301
+
+      val reviewSubmit =
+        controller
+          .submitReview(consignmentId, consignmentRef, userEmail)
+          .apply(FakeRequest().withFormUrlEncodedBody(("status", statusValue), ("statusReason", oversizedReason)).withCSRFToken)
+
+      playStatus(reviewSubmit) mustBe BAD_REQUEST
+      val pageAsString = contentAsString(reviewSubmit)
+      pageAsString must include("<title>Error: View Request for Metadata - Transfer Digital Records - GOV.UK</title>")
+      pageAsString must include("Reason for status change must be 1300 characters or less")
+      pageAsString must include("""govuk-form-group--error""")
+      pageAsString must include("""govuk-textarea--error""")
+    }
   }
 
   "consignmentStatusUpdates" should {

@@ -33,10 +33,12 @@ class MetadataReviewActionController @Inject() (
     with I18nSupport
     with Logging {
 
+  private val statusReasonMaxLength = 1300
+
   private val selectedDecisionForm: Form[SelectedStatusData] = Form(
     mapping(
       "status" -> text.verifying("Select a status", t => t.nonEmpty),
-      "statusReason" -> optional(text)
+      "statusReason" -> optional(text.verifying(s"Reason for status change must be $statusReasonMaxLength characters or less", s => s.length <= statusReasonMaxLength))
     )(SelectedStatusData.apply)(SelectedStatusData.unapply)
   )
 
@@ -46,7 +48,6 @@ class MetadataReviewActionController @Inject() (
 
   def submitReview(consignmentId: UUID, consignmentRef: String, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedStatusData] = selectedDecisionForm.bindFromRequest()
-
     val errorFunction: Form[SelectedStatusData] => Future[Result] = { formWithErrors: Form[SelectedStatusData] =>
       getConsignmentMetadataDetails(consignmentId, request, BadRequest, formWithErrors)
     }
@@ -138,6 +139,7 @@ class MetadataReviewActionController @Inject() (
             lastNote,
             userDetails.email,
             createDropDownField(List(InputNameAndValue("Approved", CompletedValue.value), InputNameAndValue("Rejected", CompletedWithIssuesValue.value)), form),
+            form("statusReason").errors.flatMap(_.messages),
             request.token.isTransferAdviser,
             request.flash.get("success").isDefined
           )

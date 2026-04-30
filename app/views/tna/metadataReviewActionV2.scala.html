@@ -1,10 +1,10 @@
 @import controllers.util.DropdownField
 @import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 @import helper._
-@import views.html.partials.{downloadMetadataLink, inputDropdown}
+@import views.html.partials.{downloadMetadataLink, errorSummary, inputDropdown}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], lastNote: Option[String], userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], lastNote: Option[String], userEmail: String, dropdownField: DropdownField, statusReasonErrors: Seq[String], isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @tagClass(status: String) = @{
     status.toLowerCase match {
@@ -26,9 +26,14 @@
     }
 }
 
-@main("View Request for Metadata", hasError = dropdownField.fieldErrors.nonEmpty, backLink = None, isTnaUser = true) {
+@main("View Request for Metadata", hasError = dropdownField.fieldErrors.nonEmpty || statusReasonErrors.nonEmpty, backLink = None, isTnaUser = true) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
+
+            @errorSummary(
+                (if(dropdownField.fieldErrors.nonEmpty) List(dropdownField.fieldId -> dropdownField.fieldErrors) else Nil) ++
+                (if(statusReasonErrors.nonEmpty) List("status-reason" -> statusReasonErrors) else Nil)
+            )
 
             @if(showSuccessBanner) {
             <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" data-govuk-notification-banner-init="">
@@ -186,14 +191,19 @@
                         "Select a status"
                     )
 
-                    <div class="govuk-form-group govuk-character-count" data-module="govuk-character-count" data-maxlength="1300">
+                    <div class="govuk-form-group @if(statusReasonErrors.nonEmpty){govuk-form-group--error} govuk-character-count" data-module="govuk-character-count" data-maxlength="1300">
                         <label class="govuk-label govuk-label--m" for="status-reason">
                             Provide a reason for status change
                         </label>
                         <div id="status-reason-hint" class="govuk-hint">
                             Do not include sensitive information as these will go into case files
                         </div>
-                        <textarea class="govuk-textarea govuk-js-character-count govuk-!-width-two-thirds" id="status-reason" name="statusReason" rows="5" aria-describedby="status-reason-info status-reason-hint"></textarea>
+                        @for(error <- statusReasonErrors) {
+                        <p id="status-reason-error" class="govuk-error-message">
+                            <span class="govuk-visually-hidden">Error:</span> @error
+                        </p>
+                        }
+                        <textarea class="govuk-textarea govuk-js-character-count @if(statusReasonErrors.nonEmpty){govuk-textarea--error} govuk-!-width-two-thirds" id="status-reason" name="statusReason" rows="5" aria-describedby="status-reason-info status-reason-hint @if(statusReasonErrors.nonEmpty){status-reason-error}"></textarea>
                         <div id="status-reason-info" class="govuk-hint govuk-character-count__message">
                             You can enter up to 1300 characters
                         </div>
