@@ -167,7 +167,7 @@
                 }
             }
 
-            @if(!showSuccessBanner) {
+            @if(!showSuccessBanner && action.toLowerCase != "rejection") {
                 @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
             }
 
