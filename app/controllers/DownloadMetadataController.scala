@@ -76,8 +76,8 @@ class DownloadMetadataController @Inject() (
       }
   }
 
-  def downloadCsvMetadataFile(consignmentId: UUID): Action[AnyContent] = standardAndTnaUserAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded CSV metadata as Excel for consignmentId: $consignmentId")
+  def downloadCsvMetadataFile(consignmentId: UUID): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+    logger.info(s"TNA User: ${request.token.userId} downloaded CSV metadata as Excel for consignmentId: $consignmentId")
 
     val bucket = applicationConfig.draft_metadata_s3_bucket_name
     val key = s"$consignmentId/${applicationConfig.draftMetadataFileName}"
