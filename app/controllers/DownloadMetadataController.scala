@@ -76,23 +76,22 @@ class DownloadMetadataController @Inject() (
       }
   }
 
-  def downloadCsvMetadataFile(consignmentId: UUID): Action[AnyContent] = standardAndTnaUserAction(consignmentId) {
-    implicit request: Request[AnyContent] =>
-      if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded CSV metadata as Excel for consignmentId: $consignmentId")
+  def downloadCsvMetadataFile(consignmentId: UUID): Action[AnyContent] = standardAndTnaUserAction(consignmentId) { implicit request: Request[AnyContent] =>
+    if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded CSV metadata as Excel for consignmentId: $consignmentId")
 
-      val bucket = applicationConfig.draft_metadata_s3_bucket_name
-      val key = s"$consignmentId/${applicationConfig.draftMetadataFileName}"
+    val bucket = applicationConfig.draft_metadata_s3_bucket_name
+    val key = s"$consignmentId/${applicationConfig.draftMetadataFileName}"
 
-      for {
-        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        responseBytes <- downloadService.downloadFile(bucket, key)
-        source = Source.fromBytes(responseBytes.asByteArray())
-        excelFile = ExcelUtils.convertCsvToExcel(source, s"Metadata for $reference")
-      } yield {
-        Ok(excelFile)
-          .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-          .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-$getCurrentDateTime.xlsx")
-      }
+    for {
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      responseBytes <- downloadService.downloadFile(bucket, key)
+      source = Source.fromBytes(responseBytes.asByteArray())
+      excelFile = ExcelUtils.convertCsvToExcel(source, s"Metadata for $reference")
+    } yield {
+      Ok(excelFile)
+        .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-$getCurrentDateTime.xlsx")
+    }
   }
 
   private def getCurrentDateTime = {
