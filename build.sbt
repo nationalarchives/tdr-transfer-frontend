@@ -62,6 +62,7 @@ libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.4.0"
 
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.20.0"
 libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.20.0"
+libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "2.0.0"
 
 excludeDependencies ++= Seq(
   ExclusionRule(organization = "com.typesafe.akka"),

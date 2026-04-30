@@ -1,13 +1,13 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.KeycloakConfiguration
+import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.util.{ExcelUtils, RedirectUtils}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, DownloadService}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils
 
@@ -15,12 +15,15 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
+import scala.io.Source
 
 class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val keycloakConfiguration: KeycloakConfiguration
+    val keycloakConfiguration: KeycloakConfiguration,
+    val downloadService: DownloadService,
+    val applicationConfig: ApplicationConfig
 ) extends TokenSecurity
     with Logging {
 
@@ -70,6 +73,25 @@ class DownloadMetadataController @Inject() (
         Ok(excelFile)
           .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
           .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-${getCurrentDateTime}v$totalSubmissions.xlsx")
+      }
+  }
+
+  def downloadCsvMetadataFile(consignmentId: UUID): Action[AnyContent] = standardAndTnaUserAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded CSV metadata as Excel for consignmentId: $consignmentId")
+
+      val bucket = applicationConfig.draft_metadata_s3_bucket_name
+      val key = s"$consignmentId/${applicationConfig.draftMetadataFileName}"
+
+      for {
+        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+        responseBytes <- downloadService.downloadFile(bucket, key)
+        source = Source.fromBytes(responseBytes.asByteArray())
+        excelFile = ExcelUtils.convertCsvToExcel(source, s"Metadata for $reference")
+      } yield {
+        Ok(excelFile)
+          .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+          .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-$getCurrentDateTime.xlsx")
       }
   }
 
