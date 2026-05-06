@@ -4,7 +4,7 @@
 @import views.html.partials.{downloadMetadataLink, errorSummary, inputDropdown}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedBy: Option[String], lastUpdated: Option[String], lastNote: Option[String], userEmail: String, dropdownField: DropdownField, statusReasonErrors: Seq[String], isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedByName: Option[String], lastReviewedByEmail: Option[String], lastUpdated: Option[String], lastNote: Option[String], userEmail: String, dropdownField: DropdownField, statusReasonErrors: Seq[String], isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @tagClass(status: String) = @{
     status.toLowerCase match {
@@ -44,7 +44,7 @@
                 </div>
                 <div class="govuk-notification-banner__content">
                     <h3 class="govuk-notification-banner__heading">
-                        Saved to <a class="govuk-notification-banner__link" href="">submission history – @consignmentDetails.consignmentReference</a>
+                        Saved to <a class="govuk-notification-banner__link" href="@routes.MetadataReviewHistoryController.getConsignmentMetadataHistory(consignmentId)">submission history – @consignmentDetails.consignmentReference</a>
                     </h3>
                 </div>
             </div>
@@ -69,7 +69,7 @@
                     </dd>
                     @if(totalSubmissions > 1) {
                     <dd class="govuk-summary-list__actions">
-                        <a class="govuk-link" href="">View submission history<span class="govuk-visually-hidden"> submission number</span></a>
+                        <a class="govuk-link" href="@routes.MetadataReviewHistoryController.getConsignmentMetadataHistory(consignmentId)">View submission history<span class="govuk-visually-hidden"> submission number</span></a>
                     </dd>
                     }
                 </div>
@@ -132,15 +132,17 @@
                 </div>
             </dl>
 
-            @if(lastReviewedBy.isDefined || lastUpdated.isDefined) {
-                @lastReviewedBy.map { reviewedBy =>
+            @if(lastReviewedByName.isDefined || lastUpdated.isDefined) {
+                @lastReviewedByName.map { reviewedByName =>
                 <dl class="govuk-summary-list">
                     <div class="govuk-summary-list__row">
                         <dt class="govuk-summary-list__key">
                             Last reviewed by
                         </dt>
                         <dd class="govuk-summary-list__value">
-                            <a href="mailto:@reviewedBy" class="govuk-link">@reviewedBy</a>
+                            @lastReviewedByEmail.map { email =>
+                            <a href="mailto:@email" class="govuk-link">@reviewedByName</a>
+                            }.getOrElse(reviewedByName)
                         </dd>
                     </div>
                     }

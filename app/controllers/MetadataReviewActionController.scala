@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.MetadataReviewActionController.{ApproveLabel, ApprovedLabel, RejectLabel, RejectedLabel, consignmentStatusUpdates}
+import controllers.MetadataReviewActionController._
 import controllers.util.{DateUtils, DropdownField, InputNameAndValue}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
@@ -121,10 +121,12 @@ class MetadataReviewActionController @Inject() (
         dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
         lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
-        lastReviewedByEmail <- lastReviewLog match {
-          case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u.email))
+        lastReviewerDetails <- lastReviewLog match {
+          case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u))
           case None      => Future.successful(None)
         }
+        lastReviewedByName = lastReviewerDetails.map(d => s"${d.firstName} ${d.lastName}")
+        lastReviewedByEmail = lastReviewerDetails.map(_.email)
         lastUpdated = lastReviewLog.map(log => formatDate(log.eventTime))
         lastNote = lastReviewLog.flatMap(_.metadataReviewNotes)
       } yield {
@@ -135,6 +137,7 @@ class MetadataReviewActionController @Inject() (
             action.getOrElse("Unknown"),
             totalSubmissions,
             dateSubmitted,
+            lastReviewedByName,
             lastReviewedByEmail,
             lastUpdated,
             lastNote,
