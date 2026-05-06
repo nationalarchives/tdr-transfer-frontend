@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.MetadataReviewActionController.consignmentStatusUpdates
+import controllers.MetadataReviewActionController.{ApproveLabel, ApprovedLabel, RejectLabel, RejectedLabel, consignmentStatusUpdates}
 import controllers.util.{DateUtils, DropdownField, InputNameAndValue}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
@@ -14,6 +14,7 @@ import play.api.mvc._
 import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Rejection, Submission}
 
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -107,7 +108,7 @@ class MetadataReviewActionController @Inject() (
             consignmentId,
             consignment,
             userDetails.email,
-            createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form),
+            createDropDownField(List(InputNameAndValue(ApproveLabel, CompletedValue.value), InputNameAndValue(RejectLabel, CompletedWithIssuesValue.value)), form),
             request.token.isTransferAdviser
           )
         )
@@ -116,10 +117,10 @@ class MetadataReviewActionController @Inject() (
       for {
         consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
         action = consignment.metadataReviewLogs.lastOption.map(_.action)
-        totalSubmissions = consignment.metadataReviewLogs.count(_.action == "Submission")
-        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == "Submission").lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
+        totalSubmissions = consignment.metadataReviewLogs.count(_.action == Submission.value)
+        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
-        lastReviewLog = consignment.metadataReviewLogs.filterNot(_.action == "Submission").lastOption
+        lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
         lastReviewedByEmail <- lastReviewLog match {
           case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u.email))
           case None      => Future.successful(None)
@@ -138,7 +139,7 @@ class MetadataReviewActionController @Inject() (
             lastUpdated,
             lastNote,
             userDetails.email,
-            createDropDownField(List(InputNameAndValue("Approved", CompletedValue.value), InputNameAndValue("Rejected", CompletedWithIssuesValue.value)), form),
+            createDropDownField(List(InputNameAndValue(ApprovedLabel, CompletedValue.value), InputNameAndValue(RejectedLabel, CompletedWithIssuesValue.value)), form),
             form("statusReason").errors.flatMap(_.messages),
             request.token.isTransferAdviser,
             request.flash.get("success").isDefined
@@ -182,6 +183,11 @@ class MetadataReviewActionController @Inject() (
 }
 
 object MetadataReviewActionController {
+  val ApproveLabel = "Approve"
+  val RejectLabel = "Reject"
+  val ApprovedLabel = "Approved"
+  val RejectedLabel = "Rejected"
+
   def consignmentStatusUpdates(formData: SelectedStatusData): Seq[(String, String)] = {
     val metadataReviewStatusUpdate = (MetadataReviewType.id, formData.statusId)
     val metadataStatusResets =
