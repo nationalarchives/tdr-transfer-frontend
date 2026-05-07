@@ -9,7 +9,10 @@ import org.dhatim.fastexcel.{BorderSide, BorderStyle, Workbook, Worksheet}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.GuidanceItem
 
+import com.github.tototoshi.csv.CSVReader
 import java.time.LocalDate
+import scala.io.Source
+import scala.util.Using
 import scala.util.matching.Regex
 
 object ExcelUtils {
@@ -242,6 +245,12 @@ object ExcelUtils {
       case "boolean" if convertBoolean => if (fileMetadataValue == "true") "Yes" else "No"
       case "integer"                   => Integer.valueOf(fileMetadataValue)
       case _                           => fileMetadataValue
+    }
+  }
+
+  def convertCsvToExcel(source: Source, worksheetName: String = "Sheet1"): Array[Byte] = {
+    Using.resource(CSVReader.open(source)) { reader =>
+      writeExcel(worksheetName, reader.all())
     }
   }
 

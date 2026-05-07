@@ -3,7 +3,7 @@ package controllers
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import configuration.GraphQLConfiguration
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import controllers.util.GuidanceUtils.ALL_COLUMNS
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
@@ -19,7 +19,7 @@ import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, DownloadService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
@@ -171,13 +171,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val downloadService = mock[DownloadService]
+      val applicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration
+          getInvalidKeycloakConfiguration,
+          downloadService,
+          applicationConfig
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
@@ -219,13 +223,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val downloadService = mock[DownloadService]
+      val applicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration
+          getInvalidKeycloakConfiguration,
+          downloadService,
+          applicationConfig
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
@@ -251,6 +259,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val downloadService = mock[DownloadService]
+    val applicationConfig = new ApplicationConfig(app.configuration)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
@@ -261,7 +271,9 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       consignmentService,
       consignmentStatusService,
-      keycloakConfiguration
+      keycloakConfiguration,
+      downloadService,
+      applicationConfig
     )
   }
 
