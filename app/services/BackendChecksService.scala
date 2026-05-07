@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class BackendChecksService @Inject() (val wsClient: WSClient, val configuration: Configuration)(implicit val executionContext: ExecutionContext) extends Logging {
 
   def triggerBackendChecks(consignmentId: UUID, token: String): Future[Boolean] = {
-    val url = s"${configuration.get[String]("backendchecks.baseUrl")}/backend-checks/$consignmentId"
+    val url = s"${configuration.get[String]("backendchecks.baseUrl")}/backend-checks-v2/$consignmentId"
     wsClient
       .url(url)
       .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))

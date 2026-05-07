@@ -31,7 +31,7 @@ class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
       val service = new BackendChecksService(wsClient, config)
       val consignmentId = UUID.randomUUID()
       service.triggerBackendChecks(consignmentId, "token").futureValue
-      argumentCaptor.getValue should equal(s"http://localhost/backend-checks/$consignmentId")
+      argumentCaptor.getValue should equal(s"http://localhost/backend-checks-v2/$consignmentId")
     }
 
     "return true if the API response is 200" in {
