@@ -16,7 +16,6 @@ import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Rejection, Submission}
 
-import java.time.ZonedDateTime
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -118,7 +117,7 @@ class MetadataReviewActionController @Inject() (
         consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
         action = consignment.metadataReviewLogs.lastOption.map(_.action)
         totalSubmissions = consignment.metadataReviewLogs.count(_.action == Submission.value)
-        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
+        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => DateUtils.formatWithDaySuffix(log.eventTime)).getOrElse("Unknown")
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
         lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
         lastReviewerDetails <- lastReviewLog match {
@@ -127,7 +126,7 @@ class MetadataReviewActionController @Inject() (
         }
         lastReviewedByName = lastReviewerDetails.map(d => s"${d.firstName} ${d.lastName}")
         lastReviewedByEmail = lastReviewerDetails.map(_.email)
-        lastUpdated = lastReviewLog.map(log => formatDate(log.eventTime))
+        lastUpdated = lastReviewLog.map(log => DateUtils.formatWithDaySuffix(log.eventTime))
         lastNote = lastReviewLog.flatMap(_.metadataReviewNotes)
       } yield {
         status(
@@ -171,13 +170,6 @@ class MetadataReviewActionController @Inject() (
     )
   }
 
-  private def formatDate(zdt: ZonedDateTime): String = {
-    val ukZdt = zdt.withZoneSameInstant(DateUtils.ukTimeZone)
-    val daySuffix = DateUtils.getDaySuffix(ukZdt.getDayOfMonth)
-    val formatted = DateUtils.format(zdt, s"d'$daySuffix' MMMM yyyy, hh:mma")
-    if (formatted.endsWith("AM") || formatted.endsWith("PM")) formatted.dropRight(2) + formatted.takeRight(2).toLowerCase
-    else formatted
-  }
 
   private def generateUrlLink(request: Request[AnyContent], route: String): String = {
     val baseUrl = if (request.secure) "https" else "http"
