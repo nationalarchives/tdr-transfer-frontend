@@ -409,7 +409,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       pageAsString must include("govuk-tag--red")
       pageAsString must include("Requested")
-      pageAsString must not include "Download metadata"
+      pageAsString must not include(s"""/consignment/$consignmentId/draft-metadata/download-metadata/csv-as-excel""")
     }
 
     "show status tag label 'Approved' for an Approval action" in {
@@ -429,7 +429,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       pageAsString must include("govuk-tag--green")
       pageAsString must include("Approved")
-      pageAsString must not include "Download metadata"
+      pageAsString must not include(s"""/consignment/$consignmentId/draft-metadata/download-metadata/csv-as-excel""")
     }
 
     "show status tag label 'Rejected' for a Rejection action" in {
