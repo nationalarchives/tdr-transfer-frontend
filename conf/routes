@@ -81,4 +81,4 @@ GET         /admin/metadata-review                                              
 GET         /admin/manage-transfers                                                                      controllers.ManageTransfersController.manageTransfers(tab: Option[String] ?= None)
 GET         /admin/metadata-history/:consignmentId                                                       controllers.MetadataReviewHistoryController.getConsignmentMetadataHistory(consignmentId: java.util.UUID)
 GET         /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.consignmentMetadataDetails(consignmentId: java.util.UUID)
-POST        /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.submitReview(consignmentId: java.util.UUID, consignmentRef: String, userEmail: String)
+POST        /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.submitReview(consignmentId: java.util.UUID, userEmail: String)

@@ -59,7 +59,7 @@
                             </label>
                         </h2>
 
-                        @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
+                        @form(routes.MetadataReviewActionController.submitReview(consignmentId, userEmail), (Symbol("novalidate"), "")) {
                             @CSRF.formField
                             @inputDropdown(
                                 dropdownField.fieldId,

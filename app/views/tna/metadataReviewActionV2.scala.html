@@ -177,7 +177,7 @@
                 <hr class="govuk-section-break govuk-section-break--m">
                 <h2 class="govuk-heading-m">Change status for this transfer</h2>
 
-                @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
+                @form(routes.MetadataReviewActionController.submitReview(consignmentId, userEmail), (Symbol("novalidate"), "")) {
                     @CSRF.formField
                     @inputDropdown(
                         dropdownField.fieldId,

@@ -46,7 +46,7 @@ class MetadataReviewActionController @Inject() (
     getConsignmentMetadataDetails(consignmentId, request, Ok, selectedDecisionForm)
   }
 
-  def submitReview(consignmentId: UUID, consignmentRef: String, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+  def submitReview(consignmentId: UUID, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedStatusData] = selectedDecisionForm.bindFromRequest()
     val errorFunction: Form[SelectedStatusData] => Future[Result] = { formWithErrors: Form[SelectedStatusData] =>
       getConsignmentMetadataDetails(consignmentId, request, BadRequest, formWithErrors)
@@ -169,7 +169,6 @@ class MetadataReviewActionController @Inject() (
       errors.toList
     )
   }
-
 
   private def generateUrlLink(request: Request[AnyContent], route: String): String = {
     val baseUrl = if (request.secure) "https" else "http"
