@@ -12,6 +12,14 @@ object DateUtils {
     dateTime.withZoneSameInstant(zoneId).format(formatter)
   }
 
+  def formatWithDaySuffix(dateTime: ZonedDateTime, zoneId: ZoneId = ukTimeZone): String = {
+    val localDateTime = dateTime.withZoneSameInstant(zoneId)
+    val daySuffix = getDaySuffix(localDateTime.getDayOfMonth)
+    val formatted = format(dateTime, s"d'$daySuffix' MMMM yyyy, hh:mma", zoneId)
+    if (formatted.endsWith("AM") || formatted.endsWith("PM")) formatted.dropRight(2) + formatted.takeRight(2).toLowerCase
+    else formatted
+  }
+
   def formatWithDaySuffixAndRelative(dateTime: ZonedDateTime, zoneId: ZoneId = ukTimeZone): String = {
     val localDateTime = dateTime.withZoneSameInstant(zoneId)
     val daySuffix = getDaySuffix(localDateTime.getDayOfMonth)
