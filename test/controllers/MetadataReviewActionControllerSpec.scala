@@ -409,6 +409,27 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       pageAsString must include("govuk-tag--red")
       pageAsString must include("Requested")
+      pageAsString must not include "Download metadata"
+    }
+
+    "show status tag label 'Approved' for an Approval action" in {
+      val approvalLog = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
+        UUID.randomUUID(),
+        consignmentId,
+        UUID.randomUUID(),
+        "Approval",
+        ZonedDateTime.parse("2024-07-12T11:00:00Z"),
+        None
+      )
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, approvalLog))
+
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
+      val pageAsString = contentAsString(page)
+
+      pageAsString must include("govuk-tag--green")
+      pageAsString must include("Approved")
+      pageAsString must not include "Download metadata"
     }
 
     "show status tag label 'Rejected' for a Rejection action" in {
@@ -420,6 +441,9 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       pageAsString must include("govuk-tag--yellow")
       pageAsString must include("Rejected")
+
+      pageAsString must include(s"""/consignment/$consignmentId/draft-metadata/download-metadata/csv-as-excel""")
+      pageAsString must include("Download metadata")
     }
 
     "show the correct total submission count" in {

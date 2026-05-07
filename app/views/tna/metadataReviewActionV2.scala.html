@@ -171,6 +171,10 @@
                 @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId, Some("MetadataReviewDetailTemplate")).url)
             }
 
+            @if(action.toLowerCase == "rejection") {
+                @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadCsvMetadataFile(consignmentId).url)
+            }
+
             @if(isTransferAdvisor && action.toLowerCase == "submission") {
                 <hr class="govuk-section-break govuk-section-break--m">
                 <h2 class="govuk-heading-m">Change status for this transfer</h2>
