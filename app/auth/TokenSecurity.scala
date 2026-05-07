@@ -73,7 +73,8 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
           views.html.forbiddenError(
             request.token.name,
             getProfile(request).isPresent,
-            request.token.isJudgmentUser
+            request.token.isJudgmentUser,
+            request.token.isTNAUser
           )(request2Messages(request), request)
         )
       )

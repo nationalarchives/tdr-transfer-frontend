@@ -46,16 +46,28 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
       })
   }
 
+  def tnaUser(request: RequestHeader): Boolean = {
+    pac4jTemplateHelper
+      .getCurrentProfiles(request)
+      .headOption
+      .exists(profile => {
+        val token = profile.asInstanceOf[OidcProfile].getAccessToken.asInstanceOf[BearerAccessToken]
+        val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
+        parsedToken.getBooleanClaim("tna_user")
+      })
+  }
+
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     logger.error(s"Client error with status code $statusCode at path '${request.path}' with message: '$message'")
     val loggedIn = isLoggedIn(request)
     val name = getName(request)
     val isJudgmentUser = judgmentUser(request)
+    val isTNAUser = tnaUser(request)
     val response = statusCode match {
       case 401 =>
         Unauthorized(views.html.unauthenticatedError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
       case 403 =>
-        Forbidden(views.html.forbiddenError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
+        Forbidden(views.html.forbiddenError(name, loggedIn, isJudgmentUser, isTNAUser)(request2Messages(request), request))
       case 404 =>
         NotFound(views.html.notFoundError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
       case _ =>
@@ -75,9 +87,10 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
     val name = getName(request)
     val loggedIn = isLoggedIn(request)
     val isJudgmentUser = judgmentUser(request)
+    val isTNAUser = tnaUser(request)
     val response = exception match {
       case _: AuthorisationException =>
-        Forbidden(views.html.forbiddenError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
+        Forbidden(views.html.forbiddenError(name, loggedIn, isJudgmentUser, isTNAUser)(request2Messages(request), request))
       case e: CompletionException if Option(e.getCause).exists(e => e.isInstanceOf[TechnicalException] && e.getMessage == "State cannot be determined") =>
         Redirect(redirectUrl(isJudgmentUser))
       case _ =>
