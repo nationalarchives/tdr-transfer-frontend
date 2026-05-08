@@ -120,7 +120,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       setUpdateConsignmentStatus(wiremockServer)
 
       val reviewSubmit =
-        controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
+        controller.submitReview(consignmentId, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
       verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
@@ -157,7 +157,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       setUpdateConsignmentStatus(wiremockServer)
 
       val reviewSubmit =
-        controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
+        controller.submitReview(consignmentId, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
       verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
@@ -194,7 +194,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       setUpdateConsignmentStatus(wiremockServer)
 
       val reviewSubmit =
-        controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
+        controller.submitReview(consignmentId, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review/$consignmentId"))
       flash(reviewSubmit).get("success") mustBe Some("true")
@@ -215,7 +215,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       val reviewSubmit =
         controller
-          .submitReview(consignmentId, consignmentRef, userEmail)
+          .submitReview(consignmentId, userEmail)
           .apply(
             FakeRequest().withFormUrlEncodedBody(("status", status), ("statusReason", notes)).withCSRFToken
           )
@@ -243,7 +243,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       val reviewSubmit =
         controller
-          .submitReview(consignmentId, consignmentRef, userEmail)
+          .submitReview(consignmentId, userEmail)
           .apply(
             FakeRequest().withFormUrlEncodedBody(("status", status), ("statusReason", notes)).withCSRFToken
           )
@@ -274,7 +274,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
           closedRecords = true,
           10
         )
-      val reviewSubmit = controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
+      val reviewSubmit = controller.submitReview(consignmentId, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
       setUpdateConsignmentStatus(wiremockServer)
       setGetConsignmentDetailsForMetadataReviewResponse()
       playStatus(reviewSubmit) mustBe BAD_REQUEST
@@ -626,7 +626,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       val reviewSubmit =
         controller
-          .submitReview(consignmentId, consignmentRef, userEmail)
+          .submitReview(consignmentId, userEmail)
           .apply(FakeRequest().withFormUrlEncodedBody(("status", statusValue), ("statusReason", oversizedReason)).withCSRFToken)
 
       playStatus(reviewSubmit) mustBe BAD_REQUEST

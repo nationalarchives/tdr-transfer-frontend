@@ -33,6 +33,9 @@ class ManageTransfersController @Inject() (
     }
   }
   def downloadMetadataReviewHistory(): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+    if (applicationConfig.blockMetadataReviewV2) {
+      Future.successful(NotFound(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
+    } else {
     metadataReviewExportService
       .generateReviewHistoryExcel(request.token.bearerAccessToken)
       .map { excelFile =>
@@ -41,6 +44,7 @@ class ManageTransfersController @Inject() (
           .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
           .withHeaders("Content-Disposition" -> s"attachment; filename=MetadataReviewHistory-$timestamp.xlsx")
       }
+    }
   }
   private def toConsignmentReviewDetails(reviewDetails: GetConsignmentReviewDetails): ConsignmentReviewDetails = {
     ConsignmentReviewDetails(

@@ -37,7 +37,7 @@ class MetadataReviewExportService @Inject() (
   def generateReviewHistoryExcel(token: BearerAccessToken): Future[Array[Byte]] = {
     for {
       reviewDetails <- consignmentService.getConsignmentReviewDetails(None, token)
-      filteredDetails = reviewDetails.filterNot(rd => applicationConfig.seriesNameFilters.exists(filter => rd.seriesName.contains(filter)))
+      filteredDetails = reviewDetails.filterNot(rd => applicationConfig.seriesNameFilters.exists(filter => rd.seriesName.exists(_.contains(filter))))
       consignmentDetails <- batchedTraverse(filteredDetails) { rd =>
         consignmentService.getConsignmentDetailForMetadataReview(rd.consignmentId, token).map(rd -> _)
       }
