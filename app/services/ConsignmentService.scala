@@ -15,6 +15,7 @@ import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
+import graphql.codegen.GetConsignmentReviewDetails.{getConsignmentReviewDetails => gcrd}
 import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
 import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
@@ -44,6 +45,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
   private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfmr.Data, gcfmr.Variables]()
+  private val getConsignmentReviewDetailsClient = graphqlConfiguration.getClient[gcrd.Data, gcrd.Variables]()
   private val getConsignmentDetailsForReviewClient = graphqlConfiguration.getClient[gcdfmr.Data, gcdfmr.Variables]()
   private val updateDraftMetadataFileNameClient = graphqlConfiguration.getClient[ucsdmfn.Data, ucsdmfn.Variables]()
   private val getConsignmentForMetadataReviewRequest = graphqlConfiguration.getClient[gcfmrr.Data, gcfmrr.Variables]()
@@ -167,6 +169,11 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   def getConsignmentsForReview(token: BearerAccessToken): Future[List[gcfmr.GetConsignmentsForMetadataReview]] = {
     sendApiRequest(getConsignmentsForReviewClient, gcfmr.document, token, gcfmr.Variables())
       .map(data => data.getConsignmentsForMetadataReview)
+  }
+
+  def getConsignmentReviewDetails(statusFilter: Option[String], token: BearerAccessToken): Future[List[gcrd.GetConsignmentReviewDetails]] = {
+    sendApiRequest(getConsignmentReviewDetailsClient, gcrd.document, token, gcrd.Variables(statusFilter))
+      .map(data => data.getConsignmentReviewDetails)
   }
 
   def getConsignmentDetailForMetadataReview(consignmentId: UUID, token: BearerAccessToken): Future[gcdfmr.GetConsignment] = {
