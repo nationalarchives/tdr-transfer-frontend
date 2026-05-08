@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.MetadataReviewActionController.{ApproveLabel, ApprovedLabel, RejectLabel, RejectedLabel, consignmentStatusUpdates}
+import controllers.MetadataReviewActionController._
 import controllers.util.{DateUtils, DropdownField, InputNameAndValue}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
@@ -16,7 +16,6 @@ import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Rejection, Submission}
 
-import java.time.ZonedDateTime
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,7 +46,7 @@ class MetadataReviewActionController @Inject() (
     getConsignmentMetadataDetails(consignmentId, request, Ok, selectedDecisionForm)
   }
 
-  def submitReview(consignmentId: UUID, consignmentRef: String, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+  def submitReview(consignmentId: UUID, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedStatusData] = selectedDecisionForm.bindFromRequest()
     val errorFunction: Form[SelectedStatusData] => Future[Result] = { formWithErrors: Form[SelectedStatusData] =>
       getConsignmentMetadataDetails(consignmentId, request, BadRequest, formWithErrors)
@@ -118,14 +117,16 @@ class MetadataReviewActionController @Inject() (
         consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
         action = consignment.metadataReviewLogs.lastOption.map(_.action)
         totalSubmissions = consignment.metadataReviewLogs.count(_.action == Submission.value)
-        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => formatDate(log.eventTime)).getOrElse("Unknown")
+        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => DateUtils.formatWithDaySuffix(log.eventTime)).getOrElse("Unknown")
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
         lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
-        lastReviewedByEmail <- lastReviewLog match {
-          case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u.email))
+        lastReviewerDetails <- lastReviewLog match {
+          case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u))
           case None      => Future.successful(None)
         }
-        lastUpdated = lastReviewLog.map(log => formatDate(log.eventTime))
+        lastReviewedByName = lastReviewerDetails.map(d => s"${d.firstName} ${d.lastName}")
+        lastReviewedByEmail = lastReviewerDetails.map(_.email)
+        lastUpdated = lastReviewLog.map(log => DateUtils.formatWithDaySuffix(log.eventTime))
         lastNote = lastReviewLog.flatMap(_.metadataReviewNotes)
       } yield {
         status(
@@ -135,6 +136,7 @@ class MetadataReviewActionController @Inject() (
             action.getOrElse("Unknown"),
             totalSubmissions,
             dateSubmitted,
+            lastReviewedByName,
             lastReviewedByEmail,
             lastUpdated,
             lastNote,
@@ -166,14 +168,6 @@ class MetadataReviewActionController @Inject() (
       isRequired = true,
       errors.toList
     )
-  }
-
-  private def formatDate(zdt: ZonedDateTime): String = {
-    val ukZdt = zdt.withZoneSameInstant(DateUtils.ukTimeZone)
-    val daySuffix = DateUtils.getDaySuffix(ukZdt.getDayOfMonth)
-    val formatted = DateUtils.format(zdt, s"d'$daySuffix' MMMM yyyy, hh:mma")
-    if (formatted.endsWith("AM") || formatted.endsWith("PM")) formatted.dropRight(2) + formatted.takeRight(2).toLowerCase
-    else formatted
   }
 
   private def generateUrlLink(request: Request[AnyContent], route: String): String = {

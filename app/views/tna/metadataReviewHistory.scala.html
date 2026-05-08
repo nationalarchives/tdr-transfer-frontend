@@ -1,0 +1,94 @@
+@import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
+@import controllers.MetadataReviewHistoryController.HistoryRow
+
+@import java.util.UUID
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, historyRows: List[HistoryRow], userEmail: String, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
+
+@tagClass(status: String) = @{
+    status.toLowerCase match {
+        case "submission" => "govuk-tag--red"
+        case "rejection" => "govuk-tag--yellow"
+        case "approval" => "govuk-tag--green"
+        case "confirmation" => "govuk-tag--grey"
+        case _ => ""
+    }
+}
+
+@tagLabel(status: String) = @{
+    status.toLowerCase match {
+        case "submission" => "Requested"
+        case "rejection" => "Rejected"
+        case "approval" => "Approved"
+        case "confirmation" => "Transferred"
+        case _ => status
+    }
+}
+
+@main("View Request for Metadata", backLink = None, isTnaUser = true) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">Submission history for @consignmentDetails.consignmentReference</h1>
+            <dl class="govuk-summary-list govuk-grid-column-two-thirds">
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Department
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @consignmentDetails.transferringBodyName
+                    </dd>
+                </div>
+
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Series
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @consignmentDetails.seriesName
+                    </dd>
+                </div>
+
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Total/open/closed records
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        Total: @consignmentDetails.totalFiles  Open: @(consignmentDetails.totalFiles - consignmentDetails.totalClosedRecords)  Closed: @consignmentDetails.totalClosedRecords
+                    </dd>
+                </div>
+            </dl>
+
+            <table class="govuk-table">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col" class="govuk-table__header">Submission No.</th>
+                        <th scope="col" class="govuk-table__header">Date submitted</th>
+                        <th scope="col" class="govuk-table__header">Status</th>
+                        <th scope="col" class="govuk-table__header">Date reviewed</th>
+                        <th scope="col" class="govuk-table__header">Reviewed by</th>
+                        <th scope="col" class="govuk-table__header">Reason for status change</th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    @for(row <- historyRows) {
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__cell">@row.submissionNo</td>
+                            <td class="govuk-table__cell">@row.dateSubmitted</td>
+                            <td class="govuk-table__cell"><strong class="govuk-tag @tagClass(row.status)">@tagLabel(row.status)</strong></td>
+                            <td class="govuk-table__cell">@row.dateReviewed.getOrElse("")</td>
+                            <td class="govuk-table__cell">@{(row.reviewedBy, row.reviewedByEmail) match {
+                                case (Some(name), Some(email)) => <a href={s"mailto:$email"} class="govuk-link">{name}</a>
+                                case (Some(name), None) => xml.Text(name)
+                                case _ => xml.NodeSeq.Empty
+                            }}</td>
+                            <td class="govuk-table__cell"><span class="govuk-body-s">@row.note.getOrElse("")</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    <p class="govuk-body govuk-!-margin-top-8">
+        <a href="@routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId)" class="govuk-link">Back to transfer details</a>
+    </p>
+}
