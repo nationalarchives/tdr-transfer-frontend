@@ -58,7 +58,7 @@ class DraftMetadataUploadController @Inject() (
             .recoverWith { case error =>
               val errorPage = for {
                 reference <- consignmentService.getConsignmentRef(consignmentId, token.bearerAccessToken)
-                consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataUploadType.id, Some(CompletedWithIssuesValue.value), None)
+                consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataUploadType.id, Some(CompletedWithIssuesValue.value), None, None)
                 _ <- consignmentStatusService.updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)
               } yield {
                 logger.error(error.getMessage, error)
@@ -90,7 +90,7 @@ class DraftMetadataUploadController @Inject() (
     val uploadFileName = applicationConfig.draftMetadataFileName
     val uploadKey = s"$consignmentId/$uploadFileName"
     val noDraftMetadataFileUploaded: String = "No meta data file provided"
-    val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value), None)
+    val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value), None, None)
 
     for {
       _ <- IO(logger.info(s"User:${token.userId} uploaded the draft metadata file for consignment:$consignmentId"))
@@ -101,7 +101,7 @@ class DraftMetadataUploadController @Inject() (
       _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadataBytes)))
       _ <- IO.fromFuture(IO { consignmentService.updateDraftMetadataFileName(consignmentId, file.filename, token.bearerAccessToken) })
       _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, uploadFileName, token) })
-      uploadConsignmentStatus = ConsignmentStatusInput(consignmentId, DraftMetadataUploadType.id, Some(CompletedValue.value), None)
+      uploadConsignmentStatus = ConsignmentStatusInput(consignmentId, DraftMetadataUploadType.id, Some(CompletedValue.value), None, None)
       _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(uploadConsignmentStatus, token.bearerAccessToken)))
       successPage <- IO(Redirect(routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)))
     } yield successPage

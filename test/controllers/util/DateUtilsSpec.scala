@@ -6,6 +6,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import java.time.temporal.ChronoUnit
 
 class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEach {
 
@@ -27,6 +28,60 @@ class DateUtilsSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       val result = DateUtils.format(dateTime, customFormat)
 
       result should be(expected)
+    }
+
+    "return correct day suffix" in {
+      DateUtils.getDaySuffix(1) should be("st")
+      DateUtils.getDaySuffix(2) should be("nd")
+      DateUtils.getDaySuffix(3) should be("rd")
+      DateUtils.getDaySuffix(4) should be("th")
+      DateUtils.getDaySuffix(11) should be("th")
+      DateUtils.getDaySuffix(21) should be("st")
+      DateUtils.getDaySuffix(22) should be("nd")
+      DateUtils.getDaySuffix(23) should be("rd")
+      DateUtils.getDaySuffix(31) should be("st")
+    }
+
+    "format date with day suffix, lowercase am/pm and relative days" in {
+      val dateTime = ZonedDateTime.now(ZoneId.of("UTC"))
+      val ukDateTime = dateTime.withZoneSameInstant(DateUtils.ukTimeZone)
+      val daySuffix = DateUtils.getDaySuffix(ukDateTime.getDayOfMonth)
+      val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
+
+      result should include(s"${ukDateTime.getDayOfMonth}$daySuffix")
+      result should include("(Today)")
+    }
+
+    "format date with Yesterday for a date one day ago" in {
+      val dateTime = ZonedDateTime.now().minus(1, ChronoUnit.DAYS)
+      val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
+
+      result should include("(Yesterday)")
+    }
+
+    "format date with days ago for older dates" in {
+      val dateTime = ZonedDateTime.now().minus(5, ChronoUnit.DAYS)
+      val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
+
+      result should include("(5 days ago)")
+    }
+
+    "convert GMT to BST during British Summer Time" in {
+      // 19 Jun 2023 15:30 UTC = 16:30 BST
+      val dateTime = ZonedDateTime.of(2023, 6, 19, 15, 30, 0, 0, ZoneId.of("UTC"))
+      val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
+
+      result should include("4:30pm")
+      result should not include "04:30pm"
+    }
+
+    "keep GMT during winter" in {
+      // 19 Jan 2026 15:30 UTC = 15:30 GMT
+      val dateTime = ZonedDateTime.of(2026, 1, 19, 15, 30, 0, 0, ZoneId.of("UTC"))
+      val result = DateUtils.formatWithDaySuffixAndRelative(dateTime)
+
+      result should include("3:30pm")
+      result should not include "03:30pm"
     }
 
   }

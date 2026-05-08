@@ -4,6 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
@@ -22,6 +23,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{ConsignmentStatuses => ecs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
+import graphql.codegen.GetConsignmentReviewDetails.{getConsignmentReviewDetails => gcrd}
 import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
 import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
@@ -274,6 +276,29 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentsForMetadataReview"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  def setGetConsignmentReviewDetailsResponse(wiremockServer: WireMockServer): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcrd.Data, gcrd.Variables]()
+    val statuses = List("Requested", "Rejected", "Approved", "Transferred")
+    val consignments = statuses.zipWithIndex.map { case (reviewStatus, index) =>
+      gcrd.GetConsignmentReviewDetails(
+        consignmentId = java.util.UUID.randomUUID(),
+        consignmentReference = s"TDR-2024-TEST${index + 1}",
+        reviewStatus = reviewStatus,
+        transferringBodyName = Some(s"TransferringBody${index + 1}"),
+        seriesName = Some(s"SeriesName${index + 1}"),
+        lastUpdated = ZonedDateTime.now().minus(index + 1, ChronoUnit.DAYS)
+      )
+    }
+    val data = client.GraphqlData(Some(gcrd.Data(consignments)))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentReviewDetails"))
         .willReturn(okJson(dataString))
     )
   }
@@ -683,5 +708,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
                               |</a>
                               |""".stripMargin
     linkHTML
+  }
+
+  def getApplicationConfig(overrides: Map[String, Any] = Map.empty): ApplicationConfig = {
+    val baseConfig = overrides.foldLeft(ConfigFactory.load()) { case (conf, (key, value)) =>
+      conf.withValue(key, ConfigValueFactory.fromAnyRef(value))
+    }
+    val config = baseConfig
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
+    new ApplicationConfig(Configuration.from(config))
   }
 }
