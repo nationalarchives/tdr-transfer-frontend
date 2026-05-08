@@ -10,6 +10,7 @@ import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 case class ResolvedUser(email: String, name: String)
 
@@ -62,7 +63,7 @@ class MetadataReviewExportService @Inject() (
       keycloakConfiguration
         .userDetails(userId.toString)
         .map(details => userId -> ResolvedUser(details.email, s"${details.firstName} ${details.lastName}"))
-        .recover { case _ => userId -> ResolvedUser("", "") }
+        .recover { case NonFatal(_) => userId -> ResolvedUser("", "") }
     }
     lookups.map(_.toMap)
   }
