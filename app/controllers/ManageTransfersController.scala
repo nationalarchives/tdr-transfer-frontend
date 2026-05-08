@@ -36,14 +36,14 @@ class ManageTransfersController @Inject() (
     if (applicationConfig.blockMetadataReviewV2) {
       Future.successful(NotFound(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
     } else {
-    metadataReviewExportService
-      .generateReviewHistoryExcel(request.token.bearerAccessToken)
-      .map { excelFile =>
-        val timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss").format(LocalDateTime.now())
-        Ok(excelFile)
-          .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-          .withHeaders("Content-Disposition" -> s"attachment; filename=MetadataReviewHistory-$timestamp.xlsx")
-      }
+      metadataReviewExportService
+        .generateReviewHistoryExcel(request.token.bearerAccessToken)
+        .map { excelFile =>
+          val timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss").format(LocalDateTime.now())
+          Ok(excelFile)
+            .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            .withHeaders("Content-Disposition" -> s"attachment; filename=MetadataReviewHistory-$timestamp.xlsx")
+        }
     }
   }
   private def toConsignmentReviewDetails(reviewDetails: GetConsignmentReviewDetails): ConsignmentReviewDetails = {

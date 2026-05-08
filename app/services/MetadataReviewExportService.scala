@@ -11,6 +11,8 @@ import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
+case class ResolvedUser(email: String, name: String)
+
 class MetadataReviewExportService @Inject() (
     consignmentService: ConsignmentService,
     keycloakConfiguration: KeycloakConfiguration,
@@ -42,10 +44,10 @@ class MetadataReviewExportService @Inject() (
         consignmentService.getConsignmentDetailForMetadataReview(rd.consignmentId, token).map(rd -> _)
       }
       allUserIds = collectUserIds(consignmentDetails.map { case (_, consignment) => consignment })
-      userEmails <- resolveUserEmails(allUserIds)
+      resolvedUsers <- resolveUsers(allUserIds)
     } yield {
       val rows = consignmentDetails.flatMap { case (reviewDetail, consignment) =>
-        buildRowsForConsignment(reviewDetail, consignment, userEmails)
+        buildRowsForConsignment(reviewDetail, consignment, resolvedUsers)
       }
       ExcelUtils.writeExcel("Metadata Review History", header :: rows)
     }
@@ -55,12 +57,12 @@ class MetadataReviewExportService @Inject() (
       consignment.userid :: consignment.metadataReviewLogs.map(_.userId)
     }.toSet
   }
-  private def resolveUserEmails(userIds: Set[UUID]): Future[Map[UUID, String]] = {
+  private def resolveUsers(userIds: Set[UUID]): Future[Map[UUID, ResolvedUser]] = {
     val lookups = batchedTraverse(userIds.toList) { userId =>
       keycloakConfiguration
         .userDetails(userId.toString)
-        .map(details => userId -> details.email)
-        .recover { case _ => userId -> "" }
+        .map(details => userId -> ResolvedUser(details.email, s"${details.firstName} ${details.lastName}"))
+        .recover { case _ => userId -> ResolvedUser("", "") }
     }
     lookups.map(_.toMap)
   }
@@ -74,11 +76,11 @@ class MetadataReviewExportService @Inject() (
   private def buildRowsForConsignment(
       reviewDetail: GetConsignmentReviewDetails,
       consignment: gcdfmr.GetConsignment,
-      userEmails: Map[UUID, String]
+      resolvedUsers: Map[UUID, ResolvedUser]
   ): List[List[String]] = {
     val consignmentRef = reviewDetail.consignmentReference
     val currentStatus = reviewDetail.reviewStatus
-    val userEmail = userEmails.getOrElse(consignment.userid, "")
+    val userEmail = resolvedUsers.get(consignment.userid).map(_.email).getOrElse("")
     val lastUpdated = DateUtils.format(reviewDetail.lastUpdated, excelDateFormat)
     val department = reviewDetail.transferringBodyName.getOrElse("")
     val series = reviewDetail.seriesName.getOrElse("")
@@ -95,7 +97,7 @@ class MetadataReviewExportService @Inject() (
       reviews.lift(index) match {
         case Some(review) =>
           val logAction = MetadataReviewLogAction(review.action)
-          val reviewedBy = userEmails.getOrElse(review.userId, "")
+          val reviewedBy = resolvedUsers.get(review.userId).map(_.name).getOrElse("")
           val reason = review.metadataReviewNotes.getOrElse("")
           commonFields ++ List(submissionNum, submissionDate, logAction.reviewStatus.value, DateUtils.format(review.eventTime, excelDateFormat), reviewedBy, reason)
         case None =>
