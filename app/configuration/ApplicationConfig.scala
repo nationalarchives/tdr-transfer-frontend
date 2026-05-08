@@ -30,6 +30,8 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val blockSkipMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockSkipMetadataReview")
 
+  val blockMetadataReviewV2: Boolean = configuration.get[Boolean]("featureAccessBlock.blockMetadataReviewV2")
+
   val draft_metadata_s3_bucket_name: String = configuration.get[String]("draft_metadata_s3_bucket_name")
 
   val draftMetadataFileName: String = configuration.get[String]("draftMetadata.fileName")
@@ -39,4 +41,10 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
   val notificationSnsTopicArn: String = get("notificationSnsTopicArn")
 
   val fileChecksTotalTimoutInSeconds: Int = configuration.get[Int]("fileChecksTotalTimoutInSeconds")
+
+  val maxNumberOfFiles: Int = configuration.get[Int]("capacityLimits.maxNumberRecords")
+
+  val maxFileSizeMb: Int = configuration.get[Int]("capacityLimits.maxIndividualFileSizeMb")
+
+  val maxTransferSizeMb: Int = configuration.get[Int]("capacityLimits.maxTransferSizeMb")
 }
