@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.ConsignmentProperty.{judgment, press_summary, tdrDataLoadHeaderMapper}
-import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
+import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
@@ -12,6 +12,7 @@ import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services._
 import uk.gov.nationalarchives.tdr.schema.generated.BaseSchema.{judgment_neutral_citation, judgment_no_neutral_citation, judgment_type, judgment_update}
+import uk.gov.nationalarchives.tdr.schema.generated.ExcludedFilenames
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -41,12 +42,37 @@ class UploadController @Inject() (
     }
   }
 
+  private def filenameFromPath(path: String): String = path.split("/").last
+
+  private def parentDirFromPath(path: String): String = {
+    val parts = path.split("/")
+    if (parts.length > 1) parts.init.mkString("/") else ""
+  }
+
+  private def findNewlyEmptyDirectories(
+      originalFiles: List[ClientSideMetadataInput],
+      filteredFiles: List[ClientSideMetadataInput]
+  ): List[String] = {
+    val excludedFiles: Seq[ClientSideMetadataInput] = originalFiles.filterNot(file => filteredFiles.contains(file))
+    val parentDirsOfExcluded: Set[String] = excludedFiles.map(file => parentDirFromPath(file.originalPath)).filter(_.nonEmpty).toSet
+    val remainingFilePaths: Seq[String] = filteredFiles.map(_.originalPath)
+
+    parentDirsOfExcluded
+      .filterNot(dir => remainingFilePaths.exists(_.startsWith(dir + "/")))
+      .toList
+  }
+
   def saveClientMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
-      case Some(metadataInput) => uploadService.saveClientMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
-      case None                => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+      case Some(metadataInput) =>
+        val filteredFiles = metadataInput.metadataInput.filterNot(file => ExcludedFilenames.isExcluded(filenameFromPath(file.originalPath)))
+        val newlyEmptyDirs = findNewlyEmptyDirectories(metadataInput.metadataInput, filteredFiles)
+        val allEmptyDirs = metadataInput.emptyDirectories.map(_ ++ newlyEmptyDirs).orElse(Option.when(newlyEmptyDirs.nonEmpty)(newlyEmptyDirs))
+        val filteredInput = metadataInput.copy(metadataInput = filteredFiles, emptyDirectories = allEmptyDirs)
+        uploadService.saveClientMetadata(filteredInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
+      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }
 
@@ -72,6 +98,12 @@ class UploadController @Inject() (
       val uploadStatus: Option[String] = statusesToValue.get(UploadType).flatten
       val pageHeadingUpload = "Upload your records"
       val pageHeadingUploading = "Uploading your records"
+      val maxNumberOfFiles = applicationConfig.maxNumberOfFiles
+      val maxFileSizeMb = applicationConfig.maxFileSizeMb
+      val maxTransferSizeMb = applicationConfig.maxTransferSizeMb
+
+      val maxFileSizeDisplay = s"${maxFileSizeMb / 1000}GB"
+      val maxTransferSizeDisplay = s"${maxTransferSizeMb / 1000}GB"
 
       transferAgreementStatus match {
         case Some(CompletedValue.value) =>
@@ -83,7 +115,19 @@ class UploadController @Inject() (
               Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
-              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, applicationConfig.frontEndInfo, request.token.name))
+              Ok(
+                views.html.standard.upload(
+                  consignmentId,
+                  reference,
+                  pageHeadingUpload,
+                  pageHeadingUploading,
+                  applicationConfig.frontEndInfo,
+                  request.token.name,
+                  maxNumberOfFiles,
+                  maxFileSizeDisplay,
+                  maxTransferSizeDisplay
+                )
+              )
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
