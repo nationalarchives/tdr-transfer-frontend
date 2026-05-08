@@ -266,7 +266,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   private def captureAddConsignmentStatusInput(): ConsignmentStatusInput = {
     decode[AddConsignmentStatusGraphqlRequestData](
       getServeEvent(wiremockServer, "addConsignmentStatus").get.getRequest.getBodyAsString
-    ).getOrElse(AddConsignmentStatusGraphqlRequestData("", acs.Variables(ConsignmentStatusInput(UUID.fromString(consignmentId.toString), "", None, None))))
+    ).getOrElse(AddConsignmentStatusGraphqlRequestData("", acs.Variables(ConsignmentStatusInput(UUID.fromString(consignmentId.toString), "", None, None, None))))
       .variables
       .addConsignmentStatusInput
   }
@@ -274,7 +274,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   private def captureUpdateConsignmentStatusInput(): ConsignmentStatusInput = {
     decode[UpdateConsignmentStatusGraphqlRequestData](
       getServeEvent(wiremockServer, "updateConsignmentStatus").get.getRequest.getBodyAsString
-    ).getOrElse(UpdateConsignmentStatusGraphqlRequestData("", ucs.Variables(ConsignmentStatusInput(UUID.fromString(consignmentId.toString), "", None, None))))
+    ).getOrElse(UpdateConsignmentStatusGraphqlRequestData("", ucs.Variables(ConsignmentStatusInput(UUID.fromString(consignmentId.toString), "", None, None, None))))
       .variables
       .updateConsignmentStatusInput
   }
