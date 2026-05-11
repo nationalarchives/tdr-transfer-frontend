@@ -1,4 +1,5 @@
 package controllers
+
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.util.DateUtils
@@ -11,6 +12,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
+
 class ManageTransfersController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents,
@@ -18,7 +20,9 @@ class ManageTransfersController @Inject() (
     val metadataReviewExportService: MetadataReviewExportService,
     val applicationConfig: ApplicationConfig
 ) extends TokenSecurity {
+
   private val validTabs = Set("requested", "rejected", "approved", "transferred", "all")
+
   def manageTransfers(tab: Option[String]): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     if (applicationConfig.blockMetadataReviewV2) {
       Future.successful(NotFound(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
@@ -59,6 +63,7 @@ class ManageTransfersController @Inject() (
     )
   }
 }
+
 case class ConsignmentReviewDetails(
     consignmentId: UUID,
     consignmentReference: String,
