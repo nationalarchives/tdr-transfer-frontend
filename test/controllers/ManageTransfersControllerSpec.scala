@@ -72,6 +72,8 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       pageAsString must include("Approved")
       pageAsString must include("Transferred")
       pageAsString must include("All")
+      pageAsString must include("""<a href="/admin/manage-transfers/download-review-history"""")
+      pageAsString must include("Download all")
     }
 
     "mark the requested tab as selected by default" in {
