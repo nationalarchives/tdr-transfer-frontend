@@ -6,7 +6,6 @@ import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.DateUtils
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 import graphql.codegen.GetConsignmentReviewDetails.{getConsignmentReviewDetails => gcrd}
-import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.dhatim.fastexcel.reader.{ReadableWorkbook, Row, Sheet}
@@ -332,7 +331,7 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
         )
       )
     )
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    val dataString = data.asJson.noSpaces
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentDetailsForMetadataReview"))
@@ -358,7 +357,7 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       )
     )
     val data = client.GraphqlData(Some(gcrd.Data(consignments)))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    val dataString = data.asJson.noSpaces
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentReviewDetails"))
@@ -391,7 +390,7 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
         )
       )
     )
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    val dataString = data.asJson.noSpaces
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentDetailsForMetadataReview"))
