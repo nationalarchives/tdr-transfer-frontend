@@ -36,6 +36,7 @@ class ManageTransfersController @Inject() (
         }
     }
   }
+
   def downloadMetadataReviewHistory(): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     if (applicationConfig.blockMetadataReviewV2) {
       Future.successful(NotFound(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
@@ -50,6 +51,7 @@ class ManageTransfersController @Inject() (
         }
     }
   }
+
   private def toConsignmentReviewDetails(reviewDetails: GetConsignmentReviewDetails): ConsignmentReviewDetails = {
     ConsignmentReviewDetails(
       consignmentId = reviewDetails.consignmentId,

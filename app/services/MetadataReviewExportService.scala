@@ -37,6 +37,7 @@ class MetadataReviewExportService @Inject() (
     "Reviewed By",
     "Reason for Action"
   )
+
   def generateReviewHistoryExcel(token: BearerAccessToken): Future[Array[Byte]] = {
     for {
       reviewDetails <- consignmentService.getConsignmentReviewDetails(None, token)
@@ -53,11 +54,13 @@ class MetadataReviewExportService @Inject() (
       ExcelUtils.writeExcel("Metadata Review History", header :: rows)
     }
   }
+
   private def collectUserIds(consignments: List[gcdfmr.GetConsignment]): Set[UUID] = {
     consignments.flatMap { consignment =>
       consignment.userid :: consignment.metadataReviewLogs.map(_.userId)
     }.toSet
   }
+
   private def resolveUsers(userIds: Set[UUID]): Future[Map[UUID, ResolvedUser]] = {
     val lookups = batchedTraverse(userIds.toList) { userId =>
       keycloakConfiguration
@@ -67,6 +70,7 @@ class MetadataReviewExportService @Inject() (
     }
     lookups.map(_.toMap)
   }
+
   private def batchedTraverse[A, B](items: List[A], batchSize: Int = 5)(f: A => Future[B]): Future[List[B]] = {
     items.grouped(batchSize).foldLeft(Future.successful(List.empty[B])) { (accFuture, batch) =>
       accFuture.flatMap { acc =>
@@ -74,6 +78,7 @@ class MetadataReviewExportService @Inject() (
       }
     }
   }
+
   private def buildRowsForConsignment(
       reviewDetail: GetConsignmentReviewDetails,
       consignment: gcdfmr.GetConsignment,
