@@ -131,7 +131,7 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
       val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val result = controller.getConsignmentMetadataHistory(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId/history").withCSRFToken)
 
-      contentAsString(result) must include("5th July 2024, 08:00am")
+      contentAsString(result) must include("5th July 2024, 8:00am")
     }
 
     "show Rejected status tag for a rejection review" in {

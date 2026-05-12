@@ -67,11 +67,9 @@
                     <dd class="govuk-summary-list__value">
                         @totalSubmissions
                     </dd>
-                    @if(totalSubmissions > 1) {
                     <dd class="govuk-summary-list__actions">
                         <a class="govuk-link" href="@routes.MetadataReviewHistoryController.getConsignmentMetadataHistory(consignmentId)">View submission history<span class="govuk-visually-hidden"> submission number</span></a>
                     </dd>
-                    }
                 </div>
                 <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
                     <dt class="govuk-summary-list__key">
