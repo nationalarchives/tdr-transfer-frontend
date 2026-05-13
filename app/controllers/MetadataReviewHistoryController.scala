@@ -8,7 +8,7 @@ import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
-import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.Submission
+import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Confirmation, Submission}
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -16,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object MetadataReviewHistoryController {
   case class HistoryRow(
-      submissionNo: Int,
+      submissionNo: Option[Int],
       dateSubmitted: String,
       status: String,
       dateReviewed: Option[String],
@@ -50,15 +50,16 @@ class MetadataReviewHistoryController @Inject() (
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
         sortedLogs = consignment.metadataReviewLogs.sortBy(_.eventTime)
         submissions = sortedLogs.filter(_.action == Submission.value)
-        reviews = sortedLogs.filterNot(_.action == Submission.value)
+        confirmations = sortedLogs.filter(_.action == Confirmation.value)
+        reviews = sortedLogs.filterNot(log => log.action == Submission.value || log.action == Confirmation.value)
         reviewerIds = reviews.map(_.userId.toString).distinct
         detailEntries <- Future.sequence(reviewerIds.map(id => keycloakConfiguration.userDetails(id).map(d => id -> d)))
         detailMap = detailEntries.toMap
-        historyRows = submissions.zipWithIndex.map { case (submission, idx) =>
+        submissionRows = submissions.zipWithIndex.map { case (submission, idx) =>
           val review = reviews.lift(idx)
           val reviewer = review.flatMap(r => detailMap.get(r.userId.toString))
           HistoryRow(
-            submissionNo = idx + 1,
+            submissionNo = Some(idx + 1),
             dateSubmitted = DateUtils.formatWithDaySuffix(submission.eventTime),
             status = review.map(_.action).getOrElse(Submission.value),
             dateReviewed = review.map(r => DateUtils.formatWithDaySuffix(r.eventTime)),
@@ -67,6 +68,18 @@ class MetadataReviewHistoryController @Inject() (
             note = review.flatMap(_.metadataReviewNotes)
           )
         }.reverse
+        transferredRows = confirmations.map { confirmation =>
+          HistoryRow(
+            submissionNo = None,
+            dateSubmitted = DateUtils.formatWithDaySuffix(confirmation.eventTime),
+            status = Confirmation.value,
+            dateReviewed = None,
+            reviewedBy = None,
+            reviewedByEmail = None,
+            note = None
+          )
+        }
+        historyRows = transferredRows ++ submissionRows
       } yield {
         Ok(
           views.html.tna.metadataReviewHistory(
