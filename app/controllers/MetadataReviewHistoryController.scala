@@ -50,7 +50,7 @@ class MetadataReviewHistoryController @Inject() (
         userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
         sortedLogs = consignment.metadataReviewLogs.sortBy(_.eventTime)
         submissions = sortedLogs.filter(_.action == Submission.value)
-        confirmations = sortedLogs.filter(_.action == Confirmation.value)
+        confirmations = sortedLogs.lastOption.filter(_.action == Confirmation.value).toList
         reviews = sortedLogs.filterNot(log => log.action == Submission.value || log.action == Confirmation.value)
         reviewerIds = reviews.map(_.userId.toString).distinct
         detailEntries <- Future.sequence(reviewerIds.map(id => keycloakConfiguration.userDetails(id).map(d => id -> d)))
