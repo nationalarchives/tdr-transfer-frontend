@@ -71,7 +71,7 @@
                 <tbody class="govuk-table__body">
                     @for(row <- historyRows) {
                         <tr class="govuk-table__row">
-                            <td class="govuk-table__cell">@row.submissionNo</td>
+                            <td class="govuk-table__cell">@row.submissionNo.map(_.toString).getOrElse("")</td>
                             <td class="govuk-table__cell">@row.dateSubmitted</td>
                             <td class="govuk-table__cell"><strong class="govuk-tag @tagClass(row.status)">@tagLabel(row.status)</strong></td>
                             <td class="govuk-table__cell">@row.dateReviewed.getOrElse("")</td>
