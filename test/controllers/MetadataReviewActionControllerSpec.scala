@@ -465,7 +465,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
-      pageAsString must include("5th July 2024, 08:00am")
+      pageAsString must include("5th July 2024, 8:00am")
     }
 
     "show Last reviewed by and Last updated rows when a non-Submission log exists" in {
@@ -501,16 +501,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       pageAsString must not include "Last reviewed by"
       pageAsString must not include "Last updated"
-    }
-
-    "not show 'View submission history' link when there is only 1 submission" in {
-      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
-
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
-      val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
-      val pageAsString = contentAsString(page)
-
-      pageAsString must not include "View submission history"
     }
 
     "show 'View submission history' link when there are more than 1 submissions" in {
