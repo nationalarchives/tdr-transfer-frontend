@@ -57,6 +57,7 @@ dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
+ThisBuild / scalafmtConfig := (ThisBuild / baseDirectory).value / ".scalafmt.conf"
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.4.0"
