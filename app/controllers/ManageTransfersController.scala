@@ -6,8 +6,9 @@ import controllers.util.DateUtils
 import graphql.codegen.GetConsignmentReviewDetails.getConsignmentReviewDetails.GetConsignmentReviewDetails
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.ConsignmentService
-
+import services.{ConsignmentService, MetadataReviewExportService}
+import java.time.format.DateTimeFormatter
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
@@ -16,6 +17,7 @@ class ManageTransfersController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService,
+    val metadataReviewExportService: MetadataReviewExportService,
     val applicationConfig: ApplicationConfig
 ) extends TokenSecurity {
 
@@ -31,6 +33,21 @@ class ManageTransfersController @Inject() (
         .getConsignmentReviewDetails(statusFilter, request.token.bearerAccessToken)
         .map { reviewDetails =>
           Ok(views.html.tna.manageTransfers(reviewDetails.map(toConsignmentReviewDetails), activeTab))
+        }
+    }
+  }
+
+  def downloadMetadataReviewHistory(): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+    if (applicationConfig.blockMetadataReviewV2) {
+      Future.successful(NotFound(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
+    } else {
+      metadataReviewExportService
+        .generateReviewHistoryExcel(request.token.bearerAccessToken)
+        .map { excelFile =>
+          val timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss").format(LocalDateTime.now())
+          Ok(excelFile)
+            .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            .withHeaders("Content-Disposition" -> s"attachment; filename=MetadataReviewHistory-$timestamp.xlsx")
         }
     }
   }

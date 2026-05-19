@@ -28,6 +28,8 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val snsEndpoint: String = configuration.get[String]("sns.endpoint")
 
+  val seriesNameFilters: Seq[String] = configuration.get[Seq[String]]("seriesNameFilters")
+
   val blockSkipMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockSkipMetadataReview")
 
   val blockMetadataReviewV2: Boolean = configuration.get[Boolean]("featureAccessBlock.blockMetadataReviewV2")
