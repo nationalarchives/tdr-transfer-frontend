@@ -15,7 +15,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.FrontEndTestHelper
-import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Rejection, Submission}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Confirmation, Rejection, Submission}
 
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -66,6 +66,16 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
       reviewerId,
       Approval.value,
       ZonedDateTime.parse("2024-07-10T10:15:00Z"),
+      None
+    )
+
+  val confirmationLog: getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs =
+    getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
+      UUID.randomUUID(),
+      consignmentId,
+      reviewerId,
+      Confirmation.value,
+      ZonedDateTime.parse("2024-07-12T11:06:16Z"),
       None
     )
 
@@ -214,6 +224,29 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
 
       contentAsString(result) must include(s"/admin/metadata-review/$consignmentId")
       contentAsString(result) must include("Back to transfer details")
+    }
+
+    "show a Transferred row with blank submission number when a Confirmation log exists" in {
+      setGraphQLResponse(List(submissionLog, approvalLog, confirmationLog))
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
+      val result = controller.getConsignmentMetadataHistory(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId/history").withCSRFToken)
+      val pageAsString = contentAsString(result)
+
+      pageAsString must include("govuk-tag--grey")
+      pageAsString must include("Transferred")
+      pageAsString must include("12th July 2024, 12:06pm")
+      pageAsString must include("""<td class="govuk-table__cell"></td>""")
+    }
+
+    "show the Transferred row at the top (before submission rows)" in {
+      setGraphQLResponse(List(submissionLog, approvalLog, confirmationLog))
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
+      val result = controller.getConsignmentMetadataHistory(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId/history").withCSRFToken)
+      val pageAsString = contentAsString(result)
+
+      val transferredPos = pageAsString.indexOf("Transferred")
+      val approvedPos = pageAsString.indexOf("Approved")
+      transferredPos should be < approvedPos
     }
   }
 
