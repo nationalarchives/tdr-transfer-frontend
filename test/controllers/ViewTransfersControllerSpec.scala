@@ -244,6 +244,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       ContactUs.value should equal("Contact us")
       Failed.value should equal("Failed")
       InProgress.value should equal("In Progress")
+      InReview.value should equal("In Review")
       Transferred.value should equal("Transferred")
     }
   }
@@ -357,6 +358,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
   private val expectedStatusColour = Map(
     "In Progress" -> "yellow",
+    "In Review" -> "yellow",
     "Failed" -> "red",
     "Transferred" -> "green",
     "Contact us" -> "red"

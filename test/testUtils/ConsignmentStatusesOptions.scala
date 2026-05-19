@@ -348,7 +348,7 @@ object ConsignmentStatusesOptions {
         includeDefaultStatuses = false
       ),
       "/metadata-review/review-progress",
-      "In Progress",
+      "In Review",
       "Resume transfer"
     ),
     (
@@ -359,7 +359,7 @@ object ConsignmentStatusesOptions {
         includeDefaultStatuses = false
       ),
       "/metadata-review/review-progress",
-      "In Progress",
+      "In Review",
       "Resume transfer"
     ),
     (
@@ -370,7 +370,7 @@ object ConsignmentStatusesOptions {
         includeDefaultStatuses = false
       ),
       "/metadata-review/review-progress",
-      "In Progress",
+      "In Review",
       "Resume transfer"
     ),
     (
