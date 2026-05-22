@@ -62,7 +62,7 @@ libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.4.0"
 
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.20.1"
-libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.20.0"
+libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.20.1"
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "2.0.0"
 
 excludeDependencies ++= Seq(
