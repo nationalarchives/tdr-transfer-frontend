@@ -44,6 +44,7 @@ import org.pac4j.core.http.ajax.AjaxRequestResolver
 import org.pac4j.core.util.Pac4jConstants
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
+import org.pac4j.oidc.federation.config.OidcFederationProperties
 import org.pac4j.oidc.metadata.OidcOpMetadataResolver
 import org.pac4j.oidc.profile.{OidcProfile, OidcProfileDefinition}
 import org.pac4j.oidc.redirect.OidcRedirectionActionBuilder
@@ -543,7 +544,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
     val clients = new Clients()
     val configuration = mock[OidcConfiguration]
+    val federation = mock[OidcFederationProperties]
     doNothing().when(configuration).init()
+    when(configuration.getFederation).thenReturn(federation)
 
     clients.setClients(new OidcClient(configuration))
     testConfig.setClients(clients)
@@ -580,6 +583,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
     val clients = new Clients()
     val configuration = mock[OidcConfiguration]
+    val federation = mock[OidcFederationProperties]
     val providerMetadata = mock[OIDCProviderMetadata]
 
     /*
@@ -595,6 +599,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     // Mock the init method to stop it calling out to the keycloak server
     doNothing().when(configuration).init()
+    when(configuration.getFederation).thenReturn(federation)
 
     // Set some configuration parameters
     doReturn("tdr").when(configuration).getClientId
