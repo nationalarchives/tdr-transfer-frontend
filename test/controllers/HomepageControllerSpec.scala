@@ -103,13 +103,13 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must not include transfersForReviewButton
     }
 
-    "render the DTA review homepage page with an authenticated tna user linking to manage-transfers when blockManageTransfers is false" in {
+    "render the DTA review homepage page with an authenticated tna user linking to manage-transfers" in {
       val controller =
         new HomepageController(
           getAuthorisedSecurityComponents,
           getValidTNAUserKeycloakConfiguration(),
           consignmentService,
-          getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> false))
+          config
         )
       val userType = "tna"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
@@ -121,26 +121,6 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       homepagePageAsString must include(transfersForReviewButton)
       homepagePageAsString must not include transfersForReviewButtonLegacy
-    }
-
-    "render the DTA review homepage page with an authenticated tna user linking to metadata-review when blockManageTransfers is true" in {
-      val controller =
-        new HomepageController(
-          getAuthorisedSecurityComponents,
-          getValidTNAUserKeycloakConfiguration(),
-          consignmentService,
-          getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> true))
-        )
-      val userType = "tna"
-      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
-      val homepagePageAsString = contentAsString(homepagePage)
-
-      status(homepagePage) mustBe OK
-      contentType(homepagePage) mustBe Some("text/html")
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
-      homepagePageAsString must include(transfersForReviewButtonLegacy)
-      homepagePageAsString must not include transfersForReviewButton
     }
 
     "return a redirect to the judgment homepage page with an authenticated judgment user" in {
