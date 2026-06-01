@@ -12,7 +12,7 @@ import org.dhatim.fastexcel.reader.{ReadableWorkbook, Row, Sheet}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
-import play.api.http.Status.{FORBIDDEN, FOUND, NOT_FOUND, OK}
+import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, header, redirectLocation, status, contentAsBytes}
@@ -145,12 +145,6 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-    }
-
-    "return 404 if blockMetadataReviewV2 is true" in {
-      val response = instantiateController(blockMetadataReviewV2 = true).manageTransfers(None).apply(FakeRequest(GET, "/admin/manage-transfers").withCSRFToken)
-
-      status(response) mustBe NOT_FOUND
     }
   }
 
@@ -296,11 +290,10 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
 
   private def instantiateController(
       keycloakConfig: KeycloakConfiguration = getValidTNAUserKeycloakConfiguration(),
-      securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
-      blockMetadataReviewV2: Boolean = false
+      securityComponents: SecurityComponents = getAuthorisedSecurityComponents
   ) = {
     val consignmentService = new ConsignmentService(new GraphQLConfiguration(app.configuration))
-    val config = getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> blockMetadataReviewV2))
+    val config = getApplicationConfig()
     new ManageTransfersController(
       keycloakConfig,
       securityComponents,

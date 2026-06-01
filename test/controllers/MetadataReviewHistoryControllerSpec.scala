@@ -81,13 +81,6 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
 
   "MetadataReviewHistoryController GET" should {
 
-    "return 404 when blockMetadataReviewV2 is true" in {
-      val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = true)
-      val result = controller.getConsignmentMetadataHistory(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId/history").withCSRFToken)
-
-      playStatus(result) mustBe NOT_FOUND
-    }
-
     "redirect to login with an unauthenticated user" in {
       val controller = instantiateController(getUnauthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val result = controller.getConsignmentMetadataHistory(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId/history").withCSRFToken)
@@ -252,14 +245,13 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
 
   private def instantiateController(
       securityComponents: SecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration,
-      blockMetadataReviewV2: Boolean = false
+      keycloakConfiguration: KeycloakConfiguration
   ): MetadataReviewHistoryController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val messagingService = mock[MessagingService]
-    val config = getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> blockMetadataReviewV2))
+    val config = getApplicationConfig()
     new MetadataReviewHistoryController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService, messagingService, config)
   }
 
