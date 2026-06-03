@@ -18,6 +18,7 @@ beforeEach(() => fetchMock.resetMocks())
 const data: GetFileCheckProgressQuery = {
   getConsignment: {
     files: [],
+    parentFolder: "parentFolder",
     totalFiles: 10,
     allChecksSucceeded: false,
     fileChecks: {
