@@ -40,15 +40,27 @@ class FileChecksResultsController @Inject() (
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(
-          views.html.standard.fileChecksResults(
-            consignmentInfo,
-            pageTitle,
-            consignmentId,
-            reference,
-            request.token.name
+        if (applicationConfig.blockFileChecksFailureV2) {
+          Ok(
+            views.html.standard.fileChecksResults(
+              consignmentInfo,
+              pageTitle,
+              consignmentId,
+              reference,
+              request.token.name
+            )
           )
-        )
+        } else {
+          Ok(
+            views.html.standard.filechecks.fileChecksSuccessResults(
+              consignmentInfo,
+              pageTitle,
+              consignmentId,
+              reference,
+              request.token.name
+            )
+          )
+        }
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
         Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))

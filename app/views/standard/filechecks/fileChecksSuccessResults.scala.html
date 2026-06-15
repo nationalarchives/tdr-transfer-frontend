@@ -1,0 +1,37 @@
+@import views.html.partials.transferReference
+
+@import java.util.UUID
+@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+
+@main(title, name = name) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        Files uploaded
+                    </h2>
+                </div>
+                <div class="govuk-notification-banner__content">
+                    <h3 class="govuk-notification-banner__heading">
+                        Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} record@if(consignmentInfo.numberOfFiles > 1){s} has been uploaded
+                    </h3>
+
+                </div>
+            </div>
+
+            <h1 class="govuk-heading-l">
+                What happens next
+            </h1>
+
+            <p class="govuk-body">
+                In the next step you will be able to add metadata to your records.
+            </p>
+            <a class="govuk-button  govuk-!-margin-top-3" href="@routes.PrepareMetadataController.prepareMetadata(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+                Continue to prepare your metadata
+            </a>
+        </div>
+
+        @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+}
