@@ -51,8 +51,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val warningMsg =
     "Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them."
-  val expectedSuccessSummaryTitle: String => String = (title: String) =>
-    s"""                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+  val expectedSuccessSummaryTitle: String => String = (title: String) => s"""                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
       |                        $title
       |                    </h2>""".stripMargin
   val expectedSuccessWarningText: String => String = (warningMsg: String) => s"""            <div class="govuk-warning-text">
