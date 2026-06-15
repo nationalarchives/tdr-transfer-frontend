@@ -61,10 +61,11 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
                                                  |            Leaving and returning to this transfer
                                                  |        </h2>""".stripMargin)
       prepareMetadataPageAsString must include(s"""<form action="/consignment/$consignmentId/draft-metadata/prepare-metadata" method="POST" novalidate="">""")
+      prepareMetadataPageAsString must include(s"""<form method="POST" action="/consignment/$consignmentId/draft-metadata/skip-metadata">""")
       prepareMetadataPageAsString must include(
-        s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                                                 |                            I don't need to provide any metadata
-                                                 |                        </a>""".stripMargin
+        s"""<button type="submit" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+           |                            I don't need to provide any metadata
+           |                          </button>""".stripMargin
       )
     }
 
