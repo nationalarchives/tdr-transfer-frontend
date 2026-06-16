@@ -117,7 +117,7 @@ class ViewTransfersController @Inject() (
   private def toDraftMetadataAction(status: ConsignmentStatuses, consignmentId: UUID) = {
     status.value match {
       case CompletedValue.value | SkippedValue.value => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
-      case CompletedWithIssuesValue.value =>
+      case CompletedWithIssuesValue.value            =>
         UserAction(InProgress.value, routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, Resume.value)
       case _ => UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
     }
