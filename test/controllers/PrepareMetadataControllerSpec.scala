@@ -3,6 +3,7 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, postRequestedFor, urlEqualTo}
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
@@ -60,10 +61,11 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
                                                  |            Leaving and returning to this transfer
                                                  |        </h2>""".stripMargin)
       prepareMetadataPageAsString must include(s"""<form action="/consignment/$consignmentId/draft-metadata/prepare-metadata" method="POST" novalidate="">""")
+      prepareMetadataPageAsString must include(s"""<form method="POST" action="/consignment/$consignmentId/draft-metadata/skip-metadata">""")
       prepareMetadataPageAsString must include(
-        s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                                                 |                            I don't need to provide any metadata
-                                                 |                        </a>""".stripMargin
+        s"""<button type="submit" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+           |                            I don't need to provide any metadata
+           |                          </button>""".stripMargin
       )
     }
 
@@ -85,6 +87,63 @@ class PrepareMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/draft-metadata/prepare-metadata").withCSRFToken)
 
       status(prepareMetadataPage) mustBe FORBIDDEN
+    }
+  }
+
+  "PrepareMetadataController skipDraftMetadata" should {
+    "redirect to the download metadata page and add DraftMetadata status as Skipped when no status exists" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setAddConsignmentStatusResponse(wiremockServer, consignmentId, DraftMetadataType, InProgressValue)
+      val controller = instantiatePrepareMetadataController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val request = controller
+        .skipDraftMetadata(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/draft-metadata/skip-metadata").withCSRFToken)
+
+      status(request) shouldBe SEE_OTHER
+      redirectLocation(request) shouldBe Some(routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url)
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("addConsignmentStatus"))
+      )
+    }
+
+    "redirect to the download metadata page and update DraftMetadata status to Skipped when status already exists" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val existingStatuses = List(ConsignmentStatuses(java.util.UUID.randomUUID(), consignmentId, DraftMetadataType.id, InProgressValue.value, someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = existingStatuses)
+      setUpdateConsignmentStatus(wiremockServer)
+      val controller = instantiatePrepareMetadataController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val request = controller
+        .skipDraftMetadata(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/draft-metadata/skip-metadata").withCSRFToken)
+
+      status(request) shouldBe SEE_OTHER
+      redirectLocation(request) shouldBe Some(routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url)
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+      )
+    }
+
+    "return a redirect to the auth server with an unauthenticated user" in {
+      val controller = instantiatePrepareMetadataController(getUnauthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val request = controller
+        .skipDraftMetadata(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/draft-metadata/skip-metadata").withCSRFToken)
+
+      redirectLocation(request).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      playStatus(request) mustBe SEE_OTHER
+    }
+
+    "return 403 if skipDraftMetadata is accessed by a non Standard user" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val controller = instantiatePrepareMetadataController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
+      val request = controller
+        .skipDraftMetadata(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/draft-metadata/skip-metadata").withCSRFToken)
+
+      status(request) mustBe FORBIDDEN
     }
   }
 
