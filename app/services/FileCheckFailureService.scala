@@ -63,7 +63,9 @@ object FileCheckFailureService {
   private val failureMessages: Properties = {
     val props = new Properties()
     val stream = getClass.getClassLoader.getResourceAsStream("validation-messages/file-check-failure-messages.properties")
-    if (stream != null) try props.load(stream) finally stream.close()
+    if (stream != null)
+      try props.load(stream)
+      finally stream.close()
     props
   }
 
@@ -91,7 +93,8 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
         val matches = fileCheckError.file.fileCheckResults.fileFormat.flatMap(_.matches)
         val statusActions = fileCheckError.statuses.flatMap { status =>
           Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
-            StatusActions.action(statusType, StatusValue(status.statusValue))
+            StatusActions
+              .action(statusType, StatusValue(status.statusValue))
               .map(FileCheckFailureService.resolveMessage(status, _))
           }
         }
