@@ -56,9 +56,14 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(List(s3ObjectWithKey(key1)))
 
       when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(fileCheckErrorWith("MixedResolution/zerobyte.txt", List(
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile")
-        )))
+        .thenReturn(
+          fileCheckErrorWith(
+            "MixedResolution/zerobyte.txt",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile")
+            )
+          )
+        )
 
       val service = new FileCheckFailureService(mockAppConfig)
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
@@ -76,10 +81,15 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
 
       when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(fileCheckErrorWith("MixedResolution/zerobyte.txt", List(
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile"),
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "ClientChecks", statusValue = "CompletedWithIssues")
-        )))
+        .thenReturn(
+          fileCheckErrorWith(
+            "MixedResolution/zerobyte.txt",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile"),
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "ClientChecks", statusValue = "CompletedWithIssues")
+            )
+          )
+        )
 
       val service = new FileCheckFailureService(mockAppConfig)
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
@@ -96,10 +106,15 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
 
       when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(fileCheckErrorWith("docs/report.pdf", List(
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "Success"),
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "ChecksumMatch", statusValue = "Completed")
-        )))
+        .thenReturn(
+          fileCheckErrorWith(
+            "docs/report.pdf",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "Success"),
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "ChecksumMatch", statusValue = "Completed")
+            )
+          )
+        )
 
       val service = new FileCheckFailureService(mockAppConfig)
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
@@ -114,9 +129,14 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
 
       when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(fileCheckErrorWith("infected.exe", List(
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "Antivirus", statusValue = "VirusDetected")
-        )))
+        .thenReturn(
+          fileCheckErrorWith(
+            "infected.exe",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "Antivirus", statusValue = "VirusDetected")
+            )
+          )
+        )
 
       val service = new FileCheckFailureService(mockAppConfig)
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
@@ -133,10 +153,15 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
 
       when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(fileCheckErrorWith("file.txt", List(
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "UnknownType", statusValue = "Failed"),
-          FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile")
-        )))
+        .thenReturn(
+          fileCheckErrorWith(
+            "file.txt",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "UnknownType", statusValue = "Failed"),
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile")
+            )
+          )
+        )
 
       val service = new FileCheckFailureService(mockAppConfig)
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
@@ -167,21 +192,33 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(List(s3ObjectWithKey(key1), s3ObjectWithKey(key2)))
 
       when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, org.mockito.ArgumentMatchers.eq(key1))(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(fileCheckErrorWith("file1.txt", List(
-          FileCheckStatus(fileId1, "File", "FFID", "ZeroByteFile")
-        )))
+        .thenReturn(
+          fileCheckErrorWith(
+            "file1.txt",
+            List(
+              FileCheckStatus(fileId1, "File", "FFID", "ZeroByteFile")
+            )
+          )
+        )
 
       when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, org.mockito.ArgumentMatchers.eq(key2))(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(fileCheckErrorWith("file2.pdf", List(
-          FileCheckStatus(fileId2, "File", "Antivirus", "VirusDetected")
-        )))
+        .thenReturn(
+          fileCheckErrorWith(
+            "file2.pdf",
+            List(
+              FileCheckStatus(fileId2, "File", "Antivirus", "VirusDetected")
+            )
+          )
+        )
 
       val service = new FileCheckFailureService(mockAppConfig)
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.size shouldBe 2
       result.map(_.originalPath) shouldBe List("file1.txt", "file2.pdf")
-      result.head.statusActions shouldBe List(FileCheckStatusAction("FFID", UserFixable, "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file."))
+      result.head.statusActions shouldBe List(
+        FileCheckStatusAction("FFID", UserFixable, "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+      )
       result(1).statusActions shouldBe List(FileCheckStatusAction("Antivirus", TNASupport, "antivirus.virusDetected", "This file cannot be processed - we will investigate this."))
     }
 
