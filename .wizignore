@@ -1,0 +1,7 @@
+# The CI build workflow (nationalarchives/tdr-github-actions ecs_build.yml)
+# downloads the Wiz CLI binary into the repository root as `wizcli` before
+# running `wizcli scan dir .`. Without this exclusion the directory scan reports
+# vulnerabilities compiled into the scanner binary itself (e.g. CRITICAL CVEs in
+# golang.org/x/crypto embedded in wizcli) rather than issues in this project,
+# which causes the scan to fail by policy.
+wizcli
