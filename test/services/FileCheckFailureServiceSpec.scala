@@ -9,7 +9,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import software.amazon.awssdk.services.s3.model.S3Object
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{TNASupport, UserFixable}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -95,7 +94,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("FFID", UserFixable, "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("FFID", "Fix yourself", "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
     }
 
@@ -142,7 +141,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("Antivirus", TNASupport, "antivirus.virusDetected", "This file cannot be processed - we will investigate this.")
+        FileCheckStatusAction("Antivirus", "Contact support", "antivirus.virusDetected", "This file cannot be processed - we will investigate this.")
       )
     }
 
@@ -167,7 +166,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("FFID", UserFixable, "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("FFID", "Fix yourself", "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
     }
 
@@ -217,9 +216,11 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result.size shouldBe 2
       result.map(_.originalPath) shouldBe List("file1.txt", "file2.pdf")
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("FFID", UserFixable, "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("FFID", "Fix yourself", "ffid.zeroByteFile", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
-      result(1).statusActions shouldBe List(FileCheckStatusAction("Antivirus", TNASupport, "antivirus.virusDetected", "This file cannot be processed - we will investigate this."))
+      result(1).statusActions shouldBe List(
+        FileCheckStatusAction("Antivirus", "Contact support", "antivirus.virusDetected", "This file cannot be processed - we will investigate this.")
+      )
     }
 
     "use the correct bucket and prefix when listing S3 objects" in {

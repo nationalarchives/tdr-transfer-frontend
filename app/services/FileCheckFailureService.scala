@@ -5,7 +5,7 @@ import io.circe.generic.auto._
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients._
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusAction, StatusActionType}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.StatusAction
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.StatusValue
 
@@ -28,7 +28,7 @@ case class FileCheckStatus(
 
 case class FileCheckStatusAction(
     statusName: String,
-    actionType: StatusActionType,
+    actionType: String,
     messageKey: String,
     message: String
 )
@@ -40,21 +40,21 @@ case class FileCheckFailure(
     statusActions: List[FileCheckStatusAction]
 )
 
-private[services] case class FileFormatResult(
+private case class FileFormatResult(
     fileId: String,
     matches: List[FileFormatMatch]
 )
 
-private[services] case class FileCheckResults(
+private case class FileCheckResults(
     fileFormat: List[FileFormatResult]
 )
 
-private[services] case class FileInfo(
+private case class FileInfo(
     originalPath: String,
     fileCheckResults: FileCheckResults
 )
 
-private[services] case class FileCheckError(
+private case class FileCheckError(
     file: FileInfo,
     statuses: List[FileCheckStatus]
 )
@@ -69,13 +69,16 @@ object FileCheckFailureService {
     props
   }
 
-  private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction =
+  private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction = {
+    val statusName = Option(failureMessages.getProperty(status.statusName)).getOrElse(status.statusName)
+    val actionTypeLabel = Option(failureMessages.getProperty(statusAction.actionType.toString)).getOrElse(statusAction.actionType.toString)
     FileCheckStatusAction(
-      statusName = status.statusName,
-      actionType = statusAction.actionType,
+      statusName = statusName,
+      actionType = actionTypeLabel,
       messageKey = statusAction.messageKey,
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
     )
+  }
 }
 
 class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfig)(implicit val ec: ExecutionContext) {
