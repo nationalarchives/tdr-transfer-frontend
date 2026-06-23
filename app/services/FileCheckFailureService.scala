@@ -15,10 +15,7 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.Try
 
 case class FileFormatMatch(
-    extension: String,
-    identificationBasis: String,
     puid: String,
-    fileExtensionMismatch: Boolean,
     formatName: String
 )
 
@@ -30,6 +27,7 @@ case class FileCheckStatus(
 )
 
 case class FileCheckStatusAction(
+    statusName: String,
     actionType: StatusActionType,
     messageKey: String,
     message: String
@@ -69,8 +67,9 @@ object FileCheckFailureService {
     props
   }
 
-  private def resolveMessage(statusAction: StatusAction): FileCheckStatusAction =
+  private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction =
     FileCheckStatusAction(
+      statusName = status.statusName,
       actionType = statusAction.actionType,
       messageKey = statusAction.messageKey,
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
@@ -93,8 +92,9 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
         val statusActions = fileCheckError.statuses.flatMap { status =>
           Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
             StatusActions.action(statusType, StatusValue(status.statusValue))
+              .map(FileCheckFailureService.resolveMessage(status, _))
           }
-        }.map(FileCheckFailureService.resolveMessage)
+        }
         FileCheckFailure(
           originalPath = fileCheckError.file.originalPath,
           filename = fileCheckError.file.originalPath.split('/').last,
