@@ -30,6 +30,7 @@ case class FileCheckStatus(
 case class FileCheckStatusAction(
     statusName: String,
     actionType: String,
+    action: String,
     message: String
 )
 
@@ -72,9 +73,11 @@ object FileCheckFailureService {
   private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction = {
     val statusNameLabel = Option(failureMessages.getProperty(status.statusName)).getOrElse(status.statusName)
     val actionTypeLabel = Option(failureMessages.getProperty(statusAction.actionType.toString)).getOrElse(statusAction.actionType.toString)
+    val actionLabel     = Option(failureMessages.getProperty(s"${statusAction.actionType}.action")).getOrElse(statusAction.actionType.toString)
     FileCheckStatusAction(
       statusName = statusNameLabel,
       actionType = actionTypeLabel,
+      action = actionLabel,
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
     )
   }
