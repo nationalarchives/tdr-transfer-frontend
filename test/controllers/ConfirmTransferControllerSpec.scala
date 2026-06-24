@@ -2,8 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import errors.AuthorisationException
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -34,7 +33,6 @@ import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -60,7 +58,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
   private val completedConfirmTransferForm: Seq[(String, String)] = Seq(("transferLegalCustody", "true"))
-  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
@@ -651,17 +648,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
-  private def getApplicationConfig(blockSkipMetadataReview: Boolean): ApplicationConfig = {
-    val config: Map[String, ConfigValue] = ConfigFactory
-      .load()
-      .withValue("featureAccessBlock.blockSkipMetadataReview", ConfigValueFactory.fromAnyRef(blockSkipMetadataReview))
-      .entrySet()
-      .asScala
-      .map(e => e.getKey -> e.getValue)
-      .toMap
-    new ApplicationConfig(Configuration.from(config))
-  }
-
   private def instantiateConfirmTransferController(
       securityComponents: SecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
@@ -680,7 +666,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferService,
       exportService(app.configuration),
       consignmentStatusService,
-      getApplicationConfig(blockSkipMetadataReview),
+      getApplicationConfig(Map("featureAccessBlock.blockSkipMetadataReview" -> blockSkipMetadataReview)),
       langs
     )
   }

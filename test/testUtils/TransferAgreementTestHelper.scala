@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.{TransferAgreementPart1Controller, TransferAgreementPart2Controller}
+import controllers.TransferAgreementPart2Controller
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -60,27 +60,6 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
 
     options(optionsType)
-  }
-
-  def instantiateTransferAgreementPart1Controller(
-      securityComponents: SecurityComponents,
-      config: Configuration,
-      keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration
-  ): TransferAgreementPart1Controller = {
-
-    val graphQLConfiguration = new GraphQLConfiguration(config)
-    val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-
-    new TransferAgreementPart1Controller(
-      securityComponents,
-      graphQLConfiguration,
-      transferAgreementService,
-      keycloakConfiguration,
-      consignmentService,
-      consignmentStatusService
-    )
   }
 
   def instantiateTransferAgreementPart2Controller(

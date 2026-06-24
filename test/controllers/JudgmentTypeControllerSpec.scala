@@ -215,7 +215,9 @@ class JudgmentTypeControllerSpec extends FrontEndTestHelper {
       else ""}>""")
     body must include(s"""    <div class="govuk-form-group ${if (judgmentType == "update" && updateReason.isEmpty) "govuk-form-group--error" else ""}">
          |        <fieldset class="govuk-fieldset">
-         |            <div class="govuk-hint">Select the reasons for the update:</div>""".stripMargin)
+         |            <legend class="govuk-fieldset__legend govuk-hint">
+         |                Select the reasons for the update:
+         |            </legend>""".stripMargin)
     body must include(
       s"""    <div class="govuk-checkboxes__item">
          |        <input class="govuk-checkboxes__input" id="typo" name="judgment_update_type" type="checkbox" value="Typo" ${if (updateReason.contains("Typo")) "checked"

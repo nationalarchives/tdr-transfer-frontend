@@ -33,7 +33,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   val totalFiles: Int = 40
   val consignmentId: UUID = UUID.fromString("b5bbe4d6-01a7-4305-99ef-9fce4a67917a")
-  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   val wiremockServer = new WireMockServer(9006)
   val wiremockExportServer = new WireMockServer(9007)

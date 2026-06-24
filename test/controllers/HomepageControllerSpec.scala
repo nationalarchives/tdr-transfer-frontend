@@ -7,7 +7,6 @@ import graphql.codegen.AddConsignment.addConsignment.{AddConsignment, Data, Vari
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, _}
-import play.api.Configuration
 import services.ConsignmentService
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import io.circe.Printer
@@ -47,6 +46,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       |</a>""".stripMargin
 
   val transfersForReviewButton: String =
+    """<a href="/admin/manage-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
+
+  val transfersForReviewButtonLegacy: String =
     """<a href="/admin/metadata-review" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
 
   "HomepageController GET" should {
@@ -101,8 +103,14 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must not include transfersForReviewButton
     }
 
-    "render the DTA review homepage page with an authenticated tna user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService, config)
+    "render the DTA review homepage page with an authenticated tna user linking to manage-transfers" in {
+      val controller =
+        new HomepageController(
+          getAuthorisedSecurityComponents,
+          getValidTNAUserKeycloakConfiguration(),
+          consignmentService,
+          config
+        )
       val userType = "tna"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -112,6 +120,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       homepagePageAsString must include(transfersForReviewButton)
+      homepagePageAsString must not include transfersForReviewButtonLegacy
     }
 
     "return a redirect to the judgment homepage page with an authenticated judgment user" in {

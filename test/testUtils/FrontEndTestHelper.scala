@@ -3,9 +3,10 @@ package testUtils
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentStatus
 import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
@@ -13,6 +14,7 @@ import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmatio
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentMetadata.getConsignmentMetadata.GetConsignment.ConsignmentMetadata
 import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
+import graphql.codegen.GetConsignmentReviewDetails.{getConsignmentReviewDetails => gcrd}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
@@ -22,7 +24,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{ConsignmentStatuses => ecs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
-import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview, getConsignmentsForMetadataReview => gcfmr}
+import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
 import graphql.codegen.GetConsignmentsForMetadataReviewRequest.{getConsignmentForMetadataReviewRequest => gcfmrr}
 import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
@@ -42,6 +44,7 @@ import org.pac4j.core.http.ajax.AjaxRequestResolver
 import org.pac4j.core.util.Pac4jConstants
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
+import org.pac4j.oidc.federation.config.OidcFederationProperties
 import org.pac4j.oidc.metadata.OidcOpMetadataResolver
 import org.pac4j.oidc.profile.{OidcProfile, OidcProfileDefinition}
 import org.pac4j.oidc.redirect.OidcRedirectionActionBuilder
@@ -76,11 +79,13 @@ import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.language.existentials
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
+  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   implicit class AwaitFuture[T](future: Future[T]) {
     def await(timeout: Duration = 2.seconds): T = {
@@ -276,6 +281,29 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def setGetConsignmentReviewDetailsResponse(wiremockServer: WireMockServer): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcrd.Data, gcrd.Variables]()
+    val statuses = List("Requested", "Rejected", "Approved", "Transferred")
+    val consignments = statuses.zipWithIndex.map { case (reviewStatus, index) =>
+      gcrd.GetConsignmentReviewDetails(
+        consignmentId = java.util.UUID.randomUUID(),
+        consignmentReference = s"TDR-2024-TEST${index + 1}",
+        reviewStatus = reviewStatus,
+        transferringBodyName = Some(s"TransferringBody${index + 1}"),
+        seriesName = Some(s"SeriesName${index + 1}"),
+        lastUpdated = ZonedDateTime.now().minus(index + 1, ChronoUnit.DAYS)
+      )
+    }
+    val data = client.GraphqlData(Some(gcrd.Data(consignments)))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentReviewDetails"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
   def setConsignmentViewTransfersResponse(
       wiremockServer: WireMockServer,
       consignmentType: String,
@@ -387,6 +415,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         ""
       )
     )
+    when(frontEndInfoConfiguration.maxNumberOfFiles).thenReturn(5000)
+    when(frontEndInfoConfiguration.maxTransferSizeMb).thenReturn(5000)
+    when(frontEndInfoConfiguration.maxFileSizeMb).thenReturn(5000)
     frontEndInfoConfiguration
   }
 
@@ -444,7 +475,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setEmail("test@example.com")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
-    when(keycloakMock.userDetails(any[String])).thenReturn(Future(UserDetails("email@test.com")))
+    when(keycloakMock.userDetails(any[String])).thenReturn(Future(UserDetails("email@test.com", "firstName", "lastName")))
     keycloakMock
   }
 
@@ -513,7 +544,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
     val clients = new Clients()
     val configuration = mock[OidcConfiguration]
+    val federation = mock[OidcFederationProperties]
     doNothing().when(configuration).init()
+    when(configuration.getFederation).thenReturn(federation)
 
     clients.setClients(new OidcClient(configuration))
     testConfig.setClients(clients)
@@ -550,6 +583,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
     val clients = new Clients()
     val configuration = mock[OidcConfiguration]
+    val federation = mock[OidcFederationProperties]
     val providerMetadata = mock[OIDCProviderMetadata]
 
     /*
@@ -565,6 +599,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     // Mock the init method to stop it calling out to the keycloak server
     doNothing().when(configuration).init()
+    when(configuration.getFederation).thenReturn(federation)
 
     // Set some configuration parameters
     doReturn("tdr").when(configuration).getClientId
@@ -644,6 +679,11 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def getServeEvent(wiremockGraphqlServer: WireMockServer, request: String): Option[ServeEvent] = {
+    val events = wiremockGraphqlServer.getAllServeEvents
+    events.asScala.find(event => event.getRequest.getBodyAsString.contains(request))
+  }
+
   def toDummyConsignmentStatuses(statusMap: Map[StatusType, StatusValue], dummyConsignmentId: UUID = UUID.randomUUID()): List[ConsignmentStatuses] =
     statusMap.map { case (statusType, statusValue) =>
       ConsignmentStatuses(
@@ -673,5 +713,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
                               |</a>
                               |""".stripMargin
     linkHTML
+  }
+
+  def getApplicationConfig(overrides: Map[String, Any] = Map.empty): ApplicationConfig = {
+    val baseConfig = overrides.foldLeft(ConfigFactory.load()) { case (conf, (key, value)) =>
+      conf.withValue(key, ConfigValueFactory.fromAnyRef(value))
+    }
+    val config = baseConfig
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
+    new ApplicationConfig(Configuration.from(config))
   }
 }

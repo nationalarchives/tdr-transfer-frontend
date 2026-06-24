@@ -40,8 +40,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   val configuration: Configuration = mock[Configuration]
   val twoOrMoreSpaces = "\\s{2,}"
 
-  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-
   override def beforeEach(): Unit = {
     wiremockServer.start()
   }
@@ -54,10 +52,9 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val warningMsg =
     "Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them."
-  val expectedSuccessSummaryTitle: String =
-    """                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-      |                        Success
-      |                    </h2>""".stripMargin
+  val expectedSuccessSummaryTitle: String => String = (title: String) => s"""                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+|                        $title
+|                    </h2>""".stripMargin
   val expectedSuccessWarningText: String => String = (warningMsg: String) => s"""            <div class="govuk-warning-text">
       |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
       |                <strong class="govuk-warning-text__text">
@@ -87,8 +84,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       |                </a> for support.
       |              </p>""".stripMargin
 
+  val expectedBackendFailureBannerTitle: String =
+    """          <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+      |            File check error
+      |          </h2>""".stripMargin
+
+  val expectedBackendFailureHeading: String = """<h1 class="govuk-heading-l">What to do next</h1>"""
+
   "FileChecksResultsController GET after file check success" should {
-    "render the fileChecksResults page with the confirmation box for a standard user" in {
+    "render the fileChecksResults page with the confirmation box for a standard user when blockFileChecksFailureV2 set to 'true'" in {
 
       val expectedSuccessMessage: String =
         s"""                    <h3 class="govuk-notification-banner__heading">
@@ -99,6 +103,39 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       val buttonToProgress: String =
         s"""            <a class="govuk-button" href="/consignment/$consignmentId/draft-metadata/prepare-metadata" role="button" draggable="false" data-module="govuk-button">
            |                Next
+           |            </a>""".stripMargin
+
+      val fileCheckResultsController = setUpFileChecksController("standard", getValidStandardUserKeycloakConfiguration, blockFileChecksFailureV2 = true)
+
+      val recordCheckResultsPage = fileCheckResultsController
+        .fileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      status(recordCheckResultsPage) mustBe 200
+      contentType(recordCheckResultsPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
+      resultsPageAsString must include("<title>Results of your checks - Transfer Digital Records - GOV.UK</title>")
+      resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of your checks</h1>""")
+      resultsPageAsString must include(expectedSuccessSummaryTitle("Success"))
+      resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
+
+      resultsPageAsString must include(expectedSuccessMessage)
+      resultsPageAsString must include regex buttonToProgress
+    }
+
+    "render the fileChecksResults page with the confirmation box for a standard user when blockFileChecksFailureV2 set to 'false'" in {
+
+      val expectedSuccessMessage: String =
+        s"""                    <h3 class="govuk-notification-banner__heading">
+           |                        Your folder 'parentFolder' containing 1 record has been uploaded
+           |                    </h3>""".stripMargin
+
+      val buttonToProgress: String =
+        s"""            <a class="govuk-button  govuk-!-margin-top-3" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/draft-metadata/prepare-metadata" role="button" draggable="false" data-module="govuk-button">
+           |                Continue to prepare your metadata
            |            </a>""".stripMargin
 
       val fileCheckResultsController = setUpFileChecksController("standard", getValidStandardUserKeycloakConfiguration)
@@ -114,10 +151,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
       resultsPageAsString must include("<title>Results of your checks - Transfer Digital Records - GOV.UK</title>")
-      resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of your checks</h1>""")
-      resultsPageAsString must include(expectedSuccessSummaryTitle)
-      resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
-
+      resultsPageAsString must include("""<h1 class="govuk-heading-l">
+                                         |                What happens next
+                                         |            </h1>""".stripMargin)
+      resultsPageAsString must include(expectedSuccessSummaryTitle("Files uploaded"))
       resultsPageAsString must include(expectedSuccessMessage)
       resultsPageAsString must include regex buttonToProgress
     }
@@ -327,7 +364,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the $userType error page if file checks have passed but overall process failed" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentStatuses = List(
-          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, Failed.value, ZonedDateTime.now(), None)
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, FailedValue.value, ZonedDateTime.now(), None)
         )
 
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
@@ -355,10 +392,19 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
         resultsPageAsString must include(expectedTitle)
-        resultsPageAsString must include(expectedHeading)
-        resultsPageAsString must include(expectedFailureTitle)
-        resultsPageAsString must include(expectedGenericErrorMessage)
-        resultsPageAsString must include(expectedFailureReturnButton)
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedHeading)
+          resultsPageAsString must include(expectedFailureTitle)
+          resultsPageAsString must include(expectedGenericErrorMessage)
+          resultsPageAsString must include(expectedFailureReturnButton)
+        } else {
+          resultsPageAsString must include(expectedBackendFailureBannerTitle)
+          resultsPageAsString must include(expectedBackendFailureHeading)
+          resultsPageAsString must include("We have a problem checking your records")
+          resultsPageAsString must include("There may be a technical issue with this service.")
+          resultsPageAsString must include("mailto:tdr@nationalarchives.gov.uk")
+          resultsPageAsString must include("Resuming your upload")
+        }
       }
 
       s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
@@ -565,9 +611,9 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   private def instantiateController(
       securityComponent: SecurityComponents,
       keycloakConfiguration: KeycloakConfiguration,
-      blockDraftMetadataUpload: Boolean = false
+      blockFileChecksFailureV2: Boolean = false
   ) = {
-    when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
+    when(configuration.get[Boolean]("featureAccessBlock.blockFileChecksFailureV2")).thenReturn(blockFileChecksFailureV2)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
@@ -588,13 +634,16 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val wsClient = new InternalWSClient("http", 9007)
     new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
   }
-
-  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration, clientChecksStatus: StatusValue = CompletedValue): FileChecksResultsController = {
+  def setUpFileChecksController(
+      consignmentType: String,
+      keyCloakConfig: KeycloakConfiguration,
+      blockFileChecksFailureV2: Boolean = false
+  ): FileChecksResultsController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentStatuses = List(
-      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, clientChecksStatus.value, ZonedDateTime.now(), None)
-    )
 
+    val consignmentStatuses = List(
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, CompletedValue.value, someDateTime, None)
+    )
     setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
     val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
 
@@ -618,7 +667,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     mockGraphqlResponse(consignmentType, fileStatusResponse, filePathResponse)
     setConsignmentReferenceResponse(wiremockServer)
 
-    instantiateController(getAuthorisedSecurityComponents, keyCloakConfig)
+    instantiateController(getAuthorisedSecurityComponents, keyCloakConfig, blockFileChecksFailureV2)
 
   }
 }

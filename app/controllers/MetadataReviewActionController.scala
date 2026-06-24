@@ -2,8 +2,8 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.MetadataReviewActionController.consignmentStatusUpdates
-import controllers.util.{DropdownField, InputNameAndValue}
+import controllers.MetadataReviewActionController._
+import controllers.util.{DateUtils, DropdownField, InputNameAndValue}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
@@ -14,6 +14,7 @@ import play.api.mvc._
 import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction.{Approval, Rejection, Submission}
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -32,9 +33,12 @@ class MetadataReviewActionController @Inject() (
     with I18nSupport
     with Logging {
 
+  private val statusReasonMaxLength = 1300
+
   private val selectedDecisionForm: Form[SelectedStatusData] = Form(
     mapping(
-      "status" -> text.verifying("Select a status", t => t.nonEmpty)
+      "status" -> text.verifying("Select a status", t => t.nonEmpty),
+      "statusReason" -> optional(text.verifying(s"Reason for status change must be $statusReasonMaxLength characters or less", s => s.length <= statusReasonMaxLength))
     )(SelectedStatusData.apply)(SelectedStatusData.unapply)
   )
 
@@ -42,9 +46,8 @@ class MetadataReviewActionController @Inject() (
     getConsignmentMetadataDetails(consignmentId, request, Ok, selectedDecisionForm)
   }
 
-  def submitReview(consignmentId: UUID, consignmentRef: String, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+  def submitReview(consignmentId: UUID, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedStatusData] = selectedDecisionForm.bindFromRequest()
-
     val errorFunction: Form[SelectedStatusData] => Future[Result] = { formWithErrors: Form[SelectedStatusData] =>
       getConsignmentMetadataDetails(consignmentId, request, BadRequest, formWithErrors)
     }
@@ -55,8 +58,9 @@ class MetadataReviewActionController @Inject() (
         consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
+            val notes = if (statusType == MetadataReviewType.id) formData.statusReason else None
             consignmentStatusService.updateConsignmentStatus(
-              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None),
+              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None, notes),
               request.token.bearerAccessToken
             )
           }
@@ -76,7 +80,8 @@ class MetadataReviewActionController @Inject() (
             totalRecords = consignmentDetails.totalFiles
           )
         )
-        Redirect(routes.MetadataReviewController.metadataReviews())
+        Redirect(routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId))
+          .flashing("success" -> "true")
       }
     }
 
@@ -91,15 +96,36 @@ class MetadataReviewActionController @Inject() (
   ): Future[Result] = {
     for {
       consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
+      action = consignment.metadataReviewLogs.lastOption.map(_.action)
+      totalSubmissions = consignment.metadataReviewLogs.count(_.action == Submission.value)
+      dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => DateUtils.formatWithDaySuffix(log.eventTime)).getOrElse("Unknown")
       userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
+      lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
+      lastReviewerDetails <- lastReviewLog match {
+        case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u))
+        case None      => Future.successful(None)
+      }
+      lastReviewedByName = lastReviewerDetails.map(d => s"${d.firstName} ${d.lastName}")
+      lastReviewedByEmail = lastReviewerDetails.map(_.email)
+      lastUpdated = lastReviewLog.map(log => DateUtils.formatWithDaySuffix(log.eventTime))
+      lastNote = lastReviewLog.flatMap(_.metadataReviewNotes)
     } yield {
       status(
-        views.html.tna.metadataReviewAction(
+        views.html.tna.metadataReviewActionV2(
           consignmentId,
           consignment,
+          action.getOrElse("Unknown"),
+          totalSubmissions,
+          dateSubmitted,
+          lastReviewedByName,
+          lastReviewedByEmail,
+          lastUpdated,
+          lastNote,
           userDetails.email,
-          createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form),
-          request.token.isTransferAdviser
+          createDropDownField(List(InputNameAndValue(ApprovedLabel, CompletedValue.value), InputNameAndValue(RejectedLabel, CompletedWithIssuesValue.value)), form),
+          form("statusReason").errors.flatMap(_.messages),
+          request.token.isTransferAdviser,
+          request.flash.get("success").isDefined
         )
       )
     }
@@ -131,6 +157,9 @@ class MetadataReviewActionController @Inject() (
 }
 
 object MetadataReviewActionController {
+  val ApprovedLabel = "Approved"
+  val RejectedLabel = "Rejected"
+
   def consignmentStatusUpdates(formData: SelectedStatusData): Seq[(String, String)] = {
     val metadataReviewStatusUpdate = (MetadataReviewType.id, formData.statusId)
     val metadataStatusResets =
@@ -141,4 +170,4 @@ object MetadataReviewActionController {
   }
 }
 
-case class SelectedStatusData(statusId: String)
+case class SelectedStatusData(statusId: String, statusReason: Option[String])

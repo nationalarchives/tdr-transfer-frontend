@@ -2,10 +2,9 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import controllers.{TransferAgreementData, TransferAgreementPart2Data}
-import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
+import controllers.TransferAgreementPart2Data
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
-import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAgreementPrivateBetaInput}
+import graphql.codegen.types.AddTransferAgreementComplianceInput
 import services.ApiErrorHandling.sendApiRequest
 
 import java.util.UUID
@@ -14,17 +13,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TransferAgreementService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
-  private val addTransferAgreementPart1Client =
-    graphqlConfiguration.getClient[atapb.Data, atapb.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
+  // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
   private val addTransferAgreementPart2Client =
     graphqlConfiguration.getClient[atac.Data, atac.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
-  def addTransferAgreementPart1(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementData): Future[atapb.AddTransferAgreementPrivateBeta] = {
-    val addTransferAgreementPrivateBetaInput: AddTransferAgreementPrivateBetaInput =
-      AddTransferAgreementPrivateBetaInput(consignmentId, formData.publicRecord)
-    val variables: atapb.Variables = atapb.Variables(addTransferAgreementPrivateBetaInput)
-
-    sendApiRequest(addTransferAgreementPart1Client, atapb.document, token, variables).map(_.addTransferAgreementPrivateBeta)
-  }
 
   def addTransferAgreementPart2(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementPart2Data): Future[atac.AddTransferAgreementCompliance] = {
     val addTransferAgreementComplianceInput: AddTransferAgreementComplianceInput =

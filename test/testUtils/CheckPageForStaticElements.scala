@@ -9,7 +9,8 @@ class CheckPageForStaticElements() {
       userType: String,
       consignmentExists: Boolean = true,
       transferStillInProgress: Boolean = true,
-      pageRequiresAwsServices: Boolean = false
+      pageRequiresAwsServices: Boolean = false,
+      faq: Boolean = false
   ): Unit = {
     page must include("""<html lang="en" class="govuk-template">""")
     page must include("""
@@ -34,7 +35,11 @@ class CheckPageForStaticElements() {
     } else {
       page must include("This is a new service – your feedback will help us to improve it. Please")
       page must include("""href="/contact"> get in touch (opens in new tab).</a>""")
-      page must not include "/faq"
+      if (faq) {
+        page must include("/faq")
+      } else {
+        page must not include "/faq"
+      }
       page must not include "Sign out"
     }
   }

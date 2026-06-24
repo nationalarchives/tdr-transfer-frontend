@@ -3,9 +3,13 @@ on:
   push:
     branches:
       - master
+permissions: {}
 jobs:
   pre-deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@5d4fee21ed08f053613a7706e28623c0adc0f5f4 # v0.0.10
+    permissions:
+      contents: write
+      id-token: write
+    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@e7b57a3bdf7863c951cd203101c6d566986376e3 # v0.0.38
     with:
       java-version: '17'
       repo-name: tdr-transfer-frontend
@@ -21,8 +25,14 @@ jobs:
   deploy:
     needs: pre-deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - run: gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ needs.pre-deploy.outputs.next-version }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - run: gh workflow run deploy.yml -f environment=intg -f to-deploy=$NEXT_VERSION
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          NEXT_VERSION: ${{ needs.pre-deploy.outputs.next-version }}

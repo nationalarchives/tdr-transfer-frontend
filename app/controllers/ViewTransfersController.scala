@@ -13,6 +13,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 import services.Statuses._
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.SkippedValue
 
 import java.util.UUID
 import javax.inject.Inject
@@ -24,7 +25,8 @@ class ViewTransfersController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  private val statusColours: Map[String, String] = Map(InProgress.value -> "yellow", Failed.value -> "red", ContactUs.value -> "red", Transferred.value -> "green")
+  private val statusColours: Map[String, String] =
+    Map(InProgress.value -> "yellow", InReview.value -> "yellow", Failed.value -> "red", ContactUs.value -> "red", Transferred.value -> "green")
 
   implicit class ConsignmentStatusesHelper(statuses: List[ConsignmentStatuses]) {
     def containsStatuses(statusTypes: StatusType*): Boolean = {
@@ -97,7 +99,7 @@ class ViewTransfersController @Inject() (
       case s if s.statusValue(ConfirmTransferType).contains(CompletedValue.value) =>
         UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
       case s if s.containsStatuses(MetadataReviewType) =>
-        UserAction(InProgress.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
+        UserAction(InReview.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
       case s if s.containsStatuses(DraftMetadataType) =>
         toDraftMetadataAction(s.find(_.statusType == DraftMetadataType.id).get, consignmentId)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
@@ -114,8 +116,8 @@ class ViewTransfersController @Inject() (
 
   private def toDraftMetadataAction(status: ConsignmentStatuses, consignmentId: UUID) = {
     status.value match {
-      case CompletedValue.value           => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
-      case CompletedWithIssuesValue.value =>
+      case CompletedValue.value | SkippedValue.value => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
+      case CompletedWithIssuesValue.value            =>
         UserAction(InProgress.value, routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, Resume.value)
       case _ => UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
     }
@@ -261,6 +263,10 @@ case object ContactUs extends ActionText with TransferStatus {
 
 case object InProgress extends TransferStatus {
   val value: String = "In Progress"
+}
+
+case object InReview extends TransferStatus {
+  val value: String = "In Review"
 }
 
 case object Failed extends TransferStatus {

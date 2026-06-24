@@ -3,7 +3,7 @@ package controllers
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import configuration.GraphQLConfiguration
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import controllers.util.GuidanceUtils.ALL_COLUMNS
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
@@ -19,14 +19,14 @@ import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, DownloadService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.{GuidanceItem, loadGuidanceFile}
 
 import java.io.ByteArrayInputStream
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -77,8 +77,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           FileMetadata(copyright, "Copyright")
         )
         val files = List(
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne, Nil),
-          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo, Nil)
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileOne),
+          gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo)
         )
 
         val wb: ReadableWorkbook = getFileFromController(files, userType)
@@ -87,7 +87,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
         rows.length must equal(3)
 
-        rows.head.getCellCount must equal(21)
+        rows.head.getCellCount must equal(23)
         rows.head.getCell(0).asString must equal("filepath")
         rows.head.getCell(1).asString must equal("filename")
         rows.head.getCell(2).asString must equal("date last modified")
@@ -106,9 +106,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         rows.head.getCell(15).asString must equal("language")
         rows.head.getCell(16).asString must equal("translated filename")
         rows.head.getCell(17).asString must equal("copyright")
-        rows.head.getCell(18).asString must equal("related material")
-        rows.head.getCell(19).asString must equal("restrictions on use")
-        rows.head.getCell(20).asString must equal("evidence provided by")
+        rows.head.getCell(18).asString must equal("copyright details")
+        rows.head.getCell(19).asString must equal("related material")
+        rows.head.getCell(20).asString must equal("restrictions on use")
+        rows.head.getCell(21).asString must equal("evidence provided by")
+        rows.head.getCell(22).asString must equal("note")
 
         val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
           .find { case (cell, _) => cell.asString == "copyright" }
@@ -118,7 +120,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         rows(1).getCell(0).asString must equal("test/path1")
         rows(1).getCell(1).asString must equal("FileName1")
         rows(1).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
-        rows(1).getCell(copyrightIndex).asString must equal("Crown copyright")
+        rows(1).getCell(copyrightIndex).asString must equal("Crown")
 
         rows(2).getCell(0).asString must equal("test/path2")
         rows(2).getCell(1).asString must equal("FileName2")
@@ -151,6 +153,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         examplePropertyType match {
           case "date" if guidanceItem.example != "N/A" =>
             rows(rowNumber).getCell(4).asDate.toLocalDate.toString must equal(guidanceItem.example)
+          case _ if guidanceItem.example.contains("href") =>
+            rows(rowNumber).getCell(4).getFormula must include("HYPERLINK")
           case _ => rows(rowNumber).getCell(4).asString() must equal(guidanceItem.example)
         }
       }
@@ -167,13 +171,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val downloadService = mock[DownloadService]
+      val applicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration
+          getInvalidKeycloakConfiguration,
+          downloadService,
+          applicationConfig
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
@@ -215,13 +223,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val downloadService = mock[DownloadService]
+      val applicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
           consignmentStatusService,
-          getInvalidKeycloakConfiguration
+          getInvalidKeycloakConfiguration,
+          downloadService,
+          applicationConfig
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
@@ -233,9 +245,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       files: List[Files],
       userType: String
   ): ReadableWorkbook = {
-    mockFileMetadataResponse(files)
-
     val consignmentId = UUID.randomUUID()
+    mockFileMetadataResponse(files, consignmentId)
     val controller = createController("standard", userType.some)
     val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
     val responseByteArray: ByteString = contentAsBytes(response)
@@ -248,6 +259,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val downloadService = mock[DownloadService]
+    val applicationConfig = new ApplicationConfig(app.configuration)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
@@ -258,14 +271,22 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       consignmentService,
       consignmentStatusService,
-      keycloakConfiguration
+      keycloakConfiguration,
+      downloadService,
+      applicationConfig
     )
   }
 
-  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files]) = {
+  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files], consignmentId: UUID) = {
     val client: GraphQLClient[gcfm.Data, gcfm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
-
-    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, ""))))).asJson.printWith(Printer.noSpaces)
+    val metadataReviewLog = gcfm.GetConsignment.MetadataReviewLogs(
+      UUID.randomUUID(),
+      consignmentId,
+      UUID.randomUUID(),
+      "Submission",
+      ZonedDateTime.parse("2021-02-03T10:33:30.414Z")
+    )
+    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, List(metadataReviewLog), ""))))).asJson.printWith(Printer.noSpaces)
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentFilesMetadata"))

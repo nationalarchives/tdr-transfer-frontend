@@ -33,26 +33,39 @@ class FileChecksResultsController @Inject() (
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       clientChecksStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ClientChecksType).values.headOption.flatten.getOrElse("")
-      backendChecksNotFailed = clientChecksStatus.nonEmpty && clientChecksStatus != FailedValue.value
+      backendChecksFailed = clientChecksStatus == FailedValue.value
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      // Check if the overall backend checks process has not failed this maybe the case even if all the file checks succeeded
-      if (backendChecksNotFailed && fileCheck.allChecksSucceeded) {
+      if (backendChecksFailed) {
+        Ok(views.html.fileChecksBackendFailure(request.token.name, pageTitle, reference))
+      } else if (fileCheck.allChecksSucceeded) {
         val consignmentInfo = ConsignmentFolderInfo(
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(
-          views.html.standard.fileChecksResults(
-            consignmentInfo,
-            pageTitle,
-            consignmentId,
-            reference,
-            request.token.name
+        if (applicationConfig.blockFileChecksFailureV2) {
+          Ok(
+            views.html.standard.fileChecksResults(
+              consignmentInfo,
+              pageTitle,
+              consignmentId,
+              reference,
+              request.token.name
+            )
           )
-        )
+        } else {
+          Ok(
+            views.html.standard.filechecks.fileChecksSuccessResults(
+              consignmentInfo,
+              pageTitle,
+              consignmentId,
+              reference,
+              request.token.name
+            )
+          )
+        }
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
         Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
