@@ -36,6 +36,8 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val draft_metadata_s3_bucket_name: String = configuration.get[String]("draft_metadata_s3_bucket_name")
 
+  val transferErrorsS3BucketName: String = configuration.get[String]("transfer_errors_s3_bucket_name")
+
   val draftMetadataFileName: String = configuration.get[String]("draftMetadata.fileName")
 
   val draftMetadataErrorFileName: String = configuration.get[String]("draftMetadata.errorFileName")
