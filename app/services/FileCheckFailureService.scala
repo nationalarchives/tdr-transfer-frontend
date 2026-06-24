@@ -9,6 +9,7 @@ import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.StatusAct
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.StatusValue
 
+import java.nio.file.Paths
 import java.util.{Properties, UUID}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future, blocking}
@@ -29,7 +30,6 @@ case class FileCheckStatus(
 case class FileCheckStatusAction(
     statusName: String,
     actionType: String,
-    messageKey: String,
     message: String
 )
 
@@ -70,12 +70,11 @@ object FileCheckFailureService {
   }
 
   private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction = {
-    val statusName = Option(failureMessages.getProperty(status.statusName)).getOrElse(status.statusName)
+    val statusNameLabel = Option(failureMessages.getProperty(status.statusName)).getOrElse(status.statusName)
     val actionTypeLabel = Option(failureMessages.getProperty(statusAction.actionType.toString)).getOrElse(statusAction.actionType.toString)
     FileCheckStatusAction(
-      statusName = statusName,
+      statusName = statusNameLabel,
       actionType = actionTypeLabel,
-      messageKey = statusAction.messageKey,
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
     )
   }
@@ -83,30 +82,41 @@ object FileCheckFailureService {
 
 class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfig)(implicit val ec: ExecutionContext) {
 
+  private val maxParallelS3Fetches = 10
+
   def getFileCheckFailures(consignmentId: UUID): Future[List[FileCheckFailure]] =
     getFileCheckFailures(consignmentId, S3Utils(s3Async(applicationConfig.s3Endpoint)))
 
-  def getFileCheckFailures(consignmentId: UUID, s3Utils: S3Utils): Future[List[FileCheckFailure]] = Future {
-    blocking {
-      val bucket = applicationConfig.transferErrorsS3BucketName
-      val prefix = s"$consignmentId/filechecks/"
-      val objects = s3Utils.listAllObjectsWithPrefix(bucket, prefix)
-      objects.map { s3Object =>
-        val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
-        val matches = fileCheckError.file.fileCheckResults.fileFormat.flatMap(_.matches)
-        val statusActions = fileCheckError.statuses.flatMap { status =>
-          Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
-            StatusActions
-              .action(statusType, StatusValue(status.statusValue))
-              .map(FileCheckFailureService.resolveMessage(status, _))
-          }
+  def getFileCheckFailures(consignmentId: UUID, s3Utils: S3Utils): Future[List[FileCheckFailure]] = {
+    val bucket = applicationConfig.transferErrorsS3BucketName
+    val prefix = s"$consignmentId/filechecks/"
+    val objectsFuture = Future(blocking(s3Utils.listAllObjectsWithPrefix(bucket, prefix)))
+
+    objectsFuture.flatMap { objects =>
+      objects.grouped(maxParallelS3Fetches).foldLeft(Future.successful(List.empty[FileCheckFailure])) { (accFuture, batch) =>
+        accFuture.flatMap { acc =>
+          Future.traverse(batch) { s3Object =>
+            Future {
+              blocking {
+                val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
+                val matches = fileCheckError.file.fileCheckResults.fileFormat.flatMap(_.matches)
+                val statusActions = fileCheckError.statuses.flatMap { status =>
+                  Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
+                    StatusActions
+                      .action(statusType, StatusValue(status.statusValue))
+                      .map(FileCheckFailureService.resolveMessage(status, _))
+                  }
+                }
+                FileCheckFailure(
+                  originalPath = fileCheckError.file.originalPath,
+                  filename = Paths.get(fileCheckError.file.originalPath).getFileName.toString,
+                  matches = matches,
+                  statusActions = statusActions
+                )
+              }
+            }
+          }.map(acc ++ _)
         }
-        FileCheckFailure(
-          originalPath = fileCheckError.file.originalPath,
-          filename = fileCheckError.file.originalPath.split('/').last,
-          matches = matches,
-          statusActions = statusActions
-        )
       }
     }
   }
