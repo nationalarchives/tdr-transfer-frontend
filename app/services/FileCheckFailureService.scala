@@ -95,27 +95,29 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
     objectsFuture.flatMap { objects =>
       objects.grouped(maxParallelS3Fetches).foldLeft(Future.successful(List.empty[FileCheckFailure])) { (accFuture, batch) =>
         accFuture.flatMap { acc =>
-          Future.traverse(batch) { s3Object =>
-            Future {
-              blocking {
-                val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
-                val matches = fileCheckError.file.fileCheckResults.fileFormat.flatMap(_.matches)
-                val statusActions = fileCheckError.statuses.flatMap { status =>
-                  Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
-                    StatusActions
-                      .action(statusType, StatusValue(status.statusValue))
-                      .map(FileCheckFailureService.resolveMessage(status, _))
+          Future
+            .traverse(batch) { s3Object =>
+              Future {
+                blocking {
+                  val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
+                  val matches = fileCheckError.file.fileCheckResults.fileFormat.flatMap(_.matches)
+                  val statusActions = fileCheckError.statuses.flatMap { status =>
+                    Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
+                      StatusActions
+                        .action(statusType, StatusValue(status.statusValue))
+                        .map(FileCheckFailureService.resolveMessage(status, _))
+                    }
                   }
+                  FileCheckFailure(
+                    originalPath = fileCheckError.file.originalPath,
+                    filename = Paths.get(fileCheckError.file.originalPath).getFileName.toString,
+                    matches = matches,
+                    statusActions = statusActions
+                  )
                 }
-                FileCheckFailure(
-                  originalPath = fileCheckError.file.originalPath,
-                  filename = Paths.get(fileCheckError.file.originalPath).getFileName.toString,
-                  matches = matches,
-                  statusActions = statusActions
-                )
               }
             }
-          }.map(acc ++ _)
+            .map(acc ++ _)
         }
       }
     }
