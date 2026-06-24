@@ -65,9 +65,9 @@ export const getDraftMetadataValidationProgress: () => Promise<
 export const getFileChecksProgress: () => Promise<
   IFileCheckProgress | Error
 > = async () => {
-  const body = await getProgress("file-check-progress")
-  if (!isError(body)) {
-    const response = body as Consignment & { backendChecksFailed?: boolean }
+  const progress = await getProgress("file-check-progress")
+  if (!isError(progress)) {
+    const response = progress as Consignment & { backendChecksFailed?: boolean }
     if (response) {
       const fileChecks = response.fileChecks
       return {
@@ -84,7 +84,7 @@ export const getFileChecksProgress: () => Promise<
     }
   } else
     return Error(
-      `Failed to retrieve progress for file checks: ${body.message}`
+      `Failed to retrieve progress for file checks: ${progress.message}`
     )
 }
 
