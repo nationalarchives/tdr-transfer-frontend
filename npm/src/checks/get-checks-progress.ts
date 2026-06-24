@@ -11,6 +11,7 @@ export interface IFileCheckProgress extends IProgress {
   checksumProcessed: number
   ffidProcessed: number
   totalFiles: number
+  backendChecksFailed?: boolean
 }
 
 export interface IDraftMetadataValidationProgress extends IProgress {
@@ -64,16 +65,17 @@ export const getDraftMetadataValidationProgress: () => Promise<
 export const getFileChecksProgress: () => Promise<
   IFileCheckProgress | Error
 > = async () => {
-  const progress = await getProgress("file-check-progress")
-  if (!isError(progress)) {
-    const response = progress as Consignment
+  const body = await getProgress("file-check-progress")
+  if (!isError(body)) {
+    const response = body as Consignment & { backendChecksFailed?: boolean }
     if (response) {
       const fileChecks = response.fileChecks
       return {
         antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
         checksumProcessed: fileChecks.checksumProgress.filesProcessed,
         ffidProcessed: fileChecks.ffidProgress.filesProcessed,
-        totalFiles: response.totalFiles
+        totalFiles: response.totalFiles,
+        backendChecksFailed: Boolean(response.backendChecksFailed)
       }
     } else {
       return Error(
@@ -82,7 +84,7 @@ export const getFileChecksProgress: () => Promise<
     }
   } else
     return Error(
-      `Failed to retrieve progress for file checks: ${progress.message}`
+      `Failed to retrieve progress for file checks: ${body.message}`
     )
 }
 

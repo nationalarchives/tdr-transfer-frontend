@@ -399,6 +399,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val fileChecksResults = controller
         .fileCheckProgress(consignmentId)
@@ -406,7 +407,28 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
       playStatus(fileChecksResults) mustBe OK
 
+      val body = contentAsString(fileChecksResults)
+      body must include("\"backendChecksFailed\":false")
+
       wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
+    }
+
+    "return backendChecksFailed=true when ClientChecks Failed and ServerFFID InProgress" in {
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
+
+      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = false), "standard")
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Failed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ServerFFID", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val fileChecksResults = controller
+        .fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
+
+      playStatus(fileChecksResults) mustBe OK
+      contentAsString(fileChecksResults) must include("\"backendChecksFailed\":true")
     }
 
     "throw an error if the API returns an error" in {

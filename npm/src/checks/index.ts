@@ -46,6 +46,11 @@ export class Checks {
           const fileChecksProgress: IFileCheckProgress | Error =
             await getFileChecksProgress()
           if (!isError(fileChecksProgress)) {
+            if (fileChecksProgress && fileChecksProgress.backendChecksFailed) {
+              clearInterval(intervalId)
+              window.location.reload()
+              return
+            }
             const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
             if (checksCompleted) {
               clearInterval(intervalId)

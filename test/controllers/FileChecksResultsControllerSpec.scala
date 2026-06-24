@@ -23,7 +23,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
-import services.Statuses.{ClientChecksType, CompletedValue, CompletedWithIssuesValue, FailedValue, StatusValue}
+import services.Statuses.{ClientChecksType, CompletedValue, CompletedWithIssuesValue, FailedValue, InProgressValue, ServerFFIDType, StatusValue}
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -364,7 +364,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the $userType error page if file checks have passed but overall process failed" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentStatuses = List(
-          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, FailedValue.value, ZonedDateTime.now(), None)
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, FailedValue.value, ZonedDateTime.now(), None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ServerFFIDType.id, InProgressValue.value, ZonedDateTime.now(), None)
         )
 
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
