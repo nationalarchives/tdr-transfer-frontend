@@ -585,7 +585,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val fileCheckFailureService = mock[FileCheckFailureService]
-    when(fileCheckFailureService.getFileCheckFailureStatusActions(org.mockito.ArgumentMatchers.any[UUID]))
+    when(fileCheckFailureService.getFileCheckFailureStatusActionTypes(org.mockito.ArgumentMatchers.any[UUID]))
       .thenReturn(Future.successful(fileCheckFailureStatusActions))
     new FileChecksResultsController(
       securityComponent,

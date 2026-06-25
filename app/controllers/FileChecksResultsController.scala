@@ -73,7 +73,7 @@ class FileChecksResultsController @Inject() (
           if (applicationConfig.blockFileChecksFailureV2) {
             Future.successful(failedResult)
           } else {
-            fileCheckFailureService.getFileCheckFailureStatusActions(consignmentId).map { statusActions =>
+            fileCheckFailureService.getFileCheckFailureStatusActionTypes(consignmentId).map { statusActions =>
               if (statusActions == Set(TNASupport)) {
                 val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
                 Ok(

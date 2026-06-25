@@ -267,7 +267,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
     }
   }
 
-  "getFileCheckFailureStatusActions" should {
+  "getFileCheckFailureStatusActionTypes" should {
 
     "return the StatusActionTypes for a consignment's file check failures" in {
       val s3Utils = mock[S3Utils]
@@ -286,7 +286,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         )
 
       val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
 
       result shouldBe Set(UserFixable)
     }
@@ -308,7 +308,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         )
 
       val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
 
       result shouldBe Set(TNASupport)
     }
@@ -331,7 +331,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         )
 
       val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
 
       result shouldBe empty
     }
@@ -355,7 +355,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         )
 
       val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
 
       result shouldBe Set(UserFixable, TNASupport)
     }
@@ -367,7 +367,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(List.empty)
 
       val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
 
       result shouldBe empty
     }
