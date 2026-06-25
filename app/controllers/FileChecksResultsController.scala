@@ -6,7 +6,8 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, FileCheckFailureService}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.TNASupport
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -22,6 +23,7 @@ class FileChecksResultsController @Inject() (
     val confirmTransferService: ConfirmTransferService,
     val consignmentExportService: ConsignmentExportService,
     val consignmentStatusService: ConsignmentStatusService,
+    val fileCheckFailureService: FileCheckFailureService,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -34,38 +36,63 @@ class FileChecksResultsController @Inject() (
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-    } yield {
-      if (fileCheck.allChecksSucceeded) {
-        val consignmentInfo = ConsignmentFolderInfo(
-          fileCheck.totalFiles,
-          parentFolder
-        )
-        if (applicationConfig.blockFileChecksFailureV2) {
-          Ok(
-            views.html.standard.fileChecksResults(
-              consignmentInfo,
-              pageTitle,
-              consignmentId,
-              reference,
-              request.token.name
-            )
+      result <- {
+        if (fileCheck.allChecksSucceeded) {
+          val consignmentInfo = ConsignmentFolderInfo(
+            fileCheck.totalFiles,
+            parentFolder
           )
+          if (applicationConfig.blockFileChecksFailureV2) {
+            Future.successful(
+              Ok(
+                views.html.standard.fileChecksResults(
+                  consignmentInfo,
+                  pageTitle,
+                  consignmentId,
+                  reference,
+                  request.token.name
+                )
+              )
+            )
+          } else {
+            Future.successful(
+              Ok(
+                views.html.standard.filechecks.fileChecksSuccessResults(
+                  consignmentInfo,
+                  pageTitle,
+                  consignmentId,
+                  reference,
+                  request.token.name
+                )
+              )
+            )
+          }
         } else {
-          Ok(
-            views.html.standard.filechecks.fileChecksSuccessResults(
-              consignmentInfo,
-              pageTitle,
-              consignmentId,
-              reference,
-              request.token.name
-            )
-          )
+          val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
+          val failedResult = Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
+          if (applicationConfig.blockFileChecksFailureV2) {
+            Future.successful(failedResult)
+          } else {
+            fileCheckFailureService.getFileCheckFailureStatusActions(consignmentId).map { statusActions =>
+              if (statusActions == Set(TNASupport)) {
+                val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
+                Ok(
+                  views.html.standard.filechecks.fileChecksTnaSupport(
+                    consignmentInfo,
+                    pageTitle,
+                    consignmentId,
+                    reference,
+                    request.token.name
+                  )
+                )
+              } else {
+                failedResult
+              }
+            }
+          }
         }
-      } else {
-        val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
       }
-    }
+    } yield result
   }
 
   def judgmentFileCheckResultsPage(consignmentId: UUID, transferProgress: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {

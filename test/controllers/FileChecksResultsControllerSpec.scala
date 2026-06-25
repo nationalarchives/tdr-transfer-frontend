@@ -23,13 +23,14 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue}
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, FileCheckFailureService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusActionType, TNASupport}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -149,6 +150,42 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       resultsPageAsString must include(expectedSuccessSummaryTitle("Files uploaded"))
       resultsPageAsString must include(expectedSuccessMessage)
       resultsPageAsString must include regex buttonToProgress
+    }
+
+    "render the TNA support failure page for a standard user when file checks fail with only TNASupport actions and blockFileChecksFailureV2 is 'false'" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      val fileStatus = List(gfcp.GetConsignment.Files(Some("VirusDetected")))
+
+      val data = Data(
+        Option(
+          GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+        )
+      )
+      val client = graphQLConfiguration.getClient[Data, Variables]()
+      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+      mockGraphqlResponse("standard", fileStatusResponse)
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val fileCheckResultsController =
+        instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureStatusActions = Set(TNASupport))
+
+      val recordCheckResultsPage = fileCheckResultsController
+        .fileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      status(recordCheckResultsPage) mustBe 200
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
+      resultsPageAsString must include("govuk-notification-banner--error")
+      resultsPageAsString must include("There is a problem with your files")
+      resultsPageAsString must include("Your folder 'parentFolder' has records that could not be uploaded")
+      resultsPageAsString must include("""<h1 class="govuk-heading-l">What to do next</h1>""")
+      resultsPageAsString must include("We found some issues that need further review, and our support team has been notified.")
+      resultsPageAsString must include("Download error report (Excel)")
+      resultsPageAsString must include("Resuming your upload")
     }
 
     "return a redirect to transfer complete for a judgements user when transfer is completed" in {
@@ -538,7 +575,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   private def instantiateController(
       securityComponent: SecurityComponents,
       keycloakConfiguration: KeycloakConfiguration,
-      blockFileChecksFailureV2: Boolean = false
+      blockFileChecksFailureV2: Boolean = false,
+      fileCheckFailureStatusActions: Set[StatusActionType] = Set.empty
   ) = {
     when(configuration.get[Boolean]("featureAccessBlock.blockFileChecksFailureV2")).thenReturn(blockFileChecksFailureV2)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -546,6 +584,9 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
+    val fileCheckFailureService = mock[FileCheckFailureService]
+    when(fileCheckFailureService.getFileCheckFailureStatusActions(org.mockito.ArgumentMatchers.any[UUID]))
+      .thenReturn(Future.successful(fileCheckFailureStatusActions))
     new FileChecksResultsController(
       securityComponent,
       keycloakConfiguration,
@@ -554,6 +595,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       confirmTransferService,
       exportService(app.configuration),
       consignmentStatusService,
+      fileCheckFailureService,
       applicationConfig
     )
   }

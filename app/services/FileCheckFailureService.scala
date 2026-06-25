@@ -5,7 +5,7 @@ import io.circe.generic.auto._
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients._
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.StatusAction
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusAction, StatusActionType}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.StatusValue
 
@@ -78,6 +78,14 @@ object FileCheckFailureService {
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
     )
   }
+
+  // Maps the raw statuses of a file check error to the typed StatusActions (each carrying a StatusActionType).
+  private def toStatusActions(fileCheckError: FileCheckError): List[(FileCheckStatus, StatusAction)] =
+    fileCheckError.statuses.flatMap { status =>
+      Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
+        StatusActions.action(statusType, StatusValue(status.statusValue)).map(status -> _)
+      }
+    }
 }
 
 class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfig)(implicit val ec: ExecutionContext) {
@@ -101,12 +109,8 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
                 blocking {
                   val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
                   val matches = fileCheckError.file.fileCheckResults.fileFormat.flatMap(_.matches)
-                  val statusActions = fileCheckError.statuses.flatMap { status =>
-                    Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
-                      StatusActions
-                        .action(statusType, StatusValue(status.statusValue))
-                        .map(FileCheckFailureService.resolveMessage(status, _))
-                    }
+                  val statusActions = FileCheckFailureService.toStatusActions(fileCheckError).map { case (status, action) =>
+                    FileCheckFailureService.resolveMessage(status, action)
                   }
                   FileCheckFailure(
                     originalPath = fileCheckError.file.originalPath,
@@ -118,6 +122,35 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
               }
             }
             .map(acc ++ _)
+        }
+      }
+    }
+  }
+
+  def getFileCheckFailureStatusActions(consignmentId: UUID): Future[Set[StatusActionType]] =
+    getFileCheckFailureStatusActions(consignmentId, S3Utils(s3Async(applicationConfig.s3Endpoint)))
+
+  /** Returns the distinct StatusActionTypes (e.g. UserFixable or TNASupport) for a consignment's file check failures. These can be used to determine which
+    * failure page to display.
+    */
+  def getFileCheckFailureStatusActions(consignmentId: UUID, s3Utils: S3Utils): Future[Set[StatusActionType]] = {
+    val bucket = applicationConfig.transferErrorsS3BucketName
+    val prefix = s"$consignmentId/filechecks/"
+    val objectsFuture = Future(blocking(s3Utils.listAllObjectsWithPrefix(bucket, prefix)))
+
+    objectsFuture.flatMap { objects =>
+      objects.grouped(maxParallelS3Fetches).foldLeft(Future.successful(Set.empty[StatusActionType])) { (accFuture, batch) =>
+        accFuture.flatMap { acc =>
+          Future
+            .traverse(batch) { s3Object =>
+              Future {
+                blocking {
+                  val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
+                  FileCheckFailureService.toStatusActions(fileCheckError).map { case (_, action) => action.actionType }
+                }
+              }
+            }
+            .map(acc ++ _.flatten)
         }
       }
     }

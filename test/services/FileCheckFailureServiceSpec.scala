@@ -9,6 +9,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import software.amazon.awssdk.services.s3.model.S3Object
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{TNASupport, UserFixable}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -263,6 +264,112 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result.size shouldBe objectCount
       result.map(_.filename) shouldBe (1 to objectCount).map(i => s"file-$i.txt").toList
       result.foreach(_.statusActions should not be empty)
+    }
+  }
+
+  "getFileCheckFailureStatusActions" should {
+
+    "return the StatusActionTypes for a consignment's file check failures" in {
+      val s3Utils = mock[S3Utils]
+
+      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
+        .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
+
+      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+          fileCheckErrorWith(
+            "MixedResolution/zerobyte.txt",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile")
+            )
+          )
+        )
+
+      val service = new FileCheckFailureService(mockAppConfig)
+      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+
+      result shouldBe Set(UserFixable)
+    }
+
+    "return a TNASupport StatusActionType for non user fixable failures" in {
+      val s3Utils = mock[S3Utils]
+
+      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
+        .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
+
+      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+          fileCheckErrorWith(
+            "infected.exe",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "Antivirus", statusValue = "VirusDetected")
+            )
+          )
+        )
+
+      val service = new FileCheckFailureService(mockAppConfig)
+      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+
+      result shouldBe Set(TNASupport)
+    }
+
+    "exclude statuses that produce no action and ignore unrecognised status names" in {
+      val s3Utils = mock[S3Utils]
+
+      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
+        .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
+
+      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+          fileCheckErrorWith(
+            "docs/report.pdf",
+            List(
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "Success"),
+              FileCheckStatus(id = fileId1, statusType = "File", statusName = "UnknownType", statusValue = "Failed")
+            )
+          )
+        )
+
+      val service = new FileCheckFailureService(mockAppConfig)
+      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+
+      result shouldBe empty
+    }
+
+    "return the StatusActionTypes across multiple S3 objects" in {
+      val s3Utils = mock[S3Utils]
+      val key1 = s"$consignmentId/filechecks/$fileId1"
+      val key2 = s"$consignmentId/filechecks/$fileId2"
+
+      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
+        .thenReturn(List(s3ObjectWithKey(key1), s3ObjectWithKey(key2)))
+
+      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, org.mockito.ArgumentMatchers.eq(key1))(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+          fileCheckErrorWith("file1.txt", List(FileCheckStatus(fileId1, "File", "FFID", "ZeroByteFile")))
+        )
+
+      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, org.mockito.ArgumentMatchers.eq(key2))(org.mockito.ArgumentMatchers.any()))
+        .thenReturn(
+          fileCheckErrorWith("file2.pdf", List(FileCheckStatus(fileId2, "File", "Antivirus", "VirusDetected")))
+        )
+
+      val service = new FileCheckFailureService(mockAppConfig)
+      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+
+      result shouldBe Set(UserFixable, TNASupport)
+    }
+
+    "return an empty list when there are no objects in the S3 prefix" in {
+      val s3Utils = mock[S3Utils]
+
+      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
+        .thenReturn(List.empty)
+
+      val service = new FileCheckFailureService(mockAppConfig)
+      val result = service.getFileCheckFailureStatusActions(consignmentId, s3Utils).futureValue
+
+      result shouldBe empty
     }
   }
 }
