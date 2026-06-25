@@ -79,7 +79,6 @@ object FileCheckFailureService {
     )
   }
 
-  // Maps the raw statuses of a file check error to the typed StatusActions (each carrying a StatusActionType).
   private def toStatusActions(fileCheckError: FileCheckError): List[(FileCheckStatus, StatusAction)] =
     fileCheckError.statuses.flatMap { status =>
       Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
@@ -130,10 +129,7 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
   def getFileCheckFailureStatusActionTypes(consignmentId: UUID): Future[Set[StatusActionType]] =
     getFileCheckFailureStatusActionTypes(consignmentId, S3Utils(s3Async(applicationConfig.s3Endpoint)))
 
-  /** Returns the distinct StatusActionTypes (e.g. UserFixable or TNASupport) for a consignment's file check failures. These can be used to determine which
-    * failure page to display.
-    */
-  def getFileCheckFailureStatusActionTypes(consignmentId: UUID, s3Utils: S3Utils): Future[Set[StatusActionType]] = {
+  private[services] def getFileCheckFailureStatusActionTypes(consignmentId: UUID, s3Utils: S3Utils): Future[Set[StatusActionType]] = {
     val bucket = applicationConfig.transferErrorsS3BucketName
     val prefix = s"$consignmentId/filechecks/"
     val objectsFuture = Future(blocking(s3Utils.listAllObjectsWithPrefix(bucket, prefix)))

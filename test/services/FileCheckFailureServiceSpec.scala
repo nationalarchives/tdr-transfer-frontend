@@ -269,7 +269,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
 
   "getFileCheckFailureStatusActionTypes" should {
 
-    "return the StatusActionTypes for a consignment's file check failures" in {
+    "return UserFixable for a user-fixable failure" in {
       val s3Utils = mock[S3Utils]
 
       when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
@@ -279,9 +279,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(
           fileCheckErrorWith(
             "MixedResolution/zerobyte.txt",
-            List(
-              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile")
-            )
+            List(FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile"))
           )
         )
 
@@ -291,7 +289,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result shouldBe Set(UserFixable)
     }
 
-    "return a TNASupport StatusActionType for non user fixable failures" in {
+    "return TNASupport for a non user-fixable failure" in {
       val s3Utils = mock[S3Utils]
 
       when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
@@ -301,9 +299,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
         .thenReturn(
           fileCheckErrorWith(
             "infected.exe",
-            List(
-              FileCheckStatus(id = fileId1, statusType = "File", statusName = "Antivirus", statusValue = "VirusDetected")
-            )
+            List(FileCheckStatus(id = fileId1, statusType = "File", statusName = "Antivirus", statusValue = "VirusDetected"))
           )
         )
 
@@ -313,7 +309,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result shouldBe Set(TNASupport)
     }
 
-    "exclude statuses that produce no action and ignore unrecognised status names" in {
+    "return an empty set when statuses produce no actions" in {
       val s3Utils = mock[S3Utils]
 
       when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
@@ -336,7 +332,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result shouldBe empty
     }
 
-    "return the StatusActionTypes across multiple S3 objects" in {
+    "return both action types across multiple S3 objects" in {
       val s3Utils = mock[S3Utils]
       val key1 = s"$consignmentId/filechecks/$fileId1"
       val key2 = s"$consignmentId/filechecks/$fileId2"
@@ -360,7 +356,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result shouldBe Set(UserFixable, TNASupport)
     }
 
-    "return an empty list when there are no objects in the S3 prefix" in {
+    "return an empty set when there are no S3 objects" in {
       val s3Utils = mock[S3Utils]
 
       when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
