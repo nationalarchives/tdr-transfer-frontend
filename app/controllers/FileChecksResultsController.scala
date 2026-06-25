@@ -31,11 +31,17 @@ class FileChecksResultsController @Inject() (
     val pageTitle = "Results of your checks"
 
     for {
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+      clientChecksStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ClientChecksType).values.headOption.flatten.getOrElse("")
+      serverFFIDStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ServerFFIDType).values.headOption.flatten.getOrElse("")
+      backendChecksFailed = clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      if (fileCheck.allChecksSucceeded) {
+      if (backendChecksFailed) {
+        Ok(views.html.fileChecksBackendFailure(request.token.name, pageTitle, reference))
+      } else if (fileCheck.allChecksSucceeded) {
         val consignmentInfo = ConsignmentFolderInfo(
           fileCheck.totalFiles,
           parentFolder
@@ -74,9 +80,10 @@ class FileChecksResultsController @Inject() (
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         result <- transferProgress match {
-          case Some(CompletedValue.value)           => Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
-          case Some(CompletedWithIssuesValue.value) => Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
-          case _                                    =>
+          case Some(CompletedValue.value) => Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
+          case Some(CompletedWithIssuesValue.value) | Some(FailedValue.value) =>
+            Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
+          case _ =>
             for {
               consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
               exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
