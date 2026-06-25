@@ -23,13 +23,22 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue}
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{
+  ConfirmTransferService,
+  ConsignmentExportService,
+  ConsignmentService,
+  ConsignmentStatusService,
+  FileCheckFailure,
+  FileCheckFailureService,
+  FileCheckStatusAction,
+  FileFormatMatch
+}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -508,6 +517,145 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "FileChecksResultsController downloadFileCheckFailuresReport" should {
+
+    "return an Excel file with correct content-type and content-disposition headers when there are failures with status actions" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/test-file.txt",
+          filename = "test-file.txt",
+          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+      val contentDisposition = header("Content-Disposition", result).getOrElse("")
+      contentDisposition must include("attachment")
+      contentDisposition must include("TEST-TDR-2021-GB")
+      contentDisposition must include("file-check-failures")
+      contentAsBytes(result).nonEmpty mustBe true
+    }
+
+    "return an Excel file when failures have multiple status actions" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/test-file.zip",
+          filename = "test-file.zip",
+          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          statusActions = List(
+            FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
+            FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
+          )
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+      contentAsBytes(result).nonEmpty mustBe true
+    }
+
+    "return an Excel file when failures have no status actions" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/unknown-file.bin",
+          filename = "unknown-file.bin",
+          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          statusActions = List.empty
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+      contentAsBytes(result).nonEmpty mustBe true
+    }
+
+    "return an Excel file containing failures from multiple files" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/file-a.txt",
+          filename = "file-a.txt",
+          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+        ),
+        FileCheckFailure(
+          originalPath = "folder/file-b.zip",
+          filename = "file-b.zip",
+          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+      contentAsBytes(result).nonEmpty mustBe true
+    }
+
+    "return a redirect to the auth server for an unauthenticated user" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val controller = instantiateController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report"))
+
+      status(result) mustBe FOUND
+      redirectLocation(result).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+    }
+
+    "return 403 when the consignment type is judgment" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      mockGraphqlResponse(consignmentType = "judgment")
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report"))
+
+      status(result) mustBe FORBIDDEN
+    }
+  }
+
   "return forbidden for a TNA user" in {
     val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
     setConsignmentTypeResponse(wiremockServer, "standard")
@@ -538,7 +686,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   private def instantiateController(
       securityComponent: SecurityComponents,
       keycloakConfiguration: KeycloakConfiguration,
-      blockFileChecksFailureV2: Boolean = false
+      blockFileChecksFailureV2: Boolean = false,
+      fileCheckFailureService: FileCheckFailureService = mock[FileCheckFailureService]
   ) = {
     when(configuration.get[Boolean]("featureAccessBlock.blockFileChecksFailureV2")).thenReturn(blockFileChecksFailureV2)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -554,6 +703,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       confirmTransferService,
       exportService(app.configuration),
       consignmentStatusService,
+      fileCheckFailureService,
       applicationConfig
     )
   }
