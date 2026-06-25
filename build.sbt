@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.227",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.330",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.330",
-  "ch.qos.logback" % "logback-classic" % "1.5.32",
+  "ch.qos.logback" % "logback-classic" % "1.5.35",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.59.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.59.0",
