@@ -67,7 +67,7 @@ class FileChecksResultsController @Inject() (
         }
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, consignmentId, fileStatusList))
+        Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
       }
     }
   }
@@ -80,7 +80,7 @@ class FileChecksResultsController @Inject() (
         result <- transferProgress match {
           case Some(CompletedValue.value)           => Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
           case Some(CompletedWithIssuesValue.value) =>
-            Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true, consignmentId)).uncache())
+            Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
           case _ =>
             for {
               consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
@@ -95,7 +95,7 @@ class FileChecksResultsController @Inject() (
                       if (fileCheck.allChecksSucceeded) {
                         Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache()
                       } else {
-                        Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true, consignmentId)).uncache()
+                        Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache()
                       }
                     )
                 case _ =>
