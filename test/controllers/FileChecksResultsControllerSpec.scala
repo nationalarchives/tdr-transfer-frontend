@@ -13,6 +13,8 @@ import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.apache.pekko.util.ByteString
+import org.dhatim.fastexcel.reader._
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
@@ -23,22 +25,14 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue}
-import services.{
-  ConfirmTransferService,
-  ConsignmentExportService,
-  ConsignmentService,
-  ConsignmentStatusService,
-  FileCheckFailure,
-  FileCheckFailureService,
-  FileCheckStatusAction,
-  FileFormatMatch
-}
+import services._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import java.io.ByteArrayInputStream
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -654,6 +648,225 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       status(result) mustBe FORBIDDEN
     }
+
+    "return an Excel file with the correct header row" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(List.empty))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      val wb = parseExcel(contentAsBytes(result))
+      val rows = wb.getFirstSheet.read.asScala.toList
+
+      rows.length mustBe 1
+      val header = rows.head
+      header.getCell(0).asString mustBe "Filepath"
+      header.getCell(1).asString mustBe "Filename"
+      header.getCell(2).asString mustBe "Who should investigate"
+      header.getCell(3).asString mustBe "Action"
+      header.getCell(4).asString mustBe "Detail"
+      header.getCell(5).asString mustBe "Error Type"
+      header.getCell(6).asString mustBe "File Format"
+      header.getCell(7).asString mustBe "PUID"
+    }
+
+    "return an Excel file with correct data row when a failure has a single status action" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/test-file.txt",
+          filename = "test-file.txt",
+          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      val wb = parseExcel(contentAsBytes(result))
+      val rows = wb.getFirstSheet.read.asScala.toList
+
+      rows.length mustBe 2
+      val dataRow = rows(1)
+      dataRow.getCell(0).asString mustBe "folder/test-file.txt"
+      dataRow.getCell(1).asString mustBe "test-file.txt"
+      dataRow.getCell(2).asString mustBe "TNA"
+      dataRow.getCell(3).asString mustBe "Contact TNA"
+      dataRow.getCell(4).asString mustBe "File is password protected"
+      dataRow.getCell(5).asString mustBe "PasswordProtected"
+      dataRow.getCell(6).asString mustBe "Plain Text File"
+      dataRow.getCell(7).asString mustBe "fmt/111"
+    }
+
+    "return an Excel file with one data row per status action when a failure has multiple status actions" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/test-file.zip",
+          filename = "test-file.zip",
+          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          statusActions = List(
+            FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
+            FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
+          )
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      val wb = parseExcel(contentAsBytes(result))
+      val rows = wb.getFirstSheet.read.asScala.toList
+
+      rows.length mustBe 3
+      val row1 = rows(1)
+      row1.getCell(0).asString mustBe "folder/test-file.zip"
+      row1.getCell(1).asString mustBe "test-file.zip"
+      row1.getCell(2).asString mustBe "TNA"
+      row1.getCell(3).asString mustBe "Remove file"
+      row1.getCell(4).asString mustBe "Zip files are not accepted"
+      row1.getCell(5).asString mustBe "Zip"
+      row1.getCell(6).asString mustBe "ZIP Format"
+      row1.getCell(7).asString mustBe "x-fmt/263"
+
+      val row2 = rows(2)
+      row2.getCell(0).asString mustBe "folder/test-file.zip"
+      row2.getCell(1).asString mustBe "test-file.zip"
+      row2.getCell(2).asString mustBe "Transferring body"
+      row2.getCell(3).asString mustBe "Re-upload"
+      row2.getCell(4).asString mustBe "Remove zip and re-upload"
+      row2.getCell(5).asString mustBe "Zip"
+      row2.getCell(6).asString mustBe "ZIP Format"
+      row2.getCell(7).asString mustBe "x-fmt/263"
+    }
+
+    "return an Excel file with empty action fields and correct format fields when a failure has no status actions" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/unknown-file.bin",
+          filename = "unknown-file.bin",
+          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          statusActions = List.empty
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      val wb = parseExcel(contentAsBytes(result))
+      val rows = wb.getFirstSheet.read.asScala.toList
+
+      rows.length mustBe 2
+      val dataRow = rows(1)
+      dataRow.getCell(0).asString mustBe "folder/unknown-file.bin"
+      dataRow.getCell(1).asString mustBe "unknown-file.bin"
+      dataRow.getCell(2).asString mustBe ""
+      dataRow.getCell(3).asString mustBe ""
+      dataRow.getCell(4).asString mustBe ""
+      dataRow.getCell(5).asString mustBe ""
+      dataRow.getCell(6).asString mustBe "Unknown Format"
+      dataRow.getCell(7).asString mustBe "fmt/999"
+    }
+
+    "return an Excel file with pipe-delimited formats and PUIDs when a failure has multiple format matches" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/ambiguous-file.doc",
+          filename = "ambiguous-file.doc",
+          matches = List(
+            FileFormatMatch("fmt/40", "Microsoft Word Document"),
+            FileFormatMatch("fmt/412", "Microsoft Word Document (Password Protected)")
+          ),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File may be password protected"))
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      val wb = parseExcel(contentAsBytes(result))
+      val rows = wb.getFirstSheet.read.asScala.toList
+
+      rows.length mustBe 2
+      val dataRow = rows(1)
+      dataRow.getCell(6).asString mustBe "Microsoft Word Document|Microsoft Word Document (Password Protected)"
+      dataRow.getCell(7).asString mustBe "fmt/40|fmt/412"
+    }
+
+    "return an Excel file with data rows for each failure when there are multiple failures" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/file-a.txt",
+          filename = "file-a.txt",
+          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+        ),
+        FileCheckFailure(
+          originalPath = "folder/file-b.zip",
+          filename = "file-b.zip",
+          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      val wb = parseExcel(contentAsBytes(result))
+      val rows = wb.getFirstSheet.read.asScala.toList
+
+      rows.length mustBe 3
+      rows(1).getCell(0).asString mustBe "folder/file-a.txt"
+      rows(1).getCell(1).asString mustBe "file-a.txt"
+      rows(2).getCell(0).asString mustBe "folder/file-b.zip"
+      rows(2).getCell(1).asString mustBe "file-b.zip"
+    }
   }
 
   "return forbidden for a TNA user" in {
@@ -707,6 +920,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       applicationConfig
     )
   }
+
+  private def parseExcel(bytes: ByteString): ReadableWorkbook =
+    new ReadableWorkbook(new ByteArrayInputStream(bytes.toArray))
+
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
     new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
