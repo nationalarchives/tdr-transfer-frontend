@@ -146,15 +146,15 @@ class FileChecksController @Inject() (
     (for {
       statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
       result <-
-        if (!isJudgmentUser && backendChecksFailed(statuses)) {
+        if (backendChecksFailed(statuses)) {
           Future.successful(Redirect(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)).uncache())
         } else {
           val uploadStatus = statuses.find(_.statusType == UploadType.id)
-          val alreadyTriggered = uploadStatus.isDefined && uploadStatus.get.value == CompletedValue.value || uploadStatus.get.value == CompletedWithIssuesValue.value
+          val alreadyTriggered = uploadStatus.exists(status => status.value == CompletedValue.value || status.value == CompletedWithIssuesValue.value)
           for {
             backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
             fileChecks <-
-              if (backendChecksTriggered && uploadStatus.get.value != CompletedWithIssuesValue.value) {
+              if (backendChecksTriggered && !uploadStatus.exists(_.value == CompletedWithIssuesValue.value)) {
                 getFileChecksProgress(request, consignmentId)
               } else {
                 throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
