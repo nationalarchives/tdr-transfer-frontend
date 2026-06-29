@@ -2,13 +2,16 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import controllers.util.ExcelUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, FileCheckFailureService}
 import viewsapi.Caching.preventCaching
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,6 +25,7 @@ class FileChecksResultsController @Inject() (
     val confirmTransferService: ConfirmTransferService,
     val consignmentExportService: ConsignmentExportService,
     val consignmentStatusService: ConsignmentStatusService,
+    val fileCheckFailureService: FileCheckFailureService,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -75,8 +79,9 @@ class FileChecksResultsController @Inject() (
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         result <- transferProgress match {
           case Some(CompletedValue.value)           => Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
-          case Some(CompletedWithIssuesValue.value) => Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
-          case _                                    =>
+          case Some(CompletedWithIssuesValue.value) =>
+            Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
+          case _ =>
             for {
               consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
               exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
@@ -99,6 +104,36 @@ class FileChecksResultsController @Inject() (
             } yield result
         }
       } yield result
+  }
+
+  def downloadFileCheckFailuresReport(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    for {
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      failures <- fileCheckFailureService.getFileCheckFailures(consignmentId)
+    } yield {
+      val headers = List("Filepath", "Filename", "Who should investigate", "Action", "Detail", "Error Type", "File Format", "PUID")
+      val dataRows: List[List[String]] = failures.flatMap { failure =>
+        val fileFormats = failure.matches.map(_.formatName).mkString("|")
+        val puids = failure.matches.map(_.puid).mkString("|")
+        if (failure.statusActions.isEmpty) {
+          List(List(failure.originalPath, failure.filename, "", "", "", "", fileFormats, puids))
+        } else {
+          failure.statusActions.map { action =>
+            List(failure.originalPath, failure.filename, action.actionType, action.action, action.message, action.statusName, fileFormats, puids)
+          }
+        }
+      }
+      val rows = headers :: dataRows
+      val excelBytes = ExcelUtils.writeExcel(s"File Check Failures for $reference", rows)
+      Ok(excelBytes)
+        .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-file-check-failures-${fileCheckFailuresCurrentDateTime}.xlsx")
+    }
+  }
+
+  private def fileCheckFailuresCurrentDateTime: String = {
+    val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
+    dateTimeFormatter.format(LocalDateTime.now())
   }
 }
 
