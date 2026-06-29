@@ -9,7 +9,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import software.amazon.awssdk.services.s3.model.S3Object
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{TNASupport, UserFixable}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -95,7 +94,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("File Format", "User", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("File Format", "User", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
     }
 
@@ -142,7 +141,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("Antivirus", "TNA", "This file cannot be processed - we will investigate this.")
+        FileCheckStatusAction("Antivirus", "TNA", "Raise a support request", "This file cannot be processed - we will investigate this.")
       )
     }
 
@@ -167,7 +166,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("File Format", "User", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("File Format", "User", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
     }
 
@@ -217,10 +216,10 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result.size shouldBe 2
       result.map(_.originalPath) shouldBe List("file1.txt", "file2.pdf")
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("File Format", "User", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("File Format", "User", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
       result(1).statusActions shouldBe List(
-        FileCheckStatusAction("Antivirus", "TNA", "This file cannot be processed - we will investigate this.")
+        FileCheckStatusAction("Antivirus", "TNA", "Raise a support request", "This file cannot be processed - we will investigate this.")
       )
     }
 
@@ -264,108 +263,6 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result.size shouldBe objectCount
       result.map(_.filename) shouldBe (1 to objectCount).map(i => s"file-$i.txt").toList
       result.foreach(_.statusActions should not be empty)
-    }
-  }
-
-  "getFileCheckFailureStatusActionTypes" should {
-
-    "return UserFixable for a user-fixable failure" in {
-      val s3Utils = mock[S3Utils]
-
-      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
-        .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
-
-      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(
-          fileCheckErrorWith(
-            "MixedResolution/zerobyte.txt",
-            List(FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "ZeroByteFile"))
-          )
-        )
-
-      val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
-
-      result shouldBe Set(UserFixable)
-    }
-
-    "return TNASupport for a non user-fixable failure" in {
-      val s3Utils = mock[S3Utils]
-
-      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
-        .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
-
-      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(
-          fileCheckErrorWith(
-            "infected.exe",
-            List(FileCheckStatus(id = fileId1, statusType = "File", statusName = "Antivirus", statusValue = "VirusDetected"))
-          )
-        )
-
-      val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
-
-      result shouldBe Set(TNASupport)
-    }
-
-    "return an empty set when statuses produce no actions" in {
-      val s3Utils = mock[S3Utils]
-
-      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
-        .thenReturn(List(s3ObjectWithKey(s"$consignmentId/filechecks/$fileId1")))
-
-      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, anyString)(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(
-          fileCheckErrorWith(
-            "docs/report.pdf",
-            List(
-              FileCheckStatus(id = fileId1, statusType = "File", statusName = "FFID", statusValue = "Success"),
-              FileCheckStatus(id = fileId1, statusType = "File", statusName = "UnknownType", statusValue = "Failed")
-            )
-          )
-        )
-
-      val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
-
-      result shouldBe empty
-    }
-
-    "return both action types across multiple S3 objects" in {
-      val s3Utils = mock[S3Utils]
-      val key1 = s"$consignmentId/filechecks/$fileId1"
-      val key2 = s"$consignmentId/filechecks/$fileId2"
-
-      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
-        .thenReturn(List(s3ObjectWithKey(key1), s3ObjectWithKey(key2)))
-
-      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, org.mockito.ArgumentMatchers.eq(key1))(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(
-          fileCheckErrorWith("file1.txt", List(FileCheckStatus(fileId1, "File", "FFID", "ZeroByteFile")))
-        )
-
-      when(s3Utils.decodeS3JsonObject[FileCheckError](anyString, org.mockito.ArgumentMatchers.eq(key2))(org.mockito.ArgumentMatchers.any()))
-        .thenReturn(
-          fileCheckErrorWith("file2.pdf", List(FileCheckStatus(fileId2, "File", "Antivirus", "VirusDetected")))
-        )
-
-      val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
-
-      result shouldBe Set(UserFixable, TNASupport)
-    }
-
-    "return an empty set when there are no S3 objects" in {
-      val s3Utils = mock[S3Utils]
-
-      when(s3Utils.listAllObjectsWithPrefix(anyString, anyString, anyInt))
-        .thenReturn(List.empty)
-
-      val service = new FileCheckFailureService(mockAppConfig)
-      val result = service.getFileCheckFailureStatusActionTypes(consignmentId, s3Utils).futureValue
-
-      result shouldBe empty
     }
   }
 }

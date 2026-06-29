@@ -5,7 +5,7 @@ import io.circe.generic.auto._
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients._
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusAction, StatusActionType}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.StatusAction
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.StatusValue
 
@@ -30,6 +30,7 @@ case class FileCheckStatus(
 case class FileCheckStatusAction(
     statusName: String,
     actionType: String,
+    action: String,
     message: String
 )
 
@@ -72,9 +73,11 @@ object FileCheckFailureService {
   private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction = {
     val statusNameLabel = Option(failureMessages.getProperty(status.statusName)).getOrElse(status.statusName)
     val actionTypeLabel = Option(failureMessages.getProperty(statusAction.actionType.toString)).getOrElse(statusAction.actionType.toString)
+    val actionLabel = Option(failureMessages.getProperty(s"${statusAction.actionType}.action")).getOrElse(statusAction.actionType.toString)
     FileCheckStatusAction(
       statusName = statusNameLabel,
       actionType = actionTypeLabel,
+      action = actionLabel,
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
     )
   }
@@ -126,29 +129,4 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
     }
   }
 
-  def getFileCheckFailureStatusActionTypes(consignmentId: UUID): Future[Set[StatusActionType]] =
-    getFileCheckFailureStatusActionTypes(consignmentId, S3Utils(s3Async(applicationConfig.s3Endpoint)))
-
-  private[services] def getFileCheckFailureStatusActionTypes(consignmentId: UUID, s3Utils: S3Utils): Future[Set[StatusActionType]] = {
-    val bucket = applicationConfig.transferErrorsS3BucketName
-    val prefix = s"$consignmentId/filechecks/"
-    val objectsFuture = Future(blocking(s3Utils.listAllObjectsWithPrefix(bucket, prefix)))
-
-    objectsFuture.flatMap { objects =>
-      objects.grouped(maxParallelS3Fetches).foldLeft(Future.successful(Set.empty[StatusActionType])) { (accFuture, batch) =>
-        accFuture.flatMap { acc =>
-          Future
-            .traverse(batch) { s3Object =>
-              Future {
-                blocking {
-                  val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
-                  FileCheckFailureService.toStatusActions(fileCheckError).map { case (_, action) => action.actionType }
-                }
-              }
-            }
-            .map(acc ++ _.flatten)
-        }
-      }
-    }
-  }
 }
