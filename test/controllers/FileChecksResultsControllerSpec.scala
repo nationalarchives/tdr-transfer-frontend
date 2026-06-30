@@ -308,7 +308,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses("ClientChecks", "fileStatusValue"))))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "ClientChecks", "fileStatusValue"))))
 
         val data = Data(
           Option(
@@ -341,7 +341,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses("FFID", "PasswordProtected"))))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "PasswordProtected"))))
 
         val data = Data(
           Option(
@@ -382,7 +382,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the zip $userType error page if file checks have failed with Zip" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses("FFID", "Zip"))))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Zip"))))
 
         val data = Data(
           Option(
@@ -432,8 +432,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(
-          gfcp.GetConsignment.Files(List(FileStatuses("FFID", "PasswordProtected"))),
-          gfcp.GetConsignment.Files(List(FileStatuses("FFID", "Zip")))
+          gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "PasswordProtected"))),
+          gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Zip")))
         )
 
         val data = Data(
@@ -936,7 +936,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
     setConsignmentStatusResponse(app.configuration, wiremockServer)
-    val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses("FFID", "Success"))))
+    val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Success"))))
 
     val fileChecksData = gfcp.Data(
       Option(
