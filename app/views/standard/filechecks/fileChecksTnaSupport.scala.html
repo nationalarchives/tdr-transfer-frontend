@@ -1,0 +1,61 @@
+@import views.html.partials.transferReference
+
+@import java.util.UUID
+@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+
+@main(title, name = name) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <div class="govuk-notification-banner govuk-notification-banner--error" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        There is a problem with your files
+                    </h2>
+                </div>
+                <div class="govuk-notification-banner__content">
+                    <h3 class="govuk-notification-banner__heading">
+                        Your folder '@{consignmentInfo.parentFolder}' has records that could not be uploaded
+                    </h3>
+                </div>
+            </div>
+
+            <h1 class="govuk-heading-l">What to do next</h1>
+
+            <p class="govuk-body">
+                We found some issues that need further review, and our support team has been notified.
+            </p>
+
+            <p class="govuk-body">
+                Email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                with your consignment reference <strong>@consignmentRef</strong> and your transfer advisor will help you resolve the issue.
+            </p>
+
+            <div class="govuk-!-display-block govuk-!-margin-top-3">
+                <a class="govuk-button govuk-button--secondary download-metadata" href="@routes.FileChecksResultsController.downloadFileCheckFailuresReport(consignmentId)">
+                    <span aria-hidden="true" class="tna-button-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
+                            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>
+                        </svg>
+                    </span>
+                    Download error report (Excel)
+                </a>
+            </div>
+
+            <hr class="govuk-section-break govuk-section-break--m">
+
+            <div class="da-alert da-alert--default">
+                <div class="da-alert__content">
+                    <h2 class="da-alert__heading da-alert__heading--s">
+                        Resuming your upload
+                    </h2>
+                    <p class="govuk-body">
+                        Once your transfer advisor confirms that the issues are resolved, you will need to start a new transfer.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+}
+

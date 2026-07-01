@@ -8,7 +8,13 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, FileCheckFailureService}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusActionType, TNASupport}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{StatusValue => CommonStatusValue}
 import viewsapi.Caching.preventCaching
+
+import scala.util.Try
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -38,38 +44,69 @@ class FileChecksResultsController @Inject() (
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-    } yield {
-      if (fileCheck.allChecksSucceeded) {
-        val consignmentInfo = ConsignmentFolderInfo(
-          fileCheck.totalFiles,
-          parentFolder
-        )
-        if (applicationConfig.blockFileChecksFailureV2) {
-          Ok(
-            views.html.standard.fileChecksResults(
-              consignmentInfo,
-              pageTitle,
-              consignmentId,
-              reference,
-              request.token.name
-            )
+      result <- {
+        if (fileCheck.allChecksSucceeded) {
+          val consignmentInfo = ConsignmentFolderInfo(
+            fileCheck.totalFiles,
+            parentFolder
           )
+          if (applicationConfig.blockFileChecksFailureV2) {
+            Future.successful(
+              Ok(
+                views.html.standard.fileChecksResults(
+                  consignmentInfo,
+                  pageTitle,
+                  consignmentId,
+                  reference,
+                  request.token.name
+                )
+              )
+            )
+          } else {
+            Future.successful(
+              Ok(
+                views.html.standard.filechecks.fileChecksSuccessResults(
+                  consignmentInfo,
+                  pageTitle,
+                  consignmentId,
+                  reference,
+                  request.token.name
+                )
+              )
+            )
+          }
         } else {
-          Ok(
-            views.html.standard.filechecks.fileChecksSuccessResults(
-              consignmentInfo,
-              pageTitle,
-              consignmentId,
-              reference,
-              request.token.name
-            )
-          )
+          val fileStatuses = fileCheck.files.flatMap(_.fileStatuses)
+          val fileStatusList = fileStatuses.map(_.statusValue)
+          val failedResult = Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
+          if (applicationConfig.blockFileChecksFailureV2) {
+            Future.successful(failedResult)
+          } else {
+            val statusActions: Set[StatusActionType] = fileStatuses.flatMap { status =>
+              Try(toStatusType(status.statusType)).toOption.flatMap { statusType =>
+                StatusActions.action(statusType, CommonStatusValue(status.statusValue)).map(_.actionType)
+              }
+            }.toSet
+            val result =
+              if (statusActions == Set[StatusActionType](TNASupport)) {
+                val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
+                Ok(
+                  views.html.standard.filechecks.fileChecksTnaSupport(
+                    consignmentInfo,
+                    pageTitle,
+                    consignmentId,
+                    reference,
+                    request.token.name
+                  )
+                )
+              } else {
+                failedResult
+              }
+            Future.successful(result)
+          }
         }
-      } else {
-        val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
       }
-    }
+    } yield result
   }
 
   def judgmentFileCheckResultsPage(consignmentId: UUID, transferProgress: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {
@@ -79,9 +116,8 @@ class FileChecksResultsController @Inject() (
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         result <- transferProgress match {
           case Some(CompletedValue.value)           => Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
-          case Some(CompletedWithIssuesValue.value) =>
-            Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
-          case _ =>
+          case Some(CompletedWithIssuesValue.value) => Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
+          case _                                    =>
             for {
               consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
               exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
@@ -113,8 +149,8 @@ class FileChecksResultsController @Inject() (
     } yield {
       val headers = List("Filepath", "Filename", "Who should investigate", "Action", "Detail", "Error Type", "File Format", "PUID")
       val dataRows: List[List[String]] = failures.flatMap { failure =>
-        val fileFormats = failure.matches.map(_.formatName).mkString("|")
-        val puids = failure.matches.map(_.puid).mkString("|")
+        val fileFormats = failure.matches.flatMap(_.formatName).mkString("|")
+        val puids = failure.matches.flatMap(_.puid).mkString("|")
         if (failure.statusActions.isEmpty) {
           List(List(failure.originalPath, failure.filename, "", "", "", "", fileFormats, puids))
         } else {

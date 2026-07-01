@@ -8,6 +8,7 @@ import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
+import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.Files.FileStatuses
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsignment, Variables}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import io.circe.Printer
@@ -307,7 +308,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("fileStatusValue")))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "ClientChecks", "fileStatusValue"))))
 
         val data = Data(
           Option(
@@ -340,7 +341,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "PasswordProtected"))))
 
         val data = Data(
           Option(
@@ -381,7 +382,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the zip $userType error page if file checks have failed with Zip" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("Zip")))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Zip"))))
 
         val data = Data(
           Option(
@@ -430,7 +431,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")), gfcp.GetConsignment.Files(Some("Zip")))
+        val fileStatus = List(
+          gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "PasswordProtected"))),
+          gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Zip")))
+        )
 
         val data = Data(
           Option(
@@ -519,7 +523,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         )
       )
@@ -548,7 +552,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.zip",
           filename = "test-file.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
             FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
             FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
@@ -576,7 +580,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/unknown-file.bin",
           filename = "unknown-file.bin",
-          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          matches = List(FileFormatMatch(Some("fmt/999"), Some("Unknown Format"))),
           statusActions = List.empty
         )
       )
@@ -601,13 +605,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
         )
       )
@@ -683,7 +687,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         )
       )
@@ -719,7 +723,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.zip",
           filename = "test-file.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
             FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
             FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
@@ -768,7 +772,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/unknown-file.bin",
           filename = "unknown-file.bin",
-          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          matches = List(FileFormatMatch(Some("fmt/999"), Some("Unknown Format"))),
           statusActions = List.empty
         )
       )
@@ -805,8 +809,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           originalPath = "folder/ambiguous-file.doc",
           filename = "ambiguous-file.doc",
           matches = List(
-            FileFormatMatch("fmt/40", "Microsoft Word Document"),
-            FileFormatMatch("fmt/412", "Microsoft Word Document (Password Protected)")
+            FileFormatMatch(Some("fmt/40"), Some("Microsoft Word Document")),
+            FileFormatMatch(Some("fmt/412"), Some("Microsoft Word Document (Password Protected)"))
           ),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File may be password protected"))
         )
@@ -837,13 +841,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
         )
       )
@@ -932,7 +936,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
     setConsignmentStatusResponse(app.configuration, wiremockServer)
-    val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
+    val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Success"))))
 
     val fileChecksData = gfcp.Data(
       Option(
