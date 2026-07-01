@@ -58,7 +58,7 @@ class MetadataReviewActionController @Inject() (
         consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, request.token.bearerAccessToken)
         _ <- Future.sequence(
           consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
-            val notes = if (!applicationConfig.blockMetadataReviewV2 && statusType == MetadataReviewType.id) formData.statusReason else None
+            val notes = if (statusType == MetadataReviewType.id) formData.statusReason else None
             consignmentStatusService.updateConsignmentStatus(
               ConsignmentStatusInput(consignmentId, statusType, Some(statusValue), None, notes),
               request.token.bearerAccessToken
@@ -80,11 +80,8 @@ class MetadataReviewActionController @Inject() (
             totalRecords = consignmentDetails.totalFiles
           )
         )
-        if (applicationConfig.blockMetadataReviewV2)
-          Redirect(routes.MetadataReviewController.metadataReviews())
-        else
-          Redirect(routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId))
-            .flashing("success" -> "true")
+        Redirect(routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId))
+          .flashing("success" -> "true")
       }
     }
 
@@ -97,57 +94,40 @@ class MetadataReviewActionController @Inject() (
   private def getConsignmentMetadataDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedStatusData])(implicit
       requestHeader: RequestHeader
   ): Future[Result] = {
-    if (applicationConfig.blockMetadataReviewV2) {
-      for {
-        consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
-        userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
-      } yield {
-        status(
-          views.html.tna.metadataReviewAction(
-            consignmentId,
-            consignment,
-            userDetails.email,
-            createDropDownField(List(InputNameAndValue(ApproveLabel, CompletedValue.value), InputNameAndValue(RejectLabel, CompletedWithIssuesValue.value)), form),
-            request.token.isTransferAdviser
-          )
-        )
+    for {
+      consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
+      action = consignment.metadataReviewLogs.lastOption.map(_.action)
+      totalSubmissions = consignment.metadataReviewLogs.count(_.action == Submission.value)
+      dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => DateUtils.formatWithDaySuffix(log.eventTime)).getOrElse("Unknown")
+      userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
+      lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
+      lastReviewerDetails <- lastReviewLog match {
+        case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u))
+        case None      => Future.successful(None)
       }
-    } else {
-      for {
-        consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
-        action = consignment.metadataReviewLogs.lastOption.map(_.action)
-        totalSubmissions = consignment.metadataReviewLogs.count(_.action == Submission.value)
-        dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => DateUtils.formatWithDaySuffix(log.eventTime)).getOrElse("Unknown")
-        userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
-        lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
-        lastReviewerDetails <- lastReviewLog match {
-          case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u))
-          case None      => Future.successful(None)
-        }
-        lastReviewedByName = lastReviewerDetails.map(d => s"${d.firstName} ${d.lastName}")
-        lastReviewedByEmail = lastReviewerDetails.map(_.email)
-        lastUpdated = lastReviewLog.map(log => DateUtils.formatWithDaySuffix(log.eventTime))
-        lastNote = lastReviewLog.flatMap(_.metadataReviewNotes)
-      } yield {
-        status(
-          views.html.tna.metadataReviewActionV2(
-            consignmentId,
-            consignment,
-            action.getOrElse("Unknown"),
-            totalSubmissions,
-            dateSubmitted,
-            lastReviewedByName,
-            lastReviewedByEmail,
-            lastUpdated,
-            lastNote,
-            userDetails.email,
-            createDropDownField(List(InputNameAndValue(ApprovedLabel, CompletedValue.value), InputNameAndValue(RejectedLabel, CompletedWithIssuesValue.value)), form),
-            form("statusReason").errors.flatMap(_.messages),
-            request.token.isTransferAdviser,
-            request.flash.get("success").isDefined
-          )
+      lastReviewedByName = lastReviewerDetails.map(d => s"${d.firstName} ${d.lastName}")
+      lastReviewedByEmail = lastReviewerDetails.map(_.email)
+      lastUpdated = lastReviewLog.map(log => DateUtils.formatWithDaySuffix(log.eventTime))
+      lastNote = lastReviewLog.flatMap(_.metadataReviewNotes)
+    } yield {
+      status(
+        views.html.tna.metadataReviewActionV2(
+          consignmentId,
+          consignment,
+          action.getOrElse("Unknown"),
+          totalSubmissions,
+          dateSubmitted,
+          lastReviewedByName,
+          lastReviewedByEmail,
+          lastUpdated,
+          lastNote,
+          userDetails.email,
+          createDropDownField(List(InputNameAndValue(ApprovedLabel, CompletedValue.value), InputNameAndValue(RejectedLabel, CompletedWithIssuesValue.value)), form),
+          form("statusReason").errors.flatMap(_.messages),
+          request.token.isTransferAdviser,
+          request.flash.get("success").isDefined
         )
-      }
+      )
     }
   }
 
@@ -177,8 +157,6 @@ class MetadataReviewActionController @Inject() (
 }
 
 object MetadataReviewActionController {
-  val ApproveLabel = "Approve"
-  val RejectLabel = "Reject"
   val ApprovedLabel = "Approved"
   val RejectedLabel = "Rejected"
 

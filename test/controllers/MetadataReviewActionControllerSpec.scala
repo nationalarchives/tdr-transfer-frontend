@@ -52,10 +52,20 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
   val expectedPath = s"/consignment/$consignmentId/metadata-review/review-progress"
   val downloadTemplateDomain: Option[String] = Some("MetadataReviewDetailTemplate")
 
+  val submissionLog: getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs =
+    getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
+      UUID.randomUUID(),
+      consignmentId,
+      userId,
+      "Submission",
+      java.time.ZonedDateTime.parse("2024-07-05T07:00:00Z"),
+      None
+    )
+
   "MetadataReviewActionController GET" should {
 
     "render the correct metadata details page with an authenticated transfer advisor user" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val metadataReviewActionPage = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -64,12 +74,13 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       playStatus(metadataReviewActionPage) mustBe OK
       contentType(metadataReviewActionPage) mustBe Some("text/html")
 
-      checkForExpectedMetadataReviewActionPageContent(metadataReviewActionPageAsString, templateDomain = downloadTemplateDomain)
+      metadataReviewActionPageAsString must include("Transfer details for TDR-2024-TEST")
+      metadataReviewActionPageAsString must include("""<button data-prevent-double-click="true" class="govuk-button" type="submit"""")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewActionPageAsString, userType = "tna")
     }
 
     "render the correct metadata details page with an authenticated read only user" in {
-      setGetConsignmentDetailsForMetadataReviewResponse()
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val metadataReviewActionPage = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
@@ -78,7 +89,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       playStatus(metadataReviewActionPage) mustBe OK
       contentType(metadataReviewActionPage) mustBe Some("text/html")
 
-      checkForExpectedMetadataReviewActionPageContent(metadataReviewActionPageAsString, templateDomain = downloadTemplateDomain)
+      metadataReviewActionPageAsString must include("Transfer details for TDR-2024-TEST")
+      metadataReviewActionPageAsString must not include """<button data-prevent-double-click="true" class="govuk-button" type="submit""""
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewActionPageAsString, userType = "tna")
     }
 
@@ -122,7 +134,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val reviewSubmit =
         controller.submitReview(consignmentId, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
-      redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
+      redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review/$consignmentId"))
+      flash(reviewSubmit).get("success") mustBe Some("true")
       verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
 
       wiremockServer.verify(
@@ -159,7 +172,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val reviewSubmit =
         controller.submitReview(consignmentId, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
-      redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
+      redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review/$consignmentId"))
+      flash(reviewSubmit).get("success") mustBe Some("true")
       verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
 
       wiremockServer.getAllServeEvents.forEach { e =>
@@ -181,9 +195,9 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    "redirect to the consignment metadata details page when blockMetadataReviewV2 is false after a successful review submission" in {
+    "redirect to the consignment metadata details page after a successful review submission" in {
       val controller =
-        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val status = CompletedWithIssuesValue.value
 
       setConsignmentsForMetadataReviewRequestResponse(
@@ -200,9 +214,9 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       flash(reviewSubmit).get("success") mustBe Some("true")
     }
 
-    "include notes in the MetadataReview status update when blockMetadataReviewV2 is false" in {
+    "include notes in the MetadataReview status update" in {
       val controller =
-        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val status = CompletedWithIssuesValue.value
       val notes = "Some reason for rejection"
 
@@ -229,38 +243,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    "not include notes in the MetadataReview status update when blockMetadataReviewV2 is true" in {
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
-      val status = CompletedWithIssuesValue.value
-      val notes = "Some reason for rejection"
-
-      setConsignmentsForMetadataReviewRequestResponse(
-        wiremockServer,
-        consignmentReference = consignmentRef,
-        userId = userId
-      )
-      setUpdateConsignmentStatus(wiremockServer)
-
-      val reviewSubmit =
-        controller
-          .submitReview(consignmentId, userEmail)
-          .apply(
-            FakeRequest().withFormUrlEncodedBody(("status", status), ("statusReason", notes)).withCSRFToken
-          )
-      playStatus(reviewSubmit) mustBe SEE_OTHER
-
-      wiremockServer.verify(
-        postRequestedFor(urlEqualTo("/graphql"))
-          .withRequestBody(containing("updateConsignmentStatus"))
-          .withRequestBody(containing("MetadataReview"))
-          .withRequestBody(notMatching(s".*$notes.*"))
-      )
-    }
-
     "display errors when an invalid form is submitted" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
-      val consignmentRef = "TDR-TEST-2024"
-      val userEmail = "test@test.com"
       val metadataReviewDecisionEvent =
         MetadataReviewSubmittedEvent(
           "intg",
@@ -276,7 +260,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
         )
       val reviewSubmit = controller.submitReview(consignmentId, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
       setUpdateConsignmentStatus(wiremockServer)
-      setGetConsignmentDetailsForMetadataReviewResponse()
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
       playStatus(reviewSubmit) mustBe BAD_REQUEST
 
       val metadataReviewSubmitAsString = contentAsString(reviewSubmit)
@@ -289,7 +273,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |        <span class="govuk-visually-hidden">Error:</span>
       |        Select a status
       |    </p>""".stripMargin)
-      checkForExpectedMetadataReviewActionPageContent(metadataReviewSubmitAsString, templateDomain = downloadTemplateDomain)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewSubmitAsString, userType = "tna")
       verify(messagingService, times(0)).sendMetadataReviewSubmittedNotification(metadataReviewDecisionEvent)
     }
@@ -297,13 +280,12 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
   private def instantiateMetadataReviewActionController(
       securityComponents: SecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockMetadataReviewV2: Boolean = true
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val config = getApplicationConfig(Map("featureAccessBlock.blockMetadataReviewV2" -> blockMetadataReviewV2))
+    val config = getApplicationConfig()
 
     new MetadataReviewActionController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService, messagingService, config)
   }
@@ -342,16 +324,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     )
   }
 
-  "MetadataReviewActionController GET V2 (blockMetadataReviewV2 = false)" should {
+  "MetadataReviewActionController GET V2" should {
 
-    val submissionLog = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
-      UUID.randomUUID(),
-      consignmentId,
-      userId,
-      "Submission",
-      ZonedDateTime.parse("2024-07-05T07:00:00Z"),
-      None
-    )
     val rejectionLog = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
       UUID.randomUUID(),
       consignmentId,
@@ -364,7 +338,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "render the V2 metadata details page for a TNA read-only user" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -377,7 +351,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller =
-        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -390,7 +364,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog))
 
       val controller =
-        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -403,7 +377,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "show status tag label 'Requested' for a Submission action" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -423,7 +397,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       )
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, approvalLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -435,7 +409,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "show status tag label 'Rejected' for a Rejection action" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -449,7 +423,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "show the correct total submission count" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog, submissionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -461,7 +435,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "show the formatted date submitted from the last Submission log" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -471,7 +445,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "show Last reviewed by and Last updated rows when a non-Submission log exists" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -484,7 +458,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "not show Last reviewed by and Last updated rows when only Submission logs exist" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -495,7 +469,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "not show Last reviewed by and Last updated rows when there are no review logs" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List.empty)
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -506,7 +480,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "show 'View submission history' link when there are more than 1 submissions" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLog, submissionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -516,7 +490,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "show a success banner on the consignment metadata details page after a successful review submission" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller
         .consignmentMetadataDetails(consignmentId)
         .apply(
@@ -542,7 +516,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       )
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLogWithNote))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller
         .consignmentMetadataDetails(consignmentId)
         .apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withFlash("success" -> "true").withCSRFToken)
@@ -565,7 +539,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       )
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, rejectionLogWithNote))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
@@ -600,7 +574,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
         .printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql")).withRequestBody(containing("getConsignmentDetailsForMetadataReview")).willReturn(okJson(data)))
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), blockMetadataReviewV2 = false)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
 
       contentAsString(page) must include("Yes")
@@ -610,7 +584,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
       val controller =
-        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true), blockMetadataReviewV2 = false)
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val statusValue = CompletedWithIssuesValue.value
       val oversizedReason = "a" * 1301
 
@@ -646,42 +620,6 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       result mustBe Seq(
         (MetadataReviewType.id, CompletedValue.value)
       )
-    }
-  }
-
-  private def checkForExpectedMetadataReviewActionPageContent(pageAsString: String, isTransferAdvisor: Boolean = false, templateDomain: Option[String]): Unit = {
-    pageAsString must include("""<a href="/admin/metadata-review" class="govuk-back-link">Back</a>""")
-    pageAsString must include("""View request for TDR-2024-TEST""")
-    pageAsString must include("""<dt class="govuk-summary-list__key">
-      |                            Department
-      |                        </dt>
-      |                        <dd class="govuk-summary-list__value">
-      |                        TransferringBody
-      |                        </dd>""".stripMargin)
-    pageAsString must include("""<dt class="govuk-summary-list__key">
-      |                            Series
-      |                        </dt>
-      |                        <dd class="govuk-summary-list__value">
-      |                        SeriesName
-      |                        </dd>""".stripMargin)
-    pageAsString must include(s"""<dt class="govuk-summary-list__key">
-      |                            Contact email
-      |                        </dt>
-      |                        <dd class="govuk-summary-list__value">
-      |                        email@test.com
-      |                        </dd>""".stripMargin)
-    pageAsString must include("""1. Download and review transfer metadata""")
-    pageAsString must include(downloadLinkHTML(consignmentId, templateDomain))
-    if (isTransferAdvisor) {
-      pageAsString must include("""2. Set the status of this review""")
-      pageAsString must include(
-        s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST&amp;userEmail=email%40test.com" method="POST" novalidate="">"""
-      )
-      pageAsString must include(s"""<option value="" selected>
-                                   |                    Select a status
-                                   |                </option>""".stripMargin)
-      pageAsString must include(s"""<option value="Completed">Approve</option>""")
-      pageAsString must include(s"""<option value="CompletedWithIssues">Reject</option>""")
     }
   }
 
