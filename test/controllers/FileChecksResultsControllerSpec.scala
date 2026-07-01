@@ -523,7 +523,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         )
       )
@@ -552,7 +552,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.zip",
           filename = "test-file.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
             FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
             FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
@@ -580,7 +580,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/unknown-file.bin",
           filename = "unknown-file.bin",
-          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          matches = List(FileFormatMatch(Some("fmt/999"), Some("Unknown Format"))),
           statusActions = List.empty
         )
       )
@@ -605,13 +605,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
         )
       )
@@ -687,7 +687,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         )
       )
@@ -723,7 +723,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.zip",
           filename = "test-file.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
             FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
             FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
@@ -772,7 +772,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/unknown-file.bin",
           filename = "unknown-file.bin",
-          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          matches = List(FileFormatMatch(Some("fmt/999"), Some("Unknown Format"))),
           statusActions = List.empty
         )
       )
@@ -809,8 +809,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           originalPath = "folder/ambiguous-file.doc",
           filename = "ambiguous-file.doc",
           matches = List(
-            FileFormatMatch("fmt/40", "Microsoft Word Document"),
-            FileFormatMatch("fmt/412", "Microsoft Word Document (Password Protected)")
+            FileFormatMatch(Some("fmt/40"), Some("Microsoft Word Document")),
+            FileFormatMatch(Some("fmt/412"), Some("Microsoft Word Document (Password Protected)"))
           ),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File may be password protected"))
         )
@@ -841,13 +841,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
           statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
         )
       )

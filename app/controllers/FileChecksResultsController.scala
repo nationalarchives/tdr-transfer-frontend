@@ -149,8 +149,8 @@ class FileChecksResultsController @Inject() (
     } yield {
       val headers = List("Filepath", "Filename", "Who should investigate", "Action", "Detail", "Error Type", "File Format", "PUID")
       val dataRows: List[List[String]] = failures.flatMap { failure =>
-        val fileFormats = failure.matches.map(_.formatName).mkString("|")
-        val puids = failure.matches.map(_.puid).mkString("|")
+        val fileFormats = failure.matches.flatMap(_.formatName).mkString("|")
+        val puids = failure.matches.flatMap(_.puid).mkString("|")
         if (failure.statusActions.isEmpty) {
           List(List(failure.originalPath, failure.filename, "", "", "", "", fileFormats, puids))
         } else {

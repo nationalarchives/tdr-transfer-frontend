@@ -16,8 +16,8 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.Try
 
 case class FileFormatMatch(
-    puid: String,
-    formatName: String
+    puid: Option[String],
+    formatName: Option[String]
 )
 
 case class FileCheckStatus(

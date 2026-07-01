@@ -1,6 +1,8 @@
 package services
 
 import configuration.ApplicationConfig
+import io.circe.generic.auto._
+import io.circe.parser.decode
 import org.mockito.ArgumentMatchers.{anyInt, anyString}
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
@@ -37,7 +39,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
           fileFormat = List(
             FileFormatResult(
               fileId = fileId1,
-              matches = List(FileFormatMatch("x-fmt/111", "Plain Text File"))
+              matches = List(FileFormatMatch(Some("x-fmt/111"), Some("Plain Text File")))
             )
           )
         )
@@ -70,7 +72,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result.size shouldBe 1
       result.head.originalPath shouldBe "MixedResolution/zerobyte.txt"
       result.head.filename shouldBe "zerobyte.txt"
-      result.head.matches shouldBe List(FileFormatMatch("x-fmt/111", "Plain Text File"))
+      result.head.matches shouldBe List(FileFormatMatch(Some("x-fmt/111"), Some("Plain Text File")))
     }
 
     "convert statuses to status actions using StatusActions.action" in {
@@ -263,6 +265,34 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result.size shouldBe objectCount
       result.map(_.filename) shouldBe (1 to objectCount).map(i => s"file-$i.txt").toList
       result.foreach(_.statusActions should not be empty)
+    }
+
+    "decode a file format match with a null puid as None instead of failing" in {
+      val json =
+        s"""
+           |{
+           |  "file": {
+           |    "originalPath": "folder/file.txt",
+           |    "fileCheckResults": {
+           |      "fileFormat": [
+           |        {
+           |          "fileId": "$fileId1",
+           |          "matches": [
+           |            { "puid": null, "formatName": "Plain Text File" }
+           |          ]
+           |        }
+           |      ]
+           |    }
+           |  },
+           |  "statuses": []
+           |}
+           |""".stripMargin
+
+      val result = decode[FileCheckError](json)
+
+      result.isRight shouldBe true
+      val matches = result.toOption.get.file.fileCheckResults.fileFormat.head.matches
+      matches shouldBe List(FileFormatMatch(None, Some("Plain Text File")))
     }
   }
 }
