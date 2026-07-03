@@ -53,7 +53,7 @@ class SecurityModule extends AbstractModule {
     oidcConfiguration.setSecret(secret)
     oidcConfiguration.setDiscoveryURI(s"$authUrl/realms/tdr/.well-known/openid-configuration")
     oidcConfiguration.setClientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-    oidcConfiguration.setPreferredJwsAlgorithm(JWSAlgorithm.RS256)
+    oidcConfiguration.setIdTokenSigningAlgorithm(JWSAlgorithm.RS256)
     // Setting this causes pac4j to get a new access token using the refresh token when the original access token expires
     oidcConfiguration.setExpireSessionWithToken(true)
     val oidcClient = new OidcClient(oidcConfiguration)
@@ -73,9 +73,7 @@ class SecurityModule extends AbstractModule {
     config.setCallbackLogic(callbackLogic)
     val securityLogic = DefaultSecurityLogic.INSTANCE
     securityLogic.setSavedRequestHandler(customRequestHandler)
-    config.setSessionStoreFactory(new SessionStoreFactory {
-      override def newSessionStore(parameters: FrameworkParameters): SessionStore = sessionStore
-    })
+    config.setSessionStoreFactory(_ => sessionStore)
 
     config
   }
