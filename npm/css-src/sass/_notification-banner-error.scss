@@ -1,0 +1,12 @@
+// Red styling for the "there is a problem with your files" notification banner
+// shown on the file checks TNA support failure page.
+.govuk-notification-banner--error {
+  border-color: #ca3535;
+
+  .govuk-notification-banner__header {
+    background: #ca3535;
+  }
+  .govuk-notification-banner__title {
+    color: #fff;
+  }
+}

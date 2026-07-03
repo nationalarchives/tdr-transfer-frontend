@@ -646,7 +646,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
     val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
     val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
-    val fileStatuses = fileStatusList.map(fileStatus => fileCheck.GetConsignment.Files(Some(fileStatus)))
+    val fileStatuses = fileStatusList.map(fileStatus => fileCheck.GetConsignment.Files(List(fileCheck.GetConsignment.Files.FileStatuses(UUID.randomUUID(), "FFID", fileStatus))))
     val data: client.GraphqlData = client.GraphqlData(
       Some(
         fileCheck.Data(
