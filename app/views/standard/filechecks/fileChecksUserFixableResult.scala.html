@@ -1,0 +1,39 @@
+@import views.html.partials.transferReference
+
+@import java.util.UUID
+@import views.html.partials.daAlert
+@import views.html.partials.downloadMetadataLink
+@import views.html.partials.notificationBannerError
+@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+
+@main(title, name = name) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            @notificationBannerError("There is a problem with your files", s"Your folder '${consignmentInfo.parentFolder}' has records that could not be uploaded")
+
+            <h1 class="govuk-heading-l">What to do next</h1>
+
+            <p class="govuk-body">
+                You should be able to fix all the issues by following these instructions:
+            </p>
+            <ol class="govuk-list govuk-list--number">
+
+                <li>Download the error report to identify the problem files:</li>
+
+                <div class="govuk-!-display-block govuk-!-margin-top-3">
+                    @downloadMetadataLink(consignmentId, "Download error report (Excel)", routes.FileChecksResultsController.downloadFileCheckFailuresReport(consignmentId).url)
+                </div>
+                <li>Open the error report and follow the instructions in the 'Action required' and 'Error details' columns for each file.</li>
+
+                <li>Return to this service when your files are ready to upload again.</li>
+            </ol>
+
+            <p class="govuk-body">If you need help resolving these issues, contact your transfer advisor at <a href="mainto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> with your consignment reference <strong>@consignmentRef</strong>.</p>
+
+            <hr class="govuk-section-break govuk-section-break--m">
+
+            @daAlert("Resuming your upload", Html("When your files are ready, start a new transfer to upload them. You will not be able to continue with this one."))
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+}
