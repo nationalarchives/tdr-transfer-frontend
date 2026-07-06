@@ -137,7 +137,9 @@ class FileChecksController @Inject() (
 
   private def backendChecksFailed(statuses: List[ConsignmentStatuses]): Boolean = {
     val clientChecksStatus = consignmentStatusService.getStatusValues(statuses, ClientChecksType).values.headOption.flatten.getOrElse("")
-    val serverFFIDStatus = consignmentStatusService.getStatusValues(statuses, ServerFFIDType).values.headOption.flatten.getOrElse("")
+    // The server FFID consignment status is created and set to in progress by getFiles. IF no Server FFID consignment status is found, we assume it to be in progress.
+    // This is to allow for failure in the first backend checks task getFiles.
+    val serverFFIDStatus = consignmentStatusService.getStatusValues(statuses, ServerFFIDType).values.headOption.flatten.getOrElse(InProgressValue.value)
     clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
   }
 
