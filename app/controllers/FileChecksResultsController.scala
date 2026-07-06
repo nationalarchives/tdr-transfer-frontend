@@ -9,13 +9,12 @@ import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, FileCheckFailureService}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusActionType, TNASupport}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusActionType, TNASupport, UserFixable}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{StatusValue => CommonStatusValue}
 import viewsapi.Caching.preventCaching
 
 import scala.util.Try
-
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -93,21 +92,17 @@ class FileChecksResultsController @Inject() (
                 StatusActions.action(statusType, CommonStatusValue(status.statusValue)).map(_.actionType)
               }
             }.toSet
-            val result =
-              if (statusActions == Set[StatusActionType](TNASupport)) {
-                val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
-                Ok(
-                  views.html.standard.filechecks.fileChecksTnaSupport(
-                    consignmentInfo,
-                    pageTitle,
-                    consignmentId,
-                    reference,
-                    request.token.name
-                  )
-                )
-              } else {
+            val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
+            val result = statusActions match {
+              case a if a == Set[StatusActionType](TNASupport) =>
+                Ok(views.html.standard.filechecks.fileChecksTnaSupport(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+              case a if a == Set[StatusActionType](UserFixable) =>
+                Ok(views.html.standard.filechecks.fileChecksUserFixableResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+              case a if a == Set[StatusActionType](UserFixable, TNASupport) =>
+                Ok(views.html.standard.filechecks.fileChecksUserFixableAndTNASupportResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+              case _ =>
                 failedResult
-              }
+            }
             Future.successful(result)
           }
         }
@@ -170,7 +165,7 @@ class FileChecksResultsController @Inject() (
       val excelBytes = ExcelUtils.writeExcel(s"File Check Failures for $reference", rows)
       Ok(excelBytes)
         .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-file-check-failures-${fileCheckFailuresCurrentDateTime}.xlsx")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-file-check-failures-$fileCheckFailuresCurrentDateTime.xlsx")
     }
   }
 
