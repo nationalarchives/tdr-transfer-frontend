@@ -171,7 +171,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       val data = Data(
         Option(
-          GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          GetConsignment(
+            allChecksSucceeded = false,
+            parentFolder = Option("parentFolder"),
+            consignmentReference = "TEST-TDR-2021-GB",
+            totalFiles = 1,
+            files = fileStatus,
+            fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+            consignmentStatuses = Nil
+          )
         )
       )
       val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -205,7 +213,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       val data = Data(
         Option(
-          GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          GetConsignment(
+            allChecksSucceeded = false,
+            parentFolder = Option("parentFolder"),
+            consignmentReference = "TEST-TDR-2021-GB",
+            totalFiles = 1,
+            files = fileStatus,
+            fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+            consignmentStatuses = Nil
+          )
         )
       )
       val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -238,7 +254,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       val data = Data(
         Option(
-          GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          GetConsignment(
+            allChecksSucceeded = false,
+            parentFolder = Option("parentFolder"),
+            consignmentReference = "TEST-TDR-2021-GB",
+            totalFiles = 1,
+            files = fileStatus,
+            fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+            consignmentStatuses = Nil
+          )
         )
       )
       val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -486,7 +510,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -527,7 +559,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = true,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -569,7 +609,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -613,7 +661,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -668,7 +724,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -1173,7 +1237,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
     val fileChecksData = gfcp.Data(
       Option(
-        GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+        GetConsignment(
+          allChecksSucceeded = true,
+          parentFolder = Option("parentFolder"),
+          consignmentReference = "TEST-TDR-2021-GB",
+          totalFiles = 1,
+          files = fileStatus,
+          fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+          consignmentStatuses = Nil
+        )
       )
     )
 

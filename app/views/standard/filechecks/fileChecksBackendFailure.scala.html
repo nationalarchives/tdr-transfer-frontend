@@ -1,0 +1,27 @@
+@import views.html.partials.transferReference
+@import views.html.partials.notificationBannerError
+@import views.html.partials.daAlert
+
+@(name: String, title: String, consignmentRef: String)(implicit request: RequestHeader, messages: Messages)
+
+@main(title, name = name, isJudgmentUser = false) {
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      @notificationBannerError("File check error", "We have a problem checking your records", Some(Html("""<p class="govuk-body">There may be a technical issue with this service.</p>""")))
+
+      <h1 class="govuk-heading-l">What to do next</h1>
+
+      <p class="govuk-body">
+        Contact your transfer advisor at
+        <a class="govuk-link" href="mailto:tdr@@nationalarchives.gov.uk">tdr@@nationalarchives.gov.uk</a>
+        with your consignment reference <strong>@consignmentRef</strong> and they will help you resolve the issue.
+      </p>
+
+      <hr class="govuk-section-break govuk-section-break--m">
+
+      @daAlert("Resuming your upload", Html("Once your transfer advisor confirms that the issues are resolved, you will need to start a new transfer."))
+    </div>
+
+    @transferReference(consignmentRef, isJudgmentUser = false)
+  </div>
+}

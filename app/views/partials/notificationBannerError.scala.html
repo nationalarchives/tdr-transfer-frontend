@@ -1,4 +1,4 @@
-@(title: String, heading: String)
+@(title: String, heading: String, contentDetails: Option[Html] = None)
 <div class="govuk-notification-banner govuk-notification-banner--error" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
     <div class="govuk-notification-banner__header">
         <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
@@ -9,5 +9,6 @@
         <h3 class="govuk-notification-banner__heading">
             @heading
         </h3>
+        @contentDetails.map { content => @content }
     </div>
 </div>

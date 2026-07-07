@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
+import io.circe.Json
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -399,7 +399,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val fileChecksResults = controller
         .fileCheckProgress(consignmentId)
@@ -416,12 +415,19 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "return backendChecksFailed=true when ClientChecks Failed and ServerFFID InProgress" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
-      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = false), "standard")
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Failed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ServerFFID", "InProgress", someDateTime, None)
+      mockGetFileCheckProgress(
+        progressData(
+          1,
+          1,
+          1,
+          allChecksSucceeded = false,
+          consignmentStatuses = List(
+            ("ClientChecks", "Failed"),
+            ("ServerFFID", "InProgress")
+          )
+        ),
+        "standard"
       )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
       val fileChecksResults = controller
         .fileCheckProgress(consignmentId)
@@ -639,24 +645,42 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       filesProcessedWithChecksum: Int,
       filesProcessedWithFFID: Int,
       allChecksSucceeded: Boolean,
-      fileStatusList: List[String] = List("Success")
+      fileStatusList: List[String] = List("Success"),
+      consignmentStatuses: List[(String, String)] = Nil
   ): String = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
-    val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
-    val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
-    val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
-    val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
-    val fileStatuses = fileStatusList.map(fileStatus => fileCheck.GetConsignment.Files(List(fileCheck.GetConsignment.Files.FileStatuses(UUID.randomUUID(), "FFID", fileStatus))))
-    val data: client.GraphqlData = client.GraphqlData(
-      Some(
-        fileCheck.Data(
-          Some(
-            fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileStatuses, fileChecks)
-          )
+    val responseJson = Json.obj(
+      "data" -> Json.obj(
+        "getConsignment" -> Json.obj(
+          "allChecksSucceeded" -> Json.fromBoolean(allChecksSucceeded),
+          "parentFolder" -> Json.fromString(""),
+          "consignmentReference" -> Json.fromString("TEST-TDR-2021-GB"),
+          "totalFiles" -> Json.fromInt(totalFiles),
+          "files" -> Json.arr(fileStatusList.map(fileStatus =>
+            Json.obj(
+              "fileStatuses" -> Json.arr(
+                Json.obj(
+                  "fileId" -> Json.fromString(UUID.randomUUID().toString),
+                  "statusType" -> Json.fromString("FFID"),
+                  "statusValue" -> Json.fromString(fileStatus)
+                )
+              )
+            )
+          ): _*),
+          "fileChecks" -> Json.obj(
+            "antivirusProgress" -> Json.obj("filesProcessed" -> Json.fromInt(filesProcessedWithAntivirus)),
+            "checksumProgress" -> Json.obj("filesProcessed" -> Json.fromInt(filesProcessedWithChecksum)),
+            "ffidProgress" -> Json.obj("filesProcessed" -> Json.fromInt(filesProcessedWithFFID))
+          ),
+          "consignmentStatuses" -> Json.arr(consignmentStatuses.map { case (statusType, value) =>
+            Json.obj(
+              "statusType" -> Json.fromString(statusType),
+              "value" -> Json.fromString(value)
+            )
+          }: _*)
         )
       )
     )
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    dataString
+
+    responseJson.printWith(Printer(dropNullValues = false, ""))
   }
 }
