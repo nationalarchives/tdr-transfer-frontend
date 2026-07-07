@@ -39,76 +39,48 @@ class FileChecksResultsController @Inject() (
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of your checks"
 
-    for {
-      fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
-      backendChecksFailed = {
-        val clientChecksStatus = fileCheck.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
-        val serverFFIDStatus = fileCheck.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
-        clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
-      }
-      parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
-      reference = fileCheck.consignmentReference
-      result <- {
-        if (backendChecksFailed) {
-          Future.successful(Ok(views.html.standard.filechecks.fileChecksBackendFailure(request.token.name, pageTitle, reference)))
-        } else if (fileCheck.allChecksSucceeded) {
-          val consignmentInfo = ConsignmentFolderInfo(
-            fileCheck.totalFiles,
-            parentFolder
-          )
-          if (applicationConfig.blockFileChecksFailureV2) {
-            Future.successful(
-              Ok(
-                views.html.standard.fileChecksResults(
-                  consignmentInfo,
-                  pageTitle,
-                  consignmentId,
-                  reference,
-                  request.token.name
-                )
-              )
-            )
-          } else {
-            Future.successful(
-              Ok(
-                views.html.standard.filechecks.fileChecksSuccessResults(
-                  consignmentInfo,
-                  pageTitle,
-                  consignmentId,
-                  reference,
-                  request.token.name
-                )
-              )
-            )
-          }
+    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap { fileCheck =>
+      val clientChecksStatus = fileCheck.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+      val serverFFIDStatus = fileCheck.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
+      val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
+      val reference = fileCheck.consignmentReference
+
+      if (backendChecksFailed(clientChecksStatus, serverFFIDStatus)) {
+        Future.successful(Ok(views.html.standard.filechecks.fileChecksBackendFailure(request.token.name, pageTitle, reference)))
+      } else if (fileCheck.allChecksSucceeded) {
+        val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
+        val view = if (applicationConfig.blockFileChecksFailureV2)
+          views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
+        else
+          views.html.standard.filechecks.fileChecksSuccessResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
+        Future.successful(Ok(view))
+      } else {
+        val fileStatuses = fileCheck.files.flatMap(_.fileStatuses)
+        val fileStatusList = fileStatuses.map(_.statusValue)
+        val failedResult = Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
+        val result = if (applicationConfig.blockFileChecksFailureV2) {
+          failedResult
         } else {
-          val fileStatuses = fileCheck.files.flatMap(_.fileStatuses)
-          val fileStatusList = fileStatuses.map(_.statusValue)
-          val failedResult = Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
-          if (applicationConfig.blockFileChecksFailureV2) {
-            Future.successful(failedResult)
-          } else {
-            val statusActions: Set[StatusActionType] = fileStatuses.flatMap { status =>
-              Try(toStatusType(status.statusType)).toOption.flatMap { statusType =>
-                StatusActions.action(statusType, CommonStatusValue(status.statusValue)).map(_.actionType)
-              }
-            }.toSet
-            val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
-            val result = statusActions match {
-              case a if a == Set[StatusActionType](TNASupport) =>
-                Ok(views.html.standard.filechecks.fileChecksTnaSupport(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-              case a if a == Set[StatusActionType](UserFixable) =>
-                Ok(views.html.standard.filechecks.fileChecksUserFixableResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-              case a if a == Set[StatusActionType](UserFixable, TNASupport) =>
-                Ok(views.html.standard.filechecks.fileChecksUserFixableAndTNASupportResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-              case _ =>
-                failedResult
+          val statusActions: Set[StatusActionType] = fileStatuses.flatMap { status =>
+            Try(toStatusType(status.statusType)).toOption.flatMap { statusType =>
+              StatusActions.action(statusType, CommonStatusValue(status.statusValue)).map(_.actionType)
             }
-            Future.successful(result)
+          }.toSet
+          val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
+          statusActions match {
+            case a if a == Set[StatusActionType](TNASupport) =>
+              Ok(views.html.standard.filechecks.fileChecksTnaSupport(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+            case a if a == Set[StatusActionType](UserFixable) =>
+              Ok(views.html.standard.filechecks.fileChecksUserFixableResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+            case a if a == Set[StatusActionType](UserFixable, TNASupport) =>
+              Ok(views.html.standard.filechecks.fileChecksUserFixableAndTNASupportResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+            case _ =>
+              failedResult
           }
         }
+        Future.successful(result)
       }
-    } yield result
+    }
   }
 
   def judgmentFileCheckResultsPage(consignmentId: UUID, transferProgress: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {

@@ -137,4 +137,13 @@ object Statuses {
       case _                        => UnrecognisedType
     }
   }
+
+  /** Determines if backend checks have failed based on client checks and server FFID status values.
+    * The server FFID consignment status is created and set to in progress by getFiles.
+    * If no Server FFID consignment status is found, we assume it to be in progress.
+    * This is to allow for failure in the first backend checks task getFiles.
+    */
+  def backendChecksFailed(clientChecksStatus: String, serverFFIDStatus: String): Boolean = {
+    clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
+  }
 }

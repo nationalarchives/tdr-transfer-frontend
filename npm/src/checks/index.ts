@@ -45,22 +45,22 @@ export class Checks {
         async () => {
           const fileChecksProgress: IFileCheckProgress | Error =
             await getFileChecksProgress()
-          if (!isError(fileChecksProgress)) {
-            if (fileChecksProgress && fileChecksProgress.backendChecksFailed) {
-              clearInterval(intervalId)
-              window.location.reload()
-              return
-            }
-            const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
-            if (checksCompleted) {
-              clearInterval(intervalId)
-              displayChecksCompletedBanner("file-checks")
-            }
-          } else {
+          if (isError(fileChecksProgress)) {
             clearInterval(intervalId)
             setTimeout(async () => {
               window.location.reload()
             }, 10000)
+            return
+          }
+          if (fileChecksProgress.backendChecksFailed) {
+            clearInterval(intervalId)
+            window.location.reload()
+            return
+          }
+          const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
+          if (checksCompleted) {
+            clearInterval(intervalId)
+            displayChecksCompletedBanner("file-checks")
           }
         },
         10000

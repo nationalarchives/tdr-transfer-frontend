@@ -4,7 +4,6 @@ import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.{ConsignmentStatuses => FileCheckConsignmentStatuses}
 import graphql.codegen.types.ConsignmentStatusInput
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
@@ -80,8 +79,6 @@ class FileChecksController @Inject() (
       val json = progress.asJson
         .mapObject(_.add("backendChecksFailed", Json.fromBoolean({
           val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
-          // The server FFID consignment status is created and set to in progress by getFiles. IF no Server FFID consignment status is found, we assume it to be in progress.
-          // This is to allow for failure in the first backend checks task getFiles.
           val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
           backendChecksFailed(clientChecksStatus, serverFFIDStatus)
         })))
@@ -139,10 +136,6 @@ class FileChecksController @Inject() (
     } yield Ok(result)
   }
 
-  private def backendChecksFailed(clientChecksStatus: String, serverFFIDStatus: String): Boolean = {
-    clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
-  }
-
   private def handleSuccessfulUpload(consignmentId: UUID, reference: String, isJudgmentUser: Boolean)(implicit request: Request[AnyContent]) = {
     val token = request.token.bearerAccessToken
     (for {
@@ -150,8 +143,6 @@ class FileChecksController @Inject() (
       result <-
         if ({
           val clientChecksStatus = consignmentStatusService.getStatusValues(statuses, ClientChecksType).values.headOption.flatten.getOrElse("")
-          // The server FFID consignment status is created and set to in progress by getFiles. IF no Server FFID consignment status is found, we assume it to be in progress.
-          // This is to allow for failure in the first backend checks task getFiles.
           val serverFFIDStatus = consignmentStatusService.getStatusValues(statuses, ServerFFIDType).values.headOption.flatten.getOrElse(InProgressValue.value)
           backendChecksFailed(clientChecksStatus, serverFFIDStatus)
         }) {
