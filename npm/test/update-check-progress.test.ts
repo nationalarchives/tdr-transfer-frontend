@@ -281,7 +281,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toHaveBeenCalled()
+  expect(haveFileChecksCompleted).not.toHaveBeenCalled()
   expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
