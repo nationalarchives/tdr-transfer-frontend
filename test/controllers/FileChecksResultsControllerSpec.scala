@@ -833,8 +833,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       header.getCell(1).asString mustBe "StatusValue"
       header.getCell(2).asString mustBe "Filepath"
       header.getCell(3).asString mustBe "Filename"
-      header.getCell(4).asString mustBe "Action"
-      header.getCell(5).asString mustBe "Detail"
+      header.getCell(4).asString mustBe "Action Required"
+      header.getCell(5).asString mustBe "Error Details"
       header.getCell(6).asString mustBe "File Format"
       header.getCell(7).asString mustBe "PUID"
     }

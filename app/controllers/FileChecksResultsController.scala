@@ -142,7 +142,7 @@ class FileChecksResultsController @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       failures <- fileCheckFailureService.getFileCheckFailures(consignmentId)
     } yield {
-      val headers = List("StatusType", "StatusValue", "Filepath", "Filename", "Action", "Detail", "File Format", "PUID")
+      val headers = List("StatusType", "StatusValue", "Filepath", "Filename", "Action Required", "Error Details", "File Format", "PUID")
       val dataRows: List[List[String]] = failures.flatMap { failure =>
         val fileFormats = failure.matches.flatMap(_.formatName).mkString("|")
         val puids = failure.matches.flatMap(_.puid).mkString("|")

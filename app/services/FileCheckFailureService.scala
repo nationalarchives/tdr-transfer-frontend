@@ -71,7 +71,7 @@ object FileCheckFailureService {
   }
 
   private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction = {
-    val statusNameLabel = Option(failureMessages.getProperty(status.statusName)).getOrElse(status.statusName)
+    val statusNameLabel = status.statusName
     val actionLabel = Option(failureMessages.getProperty(s"${statusAction.actionType}.action")).getOrElse(statusAction.actionType.toString)
     FileCheckStatusAction(
       statusName = statusNameLabel,
