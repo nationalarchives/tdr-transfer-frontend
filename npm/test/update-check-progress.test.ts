@@ -69,9 +69,9 @@ const typesOfValidationProgress: {
 }
 
 const typesOfProgress: {
-  [key: string]: {} | null
+  [key: string]: {} | Error
 } = {
-  noData: null,
+  noData: Error("No file checks progress data available"),
   inProgress: {
     antivirusProcessed: 1,
     checksumProcessed: 2,
