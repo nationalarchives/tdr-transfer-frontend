@@ -40,11 +40,12 @@ class FileChecksResultsController @Inject() (
     val pageTitle = "Results of your checks"
 
     for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      clientChecksStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ClientChecksType).values.headOption.flatten.getOrElse("")
-      serverFFIDStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ServerFFIDType).values.headOption.flatten.getOrElse("")
-      backendChecksFailed = clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+      backendChecksFailed = {
+        val clientChecksStatus = fileCheck.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+        val serverFFIDStatus = fileCheck.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
+        clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
+      }
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       reference = fileCheck.consignmentReference
       result <- {
