@@ -29,6 +29,7 @@ case class FileCheckStatus(
 
 case class FileCheckStatusAction(
     statusName: String,
+    statusValue: String,
     action: String,
     message: String
 )
@@ -74,6 +75,7 @@ object FileCheckFailureService {
     val actionLabel = Option(failureMessages.getProperty(s"${statusAction.actionType}.action")).getOrElse(statusAction.actionType.toString)
     FileCheckStatusAction(
       statusName = statusNameLabel,
+      statusValue = status.statusValue,
       action = actionLabel,
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
     )
