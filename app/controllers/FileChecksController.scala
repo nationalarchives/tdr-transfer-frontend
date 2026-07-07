@@ -77,11 +77,16 @@ class FileChecksController @Inject() (
     val token = request.token.bearerAccessToken
     consignmentService.fileCheckProgress(consignmentId, token).map { progress =>
       val json = progress.asJson
-        .mapObject(_.add("backendChecksFailed", Json.fromBoolean({
-          val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
-          val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
-          backendChecksFailed(clientChecksStatus, serverFFIDStatus)
-        })))
+        .mapObject(
+          _.add(
+            "backendChecksFailed",
+            Json.fromBoolean({
+              val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+              val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
+              backendChecksFailed(clientChecksStatus, serverFFIDStatus)
+            })
+          )
+        )
       Ok(json.noSpaces)
     }
   }

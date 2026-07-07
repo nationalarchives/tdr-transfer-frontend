@@ -49,10 +49,11 @@ class FileChecksResultsController @Inject() (
         Future.successful(Ok(views.html.standard.filechecks.fileChecksBackendFailure(request.token.name, pageTitle, reference)))
       } else if (fileCheck.allChecksSucceeded) {
         val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
-        val view = if (applicationConfig.blockFileChecksFailureV2)
-          views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
-        else
-          views.html.standard.filechecks.fileChecksSuccessResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
+        val view =
+          if (applicationConfig.blockFileChecksFailureV2)
+            views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
+          else
+            views.html.standard.filechecks.fileChecksSuccessResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
         Future.successful(Ok(view))
       } else {
         val fileStatuses = fileCheck.files.flatMap(_.fileStatuses)

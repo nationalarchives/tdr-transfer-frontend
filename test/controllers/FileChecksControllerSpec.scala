@@ -655,17 +655,19 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           "parentFolder" -> Json.fromString(""),
           "consignmentReference" -> Json.fromString("TEST-TDR-2021-GB"),
           "totalFiles" -> Json.fromInt(totalFiles),
-          "files" -> Json.arr(fileStatusList.map(fileStatus =>
-            Json.obj(
-              "fileStatuses" -> Json.arr(
-                Json.obj(
-                  "fileId" -> Json.fromString(UUID.randomUUID().toString),
-                  "statusType" -> Json.fromString("FFID"),
-                  "statusValue" -> Json.fromString(fileStatus)
+          "files" -> Json.arr(
+            fileStatusList.map(fileStatus =>
+              Json.obj(
+                "fileStatuses" -> Json.arr(
+                  Json.obj(
+                    "fileId" -> Json.fromString(UUID.randomUUID().toString),
+                    "statusType" -> Json.fromString("FFID"),
+                    "statusValue" -> Json.fromString(fileStatus)
+                  )
                 )
               )
-            )
-          ): _*),
+            ): _*
+          ),
           "fileChecks" -> Json.obj(
             "antivirusProgress" -> Json.obj("filesProcessed" -> Json.fromInt(filesProcessedWithAntivirus)),
             "checksumProgress" -> Json.obj("filesProcessed" -> Json.fromInt(filesProcessedWithChecksum)),
