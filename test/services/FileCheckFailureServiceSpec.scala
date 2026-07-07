@@ -96,7 +96,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("File Format", "User", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("File Format", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
     }
 
@@ -143,7 +143,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("Antivirus", "TNA", "Raise a support request", "This file cannot be processed - we will investigate this.")
+        FileCheckStatusAction("Antivirus", "Raise a support request", "This file cannot be processed - we will investigate this.")
       )
     }
 
@@ -168,7 +168,7 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       val result = service.getFileCheckFailures(consignmentId, s3Utils).futureValue
 
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("File Format", "User", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("File Format", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
     }
 
@@ -218,10 +218,10 @@ class FileCheckFailureServiceSpec extends AnyWordSpec with MockitoSugar {
       result.size shouldBe 2
       result.map(_.originalPath) shouldBe List("file1.txt", "file2.pdf")
       result.head.statusActions shouldBe List(
-        FileCheckStatusAction("File Format", "User", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
+        FileCheckStatusAction("File Format", "Check", "This is an empty file and has no archival value. Check if you have a complete version of this file.")
       )
       result(1).statusActions shouldBe List(
-        FileCheckStatusAction("Antivirus", "TNA", "Raise a support request", "This file cannot be processed - we will investigate this.")
+        FileCheckStatusAction("Antivirus", "Raise a support request", "This file cannot be processed - we will investigate this.")
       )
     }
 
