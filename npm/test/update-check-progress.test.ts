@@ -1,5 +1,5 @@
 const mockGetCheckProgress = {
-  getFileChecksProgress: jest.fn(),
+  getFileChecksProgress: jest.fn().mockResolvedValue(Error("No data")),
   getTransferProgress: jest.fn(),
   getDraftMetadataValidationProgress: jest.fn(),
   getConsignmentId: jest.fn(),
