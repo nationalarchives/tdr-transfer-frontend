@@ -41,6 +41,7 @@ class FileChecksResultsController @Inject() (
 
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap { fileCheck =>
       val clientChecksStatus = fileCheck.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+      // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
       val serverFFIDStatus = fileCheck.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
       val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       val reference = fileCheck.consignmentReference
