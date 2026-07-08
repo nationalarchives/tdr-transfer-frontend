@@ -94,6 +94,9 @@ object ExcelUtils {
 
   }
 
+  def writeExcel(worksheetName: String, rows: List[List[String]]): Array[Byte] =
+    writeExcel(worksheetName, rows, Set.empty[Int])
+
   def writeExcel(worksheetName: String, rows: List[List[String]], hiddenColumns: Set[Int]): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
@@ -105,7 +108,7 @@ object ExcelUtils {
         setCellValueAsHyperlinkIfPresent(ws, col, rowNo, colNo)
       }
     }
-    hiddenColumns.foreach(col => ws.width(col, 0))
+    hiddenColumns.foreach(col => ws.hideColumn(col))
     wb.finish()
     xlBas.toByteArray
   }
@@ -251,7 +254,7 @@ object ExcelUtils {
 
   def convertCsvToExcel(source: Source, worksheetName: String = "Sheet1"): Array[Byte] = {
     Using.resource(CSVReader.open(source)) { reader =>
-      writeExcel(worksheetName, reader.all(), Set.empty[Int])
+      writeExcel(worksheetName, reader.all())
     }
   }
 

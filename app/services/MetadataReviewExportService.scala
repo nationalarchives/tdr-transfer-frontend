@@ -51,7 +51,7 @@ class MetadataReviewExportService @Inject() (
       val rows = consignmentDetails.flatMap { case (reviewDetail, consignment) =>
         buildRowsForConsignment(reviewDetail, consignment, resolvedUsers)
       }
-      ExcelUtils.writeExcel("Metadata Review History", header :: rows, Set.empty[Int])
+      ExcelUtils.writeExcel("Metadata Review History", header :: rows)
     }
   }
 

@@ -137,7 +137,7 @@ class FileChecksResultsController @Inject() (
         }
       }
       val rows = headers :: dataRows
-      val excelBytes = ExcelUtils.writeExcel(s"File Check Failures for $reference", rows, hiddenColumns = Set(0, 2))
+      val excelBytes = ExcelUtils.writeExcel(s"File Check Failures for $reference", rows, hiddenColumns = Set(0, 1))
       Ok(excelBytes)
         .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-file-check-failures-$fileCheckFailuresCurrentDateTime.xlsx")
