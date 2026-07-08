@@ -1,5 +1,5 @@
 const mockGetCheckProgress = {
-  getFileChecksProgress: jest.fn(),
+  getFileChecksProgress: jest.fn().mockResolvedValue(Error("No data")),
   getTransferProgress: jest.fn(),
   getDraftMetadataValidationProgress: jest.fn(),
   getConsignmentId: jest.fn(),
@@ -69,20 +69,29 @@ const typesOfValidationProgress: {
 }
 
 const typesOfProgress: {
-  [key: string]: {} | null
+  [key: string]: {} | Error
 } = {
-  noData: null,
+  noData: Error("No file checks progress data available"),
   inProgress: {
     antivirusProcessed: 1,
     checksumProcessed: 2,
     ffidProcessed: 1,
-    totalFiles: 2
+    totalFiles: 2,
+    backendChecksFailed: false
   },
   complete: {
     antivirusProcessed: 2,
     checksumProcessed: 2,
     ffidProcessed: 2,
-    totalFiles: 2
+    totalFiles: 2,
+    backendChecksFailed: false
+  },
+  backendFailed: {
+    antivirusProcessed: 1,
+    checksumProcessed: 2,
+    ffidProcessed: 1,
+    totalFiles: 2,
+    backendChecksFailed: true
   }
 }
 
@@ -272,7 +281,7 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toHaveBeenCalled()
+  expect(haveFileChecksCompleted).not.toHaveBeenCalled()
   expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
 })
 
@@ -295,6 +304,30 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, no banner a
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
   expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
+})
+
+test("'updateFileCheckProgress' short-circuits the standard-user poll when backendChecksFailed is true", async () => {
+  const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
+  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
+                            <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
+  mockGetCheckProgress.getConsignmentId.mockImplementation(
+      () => consignmentId
+  )
+  mockGetFileChecksProgress("backendFailed")
+
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
+      () => false
+  )
+  mockDisplayChecksHaveCompletedBanner()
+
+  jest.spyOn(global, "clearInterval")
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  // The terminal-failure branch must skip the progress/banner logic and stop polling.
+  expect(haveFileChecksCompleted).not.toHaveBeenCalled()
+  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
+  expect(clearInterval).toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all checks are complete", async () => {
