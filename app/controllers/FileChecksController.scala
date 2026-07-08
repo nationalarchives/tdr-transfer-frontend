@@ -3,10 +3,12 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.types.ConsignmentStatusInput
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax._
+import io.circe.Json
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -72,10 +74,22 @@ class FileChecksController @Inject() (
   }
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
-    consignmentService
-      .fileCheckProgress(consignmentId, request.token.bearerAccessToken)
-      .map(_.asJson.noSpaces)
-      .map(Ok(_))
+    val token = request.token.bearerAccessToken
+    consignmentService.fileCheckProgress(consignmentId, token).map { progress =>
+      val json = progress.asJson
+        .mapObject(
+          _.add(
+            "backendChecksFailed",
+            Json.fromBoolean({
+              val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+              // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
+              val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
+              backendChecksFailed(clientChecksStatus, serverFFIDStatus)
+            })
+          )
+        )
+      Ok(json.noSpaces)
+    }
   }
 
   def transferProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
@@ -132,35 +146,46 @@ class FileChecksController @Inject() (
     val token = request.token.bearerAccessToken
     (for {
       statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
-      uploadStatus = statuses.find(_.statusType == UploadType.id)
-      alreadyTriggered = uploadStatus.isDefined && uploadStatus.get.value == CompletedValue.value || uploadStatus.get.value == CompletedWithIssuesValue.value
-      backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
-      fileChecks <-
-        if (backendChecksTriggered && uploadStatus.get.value != CompletedWithIssuesValue.value) {
-          getFileChecksProgress(request, consignmentId)
+      result <-
+        if ({
+          val clientChecksStatus = consignmentStatusService.getStatusValues(statuses, ClientChecksType).values.headOption.flatten.getOrElse("")
+          val serverFFIDStatus = consignmentStatusService.getStatusValues(statuses, ServerFFIDType).values.headOption.flatten.getOrElse(InProgressValue.value)
+          backendChecksFailed(clientChecksStatus, serverFFIDStatus)
+        }) {
+          Future.successful(Redirect(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)).uncache())
         } else {
-          throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
+          val uploadStatus = statuses.find(_.statusType == UploadType.id)
+          val alreadyTriggered = uploadStatus.exists(status => status.value == CompletedValue.value || status.value == CompletedWithIssuesValue.value)
+          for {
+            backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
+            fileChecks <-
+              if (backendChecksTriggered && !uploadStatus.exists(_.value == CompletedWithIssuesValue.value)) {
+                getFileChecksProgress(request, consignmentId)
+              } else {
+                throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
+              }
+          } yield {
+            if (fileChecks.isComplete) {
+              Ok(
+                views.html.fileChecksProgressAlreadyConfirmed(
+                  consignmentId,
+                  reference,
+                  applicationConfig.frontEndInfo,
+                  request.token.name,
+                  isJudgmentUser
+                )
+              ).uncache()
+            } else {
+              if (isJudgmentUser) {
+                Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name)).uncache()
+              } else {
+                Ok(views.html.standard.fileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name))
+                  .uncache()
+              }
+            }
+          }
         }
-    } yield {
-      if (fileChecks.isComplete) {
-        Ok(
-          views.html.fileChecksProgressAlreadyConfirmed(
-            consignmentId,
-            reference,
-            applicationConfig.frontEndInfo,
-            request.token.name,
-            isJudgmentUser
-          )
-        ).uncache()
-      } else {
-        if (isJudgmentUser) {
-          Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name)).uncache()
-        } else {
-          Ok(views.html.standard.fileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name))
-            .uncache()
-        }
-      }
-    }).recover { case exception: Exception =>
+    } yield result).recover { case exception: Exception =>
       Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
     }
   }
