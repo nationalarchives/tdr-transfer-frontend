@@ -4,7 +4,7 @@
 
 @(name: String, title: String, consignmentRef: String)(implicit request: RequestHeader, messages: Messages)
 
-@main(title, name = name, isJudgmentUser = false) {
+@main(title, name = name) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       @notificationBannerError("File check error", "We have a problem checking your records", Some(Html("""<p class="govuk-body">There may be a technical issue with this service.</p>""")))
@@ -13,7 +13,7 @@
 
       <p class="govuk-body">
         Contact your transfer advisor at
-        <a class="govuk-link" href="mailto:tdr@@nationalarchives.gov.uk">tdr@@nationalarchives.gov.uk</a>
+        <a class="govuk-link" href='mailto:@Messages("nationalArchives.email")'>@Messages("nationalArchives.email")</a>
         with your consignment reference <strong>@consignmentRef</strong> and they will help you resolve the issue.
       </p>
 
