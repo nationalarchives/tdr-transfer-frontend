@@ -14,23 +14,26 @@
             <h1 class="govuk-heading-l">What to do next</h1>
 
             <p class="govuk-body">
-                We found some issues that need further review, and our support team has been notified.
+                Some issues can be fixed by you, and others will need to be resolved with your transfer advisor. The error report will tell you which action is needed for each file.
             </p>
+            <ol class="govuk-list govuk-list--number">
+                <li>Download the error report to identify the problem files:</li>
+                <div class="govuk-!-display-block govuk-!-margin-top-3">
+                    @downloadMetadataLink(consignmentId, "Download error report (Excel)", routes.FileChecksResultsController.downloadFileCheckFailuresReport(consignmentId).url)
+                </div>
 
+                <li> Open the error report and follow the instructions in the 'Action required' and 'Error details' columns for each file.</li>
+                <li>Contact your transfer advisor at <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> with your consignment reference <strong>@consignmentRef</strong>. They can help with issues you are unable to fix yourself.</li>
+
+            </ol>
             <p class="govuk-body">
-                Email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
-                with your consignment reference <strong>@consignmentRef</strong> and your transfer advisor will help you resolve the issue.
+                You can contact your transfer advisor at any point in this process.
             </p>
-
-            <div class="govuk-!-display-block govuk-!-margin-top-3">
-                @downloadMetadataLink(consignmentId, "Download error report (Excel)", routes.FileChecksResultsController.downloadFileCheckFailuresReport(consignmentId).url)
-            </div>
 
             <hr class="govuk-section-break govuk-section-break--m">
 
             @daAlert("Resuming your upload", Html("Once your transfer advisor confirms that the issues are resolved, you will need to start a new transfer."))
         </div>
-
         @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
 }

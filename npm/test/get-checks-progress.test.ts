@@ -72,6 +72,25 @@ test("'getFileChecksProgress' returns the correct consignment data with a succes
     expect(fileChecksProgress!.checksumProcessed).toBe(3)
     expect(fileChecksProgress!.ffidProcessed).toBe(4)
     expect(fileChecksProgress!.totalFiles).toBe(10)
+    expect(fileChecksProgress!.backendChecksFailed).toBe(false)
+  }
+})
+
+test("'getFileChecksProgress' surfaces backendChecksFailed when the api flags it", async () => {
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    <input name="csrfToken" value="abcde">
+    `
+  fetchMock.mockResponse(
+    JSON.stringify({ ...data.getConsignment, backendChecksFailed: true })
+  )
+
+  const fileChecksProgress: IFileCheckProgress | Error =
+      await getFileChecksProgress()
+  expect(isError(fileChecksProgress)).toBe(false)
+  if(!isError(fileChecksProgress)) {
+    expect(fileChecksProgress!.backendChecksFailed).toBe(true)
   }
 })
 
