@@ -124,20 +124,20 @@ class FileChecksResultsController @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       failures <- fileCheckFailureService.getFileCheckFailures(consignmentId)
     } yield {
-      val headers = List("Filepath", "Filename", "Who should investigate", "Action", "Detail", "Error Type", "File Format", "PUID")
+      val headers = List("StatusType", "StatusValue", "Filepath", "Filename", "Action Required", "Error Details", "File Format", "PUID")
       val dataRows: List[List[String]] = failures.flatMap { failure =>
         val fileFormats = failure.matches.flatMap(_.formatName).mkString("|")
         val puids = failure.matches.flatMap(_.puid).mkString("|")
         if (failure.statusActions.isEmpty) {
-          List(List(failure.originalPath, failure.filename, "", "", "", "", fileFormats, puids))
+          List(List("", "", failure.originalPath, failure.filename, "", "", fileFormats, puids))
         } else {
           failure.statusActions.map { action =>
-            List(failure.originalPath, failure.filename, action.actionType, action.action, action.message, action.statusName, fileFormats, puids)
+            List(action.statusName, action.statusValue, failure.originalPath, failure.filename, action.action, action.message, fileFormats, puids)
           }
         }
       }
       val rows = headers :: dataRows
-      val excelBytes = ExcelUtils.writeExcel(s"File Check Failures for $reference", rows)
+      val excelBytes = ExcelUtils.writeExcel(s"File Check Failures for $reference", rows, hiddenColumns = Set(0, 1))
       Ok(excelBytes)
         .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-file-check-failures-$fileCheckFailuresCurrentDateTime.xlsx")
