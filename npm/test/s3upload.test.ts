@@ -16,12 +16,6 @@ import {
   UploadPartCommand
 } from "@aws-sdk/client-s3"
 import { getFileChecksProgress } from "../src/checks/get-checks-progress"
-import { ReadableStream as NodeReadableStream } from "stream/web"
-
-// Polyfill ReadableStream for jsdom test environment (available natively in browsers)
-if (typeof globalThis.ReadableStream === "undefined") {
-  ;(globalThis as any).ReadableStream = NodeReadableStream
-}
 
 enableFetchMocks()
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
@@ -109,18 +103,7 @@ const createTdrFile = ({
     }
   }
   const file = new File([bits], filename)
-  // For 0-byte files, use a real ReadableStream so the AWS SDK recognises the body type.
-  // This simulates the browser behaviour where file.stream() returns a native ReadableStream.
-  if (bits === "") {
-    file.stream = (() =>
-      new NodeReadableStream({
-        start(controller) {
-          controller.close()
-        }
-      })) as any
-  } else {
-    file.stream = () => mockStream
-  }
+  file.stream = () => mockStream
 
   const fileWithPath: IFileWithPath = {
     file: file,

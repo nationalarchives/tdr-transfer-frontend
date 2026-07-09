@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Long File Path Test</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    .dropzone {
+      border: 3px dashed #ccc; padding: 40px; text-align: center;
+      margin: 20px 0; border-radius: 8px; background: #f9f9f9;
+    }
+    .dropzone.dragover { border-color: #4CAF50; background: #e8f5e9; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; word-break: break-all; }
+    th { background: #f2f2f2; }
+    th:nth-child(1), td:nth-child(1) { width: 40%; }
+    th:nth-child(2), td:nth-child(2) { width: 8%; }
+    th:nth-child(3), td:nth-child(3) { width: 8%; }
+    th:nth-child(4), td:nth-child(4) { width: 10%; }
+    th:nth-child(5), td:nth-child(5) { width: 16%; }
+    th:nth-child(6), td:nth-child(6) { width: 18%; }
+    .pass { color: green; font-weight: bold; }
+    .fail { color: red; font-weight: bold; }
+    .warn { color: orange; font-weight: bold; }
+    #status { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
+    #status.error { background: #ffebee; border: 1px solid #f44336; display: block; }
+    #status.success { background: #e8f5e9; border: 1px solid #4CAF50; display: block; }
+    #status.warning { background: #fff3e0; border: 1px solid #ff9800; display: block; }
+    h1 { color: #333; }
+    p { color: #666; line-height: 1.5; }
+    code { background: #eee; padding: 2px 6px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>Long File Path Diagnostic Test</h1>
+  <p>
+    This page tests whether your browser can correctly read files with paths longer than 260 characters.
+    It checks <code>file.size</code>, <code>file.stream()</code>, and computes the SHA-256 checksum.
+  </p>
+
+  <h2>Test 1: Direct long path</h2>
+  <p><strong>Instructions:</strong></p>
+  <ol>
+    <li>Create a folder with a path longer than 260 characters (e.g. deeply nested folders)</li>
+    <li>Place a file with known content inside it</li>
+    <li>Either drag &amp; drop the folder below, or use the file picker</li>
+  </ol>
+
+  <h2>Test 2: Using a symlink/junction (workaround)</h2>
+  <p>This test demonstrates that using a junction preserves the internal folder structure while shortening the root path.</p>
+  <ol>
+    <li>Open Command Prompt as Administrator</li>
+    <li>Create a junction to your long path:
+      <pre>mklink /J C:\shortlink "C:\Users\name\Very\Long\Department\Name\Project\SubFolder\MoreFolders"</pre>
+    </li>
+    <li>Now drop or select <code>C:\shortlink</code> below</li>
+    <li>Compare the file paths — the internal folder structure should be identical, just with a shorter root</li>
+  </ol>
+
+  <div class="dropzone" id="dropzone">
+    Drop a folder here
+  </div>
+
+  <p>Or select a folder:</p>
+  <input type="file" id="filePicker" webkitdirectory multiple>
+
+  <div id="status"></div>
+
+  <h3>Results</h3>
+  <table id="results" style="display:none">
+    <thead>
+      <tr>
+        <th>Relative Path (folder structure)</th>
+        <th>Path Length</th>
+        <th>file.size</th>
+        <th>Actual Size</th>
+        <th>SHA-256</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
+
+  <div id="summary" style="margin-top:20px"></div>
+
+  <div id="comparison" style="margin-top:20px; display:none">
+    <h3>Path Comparison (symlink vs original)</h3>
+    <p>Below shows the relative paths as reported by the browser. Notice the internal folder structure is preserved — only the root changes:</p>
+    <pre id="pathList" style="background:#f5f5f5; padding:15px; border-radius:4px; overflow-x:auto; font-size:12px;"></pre>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const filePicker = document.getElementById('filePicker');
+    const resultsTable = document.getElementById('results');
+    const resultsBody = document.getElementById('resultsBody');
+    const statusEl = document.getElementById('status');
+    const summaryEl = document.getElementById('summary');
+
+    // Drag and drop handlers
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      const items = e.dataTransfer.items;
+      if (items.length > 0) {
+        const entry = items[0].webkitGetAsEntry();
+        if (entry && entry.isDirectory) {
+          const files = await getAllFilesFromEntry(entry);
+          await processFiles(files);
+        } else {
+          showStatus('Please drop a folder, not a file.', 'error');
+        }
+      }
+    });
+
+    // File picker handler
+    filePicker.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files).map(f => ({
+        file: f,
+        path: f.webkitRelativePath || f.name
+      }));
+      await processFiles(files);
+    });
+
+    // Recursively get all files from a dropped directory entry
+    async function getAllFilesFromEntry(entry) {
+      const files = [];
+      async function traverse(entry) {
+        if (entry.isFile) {
+          const file = await new Promise((resolve) => entry.file(resolve));
+          files.push({ file, path: entry.fullPath });
+        } else if (entry.isDirectory) {
+          const reader = entry.createReader();
+          let entries = await new Promise((resolve) => reader.readEntries(resolve));
+          while (entries.length > 0) {
+            for (const e of entries) {
+              await traverse(e);
+            }
+            entries = await new Promise((resolve) => reader.readEntries(resolve));
+          }
+        }
+      }
+      await traverse(entry);
+      return files;
+    }
+
+    // Compute SHA-256 from an ArrayBuffer
+    async function sha256(buffer) {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = new Uint8Array(hashBuffer);
+      return Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Try to read a file — matches the detection logic in the app code
+    async function tryReadFile(file) {
+      try {
+        const buffer = await file.arrayBuffer();
+        return { readable: true, size: buffer.byteLength, buffer };
+      } catch (err) {
+        return { readable: false, size: -1, buffer: null, error: err.message };
+      }
+    }
+
+    // Process all files and display results
+    async function processFiles(files) {
+      resultsBody.innerHTML = '';
+      resultsTable.style.display = 'table';
+      statusEl.style.display = 'none';
+      summaryEl.innerHTML = '';
+
+      if (files.length === 0) {
+        showStatus('No files found in the selected folder.', 'error');
+        return;
+      }
+
+      showStatus(`Processing ${files.length} file(s)...`, 'warning');
+
+      let longPathIssues = 0;
+      let genuinelyEmpty = 0;
+      let unreadable = 0;
+
+      for (const { file, path } of files) {
+        const reportedSize = file.size;
+        const row = document.createElement('tr');
+        let status = '';
+        let statusClass = '';
+        let actualSize = reportedSize;
+        let checksum = '';
+
+        if (reportedSize > 0) {
+          // Normal file — no issue
+          status = 'OK';
+          statusClass = 'pass';
+          const buffer = await file.arrayBuffer();
+          checksum = await sha256(buffer);
+        } else {
+          // file.size is 0 — try to read it (same logic as app code)
+          const result = await tryReadFile(file);
+          if (!result.readable) {
+            // Read threw an error — long path problem
+            status = `UNREADABLE (size: -1) — ${result.error}`;
+            statusClass = 'fail';
+            actualSize = -1;
+            checksum = 'N/A';
+            longPathIssues++;
+            unreadable++;
+          } else if (result.size === 0) {
+            // Read succeeded with 0 bytes — genuinely empty
+            status = 'Empty file (genuine, size: 0)';
+            statusClass = 'pass';
+            checksum = await sha256(result.buffer);
+            genuinelyEmpty++;
+          } else {
+            // Read succeeded with content — stream workaround would work
+            status = `LONG PATH — readable via arrayBuffer (${result.size} bytes)`;
+            statusClass = 'warn';
+            actualSize = result.size;
+            checksum = await sha256(result.buffer);
+            longPathIssues++;
+          }
+        }
+
+        row.innerHTML = `
+          <td title="${path}">${path}</td>
+          <td>${path.length}</td>
+          <td>${reportedSize}</td>
+          <td>${actualSize}</td>
+          <td style="font-family:monospace;font-size:11px">${checksum ? checksum.substring(0, 16) + '...' : 'N/A'}</td>
+          <td class="${statusClass}">${status}</td>
+        `;
+        resultsBody.appendChild(row);
+      }
+
+      // Summary
+      if (longPathIssues === 0) {
+        showStatus(
+          `All ${files.length} file(s) read correctly. No long path issues detected.` +
+          (genuinelyEmpty > 0 ? ` (${genuinelyEmpty} genuinely empty file(s))` : ''),
+          'success'
+        );
+      } else {
+        const parts = [];
+        parts.push(`${longPathIssues} file(s) affected by long path issue.`);
+        if (unreadable > 0) parts.push(`${unreadable} unreadable (would return size -1 to server).`);
+        showStatus(parts.join(' '), unreadable > 0 ? 'error' : 'warning');
+      }
+
+      // Show full path list for comparison (useful when testing symlink vs original)
+      const comparisonEl = document.getElementById('comparison');
+      const pathListEl = document.getElementById('pathList');
+      comparisonEl.style.display = 'block';
+      pathListEl.textContent = files.map(f => f.path).join('\n');
+
+      summaryEl.innerHTML = `
+        <strong>Path length of longest file:</strong> ${Math.max(...files.map(f => f.path.length))} characters<br>
+        <strong>Total files:</strong> ${files.length}<br>
+        <strong>Root folder:</strong> ${files.length > 0 ? files[0].path.split('/')[1] || files[0].path.split('/')[0] : 'N/A'}
+      `;
+    }
+
+    function showStatus(message, type) {
+      statusEl.textContent = message;
+      statusEl.className = type;
+      statusEl.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

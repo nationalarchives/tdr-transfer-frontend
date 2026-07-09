@@ -134,18 +134,11 @@ export class S3Upload {
   ) => {
     const { fileWithPath, fileId } = tdrFileWithPath
     const key = `${userId}/${consignmentId}/${fileId}`
-    // Use file.stream() when file.size is 0 to work around the Windows long
-    // file path bug where the File API reports size as 0 for paths > 260 chars.
-    // Passing the stream lets the SDK upload without relying on content-length.
-    const body =
-      fileWithPath.file.size === 0
-        ? fileWithPath.file.stream()
-        : fileWithPath.file
     const params: PutObjectCommandInput = {
       Key: key,
       Bucket: this.uploadUrl,
       ACL: this.aclHeaderValue as ObjectCannedACL,
-      Body: body,
+      Body: fileWithPath.file,
       IfNoneMatch: this.ifNoneMatchHeaderValue
     }
 
