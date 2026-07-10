@@ -137,4 +137,9 @@ object Statuses {
       case _                        => UnrecognisedType
     }
   }
+
+  /** Backend checks have failed if the client reported failure while server FFID is still in progress. */
+  def backendChecksFailed(clientChecksStatus: String, serverFFIDStatus: String): Boolean = {
+    clientChecksStatus == FailedValue.value && serverFFIDStatus == InProgressValue.value
+  }
 }

@@ -1,4 +1,5 @@
 package controllers
+
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
@@ -8,6 +9,7 @@ import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
+import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.Files.FileStatuses
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsignment, Variables}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import io.circe.Printer
@@ -24,11 +26,12 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
-import services.Statuses.{CompletedValue, CompletedWithIssuesValue}
+import services.Statuses.{ClientChecksType, CompletedValue, CompletedWithIssuesValue, FailedValue, InProgressValue, ServerFFIDType, StatusValue}
 import services._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.io.ByteArrayInputStream
+import java.time.ZonedDateTime
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -55,14 +58,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   val warningMsg =
     "Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them."
   val expectedSuccessSummaryTitle: String => String = (title: String) => s"""                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-      |                        $title
-      |                    </h2>""".stripMargin
+       |                        $title
+       |                    </h2>""".stripMargin
   val expectedSuccessWarningText: String => String = (warningMsg: String) => s"""            <div class="govuk-warning-text">
-      |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-      |                <strong class="govuk-warning-text__text">
-      |                    <span class="govuk-warning-text__assistive">Warning</span>
-      |                    $warningMsg</strong>
-      |            </div>""".stripMargin
+       |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+       |                <strong class="govuk-warning-text__text">
+       |                    <span class="govuk-warning-text__assistive">Warning</span>
+       |                    $warningMsg</strong>
+       |            </div>""".stripMargin
   val expectedFailureReturnButton: String =
     """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
       |          Return to start
@@ -85,6 +88,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       |                  nationalArchives.email
       |                </a> for support.
       |              </p>""".stripMargin
+
+  val expectedBackendFailureBannerTitle: String =
+    """          <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+      |            File check error
+      |          </h2>""".stripMargin
+
+  val expectedBackendFailureHeading: String = """<h1 class="govuk-heading-l">What to do next</h1>"""
 
   "FileChecksResultsController GET after file check success" should {
     "render the fileChecksResults page with the confirmation box for a standard user when blockFileChecksFailureV2 set to 'true'" in {
@@ -147,11 +157,164 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
       resultsPageAsString must include("<title>Results of your checks - Transfer Digital Records - GOV.UK</title>")
       resultsPageAsString must include("""<h1 class="govuk-heading-l">
-                                         |                What happens next
-                                         |            </h1>""".stripMargin)
+          |                What happens next
+          |            </h1>""".stripMargin)
       resultsPageAsString must include(expectedSuccessSummaryTitle("Files uploaded"))
       resultsPageAsString must include(expectedSuccessMessage)
       resultsPageAsString must include regex buttonToProgress
+    }
+
+    "render the fileChecksResults page for UserFixable scenario for a standard user when blockFileChecksFailureV2 set to 'false'" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "ZeroByteFile"))))
+
+      val data = Data(
+        Option(
+          GetConsignment(
+            allChecksSucceeded = false,
+            parentFolder = Option("parentFolder"),
+            consignmentReference = "TEST-TDR-2021-GB",
+            totalFiles = 1,
+            files = fileStatus,
+            fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+            consignmentStatuses = Nil
+          )
+        )
+      )
+      val client = graphQLConfiguration.getClient[Data, Variables]()
+      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+      mockGraphqlResponse("standard", fileStatusResponse)
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val recordCheckResultsPage = fileCheckResultsController
+        .fileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks"))
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      status(recordCheckResultsPage) mustBe OK
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
+      validateFileCheckFailureContent(
+        resultsPageAsString,
+        consignmentId,
+        "UserFixable",
+        "When your files are ready, start a new transfer to upload them. You will not be able to continue with this one."
+      )
+    }
+
+    "render the fileChecksResults page for Mixed scenario (UserFixable and TNA support) for a standard user when blockFileChecksFailureV2 set to 'false'" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      val fileStatus =
+        List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "ZeroByteFile"), FileStatuses(UUID.randomUUID(), "FFID", "MultipleFormatsValue"))))
+
+      val data = Data(
+        Option(
+          GetConsignment(
+            allChecksSucceeded = false,
+            parentFolder = Option("parentFolder"),
+            consignmentReference = "TEST-TDR-2021-GB",
+            totalFiles = 1,
+            files = fileStatus,
+            fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+            consignmentStatuses = Nil
+          )
+        )
+      )
+      val client = graphQLConfiguration.getClient[Data, Variables]()
+      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+      mockGraphqlResponse("standard", fileStatusResponse)
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val recordCheckResultsPage = fileCheckResultsController
+        .fileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks"))
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      status(recordCheckResultsPage) mustBe OK
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
+      validateFileCheckFailureContent(
+        resultsPageAsString,
+        consignmentId,
+        "Mixed",
+        "Once your transfer advisor confirms that the issues are resolved, you will need to start a new transfer."
+      )
+    }
+
+    "render the fileChecksResults page for TNA support scenario for a standard user when blockFileChecksFailureV2 set to 'false'" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "MultipleFormatsValue"))))
+
+      val data = Data(
+        Option(
+          GetConsignment(
+            allChecksSucceeded = false,
+            parentFolder = Option("parentFolder"),
+            consignmentReference = "TEST-TDR-2021-GB",
+            totalFiles = 1,
+            files = fileStatus,
+            fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+            consignmentStatuses = Nil
+          )
+        )
+      )
+      val client = graphQLConfiguration.getClient[Data, Variables]()
+      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+      mockGraphqlResponse("standard", fileStatusResponse)
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val recordCheckResultsPage = fileCheckResultsController
+        .fileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks"))
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      status(recordCheckResultsPage) mustBe OK
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
+      validateFileCheckFailureContent(
+        resultsPageAsString,
+        consignmentId,
+        "TNASupport",
+        "Once your transfer advisor confirms that the issues are resolved, you will need to start a new transfer."
+      )
+    }
+
+    def validateFileCheckFailureContent(resultsPageAsString: String, consignmentId: UUID, scenario: String, alert: String): Unit = {
+      resultsPageAsString must include("""<div class="govuk-notification-banner govuk-notification-banner--error"""")
+      resultsPageAsString must include("There is a problem with your files")
+      resultsPageAsString must include("Your folder &#x27;parentFolder&#x27; has records that could not be uploaded")
+      resultsPageAsString must include(s"""href="/consignment/$consignmentId/file-checks-results/download-failures"""")
+      resultsPageAsString must include("Download error report (Excel)")
+      if (scenario == "Mixed") {
+        resultsPageAsString must include(
+          """Contact your transfer advisor at <a href="mailto:nationalArchives.email">nationalArchives.email</a> with your consignment reference <strong>TEST-TDR-2021-GB</strong>. They can help with issues you are unable to fix yourself."""
+        )
+      } else if (scenario == "TNASupport") {
+        resultsPageAsString must include("""We found some issues that need further review, and our support team has been notified.""")
+        resultsPageAsString must include(
+          """Email <a href="mailto:nationalArchives.email">nationalArchives.email</a>
+                                           |                with your consignment reference <strong>TEST-TDR-2021-GB</strong> and your transfer advisor will help you resolve the issue.""".stripMargin
+        )
+      } else {
+        resultsPageAsString must include(
+          """If you need help resolving these issues, contact your transfer advisor at <a href="mainto:nationalArchives.email">nationalArchives.email</a> with your consignment reference <strong>TEST-TDR-2021-GB</strong>."""
+        )
+      }
+      resultsPageAsString must include(s"""<h2 class="da-alert__heading da-alert__heading--s">
+                                         |            Resuming your upload
+                                         |        </h2>
+                                         |        <p class="govuk-body">
+                                         |            $alert
+                                         |        </p>""".stripMargin)
     }
 
     "return a redirect to transfer complete for a judgements user when transfer is completed" in {
@@ -166,13 +329,32 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       redirectLocation(recordCheckResultsPage).get must be(s"/judgment/$consignmentId/transfer-complete")
     }
 
-    "return a file checks failed page for a judgements user when transfer is completed with issues" in {
+    "return a file checks failed page for a judgments user when transfer is completed with issues" in {
       val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
       val recordCheckResultsPage = fileCheckResultsController
         .judgmentFileCheckResultsPage(consignmentId, Some(CompletedWithIssuesValue.value))
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+      status(recordCheckResultsPage) mustBe 200
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "judgment")
+      resultsPageAsString must include("<title>Results of checks - Transfer Digital Records - GOV.UK</title>")
+      resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of checks</h1>""")
+      resultsPageAsString must include(expectedFailureTitle)
+      resultsPageAsString must include(expectedJudgmentErrorMessage)
+      resultsPageAsString must include(expectedFailureReturnButton)
+    }
+
+    "return a file checks failed page for a judgments user when files checks succeed but failure in overall process" in {
+      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val recordCheckResultsPage = fileCheckResultsController
+        .judgmentFileCheckResultsPage(consignmentId, Some(FailedValue.value))
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
       status(recordCheckResultsPage) mustBe 200
       val resultsPageAsString = contentAsString(recordCheckResultsPage)
@@ -229,13 +411,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           "<title>Results of checks - Transfer Digital Records - GOV.UK</title>",
           """<h1 class="govuk-heading-l">Results of checks</h1>""",
           s"""                    <p class="govuk-body">Your uploaded file 'test file.docx' has now been validated.</p>
-          |                    <p class="govuk-body">Click 'Continue' to transfer it to The National Archives.</p>""".stripMargin,
+             |                    <p class="govuk-body">Click 'Continue' to transfer it to The National Archives.</p>""".stripMargin,
           s"""                <form method="post" action="/judgment/$consignmentId/file-checks-results">
-            |                    <input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>
-            |                    <button class="govuk-button" type="submit" role="button" draggable="false">
-            |                        Continue
-            |                    </button>
-            |                </form>""".stripMargin,
+             |                    <input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>
+             |                    <button class="govuk-button" type="submit" role="button" draggable="false">
+             |                        Continue
+             |                    </button>
+             |                </form>""".stripMargin,
           expectedJudgmentErrorMessage
         )
       } else {
@@ -307,11 +489,19 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("fileStatusValue")))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "ClientChecks", "fileStatusValue"))))
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -322,8 +512,11 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
         val recordCheckResultsPage = {
-          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None) }
-          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
+          if (userType == "judgment") {
+            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None)
+          } else {
+            fileCheckResultsController.fileCheckResultsPage(consignmentId)
+          }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -337,14 +530,27 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedFailureReturnButton)
       }
 
-      s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
+      s"return the $userType page if file checks have passed" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")))
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ClientChecksType.id, FailedValue.value, ZonedDateTime.now(), None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), ServerFFIDType.id, InProgressValue.value, ZonedDateTime.now(), None)
+        )
+
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "fileStatusValue"))))
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = true,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -355,8 +561,57 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
         val recordCheckResultsPage = {
-          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None) }
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, Some(FailedValue.value)) }
           else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        status(recordCheckResultsPage) mustBe OK
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedHeading)
+          resultsPageAsString must include(expectedFailureTitle)
+          resultsPageAsString must include(expectedGenericErrorMessage)
+          resultsPageAsString must include(expectedFailureReturnButton)
+        } else {
+          resultsPageAsString must include(expectedSuccessSummaryTitle("Files uploaded"))
+          resultsPageAsString must include("What happens next")
+        }
+      }
+
+      s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected when blockFileChecksFailureV2 set to 'true'" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "PasswordProtected"))))
+
+        val data = Data(
+          Option(
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
+          )
+        )
+        val client = graphQLConfiguration.getClient[Data, Variables]()
+        val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
+
+        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration, blockFileChecksFailureV2 = true)
+        val recordCheckResultsPage = {
+          if (userType == "judgment") {
+            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None)
+          } else {
+            fileCheckResultsController.fileCheckResultsPage(consignmentId)
+          }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -378,14 +633,22 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedFailureReturnButton)
       }
 
-      s"return the zip $userType error page if file checks have failed with Zip" in {
+      s"return the zip $userType error page if file checks have failed with Zip when blockFileChecksFailureV2 set to 'true'" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("Zip")))
+        val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Zip"))))
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -394,10 +657,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         mockGraphqlResponse(userType, fileStatusResponse)
         setConsignmentReferenceResponse(wiremockServer)
 
-        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
+        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration, blockFileChecksFailureV2 = true)
         val recordCheckResultsPage = {
-          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None) }
-          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
+          if (userType == "judgment") {
+            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None)
+          } else {
+            fileCheckResultsController.fileCheckResultsPage(consignmentId)
+          }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -406,15 +672,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         } else {
           resultsPageAsString must include(
             """              <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p><p>
-            |                We cannot accept zip files and similar archival package file formats.
-            |                These commonly have file extensions such as .zip, .iso, .7z, .rar and others.
-            |                please see our
-            |                <a class="govuk-link" href="/faq" target="_blank" rel="noreferrer noopener">
-            |                FAQ(Opens in new tab)
-            |                </a>
-            |                for a full list.
-            |                Either remove or unpack your zip and archival package files and try uploading again.
-            |                </p>""".stripMargin
+              |                We cannot accept zip files and similar archival package file formats.
+              |                These commonly have file extensions such as .zip, .iso, .7z, .rar and others.
+              |                please see our
+              |                <a class="govuk-link" href="/faq" target="_blank" rel="noreferrer noopener">
+              |                FAQ(Opens in new tab)
+              |                </a>
+              |                for a full list.
+              |                Either remove or unpack your zip and archival package files and try uploading again.
+              |                </p>""".stripMargin
           )
         }
 
@@ -427,14 +693,25 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedFailureReturnButton)
       }
 
-      s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
+      s"return the general $userType error page if file checks have failed with PasswordProtected and Zip when blockFileChecksFailureV2 set to 'true'" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")), gfcp.GetConsignment.Files(Some("Zip")))
+        val fileStatus = List(
+          gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "PasswordProtected"))),
+          gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Zip")))
+        )
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(
+              allChecksSucceeded = false,
+              parentFolder = Option("parentFolder"),
+              consignmentReference = "TEST-TDR-2021-GB",
+              totalFiles = 1,
+              files = fileStatus,
+              fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+              consignmentStatuses = Nil
+            )
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -443,10 +720,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         mockGraphqlResponse(userType, fileStatusResponse)
         setConsignmentReferenceResponse(wiremockServer)
 
-        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
+        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration, blockFileChecksFailureV2 = true)
         val recordCheckResultsPage = {
-          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None) }
-          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
+          if (userType == "judgment") {
+            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId, None)
+          } else {
+            fileCheckResultsController.fileCheckResultsPage(consignmentId)
+          }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -519,8 +799,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -548,10 +828,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.zip",
           filename = "test-file.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
-            FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
-            FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
+            FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"),
+            FileCheckStatusAction("Zip", "Zip", "Re-upload", "Remove zip and re-upload")
           )
         )
       )
@@ -576,7 +856,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/unknown-file.bin",
           filename = "unknown-file.bin",
-          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          matches = List(FileFormatMatch(Some("fmt/999"), Some("Unknown Format"))),
           statusActions = List.empty
         )
       )
@@ -601,14 +881,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
-          statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
+          statusActions = List(FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -667,12 +947,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 1
       val header = rows.head
-      header.getCell(0).asString mustBe "Filepath"
-      header.getCell(1).asString mustBe "Filename"
-      header.getCell(2).asString mustBe "Who should investigate"
-      header.getCell(3).asString mustBe "Action"
-      header.getCell(4).asString mustBe "Detail"
-      header.getCell(5).asString mustBe "Error Type"
+      header.getCell(0).asString mustBe "StatusType"
+      header.getCell(1).asString mustBe "StatusValue"
+      header.getCell(2).asString mustBe "Filepath"
+      header.getCell(3).asString mustBe "Filename"
+      header.getCell(4).asString mustBe "Action Required"
+      header.getCell(5).asString mustBe "Error Details"
       header.getCell(6).asString mustBe "File Format"
       header.getCell(7).asString mustBe "PUID"
     }
@@ -683,8 +963,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -703,12 +983,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 2
       val dataRow = rows(1)
-      dataRow.getCell(0).asString mustBe "folder/test-file.txt"
-      dataRow.getCell(1).asString mustBe "test-file.txt"
-      dataRow.getCell(2).asString mustBe "TNA"
-      dataRow.getCell(3).asString mustBe "Contact TNA"
-      dataRow.getCell(4).asString mustBe "File is password protected"
-      dataRow.getCell(5).asString mustBe "PasswordProtected"
+      dataRow.getCell(0).asString mustBe "PasswordProtected"
+      dataRow.getCell(1).asString mustBe "PasswordProtected"
+      dataRow.getCell(2).asString mustBe "folder/test-file.txt"
+      dataRow.getCell(3).asString mustBe "test-file.txt"
+      dataRow.getCell(4).asString mustBe "Contact TNA"
+      dataRow.getCell(5).asString mustBe "File is password protected"
       dataRow.getCell(6).asString mustBe "Plain Text File"
       dataRow.getCell(7).asString mustBe "fmt/111"
     }
@@ -719,10 +999,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/test-file.zip",
           filename = "test-file.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
-            FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
-            FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
+            FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"),
+            FileCheckStatusAction("Zip", "Zip", "Re-upload", "Remove zip and re-upload")
           )
         )
       )
@@ -742,22 +1022,22 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 3
       val row1 = rows(1)
-      row1.getCell(0).asString mustBe "folder/test-file.zip"
-      row1.getCell(1).asString mustBe "test-file.zip"
-      row1.getCell(2).asString mustBe "TNA"
-      row1.getCell(3).asString mustBe "Remove file"
-      row1.getCell(4).asString mustBe "Zip files are not accepted"
-      row1.getCell(5).asString mustBe "Zip"
+      row1.getCell(0).asString mustBe "Zip"
+      row1.getCell(1).asString mustBe "Zip"
+      row1.getCell(2).asString mustBe "folder/test-file.zip"
+      row1.getCell(3).asString mustBe "test-file.zip"
+      row1.getCell(4).asString mustBe "Remove file"
+      row1.getCell(5).asString mustBe "Zip files are not accepted"
       row1.getCell(6).asString mustBe "ZIP Format"
       row1.getCell(7).asString mustBe "x-fmt/263"
 
       val row2 = rows(2)
-      row2.getCell(0).asString mustBe "folder/test-file.zip"
-      row2.getCell(1).asString mustBe "test-file.zip"
-      row2.getCell(2).asString mustBe "Transferring body"
-      row2.getCell(3).asString mustBe "Re-upload"
-      row2.getCell(4).asString mustBe "Remove zip and re-upload"
-      row2.getCell(5).asString mustBe "Zip"
+      row2.getCell(0).asString mustBe "Zip"
+      row2.getCell(1).asString mustBe "Zip"
+      row2.getCell(2).asString mustBe "folder/test-file.zip"
+      row2.getCell(3).asString mustBe "test-file.zip"
+      row2.getCell(4).asString mustBe "Re-upload"
+      row2.getCell(5).asString mustBe "Remove zip and re-upload"
       row2.getCell(6).asString mustBe "ZIP Format"
       row2.getCell(7).asString mustBe "x-fmt/263"
     }
@@ -768,7 +1048,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/unknown-file.bin",
           filename = "unknown-file.bin",
-          matches = List(FileFormatMatch("fmt/999", "Unknown Format")),
+          matches = List(FileFormatMatch(Some("fmt/999"), Some("Unknown Format"))),
           statusActions = List.empty
         )
       )
@@ -788,10 +1068,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 2
       val dataRow = rows(1)
-      dataRow.getCell(0).asString mustBe "folder/unknown-file.bin"
-      dataRow.getCell(1).asString mustBe "unknown-file.bin"
-      dataRow.getCell(2).asString mustBe ""
-      dataRow.getCell(3).asString mustBe ""
+      dataRow.getCell(0).asString mustBe ""
+      dataRow.getCell(1).asString mustBe ""
+      dataRow.getCell(2).asString mustBe "folder/unknown-file.bin"
+      dataRow.getCell(3).asString mustBe "unknown-file.bin"
       dataRow.getCell(4).asString mustBe ""
       dataRow.getCell(5).asString mustBe ""
       dataRow.getCell(6).asString mustBe "Unknown Format"
@@ -805,10 +1085,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           originalPath = "folder/ambiguous-file.doc",
           filename = "ambiguous-file.doc",
           matches = List(
-            FileFormatMatch("fmt/40", "Microsoft Word Document"),
-            FileFormatMatch("fmt/412", "Microsoft Word Document (Password Protected)")
+            FileFormatMatch(Some("fmt/40"), Some("Microsoft Word Document")),
+            FileFormatMatch(Some("fmt/412"), Some("Microsoft Word Document (Password Protected)"))
           ),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File may be password protected"))
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File may be password protected"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -837,14 +1117,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FileCheckFailure(
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
-          matches = List(FileFormatMatch("fmt/111", "Plain Text File")),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
-          matches = List(FileFormatMatch("x-fmt/263", "ZIP Format")),
-          statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
+          matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
+          statusActions = List(FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -862,10 +1142,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       val rows = wb.getFirstSheet.read.asScala.toList
 
       rows.length mustBe 3
-      rows(1).getCell(0).asString mustBe "folder/file-a.txt"
-      rows(1).getCell(1).asString mustBe "file-a.txt"
-      rows(2).getCell(0).asString mustBe "folder/file-b.zip"
-      rows(2).getCell(1).asString mustBe "file-b.zip"
+      rows(1).getCell(0).asString mustBe "PasswordProtected"
+      rows(1).getCell(1).asString mustBe "PasswordProtected"
+      rows(1).getCell(2).asString mustBe "folder/file-a.txt"
+      rows(2).getCell(0).asString mustBe "Zip"
+      rows(2).getCell(1).asString mustBe "Zip"
+      rows(2).getCell(2).asString mustBe "folder/file-b.zip"
     }
   }
 
@@ -932,11 +1214,19 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
     setConsignmentStatusResponse(app.configuration, wiremockServer)
-    val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
+    val fileStatus = List(gfcp.GetConsignment.Files(List(FileStatuses(UUID.randomUUID(), "FFID", "Success"))))
 
     val fileChecksData = gfcp.Data(
       Option(
-        GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+        GetConsignment(
+          allChecksSucceeded = true,
+          parentFolder = Option("parentFolder"),
+          consignmentReference = "TEST-TDR-2021-GB",
+          totalFiles = 1,
+          files = fileStatus,
+          fileChecks = FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)),
+          consignmentStatuses = Nil
+        )
       )
     )
 

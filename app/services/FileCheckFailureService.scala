@@ -16,8 +16,8 @@ import scala.concurrent.{ExecutionContext, Future, blocking}
 import scala.util.Try
 
 case class FileFormatMatch(
-    puid: String,
-    formatName: String
+    puid: Option[String],
+    formatName: Option[String]
 )
 
 case class FileCheckStatus(
@@ -29,7 +29,7 @@ case class FileCheckStatus(
 
 case class FileCheckStatusAction(
     statusName: String,
-    actionType: String,
+    statusValue: String,
     action: String,
     message: String
 )
@@ -71,16 +71,22 @@ object FileCheckFailureService {
   }
 
   private def resolveMessage(status: FileCheckStatus, statusAction: StatusAction): FileCheckStatusAction = {
-    val statusNameLabel = Option(failureMessages.getProperty(status.statusName)).getOrElse(status.statusName)
-    val actionTypeLabel = Option(failureMessages.getProperty(statusAction.actionType.toString)).getOrElse(statusAction.actionType.toString)
+    val statusNameLabel = status.statusName
     val actionLabel = Option(failureMessages.getProperty(s"${statusAction.actionType}.action")).getOrElse(statusAction.actionType.toString)
     FileCheckStatusAction(
       statusName = statusNameLabel,
-      actionType = actionTypeLabel,
+      statusValue = status.statusValue,
       action = actionLabel,
       message = Option(failureMessages.getProperty(statusAction.messageKey)).getOrElse(statusAction.messageKey)
     )
   }
+
+  private def toStatusActions(fileCheckError: FileCheckError): List[(FileCheckStatus, StatusAction)] =
+    fileCheckError.statuses.flatMap { status =>
+      Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
+        StatusActions.action(statusType, StatusValue(status.statusValue)).map(status -> _)
+      }
+    }
 }
 
 class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfig)(implicit val ec: ExecutionContext) {
@@ -104,12 +110,8 @@ class FileCheckFailureService @Inject() (val applicationConfig: ApplicationConfi
                 blocking {
                   val fileCheckError = s3Utils.decodeS3JsonObject[FileCheckError](bucket, s3Object.key())
                   val matches = fileCheckError.file.fileCheckResults.fileFormat.flatMap(_.matches)
-                  val statusActions = fileCheckError.statuses.flatMap { status =>
-                    Try(toStatusType(status.statusName)).toOption.flatMap { statusType =>
-                      StatusActions
-                        .action(statusType, StatusValue(status.statusValue))
-                        .map(FileCheckFailureService.resolveMessage(status, _))
-                    }
+                  val statusActions = FileCheckFailureService.toStatusActions(fileCheckError).map { case (status, action) =>
+                    FileCheckFailureService.resolveMessage(status, action)
                   }
                   FileCheckFailure(
                     originalPath = fileCheckError.file.originalPath,
