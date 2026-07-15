@@ -800,7 +800,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
           matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -830,8 +830,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           filename = "test-file.zip",
           matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
-            FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
-            FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
+            FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"),
+            FileCheckStatusAction("Zip", "Zip", "Re-upload", "Remove zip and re-upload")
           )
         )
       )
@@ -882,13 +882,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
           matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
           matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
-          statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
+          statusActions = List(FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -947,12 +947,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 1
       val header = rows.head
-      header.getCell(0).asString mustBe "Filepath"
-      header.getCell(1).asString mustBe "Filename"
-      header.getCell(2).asString mustBe "Who should investigate"
-      header.getCell(3).asString mustBe "Action"
-      header.getCell(4).asString mustBe "Detail"
-      header.getCell(5).asString mustBe "Error Type"
+      header.getCell(0).asString mustBe "StatusType"
+      header.getCell(1).asString mustBe "StatusValue"
+      header.getCell(2).asString mustBe "Filepath"
+      header.getCell(3).asString mustBe "Filename"
+      header.getCell(4).asString mustBe "Action Required"
+      header.getCell(5).asString mustBe "Error Details"
       header.getCell(6).asString mustBe "File Format"
       header.getCell(7).asString mustBe "PUID"
     }
@@ -964,7 +964,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           originalPath = "folder/test-file.txt",
           filename = "test-file.txt",
           matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -983,12 +983,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 2
       val dataRow = rows(1)
-      dataRow.getCell(0).asString mustBe "folder/test-file.txt"
-      dataRow.getCell(1).asString mustBe "test-file.txt"
-      dataRow.getCell(2).asString mustBe "TNA"
-      dataRow.getCell(3).asString mustBe "Contact TNA"
-      dataRow.getCell(4).asString mustBe "File is password protected"
-      dataRow.getCell(5).asString mustBe "PasswordProtected"
+      dataRow.getCell(0).asString mustBe "PasswordProtected"
+      dataRow.getCell(1).asString mustBe "PasswordProtected"
+      dataRow.getCell(2).asString mustBe "folder/test-file.txt"
+      dataRow.getCell(3).asString mustBe "test-file.txt"
+      dataRow.getCell(4).asString mustBe "Contact TNA"
+      dataRow.getCell(5).asString mustBe "File is password protected"
       dataRow.getCell(6).asString mustBe "Plain Text File"
       dataRow.getCell(7).asString mustBe "fmt/111"
     }
@@ -1001,8 +1001,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           filename = "test-file.zip",
           matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
           statusActions = List(
-            FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"),
-            FileCheckStatusAction("Zip", "Transferring body", "Re-upload", "Remove zip and re-upload")
+            FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"),
+            FileCheckStatusAction("Zip", "Zip", "Re-upload", "Remove zip and re-upload")
           )
         )
       )
@@ -1022,22 +1022,22 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 3
       val row1 = rows(1)
-      row1.getCell(0).asString mustBe "folder/test-file.zip"
-      row1.getCell(1).asString mustBe "test-file.zip"
-      row1.getCell(2).asString mustBe "TNA"
-      row1.getCell(3).asString mustBe "Remove file"
-      row1.getCell(4).asString mustBe "Zip files are not accepted"
-      row1.getCell(5).asString mustBe "Zip"
+      row1.getCell(0).asString mustBe "Zip"
+      row1.getCell(1).asString mustBe "Zip"
+      row1.getCell(2).asString mustBe "folder/test-file.zip"
+      row1.getCell(3).asString mustBe "test-file.zip"
+      row1.getCell(4).asString mustBe "Remove file"
+      row1.getCell(5).asString mustBe "Zip files are not accepted"
       row1.getCell(6).asString mustBe "ZIP Format"
       row1.getCell(7).asString mustBe "x-fmt/263"
 
       val row2 = rows(2)
-      row2.getCell(0).asString mustBe "folder/test-file.zip"
-      row2.getCell(1).asString mustBe "test-file.zip"
-      row2.getCell(2).asString mustBe "Transferring body"
-      row2.getCell(3).asString mustBe "Re-upload"
-      row2.getCell(4).asString mustBe "Remove zip and re-upload"
-      row2.getCell(5).asString mustBe "Zip"
+      row2.getCell(0).asString mustBe "Zip"
+      row2.getCell(1).asString mustBe "Zip"
+      row2.getCell(2).asString mustBe "folder/test-file.zip"
+      row2.getCell(3).asString mustBe "test-file.zip"
+      row2.getCell(4).asString mustBe "Re-upload"
+      row2.getCell(5).asString mustBe "Remove zip and re-upload"
       row2.getCell(6).asString mustBe "ZIP Format"
       row2.getCell(7).asString mustBe "x-fmt/263"
     }
@@ -1068,10 +1068,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       rows.length mustBe 2
       val dataRow = rows(1)
-      dataRow.getCell(0).asString mustBe "folder/unknown-file.bin"
-      dataRow.getCell(1).asString mustBe "unknown-file.bin"
-      dataRow.getCell(2).asString mustBe ""
-      dataRow.getCell(3).asString mustBe ""
+      dataRow.getCell(0).asString mustBe ""
+      dataRow.getCell(1).asString mustBe ""
+      dataRow.getCell(2).asString mustBe "folder/unknown-file.bin"
+      dataRow.getCell(3).asString mustBe "unknown-file.bin"
       dataRow.getCell(4).asString mustBe ""
       dataRow.getCell(5).asString mustBe ""
       dataRow.getCell(6).asString mustBe "Unknown Format"
@@ -1088,7 +1088,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             FileFormatMatch(Some("fmt/40"), Some("Microsoft Word Document")),
             FileFormatMatch(Some("fmt/412"), Some("Microsoft Word Document (Password Protected)"))
           ),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File may be password protected"))
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File may be password protected"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -1118,13 +1118,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           originalPath = "folder/file-a.txt",
           filename = "file-a.txt",
           matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
-          statusActions = List(FileCheckStatusAction("PasswordProtected", "TNA", "Contact TNA", "File is password protected"))
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
         ),
         FileCheckFailure(
           originalPath = "folder/file-b.zip",
           filename = "file-b.zip",
           matches = List(FileFormatMatch(Some("x-fmt/263"), Some("ZIP Format"))),
-          statusActions = List(FileCheckStatusAction("Zip", "TNA", "Remove file", "Zip files are not accepted"))
+          statusActions = List(FileCheckStatusAction("Zip", "Zip", "Remove file", "Zip files are not accepted"))
         )
       )
       when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
@@ -1142,10 +1142,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       val rows = wb.getFirstSheet.read.asScala.toList
 
       rows.length mustBe 3
-      rows(1).getCell(0).asString mustBe "folder/file-a.txt"
-      rows(1).getCell(1).asString mustBe "file-a.txt"
-      rows(2).getCell(0).asString mustBe "folder/file-b.zip"
-      rows(2).getCell(1).asString mustBe "file-b.zip"
+      rows(1).getCell(0).asString mustBe "PasswordProtected"
+      rows(1).getCell(1).asString mustBe "PasswordProtected"
+      rows(1).getCell(2).asString mustBe "folder/file-a.txt"
+      rows(2).getCell(0).asString mustBe "Zip"
+      rows(2).getCell(1).asString mustBe "Zip"
+      rows(2).getCell(2).asString mustBe "folder/file-b.zip"
     }
   }
 
