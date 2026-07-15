@@ -113,6 +113,14 @@ export const renderModules = async () => {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
+
+  const filePathCheckContainer: HTMLDivElement | null =
+    document.querySelector("#file-path-check")
+  if (filePathCheckContainer) {
+    const filePathCheckModule = await import("./filepathcheck")
+    filePathCheckModule.initialiseFilePathCheck()
+  }
+
   if (fileChecksContainer) {
     const frontEndInfo = getFrontEndInfo()
     const errorHandlingModule = await import("./errorhandling")
