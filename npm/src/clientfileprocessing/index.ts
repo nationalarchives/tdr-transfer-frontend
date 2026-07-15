@@ -14,43 +14,6 @@ import {
   isFile
 } from "../upload/form/get-files-from-drag-event"
 
-/**
- * Checks files whose size is reported as 0. Attempts to read the file to
- * distinguish genuinely empty files from files that are unreadable due to
- * the Windows long file path limitation (paths > 260 characters).
- *
- * - If the file can be read and is truly 0 bytes: left unchanged.
- * - If the file cannot be read (stream/arrayBuffer throws): marked as size -1
- *   so the server can identify affected files and inform the user.
- */
-async function flagUnreadableFiles(
-  metadata: IFileMetadata[]
-): Promise<IFileMetadata[]> {
-  const resolved: IFileMetadata[] = []
-  for (const entry of metadata) {
-    if (entry.size === 0 && entry.file.name !== "") {
-      const readable = await canReadFile(entry.file)
-      if (!readable) {
-        resolved.push({ ...entry, size: -1 })
-      } else {
-        resolved.push(entry)
-      }
-    } else {
-      resolved.push(entry)
-    }
-  }
-  return resolved
-}
-
-async function canReadFile(file: File): Promise<boolean> {
-  try {
-    await file.arrayBuffer()
-    return true
-  } catch {
-    return false
-  }
-}
-
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
   clientFileExtractMetadata: ClientFileExtractMetadata
@@ -112,16 +75,13 @@ export class ClientFileProcessing {
         .filter((f) => isDirectory(f))
         .map((f) => f.path)
 
-      const metadataOrError: IFileMetadata[] | Error =
+      const metadata: IFileMetadata[] | Error =
         await this.clientFileExtractMetadata.extract(
           files.filter((f) => isFile(f)) as IFileWithPath[],
           this.metadataProgressCallback
         )
 
-      if (!isError(metadataOrError)) {
-        // Flag files affected by Windows long path limitation (size: -1)
-        const metadata = await flagUnreadableFiles(metadataOrError)
-
+      if (!isError(metadata)) {
         const tdrFiles =
           await this.clientFileMetadataUpload.saveClientFileMetadata(
             uploadFilesInfo.consignmentId,
@@ -143,7 +103,7 @@ export class ClientFileProcessing {
           return tdrFiles
         }
       } else {
-        return metadataOrError
+        return metadata
       }
     } else {
       return uploadResult

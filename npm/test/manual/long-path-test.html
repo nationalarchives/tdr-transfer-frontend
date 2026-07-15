@@ -1,274 +1,643 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="govuk-template">
 <head>
   <meta charset="UTF-8">
-  <title>Long File Path Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Check your transfer for long file path issues – Transfer Digital Records – The National Archives</title>
   <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-    .dropzone {
-      border: 3px dashed #ccc; padding: 40px; text-align: center;
-      margin: 20px 0; border-radius: 8px; background: #f9f9f9;
+    /* GOV.UK Design System core styles (self-contained) */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: "GDS Transport", arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: #0b0c0c;
+      background: #fff;
+      margin: 0;
+      padding: 0;
     }
-    .dropzone.dragover { border-color: #4CAF50; background: #e8f5e9; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; word-break: break-all; }
-    th { background: #f2f2f2; }
-    th:nth-child(1), td:nth-child(1) { width: 40%; }
-    th:nth-child(2), td:nth-child(2) { width: 8%; }
-    th:nth-child(3), td:nth-child(3) { width: 8%; }
-    th:nth-child(4), td:nth-child(4) { width: 10%; }
-    th:nth-child(5), td:nth-child(5) { width: 16%; }
-    th:nth-child(6), td:nth-child(6) { width: 18%; }
-    .pass { color: green; font-weight: bold; }
-    .fail { color: red; font-weight: bold; }
-    .warn { color: orange; font-weight: bold; }
-    #status { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
-    #status.error { background: #ffebee; border: 1px solid #f44336; display: block; }
-    #status.success { background: #e8f5e9; border: 1px solid #4CAF50; display: block; }
-    #status.warning { background: #fff3e0; border: 1px solid #ff9800; display: block; }
-    h1 { color: #333; }
-    p { color: #666; line-height: 1.5; }
-    code { background: #eee; padding: 2px 6px; border-radius: 3px; }
+    .govuk-header {
+      background: #0b0c0c;
+      border-bottom: 10px solid #1d70b8;
+      color: #fff;
+      padding: 10px 0;
+    }
+    .govuk-header__container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .govuk-header__logotype { display: flex; align-items: center; gap: 10px; }
+    .govuk-header__logotype-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+    }
+    .tna-logo {
+      background: #0b0c0c;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1.2;
+      padding: 4px 6px;
+      border: 1px solid #fff;
+      text-align: center;
+    }
+    .govuk-phase-banner {
+      border-bottom: 1px solid #b1b4b6;
+      padding: 10px 0;
+    }
+    .govuk-phase-banner__content {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 15px;
+      font-size: 16px;
+    }
+    .govuk-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #fff;
+      background: #1d70b8;
+      margin-right: 10px;
+    }
+    .govuk-width-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    .govuk-main-wrapper { padding: 30px 0 60px; }
+    .govuk-grid-row { display: flex; flex-wrap: wrap; margin: 0 -15px; }
+    .govuk-grid-column-two-thirds { width: 66.66%; padding: 0 15px; }
+    .govuk-heading-l { font-size: 36px; font-weight: 700; line-height: 1.1; margin: 0 0 30px; }
+    .govuk-heading-m { font-size: 24px; font-weight: 700; line-height: 1.2; margin: 30px 0 15px; }
+    .govuk-body { font-size: 19px; line-height: 1.4; margin: 0 0 20px; color: #0b0c0c; }
+    .govuk-body-s { font-size: 16px; line-height: 1.4; margin: 0 0 15px; color: #0b0c0c; }
+    .govuk-link { color: #1d70b8; }
+    .govuk-link:visited { color: #4c2c92; }
+    .govuk-inset-text {
+      border-left: 10px solid #b1b4b6;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .govuk-warning-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 20px 0;
+      padding: 0;
+    }
+    .govuk-warning-text__icon {
+      display: inline-block;
+      min-width: 35px;
+      height: 35px;
+      line-height: 35px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      background: #0b0c0c;
+      color: #fff;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .govuk-warning-text__text { font-size: 19px; font-weight: 700; }
+
+    /* Drag and drop zone — matches TDR upload page */
+    .drag-and-drop__dropzone {
+      align-items: center;
+      box-sizing: border-box;
+      display: flex;
+      height: 12rem;
+      justify-content: center;
+      margin-bottom: 20px;
+      outline: 3px dashed #0b0c0c;
+      padding: 15px 10px;
+      transition: outline-offset 0.1s ease-in-out, background-color 0.1s linear;
+      width: 100%;
+    }
+    .drag-and-drop__dropzone--dragover {
+      background: #005a30;
+      outline-color: #fff;
+      outline-offset: -4px;
+    }
+    .drag-and-drop__dropzone--dragover .drag-and-drop__hint-text { color: #fff; }
+    .drag-and-drop__hint-text { margin-bottom: 0; font-size: 19px; }
+
+    /* GOV.UK Button */
+    .govuk-button {
+      font-size: 19px;
+      font-weight: 400;
+      padding: 8px 10px 7px;
+      border: 2px solid transparent;
+      border-radius: 0;
+      color: #fff;
+      background: #00703c;
+      box-shadow: 0 2px 0 #002d18;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 0;
+    }
+    .govuk-button:hover { background: #005a30; }
+    .govuk-button--secondary {
+      background: #f3f2f1;
+      color: #0b0c0c;
+      box-shadow: 0 2px 0 #929191;
+    }
+    .govuk-button--secondary:hover { background: #dbdad9; }
+
+    /* GOV.UK Table */
+    .govuk-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; }
+    .govuk-table__header, .govuk-table__cell {
+      padding: 10px 20px 10px 0;
+      border-bottom: 1px solid #b1b4b6;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+    .govuk-table__header { font-weight: 700; }
+    .govuk-table__header--narrow { width: 100px; }
+    .govuk-table__header--status { width: 180px; }
+
+    /* Status tag styles */
+    .govuk-tag--green { background: #00703c; color: #fff; }
+    .govuk-tag--red { background: #d4351c; color: #fff; }
+    .govuk-tag--yellow { background: #ffdd00; color: #0b0c0c; }
+    .govuk-tag--grey { background: #505a5f; color: #fff; }
+
+    /* Notification banners */
+    .govuk-notification-banner {
+      border: 5px solid #1d70b8;
+      margin: 30px 0;
+      padding: 0;
+    }
+    .govuk-notification-banner--success { border-color: #00703c; }
+    .govuk-notification-banner__header {
+      padding: 6px 15px;
+      background: #1d70b8;
+      color: #fff;
+    }
+    .govuk-notification-banner--success .govuk-notification-banner__header { background: #00703c; }
+    .govuk-notification-banner__title { font-size: 16px; font-weight: 700; margin: 0; color: #fff; }
+    .govuk-notification-banner__content { padding: 15px; }
+    .govuk-notification-banner__heading { font-size: 19px; font-weight: 700; margin: 0; }
+
+    /* Error summary */
+    .govuk-error-summary {
+      border: 5px solid #d4351c;
+      margin: 30px 0;
+      padding: 0;
+    }
+    .govuk-error-summary__header {
+      padding: 6px 15px;
+      background: #d4351c;
+      color: #fff;
+    }
+    .govuk-error-summary__title { font-size: 16px; font-weight: 700; margin: 0; color: #fff; }
+    .govuk-error-summary__body { padding: 15px; }
+
+    /* Processing spinner */
+    .processing-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #b1b4b6;
+      border-top-color: #0b0c0c;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Summary panel */
+    .summary-panel {
+      background: #f3f2f1;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .summary-panel dt { font-weight: 700; }
+    .summary-panel dd { margin: 0 0 10px; }
+
+    .govuk-footer {
+      background: #f3f2f1;
+      border-top: 1px solid #b1b4b6;
+      padding: 25px 0;
+      margin-top: 60px;
+    }
+    .govuk-footer__meta {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 15px;
+      font-size: 16px;
+      color: #505a5f;
+    }
+
+    @media (max-width: 640px) {
+      .govuk-grid-column-two-thirds { width: 100%; }
+      .govuk-heading-l { font-size: 27px; }
+    }
   </style>
 </head>
-<body>
-  <h1>Long File Path Diagnostic Test</h1>
-  <p>
-    This page tests whether your browser can correctly read files with paths longer than 260 characters.
-    It checks <code>file.size</code>, <code>file.stream()</code>, and computes the SHA-256 checksum.
-  </p>
+<body class="govuk-template__body">
+  <!-- Header -->
+  <header class="govuk-header" role="banner">
+    <div class="govuk-header__container">
+      <div class="govuk-header__logotype">
+        <div class="tna-logo">The National<br>Archives</div>
+        <span class="govuk-header__logotype-text">Transfer Digital Records</span>
+      </div>
+    </div>
+  </header>
 
-  <h2>Test 1: Direct long path</h2>
-  <p><strong>Instructions:</strong></p>
-  <ol>
-    <li>Create a folder with a path longer than 260 characters (e.g. deeply nested folders)</li>
-    <li>Place a file with known content inside it</li>
-    <li>Either drag &amp; drop the folder below, or use the file picker</li>
-  </ol>
-
-  <h2>Test 2: Using a symlink/junction (workaround)</h2>
-  <p>This test demonstrates that using a junction preserves the internal folder structure while shortening the root path.</p>
-  <ol>
-    <li>Open Command Prompt as Administrator</li>
-    <li>Create a junction to your long path:
-      <pre>mklink /J C:\shortlink "C:\Users\name\Very\Long\Department\Name\Project\SubFolder\MoreFolders"</pre>
-    </li>
-    <li>Now drop or select <code>C:\shortlink</code> below</li>
-    <li>Compare the file paths — the internal folder structure should be identical, just with a shorter root</li>
-  </ol>
-
-  <div class="dropzone" id="dropzone">
-    Drop a folder here
+  <!-- Phase banner -->
+  <div class="govuk-phase-banner">
+    <div class="govuk-phase-banner__content">
+      <span class="govuk-tag">BETA</span>
+      This is a new service - your feedback will help us to improve it.
+    </div>
   </div>
 
-  <p>Or select a folder:</p>
-  <input type="file" id="filePicker" webkitdirectory multiple>
+  <!-- Main content -->
+  <div class="govuk-width-container">
+    <main class="govuk-main-wrapper" role="main">
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <h1 class="govuk-heading-l">Check your transfer for long file path issues</h1>
 
-  <div id="status"></div>
+          <p class="govuk-body">
+            Windows browsers may not be able to read files or folders when the full file path exceeds 260 characters.
+            This can cause files to be silently omitted from your transfer.
+          </p>
 
-  <h3>Results</h3>
-  <table id="results" style="display:none">
-    <thead>
-      <tr>
-        <th>Relative Path (folder structure)</th>
-        <th>Path Length</th>
-        <th>file.size</th>
-        <th>Actual Size</th>
-        <th>SHA-256</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="resultsBody"></tbody>
-  </table>
+          <p class="govuk-body">
+            Use this page to check whether your folder is affected before you start your transfer.
+          </p>
 
-  <div id="summary" style="margin-top:20px"></div>
+          <div class="govuk-inset-text">
+            <p class="govuk-body" style="margin:0">
+              Select the same top-level folder you intend to transfer.
+              This check does not upload any files — it only reads the file paths in your browser.
+            </p>
+          </div>
 
-  <div id="comparison" style="margin-top:20px; display:none">
-    <h3>Path Comparison (symlink vs original)</h3>
-    <p>Below shows the relative paths as reported by the browser. Notice the internal folder structure is preserved — only the root changes:</p>
-    <pre id="pathList" style="background:#f5f5f5; padding:15px; border-radius:4px; overflow-x:auto; font-size:12px;"></pre>
+          <h2 class="govuk-heading-m">Select a folder to check</h2>
+
+          <p class="govuk-body">Either drag and drop your folder below, or use the 'Select a folder' button.</p>
+
+          <div class="drag-and-drop__dropzone" id="dropzone">
+            <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here&nbsp;</p>
+            <button type="button" id="folder-picker-btn" class="govuk-button govuk-button--secondary">Select a folder</button>
+          </div>
+
+          <!-- Status / progress -->
+          <div id="status" style="display:none"></div>
+
+          <!-- Results -->
+          <div id="results-section" style="display:none">
+            <h2 class="govuk-heading-m">Results</h2>
+
+            <div id="summary-panel" class="summary-panel" style="display:none">
+              <dl>
+                <dt>Root folder</dt><dd id="summary-root">—</dd>
+                <dt>Total files and folders</dt><dd id="summary-total">—</dd>
+                <dt>Longest path</dt><dd id="summary-longest">—</dd>
+                <dt>Issues found</dt><dd id="summary-issues">—</dd>
+              </dl>
+            </div>
+
+            <table class="govuk-table" id="results-table">
+              <thead>
+                <tr>
+                  <th class="govuk-table__header" scope="col">File path</th>
+                  <th class="govuk-table__header govuk-table__header--narrow" scope="col">Path length</th>
+                  <th class="govuk-table__header govuk-table__header--narrow" scope="col">Size</th>
+                  <th class="govuk-table__header govuk-table__header--status" scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody" class="govuk-table__body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
+
+  <!-- Footer -->
+  <footer class="govuk-footer" role="contentinfo">
+    <div class="govuk-footer__meta">
+      <span>Long file path diagnostic tool — for internal testing use</span>
+    </div>
+  </footer>
 
   <script>
     const dropzone = document.getElementById('dropzone');
-    const filePicker = document.getElementById('filePicker');
-    const resultsTable = document.getElementById('results');
+    const resultsSection = document.getElementById('results-section');
     const resultsBody = document.getElementById('resultsBody');
     const statusEl = document.getElementById('status');
-    const summaryEl = document.getElementById('summary');
 
-    // Drag and drop handlers
+    // --- Drag and drop ---
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropzone.classList.add('dragover');
+      dropzone.classList.add('drag-and-drop__dropzone--dragover');
     });
     dropzone.addEventListener('dragleave', () => {
-      dropzone.classList.remove('dragover');
+      dropzone.classList.remove('drag-and-drop__dropzone--dragover');
     });
     dropzone.addEventListener('drop', async (e) => {
       e.preventDefault();
-      dropzone.classList.remove('dragover');
+      dropzone.classList.remove('drag-and-drop__dropzone--dragover');
       const items = e.dataTransfer.items;
-      if (items.length > 0) {
-        const entry = items[0].webkitGetAsEntry();
-        if (entry && entry.isDirectory) {
-          const files = await getAllFilesFromEntry(entry);
-          await processFiles(files);
-        } else {
-          showStatus('Please drop a folder, not a file.', 'error');
-        }
-      }
-    });
+      if (items.length === 0) return;
 
-    // File picker handler
-    filePicker.addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files).map(f => ({
-        file: f,
-        path: f.webkitRelativePath || f.name
-      }));
-      await processFiles(files);
-    });
-
-    // Recursively get all files from a dropped directory entry
-    async function getAllFilesFromEntry(entry) {
-      const files = [];
-      async function traverse(entry) {
-        if (entry.isFile) {
-          const file = await new Promise((resolve) => entry.file(resolve));
-          files.push({ file, path: entry.fullPath });
-        } else if (entry.isDirectory) {
-          const reader = entry.createReader();
-          let entries = await new Promise((resolve) => reader.readEntries(resolve));
-          while (entries.length > 0) {
-            for (const e of entries) {
-              await traverse(e);
-            }
-            entries = await new Promise((resolve) => reader.readEntries(resolve));
-          }
-        }
-      }
-      await traverse(entry);
-      return files;
-    }
-
-    // Compute SHA-256 from an ArrayBuffer
-    async function sha256(buffer) {
-      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-      const hashArray = new Uint8Array(hashBuffer);
-      return Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    // Try to read a file — matches the detection logic in the app code
-    async function tryReadFile(file) {
-      try {
-        const buffer = await file.arrayBuffer();
-        return { readable: true, size: buffer.byteLength, buffer };
-      } catch (err) {
-        return { readable: false, size: -1, buffer: null, error: err.message };
-      }
-    }
-
-    // Process all files and display results
-    async function processFiles(files) {
-      resultsBody.innerHTML = '';
-      resultsTable.style.display = 'table';
-      statusEl.style.display = 'none';
-      summaryEl.innerHTML = '';
-
-      if (files.length === 0) {
-        showStatus('No files found in the selected folder.', 'error');
+      if (items.length > 1) {
+        showBanner('Please drop a single top-level folder, not multiple items.', 'error');
         return;
       }
 
-      showStatus(`Processing ${files.length} file(s)...`, 'warning');
+      const entry = items[0].webkitGetAsEntry();
+      if (!entry || !entry.isDirectory) {
+        showBanner('Please drop a folder, not a file.', 'error');
+        return;
+      }
+
+      showBanner('<span class="processing-spinner"></span> Scanning folder — this may take a moment…', 'info');
+      const files = await getAllFiles(entry, []);
+      showBanner(`<span class="processing-spinner"></span> Checking ${files.length} item(s)…`, 'info');
+      await processFiles(files);
+    });
+
+    // --- Select a folder button (File System Access API) ---
+    const folderPickerBtn = document.getElementById('folder-picker-btn');
+    folderPickerBtn.addEventListener('click', async () => {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        showBanner('<span class="processing-spinner"></span> Scanning folder — this may take a moment…', 'info');
+        const files = await getAllFilesFromHandle(dirHandle, '/' + dirHandle.name);
+        showBanner(`<span class="processing-spinner"></span> Checking ${files.length} item(s)…`, 'info');
+        await processFiles(files);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showBanner(`Error: ${err.message}`, 'error');
+        }
+      }
+    });
+
+    // --- Recursive traversal using File System Access API handles ---
+    async function getAllFilesFromHandle(dirHandle, pathPrefix) {
+      const fileInfos = [];
+      try {
+        for await (const [name, handle] of dirHandle.entries()) {
+          const fullPath = pathPrefix + '/' + name;
+          if (handle.kind === 'directory') {
+            const children = await getAllFilesFromHandle(handle, fullPath).catch(() => null);
+            if (children === null) {
+              fileInfos.push({ path: fullPath, unreadable: true });
+            } else if (children.length === 0) {
+              fileInfos.push({ path: fullPath });
+            } else {
+              fileInfos.push(...children);
+            }
+          } else {
+            try {
+              const file = await withTimeout(handle.getFile(), 5000, `getFile timed out for: ${fullPath}`);
+              fileInfos.push({ file, path: fullPath });
+            } catch (err) {
+              fileInfos.push({ file: new File([], name), path: fullPath, accessError: err.message || 'Timed out' });
+            }
+          }
+        }
+      } catch (err) {
+        return null;
+      }
+      return fileInfos;
+    }
+
+    // --- getAllFiles: recursive directory traversal with timeouts ---
+    async function getAllFiles(entry, fileInfoInput) {
+      const reader = entry.createReader();
+      const entries = await getEntriesFromReader(reader, entry.fullPath);
+      if (entries === null) {
+        fileInfoInput.push({ path: entry.fullPath, unreadable: true });
+        return fileInfoInput;
+      }
+      if (entry.isDirectory && entries.length === 0) {
+        fileInfoInput.push({ path: entry.fullPath });
+      }
+      for (const childEntry of entries) {
+        if (childEntry.isDirectory) {
+          await getAllFiles(childEntry, fileInfoInput);
+        } else {
+          const file = await getFileFromEntry(childEntry);
+          fileInfoInput.push(file);
+        }
+      }
+      return fileInfoInput;
+    }
+
+    function getEntriesFromReader(reader, dirPath) {
+      return new Promise(async (resolve) => {
+        let allEntries = [];
+        try {
+          let nextBatch = await getEntryBatch(reader, dirPath);
+          while (nextBatch.length > 0) {
+            allEntries = allEntries.concat(nextBatch);
+            nextBatch = await getEntryBatch(reader, dirPath);
+          }
+        } catch (err) {
+          console.warn(`readEntries failed/timed out for: ${dirPath}`, err);
+          resolve(null);
+          return;
+        }
+        resolve(allEntries);
+      });
+    }
+
+    function getEntryBatch(reader, dirPath) {
+      return withTimeout(
+        new Promise((resolve, reject) => {
+          reader.readEntries(
+            (entries) => resolve(entries),
+            (err) => reject(err)
+          );
+        }),
+        5000,
+        `readEntries timed out for: ${dirPath}`
+      );
+    }
+
+    function getFileFromEntry(entry) {
+      return withTimeout(
+        new Promise((resolve, reject) => {
+          entry.file(
+            (file) => resolve({ file, path: entry.fullPath }),
+            (err) => reject(err)
+          );
+        }),
+        5000,
+        `entry.file() timed out for: ${entry.fullPath}`
+      ).catch(err => {
+        console.warn(err.message || err);
+        return { file: new File([], entry.name), path: entry.fullPath, accessError: err.message || 'Timed out' };
+      });
+    }
+
+    function withTimeout(promise, ms, msg) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(msg || `Timed out after ${ms/1000}s`)), ms))
+      ]);
+    }
+
+    // --- Process and display results ---
+    async function processFiles(files) {
+      resultsBody.innerHTML = '';
+      resultsSection.style.display = 'block';
+      document.getElementById('summary-panel').style.display = 'none';
+
+      if (files.length === 0) {
+        showBanner('No files found in the selected folder.', 'error');
+        return;
+      }
 
       let longPathIssues = 0;
-      let genuinelyEmpty = 0;
       let unreadable = 0;
+      let processed = 0;
 
-      for (const { file, path } of files) {
-        const reportedSize = file.size;
+      for (const { file, path, accessError, unreadable: unreadableDir } of files) {
+        processed++;
+        const reportedSize = file ? file.size : 0;
         const row = document.createElement('tr');
-        let status = '';
-        let statusClass = '';
+        row.className = 'govuk-table__row';
+        let statusText = '';
+        let tagClass = '';
         let actualSize = reportedSize;
-        let checksum = '';
 
-        if (reportedSize > 0) {
-          // Normal file — no issue
-          status = 'OK';
-          statusClass = 'pass';
-          const buffer = await file.arrayBuffer();
-          checksum = await sha256(buffer);
-        } else {
-          // file.size is 0 — try to read it (same logic as app code)
-          const result = await tryReadFile(file);
-          if (!result.readable) {
-            // Read threw an error — long path problem
-            status = `UNREADABLE (size: -1) — ${result.error}`;
-            statusClass = 'fail';
+        if (!file && !accessError) {
+          if (unreadableDir) {
+            statusText = 'Unreadable folder';
+            tagClass = 'govuk-tag--red';
             actualSize = -1;
-            checksum = 'N/A';
             longPathIssues++;
             unreadable++;
-          } else if (result.size === 0) {
-            // Read succeeded with 0 bytes — genuinely empty
-            status = 'Empty file (genuine, size: 0)';
-            statusClass = 'pass';
-            checksum = await sha256(result.buffer);
-            genuinelyEmpty++;
           } else {
-            // Read succeeded with content — stream workaround would work
-            status = `LONG PATH — readable via arrayBuffer (${result.size} bytes)`;
-            statusClass = 'warn';
-            actualSize = result.size;
-            checksum = await sha256(result.buffer);
+            statusText = 'Empty folder';
+            tagClass = 'govuk-tag--grey';
+          }
+        } else if (accessError) {
+          statusText = 'Access denied';
+          tagClass = 'govuk-tag--red';
+          actualSize = -1;
+          longPathIssues++;
+          unreadable++;
+        } else if (reportedSize > 0) {
+          try {
+            await withTimeout(file.arrayBuffer(), 10000);
+            statusText = 'OK';
+            tagClass = 'govuk-tag--green';
+          } catch (err) {
+            statusText = 'Timed out';
+            tagClass = 'govuk-tag--red';
+            actualSize = -1;
             longPathIssues++;
+            unreadable++;
+          }
+        } else {
+          try {
+            const buffer = await withTimeout(file.arrayBuffer(), 10000);
+            if (buffer.byteLength === 0) {
+              statusText = 'OK (empty file)';
+              tagClass = 'govuk-tag--green';
+            } else {
+              statusText = 'Long path issue';
+              tagClass = 'govuk-tag--yellow';
+              actualSize = buffer.byteLength;
+              longPathIssues++;
+            }
+          } catch (err) {
+            statusText = 'Unreadable';
+            tagClass = 'govuk-tag--red';
+            actualSize = -1;
+            longPathIssues++;
+            unreadable++;
           }
         }
 
-        row.innerHTML = `
-          <td title="${path}">${path}</td>
-          <td>${path.length}</td>
-          <td>${reportedSize}</td>
-          <td>${actualSize}</td>
-          <td style="font-family:monospace;font-size:11px">${checksum ? checksum.substring(0, 16) + '...' : 'N/A'}</td>
-          <td class="${statusClass}">${status}</td>
-        `;
+        const sizeDisplay = actualSize < 0 ? '—' : formatSize(actualSize);
+
+        row.innerHTML =
+          `<td class="govuk-table__cell" title="${escapeHtml(path)}">${escapeHtml(path)}</td>` +
+          `<td class="govuk-table__cell">${path ? path.length : 0}</td>` +
+          `<td class="govuk-table__cell">${sizeDisplay}</td>` +
+          `<td class="govuk-table__cell"><strong class="govuk-tag ${tagClass}">${statusText}</strong></td>`;
+
         resultsBody.appendChild(row);
+        if (processed % 50 === 0) await new Promise(r => setTimeout(r, 0));
       }
 
-      // Summary
+      // Summary panel
+      const summaryPanel = document.getElementById('summary-panel');
+      document.getElementById('summary-root').textContent =
+        files.length > 0 ? (files[0].path || '').split('/').filter(Boolean)[0] || '—' : '—';
+      document.getElementById('summary-total').textContent = files.length;
+      document.getElementById('summary-longest').textContent =
+        Math.max(...files.map(f => (f.path || '').length)) + ' characters';
+      document.getElementById('summary-issues').textContent = longPathIssues;
+      summaryPanel.style.display = 'block';
+
       if (longPathIssues === 0) {
-        showStatus(
-          `All ${files.length} file(s) read correctly. No long path issues detected.` +
-          (genuinelyEmpty > 0 ? ` (${genuinelyEmpty} genuinely empty file(s))` : ''),
+        showBanner(
+          `All ${files.length} item(s) checked successfully. No long path issues detected. Your transfer should not be affected.`,
           'success'
         );
       } else {
-        const parts = [];
-        parts.push(`${longPathIssues} file(s) affected by long path issue.`);
-        if (unreadable > 0) parts.push(`${unreadable} unreadable (would return size -1 to server).`);
-        showStatus(parts.join(' '), unreadable > 0 ? 'error' : 'warning');
+        showBanner(
+          `${longPathIssues} item(s) affected by long file path issues (${unreadable} unreadable). ` +
+          'Your transfer may be incomplete. Consider shortening the folder path or using a Windows junction to reduce the path length.',
+          'error'
+        );
       }
-
-      // Show full path list for comparison (useful when testing symlink vs original)
-      const comparisonEl = document.getElementById('comparison');
-      const pathListEl = document.getElementById('pathList');
-      comparisonEl.style.display = 'block';
-      pathListEl.textContent = files.map(f => f.path).join('\n');
-
-      summaryEl.innerHTML = `
-        <strong>Path length of longest file:</strong> ${Math.max(...files.map(f => f.path.length))} characters<br>
-        <strong>Total files:</strong> ${files.length}<br>
-        <strong>Root folder:</strong> ${files.length > 0 ? files[0].path.split('/')[1] || files[0].path.split('/')[0] : 'N/A'}
-      `;
     }
 
-    function showStatus(message, type) {
-      statusEl.textContent = message;
-      statusEl.className = type;
+    function showBanner(messageHtml, type) {
+      if (type === 'success') {
+        statusEl.innerHTML =
+          `<div class="govuk-notification-banner govuk-notification-banner--success" role="alert">` +
+          `<div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title">Success</h2></div>` +
+          `<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">${messageHtml}</p></div></div>`;
+      } else if (type === 'error') {
+        statusEl.innerHTML =
+          `<div class="govuk-error-summary" role="alert">` +
+          `<div class="govuk-error-summary__header"><h2 class="govuk-error-summary__title">There is a problem</h2></div>` +
+          `<div class="govuk-error-summary__body"><p class="govuk-body">${messageHtml}</p></div></div>`;
+      } else {
+        statusEl.innerHTML =
+          `<div class="govuk-notification-banner" role="status">` +
+          `<div class="govuk-notification-banner__header"><h2 class="govuk-notification-banner__title">Checking</h2></div>` +
+          `<div class="govuk-notification-banner__content"><p class="govuk-notification-banner__heading">${messageHtml}</p></div></div>`;
+      }
       statusEl.style.display = 'block';
+    }
+
+    function formatSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const units = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
     }
   </script>
 </body>
