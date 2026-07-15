@@ -1,4 +1,9 @@
-import { IEntryWithPath, isFile } from "./get-files-from-drag-event"
+import {
+  IEntryWithPath,
+  IDirectoryWithPath,
+  isFile,
+  isDirectory
+} from "./get-files-from-drag-event"
 import { IFileWithPath } from "@nationalarchives/file-information"
 
 export interface IFileCheckResult {
@@ -51,8 +56,17 @@ export async function checkFilesForLongPathIssues(
     if (isFile(entry)) {
       const result = await checkFileReadability(entry)
       results.push(result)
-    } else {
-      results.push({ path: entry.path, status: "ok" })
+    } else if (isDirectory(entry)) {
+      const dir = entry as IDirectoryWithPath
+      if (dir.unreadable) {
+        results.push({
+          path: dir.path,
+          status: "unreadable",
+          errorMessage: `Could not read folder: ${dir.path}`
+        })
+      } else {
+        results.push({ path: dir.path, status: "ok" })
+      }
     }
   }
   return results
