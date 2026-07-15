@@ -1,12 +1,7 @@
-import {
-  checkFilesForLongPathIssues,
-  hasLongPathIssues,
-  IFileCheckResult
-} from "../upload/form/long-path-check"
+import { checkFilesForLongPathIssues } from "../upload/form/long-path-check"
 import {
   getAllFiles,
   IEntryWithPath,
-  isFile,
   IWebkitEntry
 } from "../upload/form/get-files-from-drag-event"
 
@@ -126,10 +121,25 @@ async function processAndDisplayResults(
           ? "Access denied"
           : "Long path issue"
 
-    row.innerHTML =
-      `<td class="govuk-table__cell file-path-check__cell-path" title="${escapeHtml(result.path)}">${escapeHtml(result.path)}</td>` +
-      `<td class="govuk-table__cell govuk-table__cell--numeric">${result.path.length}</td>` +
-      `<td class="govuk-table__cell"><strong class="govuk-tag ${tagClass}">${statusText}</strong></td>`
+    const pathCell = document.createElement("td")
+    pathCell.className = "govuk-table__cell file-path-check__cell-path"
+    pathCell.title = result.path
+    pathCell.textContent = result.path
+
+    const lengthCell = document.createElement("td")
+    lengthCell.className = "govuk-table__cell govuk-table__cell--numeric"
+    lengthCell.textContent = result.path.length.toString()
+
+    const statusCell = document.createElement("td")
+    statusCell.className = "govuk-table__cell"
+    const statusTag = document.createElement("strong")
+    statusTag.className = `govuk-tag ${tagClass}`
+    statusTag.textContent = statusText
+    statusCell.appendChild(statusTag)
+
+    row.appendChild(pathCell)
+    row.appendChild(lengthCell)
+    row.appendChild(statusCell)
 
     tableBody.appendChild(row)
   }
@@ -162,10 +172,4 @@ async function processAndDisplayResults(
       failureMessage.textContent = `${issueCount} of ${results.length} item(s) have long path issues. ${okCount} item(s) are OK. Please fix the issues listed below and check again.`
     }
   }
-}
-
-function escapeHtml(str: string): string {
-  const div = document.createElement("div")
-  div.textContent = str || ""
-  return div.innerHTML
 }
