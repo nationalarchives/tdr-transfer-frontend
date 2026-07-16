@@ -20,6 +20,11 @@ import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-di
 
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
+beforeAll(() => {
+  // stop console errors from window.location navigation in JSDOM
+  console.error = jest.fn()
+})
+
 beforeEach(() => {
   fetchMock.resetMocks()
   fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))
