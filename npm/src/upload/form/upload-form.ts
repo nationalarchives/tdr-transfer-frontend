@@ -13,6 +13,11 @@ import {
   displaySelectionSuccessMessage
 } from "./update-and-display-success-message"
 import { isError } from "../../errorhandling"
+import {
+  checkFilesForLongPathIssues,
+  hasLongPathIssues,
+  isWindowsOS
+} from "./long-path-check"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -219,7 +224,7 @@ export class UploadForm {
     const itemSelected: IEntryWithPath = this.selectedFiles[0]
 
     if (itemSelected) {
-      this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+      this.formElement.addEventListener("submit", (ev) => ev.preventDefault())
       this.disableSubmitButtonAndDropzone()
 
       const parentFolder = this.getParentFolderName(this.selectedFiles)
@@ -227,6 +232,19 @@ export class UploadForm {
       const includeTopLevelFolder = this.includeTopLevelFolder()
       if (!isError(consignmentIdOrError)) {
         const consignmentId = consignmentIdOrError
+
+        if (isWindowsOS() && !this.isJudgmentUser) {
+          UploadForm.showCheckingFilesMessage()
+          const checkResults = await checkFilesForLongPathIssues(
+            this.selectedFiles
+          )
+          UploadForm.hideCheckingFilesMessage()
+          if (hasLongPathIssues(checkResults)) {
+            location.assign(`/consignment/${consignmentId}/file-path-check`)
+            return
+          }
+        }
+
         const uploadFilesInfo: FileUploadInfo = {
           consignmentId,
           parentFolder: parentFolder,
@@ -238,7 +256,7 @@ export class UploadForm {
         return consignmentIdOrError
       }
     } else {
-      this.addSubmitListener() // Add submit listener back as we've set it to be removed after one form submission
+      this.addSubmitListener()
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(
         this.warningMessages?.submissionWithoutSelectionMessage,
@@ -300,6 +318,24 @@ export class UploadForm {
     if (fileUploadPage && uploadProgressPage) {
       fileUploadPage.setAttribute("hidden", "true")
       uploadProgressPage.removeAttribute("hidden")
+    }
+  }
+
+  private static showCheckingFilesMessage() {
+    const checkingMessage: HTMLDivElement | null = document.querySelector(
+      "#file-path-checking"
+    )
+    if (checkingMessage) {
+      checkingMessage.removeAttribute("hidden")
+    }
+  }
+
+  private static hideCheckingFilesMessage() {
+    const checkingMessage: HTMLDivElement | null = document.querySelector(
+      "#file-path-checking"
+    )
+    if (checkingMessage) {
+      checkingMessage.setAttribute("hidden", "true")
     }
   }
 
