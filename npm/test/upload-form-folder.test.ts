@@ -450,7 +450,8 @@ test("on Windows, submitting a folder with long path issues redirects to the fil
   const assignMock = jest.fn()
   // @ts-ignore – JSDOM doesn't allow redefining location properties directly
   delete window.location
-  window.location = { ...originalLocation, assign: assignMock } as Location
+  // @ts-ignore – replacing location for test mock
+  window.location = { ...originalLocation, assign: assignMock }
 
   const mockDom = new MockUploadFormDom()
   const dragEventClass = mockDom.addFilesToDragEvent(
@@ -467,6 +468,7 @@ test("on Windows, submitting a folder with long path issues redirects to the fil
     expect.stringContaining("/file-path-check")
   )
 
+  // @ts-ignore – restoring original location
   window.location = originalLocation
   isWindowsSpy.mockRestore()
   checkFilesSpy.mockRestore()
