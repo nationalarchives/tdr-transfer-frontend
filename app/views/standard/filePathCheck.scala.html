@@ -14,122 +14,14 @@
     </div>
 </noscript>
 <div id="file-path-check" class="govuk-grid-row">
-    @CSRF.formField
     <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Check your files for long path issues</h1>
-
         <div class="govuk-error-summary" role="alert" aria-labelledby="file-path-error-title">
             <h2 class="govuk-error-summary__title" id="file-path-error-title">
                 There is a problem
             </h2>
             <div class="govuk-error-summary__body">
-                <p class="govuk-body">Some files or folders in your selected folder could not be read. This is likely because the full file path exceeds 260 characters, which is a limitation on Windows.</p>
+                <p class="govuk-body">Some files or folders could not be read because their filepath exceeds the Windows limit of 258 characters. Contact your transfer adviser for help resolving this issue.</p>
             </div>
-        </div>
-
-        <p class="govuk-body">
-            Use this page to identify which files are affected. You will need to shorten the folder or file names before you can upload.
-        </p>
-
-        <details class="govuk-details" data-module="govuk-details">
-            <summary class="govuk-details__summary">
-                <span class="govuk-details__summary-text">
-                    How to fix long file path issues
-                </span>
-            </summary>
-            <div class="govuk-details__text">
-                <ul class="govuk-list govuk-list--bullet">
-                    <li>Shorten folder or file names in the path</li>
-                    <li>Move the folder closer to the root of your drive (e.g. <code>C:\transfers\</code>)</li>
-                    <li>Ask your IT team to enable long path support in Windows (registry key: <code>HKLM\SYSTEM\CurrentControlSet\Control\FileSystem\LongPathsEnabled</code>)</li>
-                </ul>
-            </div>
-        </details>
-
-        <h2 class="govuk-heading-m">Select a folder to check</h2>
-        <p class="govuk-body">Drag and drop the same folder you intend to upload, or use the button to select it.</p>
-
-        <div class="drag-and-drop">
-            <div class="drag-and-drop__dropzone" id="file-path-check-dropzone">
-                <input type="file" id="file-path-check-file-selection" name="files"
-                    class="govuk-file-upload drag-and-drop__input" webkitdirectory
-                    accept="*"
-                >
-                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here&nbsp;</p>
-                <label for="file-path-check-file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-                    Select a folder
-                </label>
-            </div>
-        </div>
-
-        <div id="file-path-check-status" hidden>
-            <div class="govuk-notification-banner" role="status">
-                <div class="govuk-notification-banner__header">
-                    <h2 class="govuk-notification-banner__title">Checking</h2>
-                </div>
-                <div class="govuk-notification-banner__content">
-                    <p id="file-path-check-status-message" class="govuk-notification-banner__heading">Scanning folder…</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="file-path-check-results" hidden>
-            <h2 class="govuk-heading-m">Results</h2>
-
-            <div id="file-path-check-summary" class="file-path-check__summary" hidden>
-                <dl class="govuk-summary-list govuk-summary-list--no-border">
-                    <div class="govuk-summary-list__row">
-                        <dt class="govuk-summary-list__key">Total files and folders</dt>
-                        <dd class="govuk-summary-list__value" id="summary-total">—</dd>
-                    </div>
-                    <div class="govuk-summary-list__row">
-                        <dt class="govuk-summary-list__key">Longest path</dt>
-                        <dd class="govuk-summary-list__value" id="summary-longest">—</dd>
-                    </div>
-                    <div class="govuk-summary-list__row">
-                        <dt class="govuk-summary-list__key">Issues found</dt>
-                        <dd class="govuk-summary-list__value" id="summary-issues">—</dd>
-                    </div>
-                </dl>
-            </div>
-
-            <div id="file-path-check-success" hidden>
-                <div class="govuk-notification-banner govuk-notification-banner--success" role="alert">
-                    <div class="govuk-notification-banner__header">
-                        <h2 class="govuk-notification-banner__title">Success</h2>
-                    </div>
-                    <div class="govuk-notification-banner__content">
-                        <p class="govuk-notification-banner__heading">All files and folders checked successfully. No long path issues detected.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="file-path-check-failure" hidden>
-                <div class="govuk-error-summary" role="alert">
-                    <h2 class="govuk-error-summary__title">There is a problem</h2>
-                    <div class="govuk-error-summary__body">
-                        <p id="file-path-check-failure-message" class="govuk-body"></p>
-                    </div>
-                </div>
-            </div>
-
-            <table class="govuk-table" id="file-path-check-table" hidden>
-                <thead class="govuk-table__head">
-                    <tr class="govuk-table__row">
-                        <th class="govuk-table__header" scope="col">File path</th>
-                        <th class="govuk-table__header govuk-table__header--numeric file-path-check__col-length" scope="col">Path length</th>
-                        <th class="govuk-table__header file-path-check__col-status" scope="col">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="file-path-check-table-body" class="govuk-table__body"></tbody>
-            </table>
-        </div>
-
-        <div class="govuk-button-group govuk-!-margin-top-6">
-            <a id="file-path-check-continue" class="govuk-button" href="@routes.UploadController.uploadPage(consignmentId)" hidden>
-                Continue to upload
-            </a>
-            <a class="govuk-button govuk-button--secondary" href="@routes.HomepageController.homepage()">Cancel transfer</a>
         </div>
     </div>
     @transferReference(consignmentRef, isJudgmentUser = false)
