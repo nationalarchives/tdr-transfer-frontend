@@ -126,19 +126,32 @@ const getFileFromEntry: (
   ).catch((): null => null)
 }
 
+interface IFileSystemFileHandle {
+  kind: "file"
+  name: string
+  getFile: () => Promise<File>
+}
+
+interface IFileSystemDirectoryHandle {
+  kind: "directory"
+  name: string
+  entries: () => AsyncIterableIterator<[string, IFileSystemHandle]>
+}
+
+type IFileSystemHandle = IFileSystemFileHandle | IFileSystemDirectoryHandle
+
 export async function getAllFilesFromHandle(
-  dirHandle: FileSystemDirectoryHandle,
+  dirHandle: IFileSystemDirectoryHandle,
   pathPrefix: string
 ): Promise<IEntryWithPath[]> {
   const fileInfos: IEntryWithPath[] = []
   try {
-    for await (const [name, handle] of (dirHandle as any).entries()) {
+    for await (const [name, handle] of dirHandle.entries()) {
       const fullPath = pathPrefix + "/" + name
       if (handle.kind === "directory") {
-        const children = await getAllFilesFromHandle(
-          handle as FileSystemDirectoryHandle,
-          fullPath
-        ).catch((): null => null)
+        const children = await getAllFilesFromHandle(handle, fullPath).catch(
+          (): null => null
+        )
         if (children === null) {
           fileInfos.push({ path: fullPath, unreadable: true })
         } else if (children.length === 0) {
@@ -149,7 +162,7 @@ export async function getAllFilesFromHandle(
       } else {
         try {
           const file = await withTimeout(
-            (handle as FileSystemFileHandle).getFile(),
+            handle.getFile(),
             READ_ENTRIES_TIMEOUT_MS,
             `getFile timed out for: ${fullPath}`
           )

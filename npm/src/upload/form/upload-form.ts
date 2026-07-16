@@ -197,13 +197,16 @@ export class UploadForm {
       }
     } else {
       const form: HTMLFormElement | null = this.formElement
-      this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
+      this.selectedFiles = this.convertFilesToIfilesWithPath(
+        form!.files!.files!
+      )
 
       if (this.isJudgmentUser) {
         const fileWithPath = this.selectedFiles[0]
         if (isFile(fileWithPath)) {
           const fileName = fileWithPath.file.name
-          const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
+          const checkOrError =
+            this.checkForCorrectJudgmentFileExtension(fileName)
           if (!isError(checkOrError)) {
             addFileSelectionSuccessMessage(fileName)
           } else {
@@ -212,7 +215,10 @@ export class UploadForm {
         }
       } else {
         const parentFolder = this.getParentFolderName(this.selectedFiles)
-        addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
+        addFolderSelectionSuccessMessage(
+          parentFolder,
+          this.selectedFiles.length
+        )
       }
     }
     displaySelectionSuccessMessage(
