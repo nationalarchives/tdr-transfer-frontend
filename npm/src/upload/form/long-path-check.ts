@@ -8,7 +8,7 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 
 export interface IFileCheckResult {
   path: string
-  status: "ok" | "unreadable" | "access-error" | "long-path-issue"
+  status: "ok" | "unreadable" | "long-path-issue"
   errorMessage?: string
 }
 
@@ -31,7 +31,7 @@ async function checkFileReadability(
   const { file, path } = fileWithPath
   try {
     const buffer = await withTimeout(
-      file.arrayBuffer(),
+      file.slice(0, 1).arrayBuffer(),
       FILE_CHECK_TIMEOUT_MS,
       `Reading file timed out: ${path}`
     )
