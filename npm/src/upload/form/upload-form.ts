@@ -1,10 +1,12 @@
 import { IFileWithPath } from "@nationalarchives/file-information"
 import {
   getAllFiles,
+  getAllFilesFromHandle,
   IDirectoryWithPath,
   IEntryWithPath,
   isFile,
-  IWebkitEntry
+  IWebkitEntry,
+  supportsDirectoryPicker
 } from "./get-files-from-drag-event"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
@@ -159,23 +161,54 @@ export class UploadForm {
   }
 
   handleSelectedItems: () => any = async () => {
-    const form: HTMLFormElement | null = this.formElement
-    this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
-
-    if (this.isJudgmentUser) {
-      const fileWithPath = this.selectedFiles[0]
-      if (isFile(fileWithPath)) {
-        const fileName = fileWithPath.file.name
-        const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
-        if (!isError(checkOrError)) {
-          addFileSelectionSuccessMessage(fileName)
-        } else {
-          return checkOrError
+    if (!this.isJudgmentUser && supportsDirectoryPicker()) {
+      try {
+        const dirHandle = await (window as any).showDirectoryPicker()
+        const filesAndFolders = await getAllFilesFromHandle(
+          dirHandle,
+          "/" + dirHandle.name
+        )
+        const files = filesAndFolders.filter((f) => isFile(f))
+        const folderCheck = this.checkIfFolderHasFiles(files)
+        if (isError(folderCheck)) {
+          return folderCheck
         }
+        this.selectedFiles = filesAndFolders
+        const parentFolder = this.getParentFolderName(this.selectedFiles)
+        addFolderSelectionSuccessMessage(
+          parentFolder,
+          this.selectedFiles.filter((f) => isFile(f)).length
+        )
+      } catch (err: any) {
+        if (err.name === "AbortError") {
+          return
+        }
+        return rejectUserItemSelection(
+          this.warningMessages?.incorrectItemSelectedMessage,
+          this.warningMessages,
+          this.successAndRemovalMessageContainer,
+          err.message || "Failed to select folder"
+        )
       }
     } else {
-      const parentFolder = this.getParentFolderName(this.selectedFiles)
-      addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
+      const form: HTMLFormElement | null = this.formElement
+      this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
+
+      if (this.isJudgmentUser) {
+        const fileWithPath = this.selectedFiles[0]
+        if (isFile(fileWithPath)) {
+          const fileName = fileWithPath.file.name
+          const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
+          if (!isError(checkOrError)) {
+            addFileSelectionSuccessMessage(fileName)
+          } else {
+            return checkOrError
+          }
+        }
+      } else {
+        const parentFolder = this.getParentFolderName(this.selectedFiles)
+        addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
+      }
     }
     displaySelectionSuccessMessage(
       this.successAndRemovalMessageContainer,
@@ -209,7 +242,17 @@ export class UploadForm {
 
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
-    this.itemRetriever.addEventListener("change", this.handleSelectedItems)
+    if (!this.isJudgmentUser && supportsDirectoryPicker()) {
+      const label = this.itemRetriever.labels?.[0]
+      if (label) {
+        label.addEventListener("click", (ev) => {
+          ev.preventDefault()
+          this.handleSelectedItems()
+        })
+      }
+    } else {
+      this.itemRetriever.addEventListener("change", this.handleSelectedItems)
+    }
   }
 
   handleFormSubmission: (ev: Event) => Promise<void | Error> = async (
