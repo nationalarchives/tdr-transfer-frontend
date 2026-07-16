@@ -447,8 +447,10 @@ test("on Windows, submitting a folder with long path issues redirects to the fil
   ])
 
   const assignMock = jest.fn()
-  const originalAssign = window.location.assign
-  window.location.assign = assignMock
+  Object.defineProperty(window.location, "assign", {
+    value: assignMock,
+    configurable: true
+  })
 
   const mockDom = new MockUploadFormDom()
   const dragEventClass = mockDom.addFilesToDragEvent(
@@ -465,7 +467,6 @@ test("on Windows, submitting a folder with long path issues redirects to the fil
     expect.stringContaining("/file-path-check")
   )
 
-  window.location.assign = originalAssign
   isWindowsSpy.mockRestore()
   checkFilesSpy.mockRestore()
 })
