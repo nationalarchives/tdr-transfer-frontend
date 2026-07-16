@@ -33,22 +33,26 @@ export const getAllFiles: (
   entry: IWebkitEntry | null,
   fileInfoInput: IEntryWithPath[]
 ) => Promise<IEntryWithPath[]> = async (entry, fileInfoInput) => {
+  if (!entry) {
+    return fileInfoInput
+  }
+
   let entries: IWebkitEntry[] | null
   try {
-    const reader: IReader = entry!.createReader()
-    entries = await getEntriesFromReader(reader, entry!.fullPath)
+    const reader: IReader = entry.createReader()
+    entries = await getEntriesFromReader(reader, entry.fullPath)
   } catch {
-    fileInfoInput.push({ path: entry!.fullPath, unreadable: true })
+    fileInfoInput.push({ path: entry.fullPath, unreadable: true })
     return fileInfoInput
   }
 
   if (entries === null) {
-    fileInfoInput.push({ path: entry!.fullPath, unreadable: true })
+    fileInfoInput.push({ path: entry.fullPath, unreadable: true })
     return fileInfoInput
   }
 
-  if (entry!.isDirectory && entries.length === 0) {
-    fileInfoInput.push({ path: entry!.fullPath })
+  if (entry.isDirectory && entries.length === 0) {
+    fileInfoInput.push({ path: entry.fullPath })
   }
   for (const entry of entries) {
     if (entry.isDirectory) {
