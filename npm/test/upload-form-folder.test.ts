@@ -445,7 +445,12 @@ test("on Windows, submitting a folder with long path issues redirects to the fil
   const checkFilesSpy = jest.spyOn(longPathCheck, "checkFilesForLongPathIssues").mockResolvedValue([
     { path: "/a/very/long/path/file.txt", status: "long-path-issue" }
   ])
-  const locationAssignSpy = jest.spyOn(window.location, "assign").mockImplementation(() => {})
+
+  const originalLocation = window.location
+  Object.defineProperty(window, "location", {
+    value: { ...originalLocation, assign: jest.fn() },
+    writable: true
+  })
 
   const mockDom = new MockUploadFormDom()
   const dragEventClass = mockDom.addFilesToDragEvent(
@@ -458,13 +463,16 @@ test("on Windows, submitting a folder with long path issues redirects to the fil
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  expect(locationAssignSpy).toHaveBeenCalledWith(
+  expect(window.location.assign).toHaveBeenCalledWith(
     expect.stringContaining("/file-path-check")
   )
 
+  Object.defineProperty(window, "location", {
+    value: originalLocation,
+    writable: true
+  })
   isWindowsSpy.mockRestore()
   checkFilesSpy.mockRestore()
-  locationAssignSpy.mockRestore()
 })
 
 test("on Windows, submitting a folder with no long path issues proceeds with upload", async () => {
