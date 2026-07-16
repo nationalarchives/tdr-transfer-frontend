@@ -439,6 +439,61 @@ test("clicking the submit button, after selecting a folder, hides 'upload folder
   expect(mockDom.uploadingRecordsSection).not.toHaveAttribute("hidden")
 })
 
+test("on Windows, submitting a folder with long path issues redirects to the file-path-check page", async () => {
+  const longPathCheck = await import("../src/upload/form/long-path-check")
+  const isWindowsSpy = jest.spyOn(longPathCheck, "isWindowsOS").mockReturnValue(true)
+  const checkFilesSpy = jest.spyOn(longPathCheck, "checkFilesForLongPathIssues").mockResolvedValue([
+    { path: "/a/very/long/path/file.txt", status: "long-path-issue" }
+  ])
+  const locationAssignSpy = jest.spyOn(window.location, "assign").mockImplementation(() => {})
+
+  const mockDom = new MockUploadFormDom()
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFolder()],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  expect(locationAssignSpy).toHaveBeenCalledWith(
+    expect.stringContaining("/file-path-check")
+  )
+
+  isWindowsSpy.mockRestore()
+  checkFilesSpy.mockRestore()
+  locationAssignSpy.mockRestore()
+})
+
+test("on Windows, submitting a folder with no long path issues proceeds with upload", async () => {
+  const longPathCheck = await import("../src/upload/form/long-path-check")
+  const isWindowsSpy = jest.spyOn(longPathCheck, "isWindowsOS").mockReturnValue(true)
+  const checkFilesSpy = jest.spyOn(longPathCheck, "checkFilesForLongPathIssues").mockResolvedValue([
+    { path: "/a/normal/path.txt", status: "ok" }
+  ])
+
+  const mockDom = new MockUploadFormDom()
+  const mockFn = jest.fn()
+  mockDom.form.folderUploader = mockFn
+
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFolder()],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  expect(mockFn).toHaveBeenCalled()
+
+  isWindowsSpy.mockRestore()
+  checkFilesSpy.mockRestore()
+})
+
 test("removeSelectedItem function should remove the selected folder", () => {
   const mockDom = new MockUploadFormDom()
   verifyAllMessagesAreHidden(mockDom)
