@@ -146,7 +146,7 @@ export class UploadForm {
             this.selectedFiles = filesAndFolders
             addFolderSelectionSuccessMessage(
               webkitEntry!.name,
-              this.selectedFiles.filter((f) => isFile(f)).length
+              this.selectedFiles.filter(isFile).length
             )
           } else {
             return folderCheck
@@ -173,7 +173,7 @@ export class UploadForm {
           dirHandle,
           "/" + dirHandle.name
         )
-        const files = filesAndFolders.filter((f) => isFile(f))
+        const files = filesAndFolders.filter(isFile)
         const folderCheck = this.checkIfFolderHasFiles(files)
         if (isError(folderCheck)) {
           return folderCheck
@@ -182,7 +182,7 @@ export class UploadForm {
         const parentFolder = this.getParentFolderName(this.selectedFiles)
         addFolderSelectionSuccessMessage(
           parentFolder,
-          this.selectedFiles.filter((f) => isFile(f)).length
+          this.selectedFiles.filter(isFile).length
         )
       } catch (err: any) {
         if (err.name === "AbortError") {
@@ -254,13 +254,22 @@ export class UploadForm {
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
     if (!this.isJudgmentUser && supportsDirectoryPicker()) {
+      const openDirectoryPicker = (ev?: Event) => {
+        ev?.preventDefault()
+        void this.handleSelectedItems()
+      }
       const label = this.itemRetriever.labels?.[0]
       if (label) {
-        label.addEventListener("click", (ev) => {
-          ev.preventDefault()
-          this.handleSelectedItems()
+        label.setAttribute("role", "button")
+        label.tabIndex = 0
+        label.addEventListener("click", openDirectoryPicker)
+        label.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter" || ev.key === " ") {
+            openDirectoryPicker(ev)
+          }
         })
       }
+      this.itemRetriever.addEventListener("change", this.handleSelectedItems)
     } else {
       this.itemRetriever.addEventListener("change", this.handleSelectedItems)
     }

@@ -142,16 +142,19 @@ type IFileSystemHandle = IFileSystemFileHandle | IFileSystemDirectoryHandle
 
 export async function getAllFilesFromHandle(
   dirHandle: IFileSystemDirectoryHandle,
-  pathPrefix: string
+  pathPrefix: string,
+  isRoot = true
 ): Promise<IEntryWithPath[]> {
   const fileInfos: IEntryWithPath[] = []
   try {
     for await (const [name, handle] of dirHandle.entries()) {
       const fullPath = pathPrefix + "/" + name
       if (handle.kind === "directory") {
-        const children = await getAllFilesFromHandle(handle, fullPath).catch(
-          (): null => null
-        )
+        const children = await getAllFilesFromHandle(
+          handle,
+          fullPath,
+          false
+        ).catch((): null => null)
         if (children === null) {
           fileInfos.push({ path: fullPath, unreadable: true })
         } else if (children.length === 0) {
@@ -172,7 +175,10 @@ export async function getAllFilesFromHandle(
         }
       }
     }
-  } catch {
+  } catch (err) {
+    if (isRoot) {
+      throw err
+    }
     return []
   }
   return fileInfos
