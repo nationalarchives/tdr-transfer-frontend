@@ -166,6 +166,9 @@ export class UploadForm {
   }
 
   handleSelectedItems: () => any = async () => {
+    // Firefox and Safari do not support the directory picker API, so we need to check if it is supported before calling it.
+    // Can still upload on these browsers but long path check will not be executed
+    // TDRD-1698
     if (!this.isJudgmentUser && supportsDirectoryPicker()) {
       try {
         const dirHandle = await (window as any).showDirectoryPicker()
