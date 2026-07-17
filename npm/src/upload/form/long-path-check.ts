@@ -3,7 +3,7 @@ import {
   IDirectoryWithPath,
   isFile,
   isDirectory
-} from "./get-files-from-drag-event"
+} from "./file-types"
 import { IFileWithPath } from "@nationalarchives/file-information"
 
 export interface IFileCheckResult {

@@ -1,13 +1,10 @@
 import { IFileWithPath } from "@nationalarchives/file-information"
+import { getAllFiles, IWebkitEntry } from "./get-files-from-drag-event"
 import {
-  getAllFiles,
   getAllFilesFromHandle,
-  IDirectoryWithPath,
-  IEntryWithPath,
-  isFile,
-  IWebkitEntry,
   supportsDirectoryPicker
-} from "./get-files-from-drag-event"
+} from "./get-files-from-directory-picker"
+import { IDirectoryWithPath, IEntryWithPath, isFile } from "./file-types"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
