@@ -148,10 +148,9 @@ export async function getAllFilesFromHandle(
   for await (const [name, handle] of dirHandle.entries()) {
     const fullPath = pathPrefix + "/" + name
     if (handle.kind === "directory") {
-      const children = await getAllFilesFromHandle(
-        handle,
-        fullPath
-      ).catch((): null => null)
+      const children = await getAllFilesFromHandle(handle, fullPath).catch(
+        (): null => null
+      )
       if (children === null) {
         fileInfos.push({ path: fullPath, unreadable: true })
       } else if (children.length === 0) {
