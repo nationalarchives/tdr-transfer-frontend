@@ -30,11 +30,14 @@ async function checkFileReadability(
 ): Promise<IFileCheckResult> {
   const { file, path } = fileWithPath
   try {
-    await withTimeout(
+    const buffer = await withTimeout(
       file.slice(0, 1).arrayBuffer(),
       FILE_CHECK_TIMEOUT_MS,
       `Reading file timed out: ${path}`
     )
+    if (file.size > 0 && buffer.byteLength === 0) {
+      return { path, status: "long-path-issue" }
+    }
     return { path, status: "ok" }
   } catch {
     return {
@@ -51,12 +54,8 @@ export async function checkFilesForLongPathIssues(
   const results: IFileCheckResult[] = []
   for (const entry of files) {
     if (isFile(entry)) {
-      if (entry.file.size !== 0) {
-        results.push({ path: entry.path, status: "ok" })
-      } else {
-        const result = await checkFileReadability(entry)
-        results.push(result)
-      }
+      const result = await checkFileReadability(entry)
+      results.push(result)
     } else if (isDirectory(entry)) {
       const dir = entry as IDirectoryWithPath
       if (dir.unreadable) {
