@@ -374,6 +374,28 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       pageAsString must not include """id="status-reason""""
     }
 
+    "show 'Requested' status and the approve/reject form when the most recent log by eventTime is a Submission, even if logs are returned out of chronological order" in {
+      val laterSubmission = getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs(
+        UUID.randomUUID(),
+        consignmentId,
+        UUID.randomUUID(),
+        "Submission",
+        ZonedDateTime.parse("2024-07-15T09:00:00Z"),
+        None
+      )
+
+      setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog, laterSubmission, rejectionLog))
+
+      val controller =
+        instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
+      val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
+      val pageAsString = contentAsString(page)
+
+      playStatus(page) mustBe OK
+      pageAsString must include("Requested")
+      pageAsString must include("""<button data-prevent-double-click="true" class="govuk-button" type="submit"""")
+    }
+
     "show status tag label 'Requested' for a Submission action" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
