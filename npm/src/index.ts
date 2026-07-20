@@ -113,6 +113,7 @@ export const renderModules = async () => {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
+
   if (fileChecksContainer) {
     const frontEndInfo = getFrontEndInfo()
     const errorHandlingModule = await import("./errorhandling")
