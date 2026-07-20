@@ -1,10 +1,11 @@
 import { IFileWithPath } from "@nationalarchives/file-information"
-import { getAllFiles, IWebkitEntry } from "./get-files-from-drag-event"
 import {
-  getAllFilesFromHandle,
-  supportsDirectoryPicker
-} from "./get-files-from-directory-picker"
-import { IDirectoryWithPath, IEntryWithPath, isFile } from "./file-types"
+  getAllFiles,
+  IDirectoryWithPath,
+  IEntryWithPath,
+  isFile,
+  IWebkitEntry
+} from "./get-files-from-drag-event"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
@@ -12,11 +13,6 @@ import {
   displaySelectionSuccessMessage
 } from "./update-and-display-success-message"
 import { isError } from "../../errorhandling"
-import {
-  checkFilesForLongPathIssues,
-  hasLongPathIssues,
-  isWindowsOS
-} from "./long-path-check"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -143,7 +139,7 @@ export class UploadForm {
             this.selectedFiles = filesAndFolders
             addFolderSelectionSuccessMessage(
               webkitEntry!.name,
-              this.selectedFiles.filter(isFile).length
+              this.selectedFiles.filter((f) => isFile(f)).length
             )
           } else {
             return folderCheck
@@ -163,63 +159,23 @@ export class UploadForm {
   }
 
   handleSelectedItems: () => any = async () => {
-    // Firefox and Safari do not support the directory picker API, so we need to check if it is supported before calling it.
-    // Can still upload on these browsers but long path check will not be executed
-    // TDRD-1698
-    if (!this.isJudgmentUser && supportsDirectoryPicker()) {
-      try {
-        const dirHandle = await (window as any).showDirectoryPicker()
-        const filesAndFolders = await getAllFilesFromHandle(
-          dirHandle,
-          "/" + dirHandle.name
-        )
-        const files = filesAndFolders.filter(isFile)
-        const folderCheck = this.checkIfFolderHasFiles(files)
-        if (isError(folderCheck)) {
-          return folderCheck
+    const form: HTMLFormElement | null = this.formElement
+    this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
+
+    if (this.isJudgmentUser) {
+      const fileWithPath = this.selectedFiles[0]
+      if (isFile(fileWithPath)) {
+        const fileName = fileWithPath.file.name
+        const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
+        if (!isError(checkOrError)) {
+          addFileSelectionSuccessMessage(fileName)
+        } else {
+          return checkOrError
         }
-        this.selectedFiles = filesAndFolders
-        const parentFolder = this.getParentFolderName(this.selectedFiles)
-        addFolderSelectionSuccessMessage(
-          parentFolder,
-          this.selectedFiles.filter(isFile).length
-        )
-      } catch (err: any) {
-        if (err.name === "AbortError") {
-          return
-        }
-        return rejectUserItemSelection(
-          this.warningMessages?.incorrectItemSelectedMessage,
-          this.warningMessages,
-          this.successAndRemovalMessageContainer,
-          err.message || "Failed to select folder"
-        )
       }
     } else {
-      const form: HTMLFormElement | null = this.formElement
-      this.selectedFiles = this.convertFilesToIfilesWithPath(
-        form!.files!.files!
-      )
-
-      if (this.isJudgmentUser) {
-        const fileWithPath = this.selectedFiles[0]
-        if (isFile(fileWithPath)) {
-          const fileName = fileWithPath.file.name
-          const checkOrError =
-            this.checkForCorrectJudgmentFileExtension(fileName)
-          if (!isError(checkOrError)) {
-            addFileSelectionSuccessMessage(fileName)
-          } else {
-            return checkOrError
-          }
-        }
-      } else {
-        const parentFolder = this.getParentFolderName(this.selectedFiles)
-        addFolderSelectionSuccessMessage(
-          parentFolder,
-          this.selectedFiles.length
-        )
-      }
+      const parentFolder = this.getParentFolderName(this.selectedFiles)
+      addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
     }
     displaySelectionSuccessMessage(
       this.successAndRemovalMessageContainer,
@@ -253,26 +209,7 @@ export class UploadForm {
 
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
-    if (!this.isJudgmentUser && supportsDirectoryPicker()) {
-      const openDirectoryPicker = (ev?: Event) => {
-        ev?.preventDefault()
-        void this.handleSelectedItems()
-      }
-      const label = this.itemRetriever.labels?.[0]
-      if (label) {
-        label.setAttribute("role", "button")
-        label.tabIndex = 0
-        label.addEventListener("click", openDirectoryPicker)
-        label.addEventListener("keydown", (ev) => {
-          if (ev.key === "Enter" || ev.key === " ") {
-            openDirectoryPicker(ev)
-          }
-        })
-      }
-      this.itemRetriever.addEventListener("change", this.handleSelectedItems)
-    } else {
-      this.itemRetriever.addEventListener("change", this.handleSelectedItems)
-    }
+    this.itemRetriever.addEventListener("change", this.handleSelectedItems)
   }
 
   handleFormSubmission: (ev: Event) => Promise<void | Error> = async (
@@ -282,7 +219,7 @@ export class UploadForm {
     const itemSelected: IEntryWithPath = this.selectedFiles[0]
 
     if (itemSelected) {
-      this.formElement.addEventListener("submit", (ev) => ev.preventDefault())
+      this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
       this.disableSubmitButtonAndDropzone()
 
       const parentFolder = this.getParentFolderName(this.selectedFiles)
@@ -290,19 +227,6 @@ export class UploadForm {
       const includeTopLevelFolder = this.includeTopLevelFolder()
       if (!isError(consignmentIdOrError)) {
         const consignmentId = consignmentIdOrError
-
-        if (isWindowsOS() && !this.isJudgmentUser) {
-          UploadForm.showCheckingFilesMessage()
-          const checkResults = await checkFilesForLongPathIssues(
-            this.selectedFiles
-          )
-          UploadForm.hideCheckingFilesMessage()
-          if (hasLongPathIssues(checkResults)) {
-            location.assign(`/consignment/${consignmentId}/file-path-check`)
-            return
-          }
-        }
-
         const uploadFilesInfo: FileUploadInfo = {
           consignmentId,
           parentFolder: parentFolder,
@@ -314,7 +238,7 @@ export class UploadForm {
         return consignmentIdOrError
       }
     } else {
-      this.addSubmitListener()
+      this.addSubmitListener() // Add submit listener back as we've set it to be removed after one form submission
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(
         this.warningMessages?.submissionWithoutSelectionMessage,
@@ -376,24 +300,6 @@ export class UploadForm {
     if (fileUploadPage && uploadProgressPage) {
       fileUploadPage.setAttribute("hidden", "true")
       uploadProgressPage.removeAttribute("hidden")
-    }
-  }
-
-  private static showCheckingFilesMessage() {
-    const checkingMessage: HTMLDivElement | null = document.querySelector(
-      "#file-path-checking"
-    )
-    if (checkingMessage) {
-      checkingMessage.removeAttribute("hidden")
-    }
-  }
-
-  private static hideCheckingFilesMessage() {
-    const checkingMessage: HTMLDivElement | null = document.querySelector(
-      "#file-path-checking"
-    )
-    if (checkingMessage) {
-      checkingMessage.setAttribute("hidden", "true")
     }
   }
 
