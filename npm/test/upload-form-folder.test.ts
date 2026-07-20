@@ -20,6 +20,11 @@ import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-di
 
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
+beforeAll(() => {
+  // stop console errors from window.location navigation in JSDOM
+  console.error = jest.fn()
+})
+
 beforeEach(() => {
   fetchMock.resetMocks()
   fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))
@@ -437,6 +442,66 @@ test("clicking the submit button, after selecting a folder, hides 'upload folder
 
   expect(mockDom.uploadYourRecordsSection).toHaveAttribute("hidden", "true")
   expect(mockDom.uploadingRecordsSection).not.toHaveAttribute("hidden")
+})
+
+test("on Windows, submitting a folder with long path issues does not proceed with upload", async () => {
+  const longPathCheck = await import("../src/upload/form/long-path-check")
+  const isWindowsSpy = jest.spyOn(longPathCheck, "isWindowsOS").mockReturnValue(true)
+  const checkFilesSpy = jest.spyOn(longPathCheck, "checkFilesForLongPathIssues").mockResolvedValue([
+    { path: "/a/very/long/path/file.txt", status: "long-path-issue" }
+  ])
+
+  const mockDom = new MockUploadFormDom()
+  const mockFn = jest.fn()
+  mockDom.form.folderUploader = mockFn
+
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFolder()],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  // location.assign will throw in JSDOM but the key assertion is that upload does not proceed
+  try {
+    await mockDom.form.handleFormSubmission(submitEvent)
+  } catch {
+    // expected: location.assign is not fully supported in JSDOM
+  }
+
+  expect(checkFilesSpy).toHaveBeenCalled()
+  expect(mockFn).not.toHaveBeenCalled()
+
+  isWindowsSpy.mockRestore()
+  checkFilesSpy.mockRestore()
+})
+
+test("on Windows, submitting a folder with no long path issues proceeds with upload", async () => {
+  const longPathCheck = await import("../src/upload/form/long-path-check")
+  const isWindowsSpy = jest.spyOn(longPathCheck, "isWindowsOS").mockReturnValue(true)
+  const checkFilesSpy = jest.spyOn(longPathCheck, "checkFilesForLongPathIssues").mockResolvedValue([
+    { path: "/a/normal/path.txt", status: "ok" }
+  ])
+
+  const mockDom = new MockUploadFormDom()
+  const mockFn = jest.fn()
+  mockDom.form.folderUploader = mockFn
+
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFolder()],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  expect(mockFn).toHaveBeenCalled()
+
+  isWindowsSpy.mockRestore()
+  checkFilesSpy.mockRestore()
 })
 
 test("removeSelectedItem function should remove the selected folder", () => {
