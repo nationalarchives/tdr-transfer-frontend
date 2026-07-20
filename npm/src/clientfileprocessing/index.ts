@@ -8,7 +8,11 @@ import {
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
-import { IEntryWithPath, isDirectory, isFile } from "../upload/form/file-types"
+import {
+  IEntryWithPath,
+  isDirectory,
+  isFile
+} from "../upload/form/get-files-from-drag-event"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
