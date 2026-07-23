@@ -5,12 +5,7 @@ import {
   supportsDirectoryPicker,
   IFileSystemDirectoryHandle
 } from "./get-files-from-directory-picker"
-import {
-  IDirectoryWithPath,
-  IEntryWithPath,
-  isFile,
-  EntryKind
-} from "./file-types"
+import { IEntryWithPath, isFile, EntryKind } from "./file-types"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
@@ -28,10 +23,8 @@ interface FileWithRelativePath extends File {
   webkitRelativePath: string
 }
 
-declare global {
-  interface Window {
-    showDirectoryPicker(): Promise<IFileSystemDirectoryHandle>
-  }
+type WindowWithDirectoryPicker = Window & {
+  showDirectoryPicker(): Promise<IFileSystemDirectoryHandle>
 }
 
 export interface FileUploadInfo {
@@ -182,8 +175,9 @@ export class UploadForm {
     // TDRD-1698
     if (!this.isJudgmentUser && supportsDirectoryPicker()) {
       try {
-        const dirHandle =
-          (await window.showDirectoryPicker()) as unknown as IFileSystemDirectoryHandle
+        const dirHandle = await (
+          window as unknown as WindowWithDirectoryPicker
+        ).showDirectoryPicker()
         const filesAndFolders = await getAllFilesFromHandle(
           dirHandle,
           "/" + dirHandle.name
