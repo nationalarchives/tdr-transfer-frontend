@@ -1,5 +1,5 @@
 import { IFileWithPath } from "@nationalarchives/file-information"
-import { IEntryWithPath, withTimeout } from "./file-types"
+import { IEntryWithPath, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
 
@@ -16,27 +16,39 @@ export const getAllFiles: (
     const reader: IReader = entry.createReader()
     entries = await getEntriesFromReader(reader, entry.fullPath)
   } catch {
-    fileInfoInput.push({ path: entry.fullPath, unreadable: true })
+    fileInfoInput.push({
+      path: entry.fullPath,
+      unreadable: true,
+      kind: EntryKind.Directory
+    })
     return fileInfoInput
   }
 
   if (entries === null) {
-    fileInfoInput.push({ path: entry.fullPath, unreadable: true })
+    fileInfoInput.push({
+      path: entry.fullPath,
+      unreadable: true,
+      kind: EntryKind.Directory
+    })
     return fileInfoInput
   }
 
   if (entry.isDirectory && entries.length === 0) {
-    fileInfoInput.push({ path: entry.fullPath })
+    fileInfoInput.push({ path: entry.fullPath, kind: EntryKind.Directory })
   }
   for (const entry of entries) {
     if (entry.isDirectory) {
       await getAllFiles(entry, fileInfoInput)
     } else {
-      const file: IFileWithPath | null = await getFileFromEntry(entry)
-      if (file) {
-        fileInfoInput.push(file)
+      const fileEntry: IEntryWithPath | null = await getFileFromEntry(entry)
+      if (fileEntry) {
+        fileInfoInput.push(fileEntry)
       } else {
-        fileInfoInput.push({ path: entry.fullPath, unreadable: true })
+        fileInfoInput.push({
+          path: entry.fullPath,
+          unreadable: true,
+          kind: EntryKind.Directory
+        })
       }
     }
   }
@@ -83,14 +95,15 @@ const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
 
 const getFileFromEntry: (
   entry: IWebkitEntry
-) => Promise<IFileWithPath | null> = (entry) => {
+) => Promise<IEntryWithPath | null> = (entry) => {
   return withTimeout(
-    new Promise<IFileWithPath>((resolve, reject) => {
+    new Promise<IEntryWithPath>((resolve, reject) => {
       entry.file(
         (file) =>
           resolve({
             file,
-            path: entry.fullPath
+            path: entry.fullPath,
+            kind: EntryKind.File
           }),
         (err) => reject(err)
       )

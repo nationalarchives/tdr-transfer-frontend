@@ -9,6 +9,7 @@ import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
 import {FileUploadInfo} from "../src/upload/form/upload-form";
 import {ClientFileExtractMetadata} from "../src/clientfileextractmetadata";
+import { EntryKind } from "../src/upload/form/file-types"
 enableFetchMocks()
 
 jest.mock("../src/clientfilemetadataupload")
@@ -399,7 +400,10 @@ test("empty folders are passed correctly to the save metadata function", async (
   )
 
   await fileProcessing.processClientFiles(
-    [{path: "directoryPath"}, {path: "filePath", file: new File(["a"], "test")}],
+    [
+      { path: "directoryPath", kind: EntryKind.Directory },
+      { path: "filePath", file: new File(["a"], "test"), kind: EntryKind.File }
+    ],
     { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
     "",
     userId

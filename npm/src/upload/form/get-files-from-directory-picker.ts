@@ -1,14 +1,14 @@
-import { IEntryWithPath, withTimeout } from "./file-types"
+import { IEntryWithPath, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
 
-interface IFileSystemFileHandle {
+export interface IFileSystemFileHandle {
   kind: "file"
   name: string
   getFile: () => Promise<File>
 }
 
-interface IFileSystemDirectoryHandle {
+export interface IFileSystemDirectoryHandle {
   kind: "directory"
   name: string
   entries: () => AsyncIterableIterator<[string, IFileSystemHandle]>
@@ -24,30 +24,54 @@ export async function getAllFilesFromHandle(
   for await (const [name, handle] of dirHandle.entries()) {
     const fullPath = pathPrefix + "/" + name
     if (handle.kind === "directory") {
-      const children = await getAllFilesFromHandle(handle, fullPath).catch(
-        (): null => null
-      )
-      if (children === null) {
-        fileInfos.push({ path: fullPath, unreadable: true })
-      } else if (children.length === 0) {
-        fileInfos.push({ path: fullPath })
-      } else {
-        fileInfos.push(...children)
-      }
+      await handleDirectoryEntry(handle, fullPath, fileInfos)
     } else {
-      try {
-        const file = await withTimeout(
-          handle.getFile(),
-          READ_ENTRIES_TIMEOUT_MS,
-          `getFile timed out for: ${fullPath}`
-        )
-        fileInfos.push({ file, path: fullPath })
-      } catch {
-        fileInfos.push({ path: fullPath, unreadable: true })
-      }
+      await handleFileEntry(handle, fullPath, fileInfos)
     }
   }
   return fileInfos
+}
+
+async function handleDirectoryEntry(
+  handle: IFileSystemDirectoryHandle,
+  fullPath: string,
+  fileInfos: IEntryWithPath[]
+): Promise<void> {
+  const children = await getAllFilesFromHandle(handle, fullPath).catch(
+    (): null => null
+  )
+  if (children === null) {
+    fileInfos.push({
+      path: fullPath,
+      unreadable: true,
+      kind: EntryKind.Directory
+    })
+  } else if (children.length === 0) {
+    fileInfos.push({ path: fullPath, kind: EntryKind.Directory })
+  } else {
+    fileInfos.push(...children)
+  }
+}
+
+async function handleFileEntry(
+  handle: IFileSystemFileHandle,
+  fullPath: string,
+  fileInfos: IEntryWithPath[]
+): Promise<void> {
+  try {
+    const file = await withTimeout(
+      handle.getFile(),
+      READ_ENTRIES_TIMEOUT_MS,
+      `getFile timed out for: ${fullPath}`
+    )
+    fileInfos.push({ file, path: fullPath, kind: EntryKind.File })
+  } catch {
+    fileInfos.push({
+      path: fullPath,
+      unreadable: true,
+      kind: EntryKind.Directory
+    })
+  }
 }
 
 export function supportsDirectoryPicker(): boolean {
