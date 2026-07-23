@@ -50,35 +50,26 @@ class FileChecksResultsController @Inject() (
         Future.successful(Ok(views.html.standard.filechecks.fileChecksBackendFailure(request.token.name, pageTitle, reference)))
       } else if (fileCheck.allChecksSucceeded) {
         val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
-        val view =
-          if (applicationConfig.blockFileChecksFailureV2)
-            views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
-          else
-            views.html.standard.filechecks.fileChecksSuccessResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)
-        Future.successful(Ok(view))
+        Future.successful(Ok(views.html.standard.filechecks.fileChecksSuccessResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name)))
       } else {
         val fileStatuses = fileCheck.files.flatMap(_.fileStatuses)
         val fileStatusList = fileStatuses.map(_.statusValue)
         val failedResult = Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
-        val result = if (applicationConfig.blockFileChecksFailureV2) {
-          failedResult
-        } else {
-          val statusActions: Set[StatusActionType] = fileStatuses.flatMap { status =>
-            Try(toStatusType(status.statusType)).toOption.flatMap { statusType =>
-              StatusActions.action(statusType, CommonStatusValue(status.statusValue)).map(_.actionType)
-            }
-          }.toSet
-          val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
-          statusActions match {
-            case a if a == Set[StatusActionType](TNASupport) =>
-              Ok(views.html.standard.filechecks.fileChecksTnaSupport(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-            case a if a == Set[StatusActionType](UserFixable) =>
-              Ok(views.html.standard.filechecks.fileChecksUserFixableResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-            case a if a == Set[StatusActionType](UserFixable, TNASupport) =>
-              Ok(views.html.standard.filechecks.fileChecksUserFixableAndTNASupportResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-            case _ =>
-              failedResult
+        val statusActions: Set[StatusActionType] = fileStatuses.flatMap { status =>
+          Try(toStatusType(status.statusType)).toOption.flatMap { statusType =>
+            StatusActions.action(statusType, CommonStatusValue(status.statusValue)).map(_.actionType)
           }
+        }.toSet
+        val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
+        val result = statusActions match {
+          case a if a == Set[StatusActionType](TNASupport) =>
+            Ok(views.html.standard.filechecks.fileChecksTnaSupport(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+          case a if a == Set[StatusActionType](UserFixable) =>
+            Ok(views.html.standard.filechecks.fileChecksUserFixableResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+          case a if a == Set[StatusActionType](UserFixable, TNASupport) =>
+            Ok(views.html.standard.filechecks.fileChecksUserFixableAndTNASupportResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+          case _ =>
+            failedResult
         }
         Future.successful(result)
       }
