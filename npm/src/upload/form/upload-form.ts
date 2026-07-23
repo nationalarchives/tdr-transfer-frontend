@@ -2,9 +2,15 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { getAllFiles, IWebkitEntry } from "./get-files-from-drag-event"
 import {
   getAllFilesFromHandle,
-  supportsDirectoryPicker
+  supportsDirectoryPicker,
+  IFileSystemDirectoryHandle
 } from "./get-files-from-directory-picker"
-import { IDirectoryWithPath, IEntryWithPath, isFile } from "./file-types"
+import {
+  IDirectoryWithPath,
+  IEntryWithPath,
+  isFile,
+  EntryKind
+} from "./file-types"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
@@ -20,6 +26,12 @@ import {
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
+}
+
+declare global {
+  interface Window {
+    showDirectoryPicker(): Promise<IFileSystemDirectoryHandle>
+  }
 }
 
 export interface FileUploadInfo {
@@ -133,8 +145,10 @@ export class UploadForm {
         const webkitEntry = droppedItem.webkitGetAsEntry()
         const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
         if (!isError(resultOrError)) {
-          const filesAndFolders: (IFileWithPath | IDirectoryWithPath)[] =
-            await getAllFiles(webkitEntry as unknown as IWebkitEntry, [])
+          const filesAndFolders: IEntryWithPath[] = await getAllFiles(
+            webkitEntry as unknown as IWebkitEntry,
+            []
+          )
           const files = filesAndFolders.filter((f) =>
             isFile(f)
           ) as IFileWithPath[]
@@ -168,7 +182,8 @@ export class UploadForm {
     // TDRD-1698
     if (!this.isJudgmentUser && supportsDirectoryPicker()) {
       try {
-        const dirHandle = await (window as any).showDirectoryPicker()
+        const dirHandle =
+          (await window.showDirectoryPicker()) as unknown as IFileSystemDirectoryHandle
         const filesAndFolders = await getAllFilesFromHandle(
           dirHandle,
           "/" + dirHandle.name
@@ -184,15 +199,17 @@ export class UploadForm {
           parentFolder,
           this.selectedFiles.filter(isFile).length
         )
-      } catch (err: any) {
-        if (err.name === "AbortError") {
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === "AbortError") {
           return
         }
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to select folder"
         return rejectUserItemSelection(
           this.warningMessages?.incorrectItemSelectedMessage,
           this.warningMessages,
           this.successAndRemovalMessageContainer,
-          err.message || "Failed to select folder"
+          errorMessage
         )
       }
     } else {
@@ -419,12 +436,13 @@ export class UploadForm {
     this.dropzone.removeEventListener("drop", this.handleDroppedItems)
   }
 
-  private convertFilesToIfilesWithPath(files: File[]): IFileWithPath[] {
+  private convertFilesToIfilesWithPath(files: File[]): IEntryWithPath[] {
     this.checkIfFolderHasFiles(files)
 
     return [...files].map((file) => ({
       file,
-      path: (file as FileWithRelativePath).webkitRelativePath
+      path: (file as FileWithRelativePath).webkitRelativePath,
+      kind: EntryKind.File
     }))
   }
 

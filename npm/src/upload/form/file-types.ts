@@ -1,19 +1,29 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
+import { IFileWithPath as IFileWithPathBase } from "@nationalarchives/file-information"
+
+export enum EntryKind {
+  File = "file",
+  Directory = "directory"
+}
+
+export interface IFileWithPath extends IFileWithPathBase {
+  kind: EntryKind.File
+}
 
 export type IEntryWithPath = IFileWithPath | IDirectoryWithPath
 export interface IDirectoryWithPath {
   path: string
   unreadable?: boolean
-}
-
-export function isFile(entry: IEntryWithPath): entry is IFileWithPath {
-  return (entry as IFileWithPath).file !== undefined
+  kind: EntryKind.Directory
 }
 
 export function isDirectory(
   entry: IEntryWithPath
 ): entry is IDirectoryWithPath {
-  return !isFile(entry)
+  return "kind" in entry && entry.kind === EntryKind.Directory
+}
+
+export function isFile(entry: IEntryWithPath): entry is IFileWithPath {
+  return "kind" in entry && entry.kind === EntryKind.File
 }
 
 export function withTimeout<T>(

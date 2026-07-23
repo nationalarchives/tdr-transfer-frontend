@@ -25,6 +25,10 @@ beforeAll(() => {
   console.error = jest.fn()
 })
 
+afterAll(() => {
+  jest.restoreAllMocks()
+})
+
 beforeEach(() => {
   fetchMock.resetMocks()
   fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))

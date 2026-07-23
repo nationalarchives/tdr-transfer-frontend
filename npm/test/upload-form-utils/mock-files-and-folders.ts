@@ -1,4 +1,4 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
+import { IFileWithPath, EntryKind } from "../../src/upload/form/file-types"
 
 export const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
@@ -50,8 +50,8 @@ export const getDummyFile: (fileName?: string, fileType?: string) => File = (
   } as unknown as File
 }
 
-export const dummyIFileWithPath = {
+export const dummyIFileWithPath: IFileWithPath = {
   file: getDummyFile(),
   path: "Parent_Folder",
-  webkitRelativePath: "Parent_Folder"
-} as IFileWithPath
+  kind: EntryKind.File
+}
