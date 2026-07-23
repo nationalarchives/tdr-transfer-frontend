@@ -372,8 +372,11 @@ export class UploadForm {
     document.querySelector(".success-and-removal-message-container")
 
   private getParentFolderName(folder: IEntryWithPath[]) {
-    const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
-    const relativePath: string = firstItem.path
+    const relativePath: string =
+      folder.find(isFile)?.path || folder[0]?.path || ""
+    if (!relativePath) {
+      return ""
+    }
     const parts = relativePath.split(/[\\/]/).filter(Boolean)
     return parts.length > 0 ? parts[0] : ""
   }
@@ -433,11 +436,17 @@ export class UploadForm {
   private convertFilesToIfilesWithPath(files: File[]): IEntryWithPath[] {
     this.checkIfFolderHasFiles(files)
 
-    return [...files].map((file) => ({
-      file,
-      path: (file as FileWithRelativePath).webkitRelativePath,
-      kind: EntryKind.File
-    }))
+    return [...files].map((file) => {
+      const fileWithPath = file as unknown as { file?: File; path?: string }
+      return {
+        file: fileWithPath.file || file,
+        path:
+          (file as FileWithRelativePath).webkitRelativePath ||
+          fileWithPath.path ||
+          file.name,
+        kind: EntryKind.File
+      }
+    })
   }
 
   private removeDragover(): void {

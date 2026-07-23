@@ -2,7 +2,6 @@ import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 enableFetchMocks()
 import { ClientFileProcessing } from "../src/clientfileprocessing"
 import {
-  IFileWithPath,
   TProgressFunction
 } from "@nationalarchives/file-information"
 import { FileUploader } from "../src/upload"
@@ -10,6 +9,7 @@ import { createMockKeycloakInstance, mockKeycloakInstance } from "./utils"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
 import Keycloak from "keycloak-js"
+import { EntryKind, IEntryWithPath } from "../src/upload/form/file-types"
 jest.mock("../src/clientfileprocessing")
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
@@ -21,18 +21,19 @@ beforeEach(() => {
 
 const dummyFile = {
   file: new File([], ""),
-  path: "relativePath"
-} as IFileWithPath
+  path: "relativePath",
+  kind: EntryKind.File
+} as IEntryWithPath
 
 class ClientFileProcessingSuccess {
   processClientFiles: (
     consignmentId: string,
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => Promise<void> = async (
     consignmentId: string,
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => {}
@@ -41,12 +42,12 @@ class ClientFileProcessingSuccess {
 class ClientFileProcessingFailure {
   processClientFiles: (
     consignmentId: string,
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => Promise<void | Error> = async (
     consignmentId: string,
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => {
