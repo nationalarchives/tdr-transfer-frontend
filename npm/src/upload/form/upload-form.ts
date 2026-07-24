@@ -253,6 +253,8 @@ export class UploadForm {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
     if (!this.isJudgmentUser) {
       const openDirectoryPicker = (ev?: Event) => {
+        // preventDefault stops the native file-input opening; browsers without
+        // showDirectoryPicker (e.g. Firefox) will hit the error path — intentional.
         ev?.preventDefault()
         void this.handleSelectedItems()
       }

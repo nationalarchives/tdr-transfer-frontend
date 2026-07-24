@@ -1,4 +1,3 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
 import { IEntryWithPath, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
@@ -48,8 +47,8 @@ export const getAllFiles: (
         fileInfoInput.push({
           path: entry.fullPath,
           unreadable: true,
-          kind: EntryKind.Directory
-        })
+          kind: EntryKind.File
+        } as IEntryWithPath)
       }
     }
   }
@@ -77,9 +76,7 @@ const getEntriesFromReader: (
       )
     }
     if (nextBatch.length > 0) {
-      throw new Error(
-        `readEntries exceeded ${MAX_READ_ENTRIES_BATCHES} batches for: ${dirPath}`
-      )
+      return null
     }
   } catch {
     return null
