@@ -2,7 +2,8 @@ import {
   IEntryWithPath,
   IDirectoryWithPath,
   isFile,
-  isDirectory
+  isDirectory,
+  withTimeout
 } from "./file-types"
 import { IFileWithPath } from "@nationalarchives/file-information"
 
@@ -13,17 +14,6 @@ export interface IFileCheckResult {
 }
 
 const FILE_CHECK_TIMEOUT_MS = 5000
-
-function withTimeout<T>(
-  promise: Promise<T>,
-  ms: number,
-  msg: string
-): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(msg)), ms))
-  ])
-}
 
 async function checkFileReadability(
   fileWithPath: IFileWithPath

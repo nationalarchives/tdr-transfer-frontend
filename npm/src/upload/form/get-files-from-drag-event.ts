@@ -2,6 +2,7 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { IEntryWithPath, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
+const MAX_READ_ENTRIES_BATCHES = 10000
 
 export const getAllFiles: (
   entry: IWebkitEntry | null,
@@ -67,12 +68,17 @@ const getEntriesFromReader: (
       `readEntries timed out for: ${dirPath}`
     )
 
-    while (nextBatch.length > 0) {
+    for (let i = 0; i < MAX_READ_ENTRIES_BATCHES && nextBatch.length > 0; i++) {
       allEntries = allEntries.concat(nextBatch)
       nextBatch = await withTimeout(
         getEntryBatch(reader),
         READ_ENTRIES_TIMEOUT_MS,
         `readEntries timed out for: ${dirPath}`
+      )
+    }
+    if (nextBatch.length > 0) {
+      throw new Error(
+        `readEntries exceeded ${MAX_READ_ENTRIES_BATCHES} batches for: ${dirPath}`
       )
     }
   } catch {
