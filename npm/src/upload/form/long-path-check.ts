@@ -1,11 +1,11 @@
 import {
   IEntryWithPath,
   IDirectoryWithPath,
+  IFileWithPath,
   isFile,
   isDirectory,
   withTimeout
 } from "./file-types"
-import { IFileWithPath } from "@nationalarchives/file-information"
 
 export interface IFileCheckResult {
   path: string
@@ -44,8 +44,16 @@ export async function checkFilesForLongPathIssues(
   const results: IFileCheckResult[] = []
   for (const entry of files) {
     if (isFile(entry)) {
-      const result = await checkFileReadability(entry)
-      results.push(result)
+      if (entry.unreadable) {
+        results.push({
+          path: entry.path,
+          status: "long-path-issue",
+          errorMessage: `Could not read: ${entry.path}`
+        })
+      } else {
+        const result = await checkFileReadability(entry)
+        results.push(result)
+      }
     } else if (isDirectory(entry)) {
       const dir = entry as IDirectoryWithPath
       if (dir.unreadable) {

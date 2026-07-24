@@ -23,7 +23,7 @@ export async function getAllFilesFromHandle(
   const fileInfos: IEntryWithPath[] = []
   for await (const [name, handle] of dirHandle.entries()) {
     const fullPath = pathPrefix + "/" + name
-    if (handle.kind === "directory") {
+    if (handle.kind === EntryKind.Directory) {
       await handleDirectoryEntry(handle, fullPath, fileInfos)
     } else {
       await handleFileEntry(handle, fullPath, fileInfos)
@@ -69,8 +69,8 @@ async function handleFileEntry(
     fileInfos.push({
       path: fullPath,
       unreadable: true,
-      kind: EntryKind.Directory
-    })
+      kind: EntryKind.File
+    } as IEntryWithPath)
   }
 }
 

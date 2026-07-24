@@ -6,6 +6,7 @@ export enum EntryKind {
 }
 
 export interface IFileWithPath extends IFileWithPathBase {
+  unreadable?: boolean
   kind: EntryKind.File
 }
 

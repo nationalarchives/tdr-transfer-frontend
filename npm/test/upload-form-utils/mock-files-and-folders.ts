@@ -1,4 +1,8 @@
 import { IFileWithPath, EntryKind } from "../../src/upload/form/file-types"
+import {
+  IFileSystemDirectoryHandle,
+  IFileSystemFileHandle
+} from "../../src/upload/form/get-files-from-directory-picker"
 
 export const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
@@ -54,4 +58,47 @@ export const dummyIFileWithPath: IFileWithPath = {
   file: getDummyFile(),
   path: "Parent_Folder",
   kind: EntryKind.File
+}
+
+export function createMockDirectoryHandle(
+  folderName: string,
+  files: { name: string; file: File }[]
+): IFileSystemDirectoryHandle {
+  const fileHandles: [string, IFileSystemFileHandle][] = files.map(
+    ({ name, file }) => [
+      name,
+      {
+        kind: "file" as const,
+        name,
+        getFile: () => Promise.resolve(file)
+      }
+    ]
+  )
+
+  return {
+    kind: "directory",
+    name: folderName,
+    entries: () => {
+      let index = 0
+      return {
+        [Symbol.asyncIterator]() {
+          return this
+        },
+        next() {
+          if (index < fileHandles.length) {
+            return Promise.resolve({
+              value: fileHandles[index++],
+              done: false
+            })
+          }
+          return Promise.resolve({
+            value: undefined,
+            done: true
+          })
+        }
+      } as AsyncIterableIterator<
+        [string, IFileSystemFileHandle]
+      >
+    }
+  }
 }

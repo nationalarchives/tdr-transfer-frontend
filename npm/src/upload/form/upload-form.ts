@@ -2,7 +2,6 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { getAllFiles, IWebkitEntry } from "./get-files-from-drag-event"
 import {
   getAllFilesFromHandle,
-  supportsDirectoryPicker,
   IFileSystemDirectoryHandle
 } from "./get-files-from-directory-picker"
 import { IEntryWithPath, isFile, EntryKind } from "./file-types"
@@ -170,10 +169,7 @@ export class UploadForm {
   }
 
   handleSelectedItems: () => any = async () => {
-    // Firefox and Safari do not support the directory picker API, so we need to check if it is supported before calling it.
-    // Can still upload on these browsers but long path check will not be executed
-    // TDRD-1698
-    if (!this.isJudgmentUser && supportsDirectoryPicker()) {
+    if (!this.isJudgmentUser) {
       try {
         const dirHandle = await (
           window as unknown as WindowWithDirectoryPicker
@@ -212,24 +208,15 @@ export class UploadForm {
         form!.files!.files!
       )
 
-      if (this.isJudgmentUser) {
-        const fileWithPath = this.selectedFiles[0]
-        if (isFile(fileWithPath)) {
-          const fileName = fileWithPath.file.name
-          const checkOrError =
-            this.checkForCorrectJudgmentFileExtension(fileName)
-          if (!isError(checkOrError)) {
-            addFileSelectionSuccessMessage(fileName)
-          } else {
-            return checkOrError
-          }
+      const fileWithPath = this.selectedFiles[0]
+      if (isFile(fileWithPath)) {
+        const fileName = fileWithPath.file.name
+        const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
+        if (!isError(checkOrError)) {
+          addFileSelectionSuccessMessage(fileName)
+        } else {
+          return checkOrError
         }
-      } else {
-        const parentFolder = this.getParentFolderName(this.selectedFiles)
-        addFolderSelectionSuccessMessage(
-          parentFolder,
-          this.selectedFiles.length
-        )
       }
     }
     displaySelectionSuccessMessage(
@@ -264,7 +251,7 @@ export class UploadForm {
 
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
-    if (!this.isJudgmentUser && supportsDirectoryPicker()) {
+    if (!this.isJudgmentUser) {
       const openDirectoryPicker = (ev?: Event) => {
         ev?.preventDefault()
         void this.handleSelectedItems()

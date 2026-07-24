@@ -1,9 +1,11 @@
+/* eslint-disable no-undef */
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 
 enableFetchMocks()
 import "@testing-library/jest-dom"
 
 import {
+  createMockDirectoryHandle,
   dummyIFileWithPath,
   getDummyFile,
   getDummyFolder
@@ -16,7 +18,6 @@ import {
   IWebkitEntry
 } from "../src/upload/form/get-files-from-drag-event"
 import { verifyVisibilityOfSuccessAndRemovalMessage } from "./upload-form-utils/verify-visibility-of-success-and-message"
-import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-display-success-message"
 
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
@@ -75,13 +76,19 @@ test("clicking the submit button, without selecting a folder, displays a warning
   )
 })
 
-test("input button updates the page with correct folder information if there are 1 or more files in folder", () => {
+test("input button updates the page with correct folder information if there are 1 or more files in folder", async () => {
   const mockDom = new MockUploadFormDom()
   verifyAllMessagesAreHidden(mockDom)
 
+  const dirHandle = createMockDirectoryHandle("Parent_Folder", [
+    { name: "Mock File", file: getDummyFile() }
+  ])
+  ;(window as any).showDirectoryPicker = jest.fn().mockResolvedValue(dirHandle)
+
   mockDom.getFileUploader().initialiseFormListeners()
-  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectItemViaButton()
+
+  await new Promise((r) => setTimeout(r, 0))
 
   verifyVisibilityOfSuccessAndRemovalMessage(
     mockDom.successAndRemovalMessageContainer!,
@@ -89,8 +96,12 @@ test("input button updates the page with correct folder information if there are
   )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
-  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("Parent_Folder")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual(
+    "Parent_Folder"
+  )
   expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("1 file")
+
+  delete (window as any).showDirectoryPicker
 })
 
 test("dropzone updates the page with correct folder information if there are 1 or more files in folder", async () => {
@@ -396,7 +407,9 @@ test("dropzone clears selected files if an invalid file is dropped after a valid
 
   try {
     await mockDom.form.handleDroppedItems(invalidDragEvent)
-  } catch {}
+  } catch {
+    /* expected error */
+  }
   expect(mockDom.form.selectedFiles).toHaveLength(0)
 })
 
@@ -409,7 +422,7 @@ test("clicking the submit button, after selecting a folder, disables the buttons
     mockDom.dataTransferItem
   )
 
-  const mockFn = jest.fn();
+  const mockFn = jest.fn()
   mockDom.form.folderUploader = mockFn
 
   const dragEvent = new dragEventClass()
@@ -418,7 +431,37 @@ test("clicking the submit button, after selecting a folder, disables the buttons
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  expect(mockFn).toHaveBeenCalledWith([{"file": {"lastModified": 2147483647, "name": "Mock File", "size": 3008, "type": "pdf", "webkitRelativePath": "Parent_Folder"}, "kind": "file", "path": "/test/something"}, {"file": {"lastModified": 2147483647, "name": "Mock File", "size": 3008, "type": "pdf", "webkitRelativePath": "Parent_Folder"}, "kind": "file", "path": "/test/something"}], {"consignmentId": "ee948bcd-ebe3-4dfd-8928-2b2c9c586b40", "includeTopLevelFolder": undefined, "parentFolder": "test"});
+  expect(mockFn).toHaveBeenCalledWith(
+    [
+      {
+        file: {
+          lastModified: 2147483647,
+          name: "Mock File",
+          size: 3008,
+          type: "pdf",
+          webkitRelativePath: "Parent_Folder"
+        },
+        kind: "file",
+        path: "/test/something"
+      },
+      {
+        file: {
+          lastModified: 2147483647,
+          name: "Mock File",
+          size: 3008,
+          type: "pdf",
+          webkitRelativePath: "Parent_Folder"
+        },
+        kind: "file",
+        path: "/test/something"
+      }
+    ],
+    {
+      consignmentId: "ee948bcd-ebe3-4dfd-8928-2b2c9c586b40",
+      includeTopLevelFolder: undefined,
+      parentFolder: "test"
+    }
+  )
 
   expect(mockDom.submitButton).toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
@@ -450,10 +493,14 @@ test("clicking the submit button, after selecting a folder, hides 'upload folder
 
 test("on Windows, submitting a folder with long path issues does not proceed with upload", async () => {
   const longPathCheck = await import("../src/upload/form/long-path-check")
-  const isWindowsSpy = jest.spyOn(longPathCheck, "isWindowsOS").mockReturnValue(true)
-  const checkFilesSpy = jest.spyOn(longPathCheck, "checkFilesForLongPathIssues").mockResolvedValue([
-    { path: "/a/very/long/path/file.txt", status: "long-path-issue" }
-  ])
+  const isWindowsSpy = jest
+    .spyOn(longPathCheck, "isWindowsOS")
+    .mockReturnValue(true)
+  const checkFilesSpy = jest
+    .spyOn(longPathCheck, "checkFilesForLongPathIssues")
+    .mockResolvedValue([
+      { path: "/a/very/long/path/file.txt", status: "long-path-issue" }
+    ])
 
   const mockDom = new MockUploadFormDom()
   const mockFn = jest.fn()
@@ -483,10 +530,12 @@ test("on Windows, submitting a folder with long path issues does not proceed wit
 
 test("on Windows, submitting a folder with no long path issues proceeds with upload", async () => {
   const longPathCheck = await import("../src/upload/form/long-path-check")
-  const isWindowsSpy = jest.spyOn(longPathCheck, "isWindowsOS").mockReturnValue(true)
-  const checkFilesSpy = jest.spyOn(longPathCheck, "checkFilesForLongPathIssues").mockResolvedValue([
-    { path: "/a/normal/path.txt", status: "ok" }
-  ])
+  const isWindowsSpy = jest
+    .spyOn(longPathCheck, "isWindowsOS")
+    .mockReturnValue(true)
+  const checkFilesSpy = jest
+    .spyOn(longPathCheck, "checkFilesForLongPathIssues")
+    .mockResolvedValue([{ path: "/a/normal/path.txt", status: "ok" }])
 
   const mockDom = new MockUploadFormDom()
   const mockFn = jest.fn()
@@ -518,13 +567,19 @@ test("removeSelectedItem function should remove the selected folder", () => {
   expect(mockDom.form.selectedFiles).toHaveLength(0)
 })
 
-test("removeSelectedItem function should hide the success message row and display the folder removal message when 'Remove' button is clicked", () => {
+test("removeSelectedItem function should hide the success message row and display the folder removal message when 'Remove' button is clicked", async () => {
   const mockDom = new MockUploadFormDom()
   verifyAllMessagesAreHidden(mockDom)
-  mockDom.getFileUploader().initialiseFormListeners()
 
-  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
+  const dirHandle = createMockDirectoryHandle("Parent_Folder", [
+    { name: "Mock File", file: getDummyFile() }
+  ])
+  ;(window as any).showDirectoryPicker = jest.fn().mockResolvedValue(dirHandle)
+
+  mockDom.getFileUploader().initialiseFormListeners()
   mockDom.selectItemViaButton()
+
+  await new Promise((r) => setTimeout(r, 0))
 
   expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute(
     "hidden",
@@ -539,22 +594,32 @@ test("removeSelectedItem function should hide the success message row and displa
     mockDom.warningMessages,
     {
       warningMessageElements: mockDom.warningMessages.removedSelectionMessage!,
-      expectedWarningMessageText: `The folder \"Parent_Folder\" (containing 1 file) has been removed. Select a folder.`
+      expectedWarningMessageText: `The folder "Parent_Folder" (containing 1 file) has been removed. Select a folder.`
     },
     false
   )
+
+  delete (window as any).showDirectoryPicker
 })
 
 test(
   "removeSelectedItem function should hide the folder removal message and display the success message " +
     "when a user reselects a folder after having removed one prior",
-  () => {
+  async () => {
     const mockDom = new MockUploadFormDom()
     verifyAllMessagesAreHidden(mockDom)
-    mockDom.getFileUploader().initialiseFormListeners()
 
-    mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
+    const dirHandle = createMockDirectoryHandle("Parent_Folder", [
+      { name: "Mock File", file: getDummyFile() }
+    ])
+    ;(window as any).showDirectoryPicker = jest
+      .fn()
+      .mockResolvedValue(dirHandle)
+
+    mockDom.getFileUploader().initialiseFormListeners()
     mockDom.selectItemViaButton()
+
+    await new Promise((r) => setTimeout(r, 0))
 
     expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute(
       "hidden",
@@ -563,8 +628,9 @@ test(
 
     mockDom.removeButton!.click()
 
-    mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
     mockDom.selectItemViaButton()
+
+    await new Promise((r) => setTimeout(r, 0))
 
     expect(mockDom.successMessageContainer).not.toHaveAttribute(
       "hidden",
@@ -573,5 +639,7 @@ test(
     expect(
       mockDom.warningMessages.removedSelectionMessage.messageElement!
     ).toHaveAttribute("hidden", "true")
+
+    delete (window as any).showDirectoryPicker
   }
 )
