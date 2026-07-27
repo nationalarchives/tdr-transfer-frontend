@@ -53,7 +53,7 @@ export async function checkFilesForLongPathIssues(
       if (entry.unreadable) {
         results.push({
           path: entry.path,
-          status: FileCheckStatus.LongPathIssue,
+          status: FileCheckStatus.Unreadable,
           errorMessage: `Could not read: ${entry.path}`
         })
       } else {

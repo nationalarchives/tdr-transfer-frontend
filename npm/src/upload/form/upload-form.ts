@@ -161,31 +161,41 @@ export class UploadForm {
   }
 
   handleSelectedItems: () => any = async () => {
-    if (!this.isJudgmentUser && supportsDirectoryPicker()) {
-      try {
-        const dirHandle = await (
-          window as unknown as WindowWithDirectoryPicker
-        ).showDirectoryPicker()
-        const filesAndFolders = await getAllFilesFromHandle(
-          dirHandle,
-          "/" + dirHandle.name
-        )
-        const files = filesAndFolders.filter(isFile)
-        const folderCheck = this.checkIfFolderHasFiles(files)
-        if (isError(folderCheck)) {
-          return folderCheck
+    if (!this.isJudgmentUser) {
+      if (supportsDirectoryPicker()) {
+        try {
+          const dirHandle = await (
+            window as unknown as WindowWithDirectoryPicker
+          ).showDirectoryPicker()
+          const filesAndFolders = await getAllFilesFromHandle(
+            dirHandle,
+            "/" + dirHandle.name
+          )
+          const files = filesAndFolders.filter(isFile)
+          const folderCheck = this.checkIfFolderHasFiles(files)
+          if (isError(folderCheck)) {
+            return folderCheck
+          }
+          this.selectedFiles = filesAndFolders
+          const parentFolder = this.getParentFolderName(this.selectedFiles)
+          addFolderSelectionSuccessMessage(
+            parentFolder,
+            this.selectedFiles.filter(isFile).length
+          )
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === "AbortError") {
+            return
+          }
+          console.error("Error selecting items:", err)
         }
-        this.selectedFiles = filesAndFolders
+      } else {
+        const form: HTMLFormElement | null = this.formElement
+        this.selectedFiles = this.convertFilesToEntries(form!.files!.files!)
         const parentFolder = this.getParentFolderName(this.selectedFiles)
         addFolderSelectionSuccessMessage(
           parentFolder,
           this.selectedFiles.filter(isFile).length
         )
-      } catch (err: unknown) {
-        if (err instanceof DOMException && err.name === "AbortError") {
-          return
-        }
-        throw err
       }
     } else {
       const form: HTMLFormElement | null = this.formElement
