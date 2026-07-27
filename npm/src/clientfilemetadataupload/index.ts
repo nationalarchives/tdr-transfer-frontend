@@ -97,7 +97,11 @@ export class ClientFileMetadataUpload {
         //Ensure file paths stored in database are consistent
         const pathWithoutSlash = path.startsWith("/") ? path.substring(1) : path
         const filePath = pathWithoutSlash ? pathWithoutSlash : file.name
-        result.matchFileMap.set(matchId.toString(), { file, path: filePath, kind: EntryKind.File })
+        result.matchFileMap.set(matchId.toString(), {
+          file,
+          path: filePath,
+          kind: EntryKind.File
+        })
         const metadataInput: ClientSideMetadataInput = {
           originalPath: filePath,
           checksum,
