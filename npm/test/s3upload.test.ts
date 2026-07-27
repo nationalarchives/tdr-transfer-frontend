@@ -4,7 +4,7 @@ import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 import {
   IProgressInformation
 } from "@nationalarchives/file-information"
-import { IFileEntry } from "../src/upload/form/file-types"
+import { EntryKind, IFileEntry } from "../src/upload/form/file-types"
 import {AwsClientStub, mockClient} from "aws-sdk-client-mock"
 
 import {
@@ -107,7 +107,8 @@ const createTdrFile = ({
 
   const fileWithPath: IFileEntry = {
     file: file,
-    path: filename
+    path: filename,
+    kind: EntryKind.File
   }
   return {
     fileId,

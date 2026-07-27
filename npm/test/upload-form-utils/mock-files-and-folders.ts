@@ -9,8 +9,9 @@ export const mockFileList: (file: File[]) => FileList = (file: File[]) => {
     length: file.length,
     item: (index: number) => file[index],
     0: file[0],
-    1: file[1]
-  } as FileList
+    1: file[1],
+    [Symbol.iterator]: Array.prototype[Symbol.iterator]
+  } as unknown as FileList
 }
 
 export const mockDataTransferItemList: (
@@ -23,8 +24,9 @@ export const mockDataTransferItemList: (
     length: itemLength,
     clear: jest.fn(),
     0: entry,
-    remove: jest.fn()
-  } as DataTransferItemList
+    remove: jest.fn(),
+    [Symbol.iterator]: Array.prototype[Symbol.iterator]
+  } as unknown as DataTransferItemList
 }
 
 export const getDummyFolder: (folderName?: string) => File = (

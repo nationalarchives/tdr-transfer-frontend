@@ -9,7 +9,7 @@ import {
 import { ITdrFileWithPath } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
-import { IFileEntry } from "../upload/form/file-types"
+import { EntryKind, IFileEntry } from "../upload/form/file-types"
 
 export class ClientFileMetadataUpload {
   async startUpload(uploadFilesInfo: FileUploadInfo): Promise<void | Error> {
@@ -97,7 +97,7 @@ export class ClientFileMetadataUpload {
         //Ensure file paths stored in database are consistent
         const pathWithoutSlash = path.startsWith("/") ? path.substring(1) : path
         const filePath = pathWithoutSlash ? pathWithoutSlash : file.name
-        result.matchFileMap.set(matchId.toString(), { file, path: filePath })
+        result.matchFileMap.set(matchId.toString(), { file, path: filePath, kind: EntryKind.File })
         const metadataInput: ClientSideMetadataInput = {
           originalPath: filePath,
           checksum,
