@@ -1,6 +1,4 @@
-import {
-  IFileMetadata
-} from "@nationalarchives/file-information"
+import { IFileMetadata } from "@nationalarchives/file-information"
 
 import {
   AddFileAndMetadataInput,

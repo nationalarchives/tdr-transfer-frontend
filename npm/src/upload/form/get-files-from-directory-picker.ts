@@ -1,4 +1,4 @@
-import { IEntryWithPath, withTimeout, EntryKind } from "./file-types"
+import { IEntry, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
 
@@ -19,8 +19,8 @@ type IFileSystemHandle = IFileSystemFileHandle | IFileSystemDirectoryHandle
 export async function getAllFilesFromHandle(
   dirHandle: IFileSystemDirectoryHandle,
   pathPrefix: string
-): Promise<IEntryWithPath[]> {
-  const fileInfos: IEntryWithPath[] = []
+): Promise<IEntry[]> {
+  const fileInfos: IEntry[] = []
   for await (const [name, handle] of dirHandle.entries()) {
     const fullPath = pathPrefix + "/" + name
     if (handle.kind === EntryKind.Directory) {
@@ -35,7 +35,7 @@ export async function getAllFilesFromHandle(
 async function handleDirectoryEntry(
   handle: IFileSystemDirectoryHandle,
   fullPath: string,
-  fileInfos: IEntryWithPath[]
+  fileInfos: IEntry[]
 ): Promise<void> {
   const children = await getAllFilesFromHandle(handle, fullPath).catch(
     (): null => null
@@ -56,7 +56,7 @@ async function handleDirectoryEntry(
 async function handleFileEntry(
   handle: IFileSystemFileHandle,
   fullPath: string,
-  fileInfos: IEntryWithPath[]
+  fileInfos: IEntry[]
 ): Promise<void> {
   try {
     const file = await withTimeout(
@@ -70,7 +70,7 @@ async function handleFileEntry(
       path: fullPath,
       unreadable: true,
       kind: EntryKind.File
-    } as IEntryWithPath)
+    } as IEntry)
   }
 }
 

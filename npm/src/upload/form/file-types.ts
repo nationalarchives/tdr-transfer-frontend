@@ -10,20 +10,18 @@ export interface IFileEntry extends IFileWithPath {
   kind: EntryKind.File
 }
 
-export type IEntryWithPath = IFileEntry | IDirectoryWithPath
-export interface IDirectoryWithPath {
+export type IEntry = IFileEntry | IDirectoryEntry
+export interface IDirectoryEntry {
   path: string
   unreadable?: boolean
   kind: EntryKind.Directory
 }
 
-export function isDirectory(
-  entry: IEntryWithPath
-): entry is IDirectoryWithPath {
+export function isDirectory(entry: IEntry): entry is IDirectoryEntry {
   return entry.kind === EntryKind.Directory
 }
 
-export function isFile(entry: IEntryWithPath): entry is IFileEntry {
+export function isFile(entry: IEntry): entry is IFileEntry {
   return entry.kind === EntryKind.File
 }
 

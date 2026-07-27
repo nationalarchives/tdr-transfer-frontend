@@ -1,12 +1,12 @@
-import { IEntryWithPath, withTimeout, EntryKind } from "./file-types"
+import { IEntry, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
 const MAX_READ_ENTRIES_BATCHES = 10000
 
 export const getAllFiles: (
   entry: IWebkitEntry | null,
-  fileInfoInput: IEntryWithPath[]
-) => Promise<IEntryWithPath[]> = async (entry, fileInfoInput) => {
+  fileInfoInput: IEntry[]
+) => Promise<IEntry[]> = async (entry, fileInfoInput) => {
   if (!entry) {
     return fileInfoInput
   }
@@ -40,7 +40,7 @@ export const getAllFiles: (
     if (entry.isDirectory) {
       await getAllFiles(entry, fileInfoInput)
     } else {
-      const fileEntry: IEntryWithPath | null = await getFileFromEntry(entry)
+      const fileEntry: IEntry | null = await getFileFromEntry(entry)
       if (fileEntry) {
         fileInfoInput.push(fileEntry)
       } else {
@@ -48,7 +48,7 @@ export const getAllFiles: (
           path: entry.fullPath,
           unreadable: true,
           kind: EntryKind.File
-        } as IEntryWithPath)
+        } as IEntry)
       }
     }
   }
@@ -96,11 +96,11 @@ const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
   })
 }
 
-const getFileFromEntry: (
-  entry: IWebkitEntry
-) => Promise<IEntryWithPath | null> = (entry) => {
+const getFileFromEntry: (entry: IWebkitEntry) => Promise<IEntry | null> = (
+  entry
+) => {
   return withTimeout(
-    new Promise<IEntryWithPath>((resolve, reject) => {
+    new Promise<IEntry>((resolve, reject) => {
       entry.file(
         (file) =>
           resolve({

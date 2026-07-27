@@ -17,6 +17,7 @@ import {
   IReader,
   IWebkitEntry
 } from "../src/upload/form/get-files-from-drag-event"
+import { FileCheckStatus } from "../src/upload/form/long-path-check"
 import { verifyVisibilityOfSuccessAndRemovalMessage } from "./upload-form-utils/verify-visibility-of-success-and-message"
 
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
@@ -499,7 +500,7 @@ test("on Windows, submitting a folder with long path issues does not proceed wit
   const checkFilesSpy = jest
     .spyOn(longPathCheck, "checkFilesForLongPathIssues")
     .mockResolvedValue([
-      { path: "/a/very/long/path/file.txt", status: "long-path-issue" }
+      { path: "/a/very/long/path/file.txt", status: FileCheckStatus.LongPathIssue }
     ])
 
   const mockDom = new MockUploadFormDom()
@@ -535,7 +536,7 @@ test("on Windows, submitting a folder with no long path issues proceeds with upl
     .mockReturnValue(true)
   const checkFilesSpy = jest
     .spyOn(longPathCheck, "checkFilesForLongPathIssues")
-    .mockResolvedValue([{ path: "/a/normal/path.txt", status: "ok" }])
+    .mockResolvedValue([{ path: "/a/normal/path.txt", status: FileCheckStatus.Ok }])
 
   const mockDom = new MockUploadFormDom()
   const mockFn = jest.fn()

@@ -6,9 +6,7 @@ import {
 } from "@aws-sdk/client-s3"
 
 import { Upload } from "@aws-sdk/lib-storage"
-import {
-  TProgressFunction
-} from "@nationalarchives/file-information"
+import { TProgressFunction } from "@nationalarchives/file-information"
 import { isError } from "../errorhandling"
 import {
   AddFileStatusInput,

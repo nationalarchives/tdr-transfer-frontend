@@ -1,15 +1,21 @@
 import {
-  IEntryWithPath,
-  IDirectoryWithPath,
+  IEntry,
+  IDirectoryEntry,
   IFileEntry,
   isFile,
   isDirectory,
   withTimeout
 } from "./file-types"
 
+export enum FileCheckStatus {
+  Ok = "ok",
+  Unreadable = "unreadable",
+  LongPathIssue = "long-path-issue"
+}
+
 export interface IFileCheckResult {
   path: string
-  status: "ok" | "unreadable" | "long-path-issue"
+  status: FileCheckStatus
   errorMessage?: string
 }
 
@@ -26,20 +32,20 @@ async function checkFileReadability(
       `Reading file timed out: ${path}`
     )
     if (file.size > 0 && buffer.byteLength === 0) {
-      return { path, status: "long-path-issue" }
+      return { path, status: FileCheckStatus.LongPathIssue }
     }
-    return { path, status: "ok" }
+    return { path, status: FileCheckStatus.Ok }
   } catch {
     return {
       path,
-      status: "long-path-issue",
+      status: FileCheckStatus.LongPathIssue,
       errorMessage: `Could not read: ${path}`
     }
   }
 }
 
 export async function checkFilesForLongPathIssues(
-  files: IEntryWithPath[]
+  files: IEntry[]
 ): Promise<IFileCheckResult[]> {
   const results: IFileCheckResult[] = []
   for (const entry of files) {
@@ -47,7 +53,7 @@ export async function checkFilesForLongPathIssues(
       if (entry.unreadable) {
         results.push({
           path: entry.path,
-          status: "long-path-issue",
+          status: FileCheckStatus.LongPathIssue,
           errorMessage: `Could not read: ${entry.path}`
         })
       } else {
@@ -55,15 +61,15 @@ export async function checkFilesForLongPathIssues(
         results.push(result)
       }
     } else if (isDirectory(entry)) {
-      const dir = entry as IDirectoryWithPath
+      const dir = entry as IDirectoryEntry
       if (dir.unreadable) {
         results.push({
           path: dir.path,
-          status: "unreadable",
+          status: FileCheckStatus.Unreadable,
           errorMessage: `Could not read folder: ${dir.path}`
         })
       } else {
-        results.push({ path: dir.path, status: "ok" })
+        results.push({ path: dir.path, status: FileCheckStatus.Ok })
       }
     }
   }
@@ -71,7 +77,7 @@ export async function checkFilesForLongPathIssues(
 }
 
 export function hasLongPathIssues(results: IFileCheckResult[]): boolean {
-  return results.some((r) => r.status !== "ok")
+  return results.some((r) => r.status !== FileCheckStatus.Ok)
 }
 
 export function isWindowsOS(): boolean {

@@ -1,15 +1,13 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 enableFetchMocks()
 import { ClientFileProcessing } from "../src/clientfileprocessing"
-import {
-  TProgressFunction
-} from "@nationalarchives/file-information"
+import { TProgressFunction } from "@nationalarchives/file-information"
 import { FileUploader } from "../src/upload"
 import { createMockKeycloakInstance, mockKeycloakInstance } from "./utils"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
 import Keycloak from "keycloak-js"
-import { EntryKind, IEntryWithPath } from "../src/upload/form/file-types"
+import { EntryKind, IEntry } from "../src/upload/form/file-types"
 jest.mock("../src/clientfileprocessing")
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
@@ -23,50 +21,32 @@ const dummyFile = {
   file: new File([], ""),
   path: "relativePath",
   kind: EntryKind.File
-} as IEntryWithPath
-
-class ClientFileProcessingSuccess {
-  processClientFiles: (
-    consignmentId: string,
-    files: IEntryWithPath[],
-    callback: TProgressFunction,
-    stage: string
-  ) => Promise<void> = async (
-    consignmentId: string,
-    files: IEntryWithPath[],
-    callback: TProgressFunction,
-    stage: string
-  ) => {}
-}
-
-class ClientFileProcessingFailure {
-  processClientFiles: (
-    consignmentId: string,
-    files: IEntryWithPath[],
-    callback: TProgressFunction,
-    stage: string
-  ) => Promise<void | Error> = async (
-    consignmentId: string,
-    files: IEntryWithPath[],
-    callback: TProgressFunction,
-    stage: string
-  ) => {
-    return Promise.resolve(Error("Some error"))
-  }
-}
+} as IEntry
 
 const mockUploadSuccess: () => void = () => {
   const mock = ClientFileProcessing as jest.Mock
-  mock.mockImplementation(() => {
-    return new ClientFileProcessingSuccess()
-  })
+  mock.mockImplementation(() => ({
+    processClientFiles: async (
+      _consignmentId: string,
+      _files: IEntry[],
+      _callback: TProgressFunction,
+      _stage: string
+    ): Promise<void> => {}
+  }))
 }
 
 const mockUploadFailure: () => void = () => {
   const mock = ClientFileProcessing as jest.Mock
-  mock.mockImplementation(() => {
-    return new ClientFileProcessingFailure()
-  })
+  mock.mockImplementation(() => ({
+    processClientFiles: async (
+      _consignmentId: string,
+      _files: IEntry[],
+      _callback: TProgressFunction,
+      _stage: string
+    ): Promise<void | Error> => {
+      return Promise.resolve(Error("Some error"))
+    }
+  }))
 }
 
 const mockGoToFileChecksPage = jest.fn()
@@ -82,7 +62,11 @@ test("upload function will redirect to the file checks page with uploadFailed se
     includeTopLevelFolder: false
   })
 
-  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith("12345", "true", false)
+  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
+    "12345",
+    "true",
+    false
+  )
 
   mockGoToFileChecksPage.mockRestore()
 })
@@ -98,7 +82,11 @@ test("upload function redirects to the file checks page with uploadFailed set to
     includeTopLevelFolder: false
   })
 
-  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith("12345", "false", false)
+  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
+    "12345",
+    "false",
+    false
+  )
 
   mockGoToFileChecksPage.mockRestore()
 })
@@ -107,7 +95,7 @@ test("upload function refreshes idle session", async () => {
   mockUploadSuccess()
 
   const mockUpdateToken = jest.fn().mockImplementation((_: number) => {
-    return new Promise((res, _) => res(true))
+    return new Promise((res, _rej) => res(true))
   })
   const isTokenExpired = true
   const refreshTokenParsed = {
@@ -138,7 +126,6 @@ test("upload function refreshes idle session", async () => {
   consoleErrorSpy.mockRestore()
 })
 
-
 function setUpFileUploader(mockKeycloak?: Keycloak): FileUploader {
   const keycloakInstance =
     mockKeycloak != undefined ? mockKeycloak : mockKeycloakInstance
@@ -153,7 +140,7 @@ function setUpFileUploader(mockKeycloak?: Keycloak): FileUploader {
     clientId: "",
     realm: "",
     ifNoneMatchHeaderValue: "*",
-    aclHeaderValue: "bucket-owner-full-control",
+    aclHeaderValue: "bucket-owner-full-control"
   }
 
   return new FileUploader(

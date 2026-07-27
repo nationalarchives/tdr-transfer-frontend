@@ -8,7 +8,6 @@ export const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
     item: (index: number) => file[index],
-    [Symbol.iterator]: jest.fn(),
     0: file[0],
     1: file[1]
   } as FileList
@@ -20,7 +19,6 @@ export const mockDataTransferItemList: (
 ) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
   return {
     item: jest.fn(),
-    [Symbol.iterator]: jest.fn(),
     add: jest.fn(),
     length: itemLength,
     clear: jest.fn(),
@@ -81,9 +79,6 @@ export function createMockDirectoryHandle(
     entries: () => {
       let index = 0
       return {
-        [Symbol.asyncIterator]() {
-          return this
-        },
         next() {
           if (index < fileHandles.length) {
             return Promise.resolve({
@@ -95,10 +90,11 @@ export function createMockDirectoryHandle(
             value: undefined,
             done: true
           })
+        },
+        [Symbol.asyncIterator]() {
+          return this
         }
-      } as AsyncIterableIterator<
-        [string, IFileSystemFileHandle]
-      >
+      } as AsyncIterableIterator<[string, IFileSystemFileHandle]>
     }
   }
 }

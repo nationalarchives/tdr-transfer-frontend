@@ -7,7 +7,12 @@ import {
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
-import { IEntryWithPath, IFileEntry, isDirectory, isFile } from "../upload/form/file-types"
+import {
+  IEntry,
+  IFileEntry,
+  isDirectory,
+  isFile
+} from "../upload/form/file-types"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -58,7 +63,7 @@ export class ClientFileProcessing {
   }
 
   async processClientFiles(
-    files: IEntryWithPath[],
+    files: IEntry[],
     uploadFilesInfo: FileUploadInfo,
     stage: string,
     userId: string | undefined

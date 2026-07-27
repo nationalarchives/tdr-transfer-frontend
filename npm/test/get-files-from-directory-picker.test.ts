@@ -24,9 +24,7 @@ function createMockDirectoryHandle(
       [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
     > => {
       let index = 0
-      const iterator: AsyncIterableIterator<
-        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
-      > = {
+      return {
         [Symbol.asyncIterator]() {
           return this
         },
@@ -39,8 +37,9 @@ function createMockDirectoryHandle(
           }
           return Promise.resolve({ value: undefined, done: true })
         }
-      }
-      return iterator
+      } as AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      >
     }
   }
 }
@@ -54,17 +53,16 @@ function createUnreadableDirectoryHandle(
     entries: (): AsyncIterableIterator<
       [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
     > => {
-      const iterator: AsyncIterableIterator<
-        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
-      > = {
+      return {
         [Symbol.asyncIterator]() {
           return this
         },
         next() {
           return Promise.reject(new Error("Permission denied"))
         }
-      }
-      return iterator
+      } as AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      >
     }
   }
 }
@@ -84,9 +82,7 @@ describe("getAllFilesFromHandle", () => {
           IFileSystemFileHandle | IFileSystemDirectoryHandle
         ][] = [["bad-folder", unreadableSubDir]]
         let index = 0
-        const iterator: AsyncIterableIterator<
-          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
-        > = {
+        return {
           [Symbol.asyncIterator]() {
             return this
           },
@@ -96,8 +92,9 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        }
-        return iterator
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
@@ -127,9 +124,7 @@ describe("getAllFilesFromHandle", () => {
           ["bad-folder", unreadableSubDir]
         ]
         let index = 0
-        const iterator: AsyncIterableIterator<
-          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
-        > = {
+        return {
           [Symbol.asyncIterator]() {
             return this
           },
@@ -139,8 +134,9 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        }
-        return iterator
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
@@ -173,9 +169,7 @@ describe("getAllFilesFromHandle", () => {
           IFileSystemFileHandle | IFileSystemDirectoryHandle
         ][] = [["deep-bad", unreadableSubDir]]
         let index = 0
-        const iterator: AsyncIterableIterator<
-          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
-        > = {
+        return {
           [Symbol.asyncIterator]() {
             return this
           },
@@ -185,8 +179,9 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        }
-        return iterator
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
@@ -201,9 +196,7 @@ describe("getAllFilesFromHandle", () => {
           IFileSystemFileHandle | IFileSystemDirectoryHandle
         ][] = [["middle", middleDir]]
         let index = 0
-        const iterator: AsyncIterableIterator<
-          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
-        > = {
+        return {
           [Symbol.asyncIterator]() {
             return this
           },
@@ -213,8 +206,9 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        }
-        return iterator
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
@@ -247,9 +241,7 @@ describe("getAllFilesFromHandle", () => {
           IFileSystemFileHandle | IFileSystemDirectoryHandle
         ][] = [["empty", emptyDir]]
         let index = 0
-        const iterator: AsyncIterableIterator<
-          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
-        > = {
+        return {
           [Symbol.asyncIterator]() {
             return this
           },
@@ -259,8 +251,9 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        }
-        return iterator
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
