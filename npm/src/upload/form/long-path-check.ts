@@ -76,7 +76,7 @@ export async function checkFilesForLongPathIssues(
   return results
 }
 
-export function hasLongPathIssues(results: IFileCheckResult[]): boolean {
+export function hasFileCheckIssues(results: IFileCheckResult[]): boolean {
   return results.some((r) => r.status !== FileCheckStatus.Ok)
 }
 

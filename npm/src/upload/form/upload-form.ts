@@ -14,7 +14,7 @@ import {
 import { isError } from "../../errorhandling"
 import {
   checkFilesForLongPathIssues,
-  hasLongPathIssues,
+  hasFileCheckIssues,
   isWindowsOS
 } from "./long-path-check"
 
@@ -290,7 +290,7 @@ export class UploadForm {
             this.selectedFiles
           )
           UploadForm.hideCheckingFilesMessage()
-          if (hasLongPathIssues(checkResults)) {
+          if (hasFileCheckIssues(checkResults)) {
             location.assign(`/consignment/${consignmentId}/file-path-check`)
             return
           }
