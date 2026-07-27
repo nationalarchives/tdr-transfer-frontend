@@ -1,10 +1,9 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
 import { getAllFiles, IWebkitEntry } from "./get-files-from-drag-event"
 import {
   getAllFilesFromHandle,
   IFileSystemDirectoryHandle
 } from "./get-files-from-directory-picker"
-import { IEntryWithPath, isFile, EntryKind } from "./file-types"
+import { IEntryWithPath, IFileEntry, isFile, EntryKind } from "./file-types"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
@@ -143,7 +142,7 @@ export class UploadForm {
           )
           const files = filesAndFolders.filter((f) =>
             isFile(f)
-          ) as IFileWithPath[]
+          ) as IFileEntry[]
           const folderCheck = this.checkIfFolderHasFiles(files)
           if (!isError(folderCheck)) {
             this.selectedFiles = filesAndFolders
@@ -400,7 +399,7 @@ export class UploadForm {
     }
   }
 
-  private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void | Error {
+  private checkIfFolderHasFiles(files: File[] | IFileEntry[]): void | Error {
     if (files === null || files.length === 0) {
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(

@@ -1,4 +1,4 @@
-import { IFileWithPath, EntryKind } from "../../src/upload/form/file-types"
+import { IFileEntry, EntryKind } from "../../src/upload/form/file-types"
 import {
   IFileSystemDirectoryHandle,
   IFileSystemFileHandle
@@ -54,7 +54,7 @@ export const getDummyFile: (fileName?: string, fileType?: string) => File = (
   } as unknown as File
 }
 
-export const dummyIFileWithPath: IFileWithPath = {
+export const dummyIFileWithPath: IFileEntry = {
   file: getDummyFile(),
   path: "Parent_Folder",
   kind: EntryKind.File

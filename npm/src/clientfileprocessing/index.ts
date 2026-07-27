@@ -2,13 +2,12 @@ import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
 import {
   IFileMetadata,
-  IFileWithPath,
   IProgressInformation
 } from "@nationalarchives/file-information"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
-import { IEntryWithPath, isDirectory, isFile } from "../upload/form/file-types"
+import { IEntryWithPath, IFileEntry, isDirectory, isFile } from "../upload/form/file-types"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -73,7 +72,7 @@ export class ClientFileProcessing {
 
       const metadata: IFileMetadata[] | Error =
         await this.clientFileExtractMetadata.extract(
-          files.filter((f) => isFile(f)) as IFileWithPath[],
+          files.filter((f) => isFile(f)) as IFileEntry[],
           this.metadataProgressCallback
         )
 

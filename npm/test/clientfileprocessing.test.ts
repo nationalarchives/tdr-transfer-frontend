@@ -2,14 +2,14 @@ import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { ClientFileProcessing } from "../src/clientfileprocessing"
 import {
   TProgressFunction,
-  IProgressInformation, IFileWithPath, IFileMetadata,
+  IProgressInformation, IFileMetadata,
 } from "@nationalarchives/file-information"
 import { S3Upload, ITdrFileWithPath, IUploadResult } from "../src/s3upload";
 import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
 import {FileUploadInfo} from "../src/upload/form/upload-form";
 import {ClientFileExtractMetadata} from "../src/clientfileextractmetadata";
-import { EntryKind } from "../src/upload/form/file-types"
+import { EntryKind, IFileEntry } from "../src/upload/form/file-types"
 enableFetchMocks()
 
 jest.mock("../src/clientfilemetadataupload")
@@ -50,8 +50,8 @@ class ClientFileUploadSuccess {
 }
 
 class ClientFileExtractMetadataSuccess {
-  extract: (files: IFileWithPath[]) => Promise<IFileMetadata[]> = async (
-    files: IFileWithPath[]
+  extract: (files: IFileEntry[]) => Promise<IFileMetadata[]> = async (
+    files: IFileEntry[]
   ) => {
     return Promise.resolve([])
   }
@@ -82,8 +82,8 @@ class ClientFileUploadMetadataFailure {
 }
 
 class ClientFileExtractMetadataFailure {
-  extract: (files: IFileWithPath[]) => Promise<IFileMetadata[]> = async (
-    files: IFileWithPath[]
+  extract: (files: IFileEntry[]) => Promise<IFileMetadata[]> = async (
+    files: IFileEntry[]
   ) => {
     return Promise.reject(Error("client file metadata extraction error"))
   }

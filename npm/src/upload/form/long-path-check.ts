@@ -1,7 +1,7 @@
 import {
   IEntryWithPath,
   IDirectoryWithPath,
-  IFileWithPath,
+  IFileEntry,
   isFile,
   isDirectory,
   withTimeout
@@ -16,7 +16,7 @@ export interface IFileCheckResult {
 const FILE_CHECK_TIMEOUT_MS = 5000
 
 async function checkFileReadability(
-  fileWithPath: IFileWithPath
+  fileWithPath: IFileEntry
 ): Promise<IFileCheckResult> {
   const { file, path } = fileWithPath
   try {

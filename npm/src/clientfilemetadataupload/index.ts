@@ -1,6 +1,5 @@
 import {
-  IFileMetadata,
-  IFileWithPath
+  IFileMetadata
 } from "@nationalarchives/file-information"
 
 import {
@@ -12,6 +11,7 @@ import {
 import { ITdrFileWithPath } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
+import { IFileEntry } from "../upload/form/file-types"
 
 export class ClientFileMetadataUpload {
   async startUpload(uploadFilesInfo: FileUploadInfo): Promise<void | Error> {
@@ -77,7 +77,7 @@ export class ClientFileMetadataUpload {
       const matches = (await result.json()) as Array<FileMatches>
       matches.forEach((f) => {
         const fileId: string = f.fileId
-        const file: IFileWithPath | undefined = matchFileMap.get(f.matchId)
+        const file: IFileEntry | undefined = matchFileMap.get(f.matchId)
         if (file) {
           allFiles.push({ fileId, fileWithPath: file })
         } else {
@@ -90,7 +90,7 @@ export class ClientFileMetadataUpload {
 
   createMetadataInputsAndFileMap(allFileMetadata: IFileMetadata[]): {
     metadataInputs: ClientSideMetadataInput[]
-    matchFileMap: Map<String, IFileWithPath>
+    matchFileMap: Map<String, IFileEntry>
   } {
     return allFileMetadata.reduce(
       (result, metadata: IFileMetadata, matchId) => {
@@ -113,7 +113,7 @@ export class ClientFileMetadataUpload {
       },
       {
         metadataInputs: <ClientSideMetadataInput[]>[],
-        matchFileMap: new Map<String, IFileWithPath>()
+        matchFileMap: new Map<String, IFileEntry>()
       }
     )
   }
