@@ -1,0 +1,36 @@
+@import views.html.partials.transferReference
+
+@import java.util.UUID
+@import views.html.partials.daAlert
+@import views.html.partials.downloadMetadataLink
+@import views.html.partials.notificationBannerError
+@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+
+@main(title, name = name) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            @notificationBannerError("There is a problem with your files", s"Your folder '${consignmentInfo.parentFolder}' has records that could not be uploaded")
+
+            <h1 class="govuk-heading-l">What to do next</h1>
+
+            <p class="govuk-body">
+                We found some issues that need further review, and our support team has been notified.
+            </p>
+
+            <p class="govuk-body">
+                Email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                with your consignment reference <strong>@consignmentRef</strong> and your transfer advisor will help you resolve the issue.
+            </p>
+
+            <div class="govuk-!-display-block govuk-!-margin-top-3">
+                @downloadMetadataLink(consignmentId, "Download error report (Excel)", routes.FileChecksResultsController.downloadFileCheckFailuresReport(consignmentId).url)
+            </div>
+
+            <hr class="govuk-section-break govuk-section-break--m">
+
+            @daAlert("Resuming your upload", Html("Once your transfer advisor confirms that the issues are resolved, you will need to start a new transfer."))
+        </div>
+
+        @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+}
