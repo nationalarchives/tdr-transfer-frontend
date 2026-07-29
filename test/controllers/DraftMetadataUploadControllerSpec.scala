@@ -51,7 +51,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   }
 
   "DraftMetadataUploadController GET" should {
-    "render 'draft metadata upload' page when 'blockDraftMetadataUpload' set to 'false'" in {
+    "render 'draft metadata upload' page" in {
 
       val controller = instantiateDraftMetadataUploadController()
       val draftMetadataUploadPage = controller

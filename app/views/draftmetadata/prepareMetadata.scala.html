@@ -84,9 +84,12 @@
                           <li>All records are Open</li>
                           <li>All records are in English</li>
                         </ul>
-                        <a href="${routes.DownloadMetadataController.downloadMetadataPage(consignmentId)}" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                        <form method="POST" action="${routes.PrepareMetadataController.skipDraftMetadata(consignmentId)}">
+                          ${CSRF.formField}
+                          <button type="submit" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
                             I don't need to provide any metadata
-                        </a>
+                          </button>
+                        </form>
                     """
                 )
             )
