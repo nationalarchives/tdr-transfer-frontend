@@ -17,6 +17,7 @@ import {
   IReader,
   IWebkitEntry
 } from "../src/upload/form/get-files-from-drag-event"
+import { EntryKind } from "../src/upload/form/file-types"
 import { FileCheckStatus } from "../src/upload/form/long-path-check"
 import { verifyVisibilityOfSuccessAndRemovalMessage } from "./upload-form-utils/verify-visibility-of-success-and-message"
 
@@ -442,7 +443,7 @@ test("clicking the submit button, after selecting a folder, disables the buttons
           type: "pdf",
           webkitRelativePath: "Parent_Folder"
         },
-        kind: "file",
+        kind: EntryKind.File,
         path: "/test/something"
       },
       {
@@ -453,7 +454,7 @@ test("clicking the submit button, after selecting a folder, disables the buttons
           type: "pdf",
           webkitRelativePath: "Parent_Folder"
         },
-        kind: "file",
+        kind: EntryKind.File,
         path: "/test/something"
       }
     ],

@@ -4,6 +4,7 @@ import {
   IFileSystemDirectoryHandle,
   IFileSystemFileHandle
 } from "../src/upload/form/get-files-from-directory-picker"
+import { EntryKind } from "../src/upload/form/file-types"
 
 function createMockFileHandle(name: string, file: File): IFileSystemFileHandle {
   return {
@@ -101,7 +102,7 @@ describe("getAllFilesFromHandle", () => {
     const result = await getAllFilesFromHandle(rootHandle, "/root")
 
     expect(result).toEqual([
-      { path: "/root/bad-folder", unreadable: true, kind: "directory" }
+      { path: "/root/bad-folder", unreadable: true, kind: EntryKind.Directory }
     ])
   })
 
@@ -146,12 +147,12 @@ describe("getAllFilesFromHandle", () => {
     expect(result[0]).toEqual({
       file: testFile,
       path: "/root/test.txt",
-      kind: "file"
+      kind: EntryKind.File
     })
     expect(result[1]).toEqual({
       path: "/root/bad-folder",
       unreadable: true,
-      kind: "directory"
+      kind: EntryKind.Directory
     })
   })
 
@@ -215,7 +216,11 @@ describe("getAllFilesFromHandle", () => {
     const result = await getAllFilesFromHandle(rootHandle, "/root")
 
     expect(result).toEqual([
-      { path: "/root/middle/deep-bad", unreadable: true, kind: "directory" }
+      {
+        path: "/root/middle/deep-bad",
+        unreadable: true,
+        kind: EntryKind.Directory
+      }
     ])
   })
 
@@ -259,7 +264,7 @@ describe("getAllFilesFromHandle", () => {
 
     const result = await getAllFilesFromHandle(rootHandle, "/root")
 
-    expect(result).toEqual([{ path: "/root/empty", kind: "directory" }])
+    expect(result).toEqual([{ path: "/root/empty", kind: EntryKind.Directory }])
   })
 })
 

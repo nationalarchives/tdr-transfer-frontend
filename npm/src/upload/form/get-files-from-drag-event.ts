@@ -2,6 +2,9 @@ import { IEntry, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
 const MAX_READ_ENTRIES_BATCHES = 10000
+type WebkitRawEntry = NonNullable<
+  ReturnType<DataTransferItem["webkitGetAsEntry"]>
+>
 
 export const getAllFiles: (
   entry: IWebkitEntry | null,
@@ -124,13 +127,19 @@ export interface IReader {
 }
 
 export interface IWebkitEntry extends DataTransferItem {
+  fullPath: WebkitRawEntry["fullPath"]
+  name?: WebkitRawEntry["name"]
+  isFile: WebkitRawEntry["isFile"]
+  isDirectory: WebkitRawEntry["isDirectory"]
   createReader: () => IReader
-  isFile: boolean
-  isDirectory: boolean
-  fullPath: string
-  name?: string
   file: (
     success: (file: File) => void,
     error?: (err: DOMException) => void
   ) => void
+}
+
+export function isWebkitDirectoryEntry(
+  entry: ReturnType<DataTransferItem["webkitGetAsEntry"]>
+): entry is IWebkitEntry & WebkitRawEntry {
+  return !!entry && entry.isDirectory
 }

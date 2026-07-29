@@ -1,4 +1,7 @@
-import { getAllFiles, IWebkitEntry } from "./get-files-from-drag-event"
+import {
+  getAllFiles,
+  isWebkitDirectoryEntry
+} from "./get-files-from-drag-event"
 import {
   getAllFilesFromHandle,
   IFileSystemDirectoryHandle,
@@ -17,10 +20,6 @@ import {
   hasFileCheckIssues,
   isWindowsOS
 } from "./long-path-check"
-
-interface FileWithRelativePath extends File {
-  webkitRelativePath: string
-}
 
 type WindowWithDirectoryPicker = Window & {
   showDirectoryPicker(): Promise<IFileSystemDirectoryHandle>
@@ -130,17 +129,14 @@ export class UploadForm {
         const droppedItem: DataTransferItem | null = items[0]
         const webkitEntry = droppedItem.webkitGetAsEntry()
         const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
-        if (!isError(resultOrError)) {
-          const filesAndFolders: IEntry[] = await getAllFiles(
-            webkitEntry as unknown as IWebkitEntry,
-            []
-          )
-          const files = filesAndFolders.filter((f) => isFile(f)) as IFileEntry[]
+        if (!isError(resultOrError) && isWebkitDirectoryEntry(webkitEntry)) {
+          const filesAndFolders: IEntry[] = await getAllFiles(webkitEntry, [])
+          const files = filesAndFolders.filter(isFile)
           const folderCheck = this.checkIfFolderHasFiles(files)
           if (!isError(folderCheck)) {
             this.selectedFiles = filesAndFolders
             addFolderSelectionSuccessMessage(
-              webkitEntry!.name,
+              webkitEntry.name,
               this.selectedFiles.filter(isFile).length
             )
           } else {
@@ -418,17 +414,11 @@ export class UploadForm {
   private convertFilesToEntries(files: File[]): IEntry[] {
     this.checkIfFolderHasFiles(files)
 
-    return [...files].map((file) => {
-      const fileWithPath = file as unknown as { file?: File; path?: string }
-      return {
-        file: fileWithPath.file || file,
-        path:
-          (file as FileWithRelativePath).webkitRelativePath ||
-          fileWithPath.path ||
-          file.name,
-        kind: EntryKind.File
-      }
-    })
+    return files.map((file) => ({
+      file,
+      path: file.webkitRelativePath || file.name,
+      kind: EntryKind.File
+    }))
   }
 
   private removeDragover(): void {
@@ -503,8 +493,10 @@ export class UploadForm {
     return fileArr.find((a) => isError(a)) as Error
   }
 
-  private checkIfDroppedItemIsFolder(webkitEntry: any) {
-    if (webkitEntry!.isFile) {
+  private checkIfDroppedItemIsFolder(
+    webkitEntry: ReturnType<DataTransferItem["webkitGetAsEntry"]>
+  ) {
+    if (!webkitEntry || !isWebkitDirectoryEntry(webkitEntry)) {
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
