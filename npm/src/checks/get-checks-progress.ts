@@ -73,8 +73,7 @@ export const getFileChecksProgress: () => Promise<
       const fileChecks = response.fileChecks
       const isBackendChecksCompleted =
         response.consignmentStatuses?.every(
-          ({ value }) =>
-            value === "Completed" || value === "CompletedWithIssues"
+          ({ value }) => value !== "InProgress"
         ) ?? false
 
       return {
