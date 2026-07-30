@@ -7,6 +7,7 @@ import { isError } from "../errorhandling"
 export interface IProgress {}
 
 export interface IFileCheckProgress extends IProgress {
+  isBackendChecksCompleted: boolean
   antivirusProcessed: number
   checksumProcessed: number
   ffidProcessed: number
@@ -70,7 +71,14 @@ export const getFileChecksProgress: () => Promise<
     const response = progress as Consignment & { backendChecksFailed?: boolean }
     if (response) {
       const fileChecks = response.fileChecks
+      const isBackendChecksCompleted =
+        response.consignmentStatuses?.every(
+          ({ value }) =>
+            value === "Completed" || value === "CompletedWithIssues"
+        ) ?? false
+
       return {
+        isBackendChecksCompleted: isBackendChecksCompleted,
         antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
         checksumProcessed: fileChecks.checksumProgress.filesProcessed,
         ffidProcessed: fileChecks.ffidProgress.filesProcessed,
