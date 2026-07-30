@@ -2,6 +2,7 @@ import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../s
 
 test("'haveFileChecksCompleted' returns true if file checks have completed", () => {
   const mockFileChecksResponse = {
+    isBackendChecksCompleted: true,
     antivirusProcessed: 2,
     checksumProcessed: 2,
     ffidProcessed: 2,
@@ -16,6 +17,7 @@ test("'haveFileChecksCompleted' returns true if file checks have completed", () 
 
 test("'haveFileChecksCompleted' returns false if file checks have not completed", () => {
   const mockFileChecksResponse = {
+    isBackendChecksCompleted: false,
     antivirusProcessed: 1,
     checksumProcessed: 2,
     ffidProcessed: 1,

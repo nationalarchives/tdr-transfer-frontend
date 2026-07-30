@@ -6,10 +6,16 @@ import {
 export const haveFileChecksCompleted: (
   fileChecksProgress: IFileCheckProgress
 ) => boolean = (fileChecksProgress: IFileCheckProgress) => {
-  const { antivirusProcessed, checksumProcessed, ffidProcessed, totalFiles } =
-    fileChecksProgress
+  const {
+    isBackendChecksCompleted,
+    antivirusProcessed,
+    checksumProcessed,
+    ffidProcessed,
+    totalFiles
+  } = fileChecksProgress
 
   return (
+    isBackendChecksCompleted &&
     antivirusProcessed == totalFiles &&
     checksumProcessed == totalFiles &&
     ffidProcessed == totalFiles
