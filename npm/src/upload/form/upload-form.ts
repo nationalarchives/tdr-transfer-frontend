@@ -411,10 +411,11 @@ export class UploadForm {
     this.dropzone.removeEventListener("drop", this.handleDroppedItems)
   }
 
-  private convertFilesToEntries(files: File[]): IEntry[] {
-    this.checkIfFolderHasFiles(files)
+  private convertFilesToEntries(files: File[] | FileList): IEntry[] {
+    const fileArray = Array.from(files)
+    this.checkIfFolderHasFiles(fileArray)
 
-    return files.map((file) => ({
+    return fileArray.map((file) => ({
       file,
       path: file.webkitRelativePath || file.name,
       kind: EntryKind.File
