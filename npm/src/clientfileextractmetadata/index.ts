@@ -1,14 +1,14 @@
 import {
   extractFileMetadata,
   IFileMetadata,
-  IFileWithPath,
   TProgressFunction
 } from "@nationalarchives/file-information"
+import { IFileEntry } from "../upload/form/file-types"
 import { getErrorMessage } from "../errorhandling"
 
 export class ClientFileExtractMetadata {
   async extract(
-    files: IFileWithPath[],
+    files: IFileEntry[],
     callBack: TProgressFunction
   ): Promise<IFileMetadata[] | Error> {
     try {

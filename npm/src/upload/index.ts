@@ -9,7 +9,7 @@ import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
-import { IEntryWithPath } from "./form/get-files-from-drag-event"
+import { IEntry } from "./form/file-types"
 
 export interface IKeycloakInstance extends Keycloak {
   tokenParsed: IKeycloakTokenParsed
@@ -72,10 +72,10 @@ export class FileUploader {
   }
 
   uploadFiles: (
-    files: IEntryWithPath[],
+    files: IEntry[],
     uploadFilesInfo: FileUploadInfo
   ) => Promise<void> = async (
-    files: IEntryWithPath[],
+    files: IEntry[],
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
