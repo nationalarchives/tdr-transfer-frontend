@@ -248,7 +248,7 @@ export class UploadForm {
         void this.handleSelectedItems()
       }
       const label = this.itemRetriever.labels?.[0]
-      if (label && this.itemRetriever.hasAttribute("webkitdirectory")) {
+      if (label) {
         label.setAttribute("role", "button")
         label.tabIndex = 0
         label.addEventListener("click", openDirectoryPicker)
