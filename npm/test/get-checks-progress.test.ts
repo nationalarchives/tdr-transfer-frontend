@@ -56,6 +56,40 @@ const consignmentStatusNoDraftMetadataData: ConsignmentStatus[] = [
   }
 ]
 
+const completedConsignmentStatuses: ConsignmentStatus[] = [
+  {
+    consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
+    consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
+    statusType: "Checksum",
+    value: "Completed",
+    createdDatetime: "CreatedDateTime"
+  },
+  {
+    consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
+    consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
+    statusType: "Antivirus",
+    value: "CompletedWithIssues",
+    createdDatetime: "CreatedDateTime"
+  }
+]
+
+const mixedConsignmentStatuses: ConsignmentStatus[] = [
+  {
+    consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
+    consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
+    statusType: "Checksum",
+    value: "Completed",
+    createdDatetime: "CreatedDateTime"
+  },
+  {
+    consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
+    consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
+    statusType: "FFID",
+    value: "InProgress",
+    createdDatetime: "CreatedDateTime"
+  }
+]
+
 test("'getFileChecksProgress' returns the correct consignment data with a successful api call", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   document.body.innerHTML = `
@@ -91,6 +125,52 @@ test("'getFileChecksProgress' surfaces backendChecksFailed when the api flags it
   expect(isError(fileChecksProgress)).toBe(false)
   if(!isError(fileChecksProgress)) {
     expect(fileChecksProgress!.backendChecksFailed).toBe(true)
+  }
+})
+
+test("'getFileChecksProgress' sets isBackendChecksCompleted true when all consignment statuses are completed", async () => {
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    <input name="csrfToken" value="abcde">
+    `
+
+  fetchMock.mockResponse(
+      JSON.stringify({
+        ...data.getConsignment,
+        consignmentStatuses: completedConsignmentStatuses
+      })
+  )
+
+  const fileChecksProgress: IFileCheckProgress | Error =
+      await getFileChecksProgress()
+
+  expect(isError(fileChecksProgress)).toBe(false)
+  if(!isError(fileChecksProgress)) {
+    expect(fileChecksProgress.isBackendChecksCompleted).toBe(true)
+  }
+})
+
+test("'getFileChecksProgress' sets isBackendChecksCompleted false when any consignment status is not completed", async () => {
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    <input name="csrfToken" value="abcde">
+    `
+
+  fetchMock.mockResponse(
+      JSON.stringify({
+        ...data.getConsignment,
+        consignmentStatuses: mixedConsignmentStatuses
+      })
+  )
+
+  const fileChecksProgress: IFileCheckProgress | Error =
+      await getFileChecksProgress()
+
+  expect(isError(fileChecksProgress)).toBe(false)
+  if(!isError(fileChecksProgress)) {
+    expect(fileChecksProgress.isBackendChecksCompleted).toBe(false)
   }
 })
 

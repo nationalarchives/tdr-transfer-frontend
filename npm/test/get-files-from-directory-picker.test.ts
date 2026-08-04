@@ -1,9 +1,12 @@
 import {
   getAllFilesFromHandle,
-  supportsDirectoryPicker
+  supportsDirectoryPicker,
+  IFileSystemDirectoryHandle,
+  IFileSystemFileHandle
 } from "../src/upload/form/get-files-from-directory-picker"
+import { EntryKind } from "../src/upload/form/file-types"
 
-function createMockFileHandle(name: string, file: File) {
+function createMockFileHandle(name: string, file: File): IFileSystemFileHandle {
   return {
     kind: "file" as const,
     name,
@@ -13,12 +16,14 @@ function createMockFileHandle(name: string, file: File) {
 
 function createMockDirectoryHandle(
   name: string,
-  children: [string, { kind: string; name: string }][]
-) {
+  children: [string, IFileSystemFileHandle | IFileSystemDirectoryHandle][]
+): IFileSystemDirectoryHandle {
   return {
     kind: "directory" as const,
     name,
-    entries: () => {
+    entries: (): AsyncIterableIterator<
+      [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+    > => {
       let index = 0
       return {
         [Symbol.asyncIterator]() {
@@ -33,16 +38,22 @@ function createMockDirectoryHandle(
           }
           return Promise.resolve({ value: undefined, done: true })
         }
-      } as AsyncIterableIterator<[string, any]>
+      } as AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      >
     }
   }
 }
 
-function createUnreadableDirectoryHandle(name: string) {
+function createUnreadableDirectoryHandle(
+  name: string
+): IFileSystemDirectoryHandle {
   return {
     kind: "directory" as const,
     name,
-    entries: () => {
+    entries: (): AsyncIterableIterator<
+      [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+    > => {
       return {
         [Symbol.asyncIterator]() {
           return this
@@ -50,7 +61,9 @@ function createUnreadableDirectoryHandle(name: string) {
         next() {
           return Promise.reject(new Error("Permission denied"))
         }
-      } as AsyncIterableIterator<[string, any]>
+      } as AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      >
     }
   }
 }
@@ -59,11 +72,16 @@ describe("getAllFilesFromHandle", () => {
   it("should mark an unreadable subdirectory as unreadable", async () => {
     const unreadableSubDir = createUnreadableDirectoryHandle("bad-folder")
 
-    const rootHandle = {
+    const rootHandle: IFileSystemDirectoryHandle = {
       kind: "directory" as const,
       name: "root",
-      entries: () => {
-        const items: [string, any][] = [["bad-folder", unreadableSubDir]]
+      entries: (): AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      > => {
+        const items: [
+          string,
+          IFileSystemFileHandle | IFileSystemDirectoryHandle
+        ][] = [["bad-folder", unreadableSubDir]]
         let index = 0
         return {
           [Symbol.asyncIterator]() {
@@ -75,14 +93,16 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        } as AsyncIterableIterator<[string, any]>
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
-    const result = await getAllFilesFromHandle(rootHandle as any, "/root")
+    const result = await getAllFilesFromHandle(rootHandle, "/root")
 
     expect(result).toEqual([
-      { path: "/root/bad-folder", unreadable: true }
+      { path: "/root/bad-folder", unreadable: true, kind: EntryKind.Directory }
     ])
   })
 
@@ -91,11 +111,16 @@ describe("getAllFilesFromHandle", () => {
     const fileHandle = createMockFileHandle("test.txt", testFile)
     const unreadableSubDir = createUnreadableDirectoryHandle("bad-folder")
 
-    const rootHandle = {
+    const rootHandle: IFileSystemDirectoryHandle = {
       kind: "directory" as const,
       name: "root",
-      entries: () => {
-        const items: [string, any][] = [
+      entries: (): AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      > => {
+        const items: [
+          string,
+          IFileSystemFileHandle | IFileSystemDirectoryHandle
+        ][] = [
           ["test.txt", fileHandle],
           ["bad-folder", unreadableSubDir]
         ]
@@ -110,25 +135,40 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        } as AsyncIterableIterator<[string, any]>
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
-    const result = await getAllFilesFromHandle(rootHandle as any, "/root")
+    const result = await getAllFilesFromHandle(rootHandle, "/root")
 
     expect(result).toHaveLength(2)
-    expect(result[0]).toEqual({ file: testFile, path: "/root/test.txt" })
-    expect(result[1]).toEqual({ path: "/root/bad-folder", unreadable: true })
+    expect(result[0]).toEqual({
+      file: testFile,
+      path: "/root/test.txt",
+      kind: EntryKind.File
+    })
+    expect(result[1]).toEqual({
+      path: "/root/bad-folder",
+      unreadable: true,
+      kind: EntryKind.Directory
+    })
   })
 
   it("should mark a nested unreadable subdirectory as unreadable", async () => {
     const unreadableSubDir = createUnreadableDirectoryHandle("deep-bad")
 
-    const middleDir = {
+    const middleDir: IFileSystemDirectoryHandle = {
       kind: "directory" as const,
       name: "middle",
-      entries: () => {
-        const items: [string, any][] = [["deep-bad", unreadableSubDir]]
+      entries: (): AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      > => {
+        const items: [
+          string,
+          IFileSystemFileHandle | IFileSystemDirectoryHandle
+        ][] = [["deep-bad", unreadableSubDir]]
         let index = 0
         return {
           [Symbol.asyncIterator]() {
@@ -140,15 +180,22 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        } as AsyncIterableIterator<[string, any]>
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
-    const rootHandle = {
+    const rootHandle: IFileSystemDirectoryHandle = {
       kind: "directory" as const,
       name: "root",
-      entries: () => {
-        const items: [string, any][] = [["middle", middleDir]]
+      entries: (): AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      > => {
+        const items: [
+          string,
+          IFileSystemFileHandle | IFileSystemDirectoryHandle
+        ][] = [["middle", middleDir]]
         let index = 0
         return {
           [Symbol.asyncIterator]() {
@@ -160,33 +207,44 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        } as AsyncIterableIterator<[string, any]>
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
-    const result = await getAllFilesFromHandle(rootHandle as any, "/root")
+    const result = await getAllFilesFromHandle(rootHandle, "/root")
 
     expect(result).toEqual([
-      { path: "/root/middle/deep-bad", unreadable: true }
+      {
+        path: "/root/middle/deep-bad",
+        unreadable: true,
+        kind: EntryKind.Directory
+      }
     ])
   })
 
   it("should throw when the root directory itself is unreadable", async () => {
     const rootHandle = createUnreadableDirectoryHandle("root")
 
-    await expect(
-      getAllFilesFromHandle(rootHandle as any, "/root")
-    ).rejects.toThrow("Permission denied")
+    await expect(getAllFilesFromHandle(rootHandle, "/root")).rejects.toThrow(
+      "Permission denied"
+    )
   })
 
   it("should record an empty subdirectory as a directory entry", async () => {
     const emptyDir = createMockDirectoryHandle("empty", [])
 
-    const rootHandle = {
+    const rootHandle: IFileSystemDirectoryHandle = {
       kind: "directory" as const,
       name: "root",
-      entries: () => {
-        const items: [string, any][] = [["empty", emptyDir]]
+      entries: (): AsyncIterableIterator<
+        [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+      > => {
+        const items: [
+          string,
+          IFileSystemFileHandle | IFileSystemDirectoryHandle
+        ][] = [["empty", emptyDir]]
         let index = 0
         return {
           [Symbol.asyncIterator]() {
@@ -198,13 +256,15 @@ describe("getAllFilesFromHandle", () => {
             }
             return Promise.resolve({ value: undefined, done: true })
           }
-        } as AsyncIterableIterator<[string, any]>
+        } as AsyncIterableIterator<
+          [string, IFileSystemFileHandle | IFileSystemDirectoryHandle]
+        >
       }
     }
 
-    const result = await getAllFilesFromHandle(rootHandle as any, "/root")
+    const result = await getAllFilesFromHandle(rootHandle, "/root")
 
-    expect(result).toEqual([{ path: "/root/empty" }])
+    expect(result).toEqual([{ path: "/root/empty", kind: EntryKind.Directory }])
   })
 })
 

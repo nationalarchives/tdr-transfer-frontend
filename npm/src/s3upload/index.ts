@@ -6,19 +6,17 @@ import {
 } from "@aws-sdk/client-s3"
 
 import { Upload } from "@aws-sdk/lib-storage"
-import {
-  IFileWithPath,
-  TProgressFunction
-} from "@nationalarchives/file-information"
+import { TProgressFunction } from "@nationalarchives/file-information"
 import { isError } from "../errorhandling"
 import {
   AddFileStatusInput,
   FileStatus
 } from "@nationalarchives/tdr-generated-graphql"
+import { IFileEntry } from "../upload/form/file-types"
 
 export interface ITdrFileWithPath {
   fileId: string
-  fileWithPath: IFileWithPath
+  fileWithPath: IFileEntry
 }
 
 interface IFileProgressInfo {

@@ -1,12 +1,15 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
-import { IEntryWithPath, withTimeout } from "./file-types"
+import { IEntry, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
+const MAX_READ_ENTRIES_BATCHES = 10000
+type WebkitRawEntry = NonNullable<
+  ReturnType<DataTransferItem["webkitGetAsEntry"]>
+>
 
 export const getAllFiles: (
   entry: IWebkitEntry | null,
-  fileInfoInput: IEntryWithPath[]
-) => Promise<IEntryWithPath[]> = async (entry, fileInfoInput) => {
+  fileInfoInput: IEntry[]
+) => Promise<IEntry[]> = async (entry, fileInfoInput) => {
   if (!entry) {
     return fileInfoInput
   }
@@ -16,27 +19,39 @@ export const getAllFiles: (
     const reader: IReader = entry.createReader()
     entries = await getEntriesFromReader(reader, entry.fullPath)
   } catch {
-    fileInfoInput.push({ path: entry.fullPath, unreadable: true })
+    fileInfoInput.push({
+      path: entry.fullPath,
+      unreadable: true,
+      kind: EntryKind.Directory
+    })
     return fileInfoInput
   }
 
   if (entries === null) {
-    fileInfoInput.push({ path: entry.fullPath, unreadable: true })
+    fileInfoInput.push({
+      path: entry.fullPath,
+      unreadable: true,
+      kind: EntryKind.Directory
+    })
     return fileInfoInput
   }
 
   if (entry.isDirectory && entries.length === 0) {
-    fileInfoInput.push({ path: entry.fullPath })
+    fileInfoInput.push({ path: entry.fullPath, kind: EntryKind.Directory })
   }
   for (const entry of entries) {
     if (entry.isDirectory) {
       await getAllFiles(entry, fileInfoInput)
     } else {
-      const file: IFileWithPath | null = await getFileFromEntry(entry)
-      if (file) {
-        fileInfoInput.push(file)
+      const fileEntry: IEntry | null = await getFileFromEntry(entry)
+      if (fileEntry) {
+        fileInfoInput.push(fileEntry)
       } else {
-        fileInfoInput.push({ path: entry.fullPath, unreadable: true })
+        fileInfoInput.push({
+          path: entry.fullPath,
+          unreadable: true,
+          kind: EntryKind.File
+        } as IEntry)
       }
     }
   }
@@ -55,13 +70,16 @@ const getEntriesFromReader: (
       `readEntries timed out for: ${dirPath}`
     )
 
-    while (nextBatch.length > 0) {
+    for (let i = 0; i < MAX_READ_ENTRIES_BATCHES && nextBatch.length > 0; i++) {
       allEntries = allEntries.concat(nextBatch)
       nextBatch = await withTimeout(
         getEntryBatch(reader),
         READ_ENTRIES_TIMEOUT_MS,
         `readEntries timed out for: ${dirPath}`
       )
+    }
+    if (nextBatch.length > 0) {
+      return null
     }
   } catch {
     return null
@@ -81,16 +99,17 @@ const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
   })
 }
 
-const getFileFromEntry: (
-  entry: IWebkitEntry
-) => Promise<IFileWithPath | null> = (entry) => {
+const getFileFromEntry: (entry: IWebkitEntry) => Promise<IEntry | null> = (
+  entry
+) => {
   return withTimeout(
-    new Promise<IFileWithPath>((resolve, reject) => {
+    new Promise<IEntry>((resolve, reject) => {
       entry.file(
         (file) =>
           resolve({
             file,
-            path: entry.fullPath
+            path: entry.fullPath,
+            kind: EntryKind.File
           }),
         (err) => reject(err)
       )
@@ -108,13 +127,19 @@ export interface IReader {
 }
 
 export interface IWebkitEntry extends DataTransferItem {
+  fullPath: WebkitRawEntry["fullPath"]
+  name?: WebkitRawEntry["name"]
+  isFile: WebkitRawEntry["isFile"]
+  isDirectory: WebkitRawEntry["isDirectory"]
   createReader: () => IReader
-  isFile: boolean
-  isDirectory: boolean
-  fullPath: string
-  name?: string
   file: (
     success: (file: File) => void,
     error?: (err: DOMException) => void
   ) => void
+}
+
+export function isWebkitDirectoryEntry(
+  entry: ReturnType<DataTransferItem["webkitGetAsEntry"]>
+): entry is IWebkitEntry & WebkitRawEntry {
+  return !!entry && entry.isDirectory
 }
