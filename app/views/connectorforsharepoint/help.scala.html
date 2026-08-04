@@ -1,0 +1,13 @@
+@(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
+@defining("TDR Connector for SharePoint Help") { title =>
+    @main(title, isLoggedIn = isLoggedIn, name = name) {
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l">@title</h1>
+                <p class="govuk-body">
+                    [TO DO]
+                </p>
+            </div>
+        </div>
+    }
+}

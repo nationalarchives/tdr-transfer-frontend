@@ -49,4 +49,6 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
   val maxFileSizeMb: Int = configuration.get[Int]("capacityLimits.maxIndividualFileSizeMb")
 
   val maxTransferSizeMb: Int = configuration.get[Int]("capacityLimits.maxTransferSizeMb")
+
+  val blockConnectorSharePointPages: Boolean = configuration.get[Boolean]("featureAccessBlock.blockConnectorSharePointPages")
 }
