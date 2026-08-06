@@ -3,8 +3,9 @@ package controllers
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import org.mockito.ArgumentMatchers.argThat
-import org.mockito.Mockito.{times, verify}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import org.mockito.ArgumentMatchers.{any, argThat}
+import org.mockito.Mockito.{reset, times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
@@ -45,6 +46,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
     "render the request metadata review page with an authenticated user" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val content = controller
@@ -83,6 +85,24 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request"))
 
       playStatus(page) mustBe FORBIDDEN
+    }
+
+    "render an in-progress page when metadata review is already in progress" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .requestMetadataReviewPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request").withCSRFToken)
+
+      val pageAsString = contentAsString(content)
+      playStatus(content) mustBe OK
+      pageAsString must include("<title>Your metadata is being reviewed - Transfer Digital Records - GOV.UK</title>")
+      pageAsString must include("It is not possible to submit another metadata file.")
+      pageAsString must include(s"""href="/consignment/$consignmentId/metadata-review/review-progress"""")
     }
   }
 
@@ -134,6 +154,22 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/submit-request"))
 
       playStatus(page) mustBe FORBIDDEN
+    }
+
+    "redirect to request page and do not submit when metadata review is already in progress" in {
+      reset(messagingService)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .submitMetadataForReview(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/submit-request"))
+
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).value must equal(s"/consignment/$consignmentId/metadata-review/request")
+      verify(messagingService, times(0)).sendMetadataReviewRequestNotification(any[MetadataReviewRequestEvent])
     }
 
     "return forbidden for a TNA user" in {
