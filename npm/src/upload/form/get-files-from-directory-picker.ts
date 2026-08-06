@@ -1,6 +1,11 @@
 import { IEntry, withTimeout, EntryKind } from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
+const GET_FILE_MAX_RETRIES = 3
+const GET_FILE_RETRY_DELAY_MS = 500
+
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
 
 export interface IFileSystemFileHandle {
   kind: "file"
@@ -58,20 +63,26 @@ async function handleFileEntry(
   fullPath: string,
   fileInfos: IEntry[]
 ): Promise<void> {
-  try {
-    const file = await withTimeout(
-      handle.getFile(),
-      READ_ENTRIES_TIMEOUT_MS,
-      `getFile timed out for: ${fullPath}`
-    )
-    fileInfos.push({ file, path: fullPath, kind: EntryKind.File })
-  } catch {
-    fileInfos.push({
-      path: fullPath,
-      unreadable: true,
-      kind: EntryKind.File
-    } as IEntry)
+  let lastError: unknown
+  for (let attempt = 0; attempt <= GET_FILE_MAX_RETRIES; attempt++) {
+    if (attempt > 0) await delay(GET_FILE_RETRY_DELAY_MS)
+    try {
+      const file = await withTimeout(
+        handle.getFile(),
+        READ_ENTRIES_TIMEOUT_MS,
+        `getFile timed out for: ${fullPath}`
+      )
+      fileInfos.push({ file, path: fullPath, kind: EntryKind.File })
+      return
+    } catch (err) {
+      lastError = err
+    }
   }
+  fileInfos.push({
+    path: fullPath,
+    unreadable: true,
+    kind: EntryKind.File
+  } as IEntry)
 }
 
 export function supportsDirectoryPicker(): boolean {
