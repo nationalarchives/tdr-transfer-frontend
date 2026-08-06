@@ -1,4 +1,9 @@
-import { IEntry, withTimeout, EntryKind } from "./file-types"
+import {
+  IEntry,
+  withTimeout,
+  EntryKind,
+  isTransientFileReadError
+} from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
 const GET_FILE_MAX_RETRIES = 3
@@ -129,7 +134,9 @@ const getFileFromEntry: (
     try {
       return await attempt()
     } catch (err) {
-      // Retry on failure
+      if (!isTransientFileReadError(err)) {
+        break
+      }
     }
   }
   return null
