@@ -124,13 +124,12 @@ const getFileFromEntry: (entry: IWebkitEntry) => Promise<IEntry | null> = async 
       `entry.file() timed out for: ${entry.fullPath}`
     )
 
-  let lastError: unknown
   for (let i = 0; i <= GET_FILE_MAX_RETRIES; i++) {
     if (i > 0) await delay(GET_FILE_RETRY_DELAY_MS)
     try {
       return await attempt()
     } catch (err) {
-      lastError = err
+      // Retry on failure
     }
   }
   return null

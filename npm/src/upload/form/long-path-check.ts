@@ -30,7 +30,6 @@ async function checkFileReadability(
   fileWithPath: IFileEntry
 ): Promise<IFileCheckResult> {
   const { file, path } = fileWithPath
-  let lastError: unknown
 
   for (let attempt = 0; attempt <= FILE_CHECK_MAX_RETRIES; attempt++) {
     if (attempt > 0) {
@@ -47,7 +46,7 @@ async function checkFileReadability(
       }
       return { path, status: FileCheckStatus.Ok }
     } catch (err) {
-      lastError = err
+      // Retry on failure
     }
   }
 

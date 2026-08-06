@@ -63,7 +63,6 @@ async function handleFileEntry(
   fullPath: string,
   fileInfos: IEntry[]
 ): Promise<void> {
-  let lastError: unknown
   for (let attempt = 0; attempt <= GET_FILE_MAX_RETRIES; attempt++) {
     if (attempt > 0) await delay(GET_FILE_RETRY_DELAY_MS)
     try {
@@ -75,7 +74,7 @@ async function handleFileEntry(
       fileInfos.push({ file, path: fullPath, kind: EntryKind.File })
       return
     } catch (err) {
-      lastError = err
+      // Retry on failure
     }
   }
   fileInfos.push({
