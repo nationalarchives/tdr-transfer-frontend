@@ -20,27 +20,41 @@ export interface IFileCheckResult {
 }
 
 const FILE_CHECK_TIMEOUT_MS = 5000
+const FILE_CHECK_MAX_RETRIES = 3
+const FILE_CHECK_RETRY_DELAY_MS = 500
+
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
 
 async function checkFileReadability(
   fileWithPath: IFileEntry
 ): Promise<IFileCheckResult> {
   const { file, path } = fileWithPath
-  try {
-    const buffer = await withTimeout(
-      file.slice(0, 1).arrayBuffer(),
-      FILE_CHECK_TIMEOUT_MS,
-      `Reading file timed out: ${path}`
-    )
-    if (file.size > 0 && buffer.byteLength === 0) {
-      return { path, status: FileCheckStatus.LongPathIssue }
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= FILE_CHECK_MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await delay(FILE_CHECK_RETRY_DELAY_MS)
     }
-    return { path, status: FileCheckStatus.Ok }
-  } catch {
-    return {
-      path,
-      status: FileCheckStatus.LongPathIssue,
-      errorMessage: `Could not read: ${path}`
+    try {
+      const buffer = await withTimeout(
+        file.slice(0, 1).arrayBuffer(),
+        FILE_CHECK_TIMEOUT_MS,
+        `Reading file timed out: ${path}`
+      )
+      if (file.size > 0 && buffer.byteLength === 0) {
+        return { path, status: FileCheckStatus.LongPathIssue }
+      }
+      return { path, status: FileCheckStatus.Ok }
+    } catch (err) {
+      lastError = err
     }
+  }
+
+  return {
+    path,
+    status: FileCheckStatus.LongPathIssue,
+    errorMessage: `Could not read: ${path}`
   }
 }
 
