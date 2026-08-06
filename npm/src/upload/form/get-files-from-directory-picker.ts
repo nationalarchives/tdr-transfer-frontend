@@ -73,7 +73,7 @@ async function handleFileEntry(
       )
       fileInfos.push({ file, path: fullPath, kind: EntryKind.File })
       return
-    } catch (err) {
+    } catch {
       // Retry on failure
     }
   }
