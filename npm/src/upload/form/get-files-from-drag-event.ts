@@ -104,9 +104,9 @@ const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
   })
 }
 
-const getFileFromEntry: (entry: IWebkitEntry) => Promise<IEntry | null> = async (
-  entry
-) => {
+const getFileFromEntry: (
+  entry: IWebkitEntry
+) => Promise<IEntry | null> = async (entry) => {
   const attempt = () =>
     withTimeout(
       new Promise<IEntry>((resolve, reject) => {
