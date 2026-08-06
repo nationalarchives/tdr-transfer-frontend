@@ -9,10 +9,11 @@ import play.api.mvc.{Action, AnyContent, Request}
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class ConnectorSharePointController @Inject()(
-                                               securityComponents: SecurityComponents,
-                                               val applicationConfig: ApplicationConfig
-                                             ) extends UnprotectedPageController(securityComponents) with I18nSupport {
+class ConnectorSharePointController @Inject() (
+    securityComponents: SecurityComponents,
+    val applicationConfig: ApplicationConfig
+) extends UnprotectedPageController(securityComponents)
+    with I18nSupport {
   private val blockPages = applicationConfig.blockConnectorSharePointPages
 
   private def notFound(request: Request[AnyContent]) = {

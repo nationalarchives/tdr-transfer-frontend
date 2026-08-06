@@ -119,8 +119,8 @@ class ConnectorSharePointControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkHelpPageContent(pageAsString: String): Unit = {
-      pageAsString must include("<title>TDR Connector for SharePoint Help - Transfer Digital Records - GOV.UK</title>")
-      pageAsString must include("""<h1 class="govuk-heading-l">TDR Connector for SharePoint Help</h1>""")
+    pageAsString must include("<title>TDR Connector for SharePoint Help - Transfer Digital Records - GOV.UK</title>")
+    pageAsString must include("""<h1 class="govuk-heading-l">TDR Connector for SharePoint Help</h1>""")
   }
 
   private def checkLicencePageContent(pageAsString: String): Unit = {
