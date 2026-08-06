@@ -182,7 +182,6 @@ export class UploadForm {
           if (err instanceof DOMException && err.name === "AbortError") {
             return
           }
-          console.error("Error selecting items:", err)
         }
       } else {
         const form: HTMLFormElement | null = this.formElement
