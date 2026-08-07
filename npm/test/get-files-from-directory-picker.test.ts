@@ -266,6 +266,53 @@ describe("getAllFilesFromHandle", () => {
 
     expect(result).toEqual([{ path: "/root/empty", kind: EntryKind.Directory }])
   })
+
+  it("should retry file reads for transient errors", async () => {
+    const testFile = new File(["hello"], "test.txt")
+    const transientError = new Error("Temporary read failure")
+    transientError.name = "NotReadableError"
+
+    const getFile = jest
+      .fn()
+      .mockRejectedValueOnce(transientError)
+      .mockResolvedValueOnce(testFile)
+
+    const fileHandle: IFileSystemFileHandle = {
+      kind: "file",
+      name: "test.txt",
+      getFile
+    }
+
+    const rootHandle = createMockDirectoryHandle("root", [
+      ["test.txt", fileHandle]
+    ])
+    const result = await getAllFilesFromHandle(rootHandle, "/root")
+
+    expect(getFile).toHaveBeenCalledTimes(2)
+    expect(result).toEqual([
+      { file: testFile, path: "/root/test.txt", kind: EntryKind.File }
+    ])
+  })
+
+  it("should not retry file reads for non-transient errors", async () => {
+    const getFile = jest.fn().mockRejectedValue(new Error("Permission denied"))
+
+    const fileHandle: IFileSystemFileHandle = {
+      kind: "file",
+      name: "test.txt",
+      getFile
+    }
+
+    const rootHandle = createMockDirectoryHandle("root", [
+      ["test.txt", fileHandle]
+    ])
+    const result = await getAllFilesFromHandle(rootHandle, "/root")
+
+    expect(getFile).toHaveBeenCalledTimes(1)
+    expect(result).toEqual([
+      { path: "/root/test.txt", unreadable: true, kind: EntryKind.File }
+    ])
+  })
 })
 
 describe("supportsDirectoryPicker", () => {
