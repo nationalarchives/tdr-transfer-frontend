@@ -679,6 +679,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def mockSfnResponseOk(wiremockSfnServer: WireMockServer): StubMapping = {
+    wiremockSfnServer.stubFor(
+      post(anyUrl())
+        .withRequestBody(containing("stateMachineArn"))
+        .willReturn(aResponse().withStatus(200))
+    )
+  }
+
   def getServeEvent(wiremockGraphqlServer: WireMockServer, request: String): Option[ServeEvent] = {
     val events = wiremockGraphqlServer.getAllServeEvents
     events.asScala.find(event => event.getRequest.getBodyAsString.contains(request))
