@@ -53,7 +53,7 @@ class ConfirmTransferController @Inject() (
     consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
       val consignmentStatusValues: Map[Statuses.StatusType, Option[String]] =
         consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType, TransferAgreementType, UploadType, ClientChecksType, ExportType)
-      val exportTransferStatus = consignmentStatusValues.get(ExportType).headOption.flatten
+      val exportTransferStatus = consignmentStatusValues.get(ExportType).flatten
       val incompleteStatuses = consignmentStatusValues.filter { case (_, statusValue) => !statusValue.contains(CompletedValue.value) }
 
       Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType)

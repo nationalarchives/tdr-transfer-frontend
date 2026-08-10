@@ -560,9 +560,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     override def config: Config = testConfig
 
-    config.setSessionStoreFactory(new SessionStoreFactory {
-      override def newSessionStore(parameters: FrameworkParameters): SessionStore = playCacheSessionStore
-    })
+    config.setSessionStoreFactory((_: FrameworkParameters) => playCacheSessionStore)
 
     // scalastyle:off null
     override def parser: BodyParsers.Default = null
