@@ -1,6 +1,16 @@
-import { IEntry, withTimeout, EntryKind } from "./file-types"
+import {
+  IEntry,
+  withTimeout,
+  EntryKind,
+  isTransientFileReadError
+} from "./file-types"
 
 const READ_ENTRIES_TIMEOUT_MS = 5000
+const GET_FILE_MAX_RETRIES = 3
+const GET_FILE_RETRY_DELAY_MS = 500
+
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
 const MAX_READ_ENTRIES_BATCHES = 10000
 type WebkitRawEntry = NonNullable<
   ReturnType<DataTransferItem["webkitGetAsEntry"]>
@@ -99,24 +109,37 @@ const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
   })
 }
 
-const getFileFromEntry: (entry: IWebkitEntry) => Promise<IEntry | null> = (
-  entry
-) => {
-  return withTimeout(
-    new Promise<IEntry>((resolve, reject) => {
-      entry.file(
-        (file) =>
-          resolve({
-            file,
-            path: entry.fullPath,
-            kind: EntryKind.File
-          }),
-        (err) => reject(err)
-      )
-    }),
-    READ_ENTRIES_TIMEOUT_MS,
-    `entry.file() timed out for: ${entry.fullPath}`
-  ).catch((): null => null)
+const getFileFromEntry: (
+  entry: IWebkitEntry
+) => Promise<IEntry | null> = async (entry) => {
+  const attempt = () =>
+    withTimeout(
+      new Promise<IEntry>((resolve, reject) => {
+        entry.file(
+          (file) =>
+            resolve({
+              file,
+              path: entry.fullPath,
+              kind: EntryKind.File
+            }),
+          (err) => reject(err)
+        )
+      }),
+      READ_ENTRIES_TIMEOUT_MS,
+      `entry.file() timed out for: ${entry.fullPath}`
+    )
+
+  for (let i = 0; i <= GET_FILE_MAX_RETRIES; i++) {
+    if (i > 0) await delay(GET_FILE_RETRY_DELAY_MS)
+    try {
+      return await attempt()
+    } catch (err) {
+      if (!isTransientFileReadError(err)) {
+        break
+      }
+    }
+  }
+  return null
 }
 
 export interface IReader {
