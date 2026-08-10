@@ -6,7 +6,7 @@ import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.MessagingService.MetadataReviewRequestEvent
-import services.Statuses.{InProgressValue, MetadataReviewType}
+import services.Statuses.{ExportType, InProgressValue, MetadataReviewType}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import uk.gov.nationalarchives.tdr.common.utils.statecontrol.{CurrentState, TransferState}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.{MetadataReviewType => CommonMetadataReviewType}
@@ -30,15 +30,18 @@ class RequestMetadataReviewController @Inject() (
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
+      exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
       metadataReviewStatus = consignmentStatusService.getStatusValues(consignmentStatuses, MetadataReviewType).values.headOption.flatten
-      stateChange = metadataReviewTransferState.checkStateChange(CommonInProgressValue, CurrentState(consignmentId, consignmentStatuses))
+      stateChange = TransferState(CommonMetadataReviewType).checkStateChange(CommonInProgressValue, CurrentState(consignmentId, consignmentStatuses))
       metadataReviewInProgress = metadataReviewStatus.contains(InProgressValue.value)
-      canTransitionToInProgress = stateChange.isRight
+      reviewSubmissionLocked = metadataReviewInProgress && stateChange.isLeft
     } yield {
-      if (metadataReviewInProgress && !canTransitionToInProgress) {
+      if (exportStatus.isDefined) {
+        Redirect(routes.ConfirmTransferController.confirmTransfer(consignmentId))
+      } else if (reviewSubmissionLocked) {
         Ok(views.html.standard.requestMetadataReviewInProgress(consignmentId, reference, request.token.name))
-      } else if (metadataReviewInProgress) {
-          Ok(views.html.standard.requestMetadataReviewInProgress(consignmentId, reference, request.token.name))
+      } else if (stateChange.isLeft) {
+        Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId))
       } else {
         Ok(views.html.standard.requestMetadataReview(consignmentId, reference, request.token.name, request.token.email))
       }
@@ -49,14 +52,18 @@ class RequestMetadataReviewController @Inject() (
     val token = request.token.bearerAccessToken
     val response = for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
-      stateChange = metadataReviewTransferState.checkStateChange(CommonInProgressValue, CurrentState(consignmentId, consignmentStatuses))
+      exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
+      stateChange = TransferState(CommonMetadataReviewType).checkStateChange(CommonInProgressValue, CurrentState(consignmentId, consignmentStatuses))
       statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, MetadataReviewType).values.headOption.flatten
       metadataReviewInProgress = statusesToValue.contains(InProgressValue.value)
+      reviewSubmissionLocked = metadataReviewInProgress && stateChange.isLeft
     } yield {
-      if (metadataReviewInProgress && stateChange.isLeft) {
+      if (exportStatus.isDefined) {
+        Future.successful(Redirect(routes.ConfirmTransferController.confirmTransfer(consignmentId)))
+      } else if (reviewSubmissionLocked) {
         Future.successful(Redirect(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)))
-      } else if (metadataReviewInProgress) {
-        Future.successful(Redirect(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)))
+      } else if (stateChange.isLeft) {
+        Future.successful(Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)))
       } else {
         for {
           _ <-
@@ -86,9 +93,5 @@ class RequestMetadataReviewController @Inject() (
       }
     }
     response.flatten
-  }
-
-  private val metadataReviewTransferState: TransferState = new TransferState {
-    override val currentStatusType = CommonMetadataReviewType
   }
 }

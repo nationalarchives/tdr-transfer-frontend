@@ -4,7 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import org.mockito.ArgumentMatchers.{any, argThat}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
@@ -18,7 +18,6 @@ import services.MessagingService.MetadataReviewRequestEvent
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
@@ -46,7 +45,11 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
     "render the request metadata review page with an authenticated user" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val content = controller
@@ -90,7 +93,11 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
     "render an in-progress page when metadata review is already in progress" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None))
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None)
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
@@ -104,13 +111,50 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       pageAsString must include("It is not possible to submit another metadata file.")
       pageAsString must include(s"""href="/consignment/$consignmentId/metadata-review/review-progress"""")
     }
+
+    "redirect to draft metadata upload page when prerequisites are not complete" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .requestMetadataReviewPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request").withCSRFToken)
+
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).value must equal(s"/consignment/$consignmentId/draft-metadata/upload")
+    }
+
+    "redirect to confirm transfer page when export exists" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "Export", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .requestMetadataReviewPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request").withCSRFToken)
+
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).value must equal(s"/consignment/$consignmentId/confirm-transfer")
+    }
   }
 
   "submitMetadataForReview" should {
 
     "add status, send metadata review request notification and render the metadata review page" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
       setAddConsignmentStatusResponse(wiremockServer)
       setUpdateConsignmentStatus(wiremockServer)
 
@@ -159,7 +203,11 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
     "redirect to request page and do not submit when metadata review is already in progress" in {
       reset(messagingService)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None))
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None)
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
@@ -169,6 +217,41 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
       playStatus(content) mustBe SEE_OTHER
       redirectLocation(content).value must equal(s"/consignment/$consignmentId/metadata-review/request")
+      verify(messagingService, times(0)).sendMetadataReviewRequestNotification(any[MetadataReviewRequestEvent])
+    }
+
+    "redirect to draft metadata upload page and do not submit when prerequisites are not complete" in {
+      reset(messagingService)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .submitMetadataForReview(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/submit-request"))
+
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).value must equal(s"/consignment/$consignmentId/draft-metadata/upload")
+      verify(messagingService, times(0)).sendMetadataReviewRequestNotification(any[MetadataReviewRequestEvent])
+    }
+
+    "redirect to confirm transfer page and do not submit when export exists" in {
+      reset(messagingService)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "Export", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .submitMetadataForReview(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/submit-request"))
+
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).value must equal(s"/consignment/$consignmentId/confirm-transfer")
       verify(messagingService, times(0)).sendMetadataReviewRequestNotification(any[MetadataReviewRequestEvent])
     }
 

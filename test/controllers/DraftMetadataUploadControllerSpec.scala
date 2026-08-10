@@ -56,7 +56,8 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       val controller = instantiateDraftMetadataUploadController()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "InProgress", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
       val draftMetadataUploadPage = controller
         .draftMetadataUploadPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
@@ -117,10 +118,27 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       playStatus(draftMetadataUploadPage) mustBe FORBIDDEN
     }
 
+    "redirect to prepare metadata page when DraftMetadata prerequisite status is missing" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+
+      val controller = instantiateDraftMetadataUploadController()
+      val response = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(response) mustBe SEE_OTHER
+      redirectLocation(response).value must equal(s"/consignment/$consignmentId/draft-metadata/prepare-metadata")
+    }
+
     "render upload page when DraftMetadataUpload status is 'Completed'" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None))
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "InProgress", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None)
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
       val controller = instantiateDraftMetadataUploadController()
@@ -134,7 +152,10 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "render upload page when DraftMetadataUpload status is 'InProgress'" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "InProgress", someDateTime, None))
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "InProgress", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "InProgress", someDateTime, None)
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
       val controller = instantiateDraftMetadataUploadController()
@@ -148,7 +169,10 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "render upload page when DraftMetadataUpload status is 'CompletedWithIssues'" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "CompletedWithIssues", someDateTime, None))
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "InProgress", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "CompletedWithIssues", someDateTime, None)
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
       val controller = instantiateDraftMetadataUploadController()
@@ -163,6 +187,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "InProgress", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None)
       )
@@ -181,6 +206,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "InProgress", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, "Export", "InProgress", someDateTime, None)
       )
