@@ -36,7 +36,7 @@ class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
       verify(stepFunction, times(1)).triggerStepFunction(arnCaptor.capture(), inputCaptor.capture(), nameCaptor.capture(), execIdCaptor.capture())(encoderCaptor.capture())
       arnCaptor.getValue shouldBe "stepFunctionArn"
       inputCaptor.getValue.consignmentId shouldBe consignmentId.toString
-      inputCaptor.getValue.s3SourceBucketPrefix shouldBe consignmentId.toString
+      inputCaptor.getValue.s3SourceBucketPrefix shouldBe None
       nameCaptor.getValue shouldBe "Backend Checks"
       execIdCaptor.getValue shouldBe consignmentId
     }

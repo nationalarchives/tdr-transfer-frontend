@@ -16,7 +16,7 @@ class BackendChecksService @Inject() (val applicationConfig: ApplicationConfig, 
 
   def triggerBackendChecks(consignmentId: UUID): Future[Boolean] = {
     val stepFunctionName = "Backend Checks"
-    val input = BackendChecksInput(consignmentId.toString, consignmentId.toString)
+    val input = BackendChecksInput(consignmentId.toString)
     stepFunction.triggerStepFunction(applicationConfig.backendChecksStepFunctionArn, input, stepFunctionName, consignmentId)
   }
 }
