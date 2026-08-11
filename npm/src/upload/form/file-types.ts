@@ -32,7 +32,22 @@ export function withTimeout<T>(
 ): Promise<T> {
   let timer: ReturnType<typeof setTimeout>
   const timeout = new Promise<T>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(msg)), ms)
+    timer = setTimeout(() => {
+      const timeoutError = new Error(msg)
+      timeoutError.name = "TimeoutError"
+      reject(timeoutError)
+    }, ms)
   })
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
+const transientReadErrorNames = new Set([
+  "TimeoutError",
+  "AbortError",
+  "NotReadableError",
+  "UnknownError"
+])
+
+export function isTransientFileReadError(err: unknown): boolean {
+  return err instanceof Error && transientReadErrorNames.has(err.name)
 }
