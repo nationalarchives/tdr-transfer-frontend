@@ -1,14 +1,14 @@
 package services
 
+import configuration.ApplicationConfig
+import io.circe.Encoder
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.{ConfigLoader, Configuration}
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
+import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.BackendChecksInput
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -17,53 +17,46 @@ import scala.concurrent.Future
 class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
 
   "triggerBackendChecks" should {
-    "call the correct url" in {
-      val wsClient = mock[WSClient]
-      val request = mock[WSRequest]
-      val config = mock[Configuration]
-      val response = mock[WSResponse]
-      val argumentCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
-      when(wsClient.url(argumentCaptor.capture())).thenReturn(request)
-      when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
-      when(response.status).thenReturn(200)
-      when(request.post[String]("{}")).thenReturn(Future(response))
-      val service = new BackendChecksService(wsClient, config)
+    "trigger the step function with the correct arguments" in {
       val consignmentId = UUID.randomUUID()
-      service.triggerBackendChecks(consignmentId, "token").futureValue
-      argumentCaptor.getValue should equal(s"http://localhost/backend-checks/$consignmentId")
+      val stepFunction = mock[StepFunction]
+      val applicationConfig = mock[ApplicationConfig]
+      val arnCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val inputCaptor: ArgumentCaptor[BackendChecksInput] = ArgumentCaptor.forClass(classOf[BackendChecksInput])
+      val nameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val execIdCaptor: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
+      val encoderCaptor: ArgumentCaptor[Encoder[BackendChecksInput]] = ArgumentCaptor.forClass(classOf[Encoder[BackendChecksInput]])
+
+      when(applicationConfig.backendChecksStepFunctionArn).thenReturn("stepFunctionArn")
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[UUID])(any[Encoder[BackendChecksInput]]))
+        .thenReturn(Future(true))
+
+      val service = new BackendChecksService(applicationConfig, stepFunction)
+      service.triggerBackendChecks(consignmentId)
+      verify(stepFunction, times(1)).triggerStepFunction(arnCaptor.capture(), inputCaptor.capture(), nameCaptor.capture(), execIdCaptor.capture())(encoderCaptor.capture())
+      arnCaptor.getValue shouldBe "stepFunctionArn"
+      inputCaptor.getValue.consignmentId shouldBe consignmentId.toString
+      inputCaptor.getValue.s3SourceBucketPrefix shouldBe consignmentId.toString
+      nameCaptor.getValue shouldBe "Backend Checks"
+      execIdCaptor.getValue shouldBe consignmentId
     }
 
-    "return true if the API response is 200" in {
-      val wsClient = mock[WSClient]
-      val request = mock[WSRequest]
-      val config = mock[Configuration]
-      val response = mock[WSResponse]
-      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
-      when(wsClient.url(any[String])).thenReturn(request)
-      when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
-      when(response.status).thenReturn(200)
-      when(request.post[String]("{}")).thenReturn(Future(response))
-      val service = new BackendChecksService(wsClient, config)
+    "return an error if the step function fails to trigger" in {
+      val stepFunction = mock[StepFunction]
+      val applicationConfig = mock[ApplicationConfig]
       val consignmentId = UUID.randomUUID()
-      val triggerResponse = service.triggerBackendChecks(consignmentId, "token").futureValue
-      triggerResponse should equal(true)
-    }
 
-    "return an error if the API response is 500" in {
-      val wsClient = mock[WSClient]
-      val request = mock[WSRequest]
-      val config = mock[Configuration]
-      val response = mock[WSResponse]
-      when(config.get[String](any[String])(any[ConfigLoader[String]])).thenReturn("http://localhost")
-      when(wsClient.url(any[String])).thenReturn(request)
-      when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
-      when(response.status).thenReturn(500)
-      when(request.post[String]("{}")).thenReturn(Future(response))
-      val service = new BackendChecksService(wsClient, config)
-      val consignmentId = UUID.randomUUID()
-      val exception = service.triggerBackendChecks(consignmentId, "token").failed.futureValue
-      exception.getMessage should equal(s"Call to backend checks API has returned a non 200 response for consignment $consignmentId")
+      when(applicationConfig.backendChecksStepFunctionArn).thenReturn("stepFunctionArn")
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[UUID])(any[Encoder[BackendChecksInput]]))
+        .thenThrow(new RuntimeException("something went wrong"))
+
+      val service = new BackendChecksService(applicationConfig, stepFunction)
+
+      val error = intercept[RuntimeException] {
+        service.triggerBackendChecks(consignmentId)
+      }
+
+      error.getMessage should equal("something went wrong")
     }
   }
 }

@@ -53,7 +53,7 @@ class ConfirmTransferController @Inject() (
     consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
       val consignmentStatusValues: Map[Statuses.StatusType, Option[String]] =
         consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType, TransferAgreementType, UploadType, ClientChecksType, ExportType)
-      val exportTransferStatus = consignmentStatusValues.get(ExportType).headOption.flatten
+      val exportTransferStatus = consignmentStatusValues.get(ExportType).flatten
       val incompleteStatuses = consignmentStatusValues.filter { case (_, statusValue) => !statusValue.contains(CompletedValue.value) }
 
       Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType)
@@ -116,7 +116,7 @@ class ConfirmTransferController @Inject() (
               for {
                 _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
                 _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)
-                _ <- consignmentExportService.triggerExport(consignmentId, token.toString)
+                _ <- consignmentExportService.triggerExport(consignmentId, request.token)
               } yield Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
             case _ =>
               throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")

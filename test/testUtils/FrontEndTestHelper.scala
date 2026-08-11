@@ -560,9 +560,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     override def config: Config = testConfig
 
-    config.setSessionStoreFactory(new SessionStoreFactory {
-      override def newSessionStore(parameters: FrameworkParameters): SessionStore = playCacheSessionStore
-    })
+    config.setSessionStoreFactory((_: FrameworkParameters) => playCacheSessionStore)
 
     // scalastyle:off null
     override def parser: BodyParsers.Default = null
@@ -676,6 +674,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       post(urlEqualTo("/graphql"))
         .withRequestBody(equalToJson(query))
         .willReturn(okJson(dataString))
+    )
+  }
+
+  def mockSfnResponseOk(wiremockSfnServer: WireMockServer): StubMapping = {
+    wiremockSfnServer.stubFor(
+      post(anyUrl())
+        .withRequestBody(containing("stateMachineArn"))
+        .willReturn(aResponse().withStatus(200))
     )
   }
 
