@@ -22,11 +22,17 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
 
-  val metadataValidationBaseUrl: String = configuration.get[String]("metadatavalidation.baseUrl")
-
   val s3Endpoint: String = configuration.get[String]("s3.endpoint")
 
   val snsEndpoint: String = configuration.get[String]("sns.endpoint")
+
+  val stepFunctionEndpoint: String = configuration.get[String]("stepFunction.endpoint")
+
+  val exportStepFunctionArn: String = configuration.get[String]("export.stepFunctionArn")
+
+  val backendChecksStepFunctionArn: String = configuration.get[String]("backendchecks.stepFunctionArn")
+
+  val metadataValidationStepFunctionArn: String = configuration.get[String]("metadatavalidation.stepFunctionArn")
 
   val seriesNameFilters: Seq[String] = configuration.get[Seq[String]]("seriesNameFilters")
 
@@ -42,7 +48,7 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val notificationSnsTopicArn: String = get("notificationSnsTopicArn")
 
-  val fileChecksTotalTimoutInSeconds: Int = configuration.get[Int]("fileChecksTotalTimoutInSeconds")
+  val fileChecksTotalTimeoutSeconds: Int = configuration.get[Int]("fileChecksTotalTimeoutSeconds")
 
   val maxNumberOfFiles: Int = configuration.get[Int]("capacityLimits.maxNumberRecords")
 

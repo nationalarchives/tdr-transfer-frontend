@@ -27,8 +27,7 @@ class UploadController @Inject() (
     val applicationConfig: ApplicationConfig,
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
-    val fileStatusService: FileStatusService,
-    val backendChecksService: BackendChecksService
+    val fileStatusService: FileStatusService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
