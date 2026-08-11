@@ -222,7 +222,7 @@ class FileChecksController @Inject() (
   }
 
   private def waitForFileChecksToBeCompleted(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Unit] = {
-    val totalSleepTime = applicationConfig.fileChecksTotalTimeoutInSeconds * 1000 // Total sleep time in milliseconds
+    val totalSleepTime = applicationConfig.fileChecksTotalTimeoutSeconds * 1000 // Total sleep time in milliseconds
     val interval = 5 * 1000 // Interval time in milliseconds (5 seconds)
     val intervals = totalSleepTime / interval
 
