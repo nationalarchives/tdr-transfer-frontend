@@ -5,10 +5,61 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import java.io.ByteArrayInputStream
+import java.nio.file.Files
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
 import scala.io.Source
 import scala.jdk.CollectionConverters._
 
 class ExcelUtilsSpec extends AnyWordSpec with Matchers {
+
+  private def sheetXml(excelBytes: Array[Byte]): String = {
+    val tempFile = java.io.File.createTempFile("test-excel", ".xlsx")
+    try {
+      Files.write(tempFile.toPath, excelBytes)
+      val zipFile = new ZipFile(tempFile)
+      try {
+        val entry = zipFile.getEntry("xl/worksheets/sheet1.xml")
+        if (entry != null) new String(zipFile.getInputStream(entry).readAllBytes(), "UTF-8") else ""
+      } finally zipFile.close()
+    } finally tempFile.delete()
+  }
+
+  "writeExcel" should {
+    "hide the specified columns" in {
+      val rows = List(List("A", "B", "C"), List("1", "2", "3"))
+
+      val excelBytes = ExcelUtils.writeExcel("Sheet1", rows, Set(0, 1))
+
+      val xml = sheetXml(excelBytes)
+      xml should include("hidden=\"true\"")
+    }
+
+    "not hide any columns when hiddenColumns is empty" in {
+      val rows = List(List("A", "B", "C"), List("1", "2", "3"))
+
+      val excelBytes = ExcelUtils.writeExcel("Sheet1", rows, Set.empty[Int])
+
+      val xml = sheetXml(excelBytes)
+      xml should not include "hidden=\"true\""
+    }
+
+    "hide only the specified columns and not others" in {
+      val rows = List(List("A", "B", "C"), List("1", "2", "3"))
+
+      val excelBytes = ExcelUtils.writeExcel("Sheet1", rows, Set(0))
+
+      val xml = sheetXml(excelBytes)
+      // Column 1 (min/max="1" in 1-based Excel XML) should be hidden
+      xml should include("hidden=\"true\"")
+      // The content of non-hidden columns should still be present
+      val wb = new ReadableWorkbook(new ByteArrayInputStream(excelBytes))
+      val headerRow = wb.getFirstSheet.read().asScala.head
+      headerRow.getCellAsString(1).orElse("") shouldBe "B"
+      headerRow.getCellAsString(2).orElse("") shouldBe "C"
+      wb.close()
+    }
+  }
 
   "convertCsvToExcel" should {
     "convert a CSV source to an Excel file with the correct content and bold header row" in {

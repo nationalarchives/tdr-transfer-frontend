@@ -1,11 +1,13 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
 import {
   getAllFiles,
-  IDirectoryWithPath,
-  IEntryWithPath,
-  isFile,
-  IWebkitEntry
+  isWebkitDirectoryEntry
 } from "./get-files-from-drag-event"
+import {
+  getAllFilesFromHandle,
+  IFileSystemDirectoryHandle,
+  supportsDirectoryPicker
+} from "./get-files-from-directory-picker"
+import { IEntry, IFileEntry, isFile, EntryKind } from "./file-types"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
@@ -13,9 +15,14 @@ import {
   displaySelectionSuccessMessage
 } from "./update-and-display-success-message"
 import { isError } from "../../errorhandling"
+import {
+  checkFilesForLongPathIssues,
+  hasFileCheckIssues,
+  isWindowsOS
+} from "./long-path-check"
 
-interface FileWithRelativePath extends File {
-  webkitRelativePath: string
+type WindowWithDirectoryPicker = Window & {
+  showDirectoryPicker(): Promise<IFileSystemDirectoryHandle>
 }
 
 export interface FileUploadInfo {
@@ -29,21 +36,15 @@ export class UploadForm {
   formElement: HTMLFormElement
   itemRetriever: HTMLInputElement
   dropzone: HTMLElement
-  selectedFiles: IEntryWithPath[]
-  folderUploader: (
-    files: IEntryWithPath[],
-    uploadFilesInfo: FileUploadInfo
-  ) => void
+  selectedFiles: IEntry[]
+  folderUploader: (files: IEntry[], uploadFilesInfo: FileUploadInfo) => void
 
   constructor(
     isJudgmentUser: boolean,
     formElement: HTMLFormElement,
     itemRetriever: HTMLInputElement,
     dropzone: HTMLElement,
-    folderUploader: (
-      files: IEntryWithPath[],
-      uploadFilesInfo: FileUploadInfo
-    ) => void
+    folderUploader: (files: IEntry[], uploadFilesInfo: FileUploadInfo) => void
   ) {
     this.isJudgmentUser = isJudgmentUser
     this.formElement = formElement
@@ -107,7 +108,7 @@ export class UploadForm {
           const extensionError =
             this.checkForCorrectJudgmentFileExtension(fileName)
           if (!isError(extensionError)) {
-            this.selectedFiles = this.convertFilesToIfilesWithPath(files)
+            this.selectedFiles = this.convertFilesToEntries(files)
             addFileSelectionSuccessMessage(fileName)
           } else {
             return extensionError
@@ -128,18 +129,15 @@ export class UploadForm {
         const droppedItem: DataTransferItem | null = items[0]
         const webkitEntry = droppedItem.webkitGetAsEntry()
         const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
-        if (!isError(resultOrError)) {
-          const filesAndFolders: (IFileWithPath | IDirectoryWithPath)[] =
-            await getAllFiles(webkitEntry as unknown as IWebkitEntry, [])
-          const files = filesAndFolders.filter((f) =>
-            isFile(f)
-          ) as IFileWithPath[]
+        if (!isError(resultOrError) && isWebkitDirectoryEntry(webkitEntry)) {
+          const filesAndFolders: IEntry[] = await getAllFiles(webkitEntry, [])
+          const files = filesAndFolders.filter(isFile)
           const folderCheck = this.checkIfFolderHasFiles(files)
           if (!isError(folderCheck)) {
             this.selectedFiles = filesAndFolders
             addFolderSelectionSuccessMessage(
-              webkitEntry!.name,
-              this.selectedFiles.filter((f) => isFile(f)).length
+              webkitEntry.name,
+              this.selectedFiles.filter(isFile).length
             )
           } else {
             return folderCheck
@@ -159,10 +157,45 @@ export class UploadForm {
   }
 
   handleSelectedItems: () => any = async () => {
-    const form: HTMLFormElement | null = this.formElement
-    this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
+    if (!this.isJudgmentUser) {
+      if (supportsDirectoryPicker()) {
+        try {
+          const dirHandle = await (
+            window as unknown as WindowWithDirectoryPicker
+          ).showDirectoryPicker()
+          const filesAndFolders = await getAllFilesFromHandle(
+            dirHandle,
+            "/" + dirHandle.name
+          )
+          const files = filesAndFolders.filter(isFile)
+          const folderCheck = this.checkIfFolderHasFiles(files)
+          if (isError(folderCheck)) {
+            return folderCheck
+          }
+          this.selectedFiles = filesAndFolders
+          const parentFolder = this.getParentFolderName(this.selectedFiles)
+          addFolderSelectionSuccessMessage(
+            parentFolder,
+            this.selectedFiles.filter(isFile).length
+          )
+        } catch (err: unknown) {
+          if (err instanceof DOMException && err.name === "AbortError") {
+            return
+          }
+        }
+      } else {
+        const form: HTMLFormElement | null = this.formElement
+        this.selectedFiles = this.convertFilesToEntries(form!.files!.files!)
+        const parentFolder = this.getParentFolderName(this.selectedFiles)
+        addFolderSelectionSuccessMessage(
+          parentFolder,
+          this.selectedFiles.filter(isFile).length
+        )
+      }
+    } else {
+      const form: HTMLFormElement | null = this.formElement
+      this.selectedFiles = this.convertFilesToEntries(form!.files!.files!)
 
-    if (this.isJudgmentUser) {
       const fileWithPath = this.selectedFiles[0]
       if (isFile(fileWithPath)) {
         const fileName = fileWithPath.file.name
@@ -173,9 +206,6 @@ export class UploadForm {
           return checkOrError
         }
       }
-    } else {
-      const parentFolder = this.getParentFolderName(this.selectedFiles)
-      addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
     }
     displaySelectionSuccessMessage(
       this.successAndRemovalMessageContainer,
@@ -209,17 +239,38 @@ export class UploadForm {
 
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
-    this.itemRetriever.addEventListener("change", this.handleSelectedItems)
+    if (!this.isJudgmentUser) {
+      const openDirectoryPicker = (ev?: Event) => {
+        // preventDefault stops the native file-input opening; browsers without
+        // showDirectoryPicker (e.g. Firefox) will hit the error path — intentional.
+        ev?.preventDefault()
+        void this.handleSelectedItems()
+      }
+      const label = this.itemRetriever.labels?.[0]
+      if (label) {
+        label.setAttribute("role", "button")
+        label.tabIndex = 0
+        label.addEventListener("click", openDirectoryPicker)
+        label.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter" || ev.key === " ") {
+            openDirectoryPicker(ev)
+          }
+        })
+      }
+      this.itemRetriever.addEventListener("change", this.handleSelectedItems)
+    } else {
+      this.itemRetriever.addEventListener("change", this.handleSelectedItems)
+    }
   }
 
   handleFormSubmission: (ev: Event) => Promise<void | Error> = async (
     ev: Event
   ) => {
     ev.preventDefault()
-    const itemSelected: IEntryWithPath = this.selectedFiles[0]
+    const itemSelected: IEntry = this.selectedFiles[0]
 
     if (itemSelected) {
-      this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+      this.formElement.addEventListener("submit", (ev) => ev.preventDefault())
       this.disableSubmitButtonAndDropzone()
 
       const parentFolder = this.getParentFolderName(this.selectedFiles)
@@ -227,6 +278,19 @@ export class UploadForm {
       const includeTopLevelFolder = this.includeTopLevelFolder()
       if (!isError(consignmentIdOrError)) {
         const consignmentId = consignmentIdOrError
+
+        if (isWindowsOS() && !this.isJudgmentUser) {
+          UploadForm.showCheckingFilesMessage()
+          const checkResults = await checkFilesForLongPathIssues(
+            this.selectedFiles
+          )
+          UploadForm.hideCheckingFilesMessage()
+          if (hasFileCheckIssues(checkResults)) {
+            location.assign(`/consignment/${consignmentId}/file-path-check`)
+            return
+          }
+        }
+
         const uploadFilesInfo: FileUploadInfo = {
           consignmentId,
           parentFolder: parentFolder,
@@ -238,7 +302,7 @@ export class UploadForm {
         return consignmentIdOrError
       }
     } else {
-      this.addSubmitListener() // Add submit listener back as we've set it to be removed after one form submission
+      this.addSubmitListener()
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(
         this.warningMessages?.submissionWithoutSelectionMessage,
@@ -284,9 +348,12 @@ export class UploadForm {
   readonly successAndRemovalMessageContainer: HTMLElement | null =
     document.querySelector(".success-and-removal-message-container")
 
-  private getParentFolderName(folder: IEntryWithPath[]) {
-    const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
-    const relativePath: string = firstItem.path
+  private getParentFolderName(folder: IEntry[]) {
+    const relativePath: string =
+      folder.find(isFile)?.path || folder[0]?.path || ""
+    if (!relativePath) {
+      return ""
+    }
     const parts = relativePath.split(/[\\/]/).filter(Boolean)
     return parts.length > 0 ? parts[0] : ""
   }
@@ -303,7 +370,25 @@ export class UploadForm {
     }
   }
 
-  private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void | Error {
+  private static showCheckingFilesMessage() {
+    const checkingMessage: HTMLDivElement | null = document.querySelector(
+      "#file-path-checking"
+    )
+    if (checkingMessage) {
+      checkingMessage.removeAttribute("hidden")
+    }
+  }
+
+  private static hideCheckingFilesMessage() {
+    const checkingMessage: HTMLDivElement | null = document.querySelector(
+      "#file-path-checking"
+    )
+    if (checkingMessage) {
+      checkingMessage.setAttribute("hidden", "true")
+    }
+  }
+
+  private checkIfFolderHasFiles(files: File[] | IFileEntry[]): void | Error {
     if (files === null || files.length === 0) {
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(
@@ -325,12 +410,14 @@ export class UploadForm {
     this.dropzone.removeEventListener("drop", this.handleDroppedItems)
   }
 
-  private convertFilesToIfilesWithPath(files: File[]): IFileWithPath[] {
-    this.checkIfFolderHasFiles(files)
+  private convertFilesToEntries(files: File[] | FileList): IEntry[] {
+    const fileArray = Array.from(files)
+    this.checkIfFolderHasFiles(fileArray)
 
-    return [...files].map((file) => ({
+    return fileArray.map((file) => ({
       file,
-      path: (file as FileWithRelativePath).webkitRelativePath
+      path: file.webkitRelativePath || file.name,
+      kind: EntryKind.File
     }))
   }
 
@@ -406,8 +493,10 @@ export class UploadForm {
     return fileArr.find((a) => isError(a)) as Error
   }
 
-  private checkIfDroppedItemIsFolder(webkitEntry: any) {
-    if (webkitEntry!.isFile) {
+  private checkIfDroppedItemIsFolder(
+    webkitEntry: ReturnType<DataTransferItem["webkitGetAsEntry"]>
+  ) {
+    if (!webkitEntry || !isWebkitDirectoryEntry(webkitEntry)) {
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,

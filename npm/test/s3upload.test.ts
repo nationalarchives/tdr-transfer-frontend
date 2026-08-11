@@ -2,9 +2,9 @@ import { ITdrFileWithPath, IUploadResult, S3Upload } from "../src/s3upload"
 import { isError } from "../src/errorhandling"
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 import {
-  IFileWithPath,
   IProgressInformation
 } from "@nationalarchives/file-information"
+import { EntryKind, IFileEntry } from "../src/upload/form/file-types"
 import {AwsClientStub, mockClient} from "aws-sdk-client-mock"
 
 import {
@@ -105,9 +105,10 @@ const createTdrFile = ({
   const file = new File([bits], filename)
   file.stream = () => mockStream
 
-  const fileWithPath: IFileWithPath = {
+  const fileWithPath: IFileEntry = {
     file: file,
-    path: filename
+    path: filename,
+    kind: EntryKind.File
   }
   return {
     fileId,

@@ -94,7 +94,10 @@ object ExcelUtils {
 
   }
 
-  def writeExcel(worksheetName: String, rows: List[List[String]]): Array[Byte] = {
+  def writeExcel(worksheetName: String, rows: List[List[String]]): Array[Byte] =
+    writeExcel(worksheetName, rows, Set.empty[Int])
+
+  def writeExcel(worksheetName: String, rows: List[List[String]], hiddenColumns: Set[Int]): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
     val ws: Worksheet = wb.newWorksheet(worksheetName)
@@ -105,6 +108,7 @@ object ExcelUtils {
         setCellValueAsHyperlinkIfPresent(ws, col, rowNo, colNo)
       }
     }
+    hiddenColumns.foreach(col => ws.hideColumn(col))
     wb.finish()
     xlBas.toByteArray
   }

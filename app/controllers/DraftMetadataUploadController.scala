@@ -13,6 +13,9 @@ import play.api.libs.Files.TemporaryFile
 import play.api.mvc._
 import services.Statuses._
 import services._
+import uk.gov.nationalarchives.tdr.common.utils.statecontrol.{CurrentState, TransferState}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.{DraftMetadataUploadType => CommonDraftMetadataUploadType}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{InProgressValue => CommonInProgressValue}
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.Caching.preventCaching
 
@@ -38,10 +41,16 @@ class DraftMetadataUploadController @Inject() (
 
   def draftMetadataUploadPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      Ok(views.html.draftmetadata.draftMetadataUpload(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.bearerAccessToken.getValue))
-        .uncache()
+      val stateChange = TransferState(CommonDraftMetadataUploadType).checkStateChange(CommonInProgressValue, CurrentState(consignmentId, consignmentStatuses))
+      stateChange match {
+        case Right(_) =>
+          Ok(views.html.draftmetadata.draftMetadataUpload(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.bearerAccessToken.getValue))
+            .uncache()
+        case Left(_) => Redirect(routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId))
+      }
     }
   }
 

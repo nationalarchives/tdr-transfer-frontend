@@ -51,14 +51,15 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   }
 
   "DraftMetadataUploadController GET" should {
-    "render 'draft metadata upload' page when 'blockDraftMetadataUpload' set to 'false'" in {
+    "render 'draft metadata upload' page" in {
 
       val controller = instantiateDraftMetadataUploadController()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       val draftMetadataUploadPage = controller
         .draftMetadataUploadPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
 
       val pageAsString = contentAsString(draftMetadataUploadPage)
 
@@ -114,6 +115,84 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
         .draftMetadataUploadPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
       playStatus(draftMetadataUploadPage) mustBe FORBIDDEN
+    }
+
+    "render upload page when DraftMetadataUpload status is 'Completed'" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateDraftMetadataUploadController()
+      val response = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(response) mustBe OK
+    }
+
+    "render upload page when DraftMetadataUpload status is 'InProgress'" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "InProgress", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateDraftMetadataUploadController()
+      val response = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(response) mustBe OK
+    }
+
+    "render upload page when DraftMetadataUpload status is 'CompletedWithIssues'" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "CompletedWithIssues", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateDraftMetadataUploadController()
+      val response = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(response) mustBe OK
+    }
+
+    "redirect to draft metadata checks page when MetadataReview status is 'InProgress'" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "MetadataReview", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateDraftMetadataUploadController()
+      val response = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(response) mustBe SEE_OTHER
+      redirectLocation(response).get must include regex "/consignment/*.*/draft-metadata/checks"
+    }
+
+    "redirect to draft metadata checks page when Export status exists" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "Export", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateDraftMetadataUploadController()
+      val response = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(response) mustBe SEE_OTHER
+      redirectLocation(response).get must include regex "/consignment/*.*/draft-metadata/checks"
     }
   }
 
