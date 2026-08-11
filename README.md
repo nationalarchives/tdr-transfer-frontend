@@ -104,6 +104,35 @@ This will generate two files, `app.tdr-local.nationalarchives.gov.uk.pem` and `a
     - READ_AUTH_SECRET=\<follow the steps above for obtaining `AUTH_SECRET`, but using parameter key `/intg/keycloak/user_read_client/secret`\>
     - NOTIFICATION_SNS_TOPIC_ARN=\<the arn for sns topic for slack notifications you obtained above>
     - AWS_PROFILE=\<the name of your AWS CLI profile logged into integration>
+    - BACKEND_CHECKS_ARN=\<Step Function ARN for backend checks — see below\>
+    - DRAFT_METADATA_ARN=\<Step Function ARN for metadata validation — see below\>
+    - EXPORT_ARN=\<Step Function ARN for export — see below\>
+  - **Obtaining Step Function ARNs** (`BACKEND_CHECKS_ARN`, `DRAFT_METADATA_ARN`, `EXPORT_ARN`)
+
+    These values map to config keys:
+    ```
+    backendchecks.stepFunctionArn  = ${BACKEND_CHECKS_ARN}
+    metadatavalidation.stepFunctionArn = ${DRAFT_METADATA_ARN}
+    export.stepFunctionArn         = ${EXPORT_ARN}
+    ```
+
+    Retrieve them from the `TDRFrontendStepFunctionsExecutionPolicyIntg` IAM policy in the AWS Integration account:
+    - In the AWS console:
+      - Go to the **IAM** service
+      - Select **Policies** in the left-hand menu
+      - Search for `TDRFrontendStepFunctionsExecutionPolicyIntg`
+      - Click on the policy and open the **JSON** tab
+      - The `Resource` array lists the three Step Function ARNs. Match them as follows:
+        - ARN containing `BackendChecks` or `backend_checks` → `BACKEND_CHECKS_ARN`
+        - ARN containing `DraftMetadata` or `draft_metadata` → `DRAFT_METADATA_ARN`
+        - ARN containing `Export` or `export` → `EXPORT_ARN`
+    - With the AWS CLI:
+      ```
+      aws iam get-policy-version \
+        --policy-arn $(aws iam list-policies --query "Policies[?PolicyName=='TDRFrontendStepFunctionsExecutionPolicyIntg'].Arn" --output text) \
+        --version-id $(aws iam get-policy --policy-arn $(aws iam list-policies --query "Policies[?PolicyName=='TDRFrontendStepFunctionsExecutionPolicyIntg'].Arn" --output text) --query 'Policy.DefaultVersionId' --output text)
+      ```
+      The `Resource` list in the returned JSON contains the three ARNs to assign to each variable as described above.
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
 - Visit `https://app.tdr-local.nationalarchives.gov.uk:9000`
