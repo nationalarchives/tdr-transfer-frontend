@@ -25,6 +25,14 @@ class RequestMetadataReviewController @Inject() (
     val messagingService: MessagingService
 ) extends TokenSecurity {
 
+  private def exportView(consignmentId: UUID) = {
+    Redirect(routes.ConfirmTransferController.confirmTransfer(consignmentId))
+  }
+
+  private def invalidStateChangeView(consignmentId: UUID) = {
+    Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId))
+  }
+
   def requestMetadataReviewPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val token = request.token.bearerAccessToken
     for {
@@ -36,14 +44,11 @@ class RequestMetadataReviewController @Inject() (
       metadataReviewInProgress = metadataReviewStatus.contains(InProgressValue.value)
       reviewSubmissionLocked = metadataReviewInProgress && stateChange.isLeft
     } yield {
-      if (exportStatus.isDefined) {
-        Redirect(routes.ConfirmTransferController.confirmTransfer(consignmentId))
-      } else if (reviewSubmissionLocked) {
-        Ok(views.html.standard.requestMetadataReviewInProgress(consignmentId, reference, request.token.name))
-      } else if (stateChange.isLeft) {
-        Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId))
-      } else {
-        Ok(views.html.standard.requestMetadataReview(consignmentId, reference, request.token.name, request.token.email))
+      exportStatus match {
+        case _ if exportStatus.isDefined => exportView(consignmentId)
+        case _ if reviewSubmissionLocked => Ok(views.html.standard.requestMetadataReviewInProgress(consignmentId, reference, request.token.name))
+        case _ if stateChange.isLeft     => invalidStateChangeView(consignmentId)
+        case _                           => Ok(views.html.standard.requestMetadataReview(consignmentId, reference, request.token.name, request.token.email))
       }
     }
   }
@@ -58,38 +63,35 @@ class RequestMetadataReviewController @Inject() (
       metadataReviewInProgress = statusesToValue.contains(InProgressValue.value)
       reviewSubmissionLocked = metadataReviewInProgress && stateChange.isLeft
     } yield {
-      if (exportStatus.isDefined) {
-        Future.successful(Redirect(routes.ConfirmTransferController.confirmTransfer(consignmentId)))
-      } else if (reviewSubmissionLocked) {
-        Future.successful(Redirect(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)))
-      } else if (stateChange.isLeft) {
-        Future.successful(Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)))
-      } else {
-        for {
-          _ <-
-            if (statusesToValue.isEmpty) {
-              consignmentStatusService.addConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value, token)
-            } else {
-              consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(InProgressValue.value), None, None), token)
-            }
-          consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, token)
-        } yield {
-          messagingService.sendMetadataReviewRequestNotification(
-            MetadataReviewRequestEvent(
-              environment = applicationConfig.frontEndInfo.stage,
-              transferringBodyName = consignmentDetails.transferringBodyName,
-              consignmentReference = consignmentDetails.consignmentReference,
-              consignmentId = consignmentId.toString,
-              seriesCode = consignmentDetails.seriesName,
-              userId = request.token.userId.toString,
-              userEmail = request.token.email,
-              closedRecords = consignmentDetails.totalClosedRecords > 0,
-              totalRecords = consignmentDetails.totalFiles
+      exportStatus match {
+        case _ if exportStatus.isDefined => Future.successful(exportView(consignmentId))
+        case _ if reviewSubmissionLocked => Future.successful(Redirect(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)))
+        case _ if stateChange.isLeft     => Future.successful(invalidStateChangeView(consignmentId))
+        case _                           =>
+          for {
+            _ <-
+              if (statusesToValue.isEmpty) {
+                consignmentStatusService.addConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value, token)
+              } else {
+                consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(InProgressValue.value), None, None), token)
+              }
+            consignmentDetails <- consignmentService.getConsignmentDetailForMetadataReviewRequest(consignmentId, token)
+          } yield {
+            messagingService.sendMetadataReviewRequestNotification(
+              MetadataReviewRequestEvent(
+                environment = applicationConfig.frontEndInfo.stage,
+                transferringBodyName = consignmentDetails.transferringBodyName,
+                consignmentReference = consignmentDetails.consignmentReference,
+                consignmentId = consignmentId.toString,
+                seriesCode = consignmentDetails.seriesName,
+                userId = request.token.userId.toString,
+                userEmail = request.token.email,
+                closedRecords = consignmentDetails.totalClosedRecords > 0,
+                totalRecords = consignmentDetails.totalFiles
+              )
             )
-          )
-
-          Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))
-        }
+            Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))
+          }
       }
     }
     response.flatten
