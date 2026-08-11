@@ -20,7 +20,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
-import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
+import services.{ConsignmentService, FileStatusService, UploadService}
 import play.api.libs.json._
 
 import java.util.UUID
@@ -28,7 +28,6 @@ import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
-import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, InProgressValue, StatusValue}
 
 import scala.jdk.CollectionConverters._
@@ -65,7 +64,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val fileStatusService = new FileStatusService(graphQLConfiguration)
-    val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
     new UploadController(
       getAuthorisedSecurityComponents,
       graphQLConfiguration,
@@ -73,8 +71,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       frontEndInfoConfig,
       consignmentService,
       uploadService,
-      fileStatusService,
-      backendChecksService
+      fileStatusService
     )
   }
 
