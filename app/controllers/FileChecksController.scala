@@ -14,6 +14,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.Statuses._
 import services._
+import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -60,9 +61,9 @@ class FileChecksController @Inject() (
     }
   }
 
-  private def triggerBackendChecks(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
+  private def triggerBackendChecks(consignmentId: UUID, consignmentRef: String, token: BearerAccessToken): Future[Boolean] = {
     for {
-      backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId, token.getValue)
+      backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId, consignmentRef)
       uploadStatusUpdate =
         if (backendChecksTriggered) {
           CompletedValue
@@ -157,7 +158,7 @@ class FileChecksController @Inject() (
           val uploadStatus = statuses.find(_.statusType == UploadType.id)
           val alreadyTriggered = uploadStatus.exists(status => status.value == CompletedValue.value || status.value == CompletedWithIssuesValue.value)
           for {
-            backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
+            backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, reference, token)
             fileChecks <-
               if (backendChecksTriggered && !uploadStatus.exists(_.value == CompletedWithIssuesValue.value)) {
                 getFileChecksProgress(request, consignmentId)
@@ -192,6 +193,7 @@ class FileChecksController @Inject() (
 
   private def JudgmentCompleteTransfer(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[String] = {
     for {
+      consignmentRef <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
       result <- exportStatus match {
@@ -202,12 +204,13 @@ class FileChecksController @Inject() (
             fileCheck <- consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
-                val token: BearerAccessToken = request.token.bearerAccessToken
+                val token: Token = request.token
+                val bearerAccessToken = token.bearerAccessToken
                 val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
                 for {
-                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
-                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
-                  _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, bearerAccessToken, legalCustodyTransferConfirmation)
+                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, bearerAccessToken)
+                  _ <- consignmentExportService.triggerExport(consignmentId, consignmentRef, token)
                 } yield "Completed"
               } else {
                 Future("FileChecksFailed")
@@ -220,7 +223,7 @@ class FileChecksController @Inject() (
   }
 
   private def waitForFileChecksToBeCompleted(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Unit] = {
-    val totalSleepTime = applicationConfig.fileChecksTotalTimoutInSeconds * 1000 // Total sleep time in milliseconds
+    val totalSleepTime = applicationConfig.fileChecksTotalTimeoutSeconds * 1000 // Total sleep time in milliseconds
     val interval = 5 * 1000 // Interval time in milliseconds (5 seconds)
     val intervals = totalSleepTime / interval
 

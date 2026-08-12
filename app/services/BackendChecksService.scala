@@ -1,27 +1,22 @@
 package services
 
 import com.google.inject.Inject
-import play.api.libs.ws.WSClient
-import play.api.{Configuration, Logging}
+import configuration.ApplicationConfig
+import io.circe.Encoder
+import io.circe.generic.semiauto.deriveEncoder
+import play.api.Logging
+import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.BackendChecksInput
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class BackendChecksService @Inject() (val wsClient: WSClient, val configuration: Configuration)(implicit val executionContext: ExecutionContext) extends Logging {
+class BackendChecksService @Inject() (val applicationConfig: ApplicationConfig, val stepFunction: StepFunction)(implicit val executionContext: ExecutionContext) extends Logging {
 
-  def triggerBackendChecks(consignmentId: UUID, token: String): Future[Boolean] = {
-    val url = s"${configuration.get[String]("backendchecks.baseUrl")}/backend-checks/$consignmentId"
-    wsClient
-      .url(url)
-      .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
-      .post("{}")
-      .flatMap(r =>
-        r.status match {
-          case 200 => Future(true)
-          case _   =>
-            logger.error(s"Backend checks api response ${r.status} ${r.body}")
-            Future.failed(new Exception(s"Call to backend checks API has returned a non 200 response for consignment $consignmentId"))
-        }
-      )
+  implicit val backendChecksStepFunctionInputEncoder: Encoder[BackendChecksInput] = deriveEncoder[BackendChecksInput]
+
+  def triggerBackendChecks(consignmentId: UUID, consignmentRef: String): Future[Boolean] = {
+    val stepFunctionName = "Backend Checks"
+    val input = BackendChecksInput(consignmentId.toString)
+    stepFunction.triggerStepFunction(applicationConfig.backendChecksStepFunctionArn, input, stepFunctionName, s"$consignmentRef-${System.currentTimeMillis()}")
   }
 }

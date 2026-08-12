@@ -17,6 +17,7 @@ val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
 val pac4jVersion = "6.5.4"
 val sttpVersion = "3.11.0"
+val awsUtilsVersion = "0.1.338"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -31,10 +32,12 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.294",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.479",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.44",
+  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.47",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.138",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.236",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.338",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.338",
+  "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
+  "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
+  "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.45",
   "ch.qos.logback" % "logback-classic" % "1.5.38",
   ws,
@@ -70,5 +73,7 @@ excludeDependencies ++= Seq(
   ExclusionRule(organization = "com.typesafe.akka"),
   ExclusionRule(organization = "com.typesafe.play")
 )
+
+(Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test")
 
 pipelineStages := Seq(digest)
