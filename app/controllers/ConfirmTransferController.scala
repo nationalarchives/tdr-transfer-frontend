@@ -108,6 +108,7 @@ class ConfirmTransferController @Inject() (
         val token: BearerAccessToken = request.token.bearerAccessToken
 
         for {
+          consignmentRef <- consignmentService.getConsignmentRef(consignmentId, token)
           consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
           exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
           result <- exportStatus match {
@@ -116,7 +117,7 @@ class ConfirmTransferController @Inject() (
               for {
                 _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
                 _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)
-                _ <- consignmentExportService.triggerExport(consignmentId, request.token)
+                _ <- consignmentExportService.triggerExport(consignmentId, consignmentRef, request.token)
               } yield Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
             case _ =>
               throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")

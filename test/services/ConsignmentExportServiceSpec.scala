@@ -25,6 +25,8 @@ import scala.reflect.ClassTag
 class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
+  val consignmentRef: String = "TEST-TDR-2021-GB"
+
   "triggerExport" should {
     "trigger the step function with the correct arguments" in {
       val consignmentId = UUID.randomUUID()
@@ -36,23 +38,23 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
       val arnCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val inputCaptor: ArgumentCaptor[ExportInput] = ArgumentCaptor.forClass(classOf[ExportInput])
       val nameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-      val execIdCaptor: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
+      val execIdCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val encoderCaptor: ArgumentCaptor[Encoder[ExportInput]] = ArgumentCaptor.forClass(classOf[Encoder[ExportInput]])
       when(mockToken.userId).thenReturn(userId)
       when(applicationConfig.exportStepFunctionArn).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[UUID])(any[Encoder[ExportInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[String])(any[Encoder[ExportInput]]))
         .thenReturn(Future(true))
 
-      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[UUID])(any[Encoder[ExportInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[String])(any[Encoder[ExportInput]]))
         .thenReturn(Future(true))
 
       val service = new ConsignmentExportService(stepFunction, applicationConfig, graphQLConfiguration)
-      service.triggerExport(consignmentId, mockToken)
+      service.triggerExport(consignmentId, consignmentRef, mockToken)
       verify(stepFunction, times(1)).triggerStepFunction(arnCaptor.capture(), inputCaptor.capture(), nameCaptor.capture(), execIdCaptor.capture())(encoderCaptor.capture())
       arnCaptor.getValue shouldBe "stepFunctionArn"
       inputCaptor.getValue.consignmentId shouldBe consignmentId.toString
       nameCaptor.getValue shouldBe "Export"
-      execIdCaptor.getValue shouldBe consignmentId
+      execIdCaptor.getValue.contains(consignmentRef) shouldBe true
     }
 
     "return an error if the step function fails to trigger" in {
@@ -65,13 +67,13 @@ class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
 
       when(mockToken.userId).thenReturn(userId)
       when(applicationConfig.exportStepFunctionArn).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[UUID])(any[Encoder[ExportInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[ExportInput], any[String], any[String])(any[Encoder[ExportInput]]))
         .thenThrow(new RuntimeException("something went wrong"))
 
       val service = new ConsignmentExportService(stepFunction, applicationConfig, graphQLConfiguration)
 
       val error = intercept[RuntimeException] {
-        service.triggerExport(consignmentId, mockToken)
+        service.triggerExport(consignmentId, consignmentRef, mockToken)
       }
 
       error.getMessage should equal("something went wrong")
