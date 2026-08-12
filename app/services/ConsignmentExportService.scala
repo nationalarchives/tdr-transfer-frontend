@@ -26,10 +26,10 @@ class ConsignmentExportService @Inject() (val stepFunction: StepFunction, val ap
       .map(d => d.updateTransferInitiated.isDefined)
   }
 
-  def triggerExport(consignmentId: UUID, token: Token): Future[Boolean] = {
+  def triggerExport(consignmentId: UUID, consignmentRef: String, token: Token): Future[Boolean] = {
     logger.info(s"Export was triggered by ${token.userId} for consignment:$consignmentId")
     val stepFunctionName = "Export"
     val input = ExportInput(consignmentId.toString)
-    stepFunction.triggerStepFunction(applicationConfig.exportStepFunctionArn, input, stepFunctionName, consignmentId)
+    stepFunction.triggerStepFunction(applicationConfig.exportStepFunctionArn, input, stepFunctionName, s"$consignmentRef-${System.currentTimeMillis()}")
   }
 }

@@ -201,7 +201,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
-        when(backendChecksService.triggerBackendChecks(consignmentId)).thenReturn(Future.successful(true))
+        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.eq(consignmentId), anyString())).thenReturn(Future.successful(true))
         mockGetFileCheckProgress(dataString, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
@@ -316,7 +316,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
-        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]))).thenReturn(Future.successful(false))
+        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString)).thenReturn(Future.successful(false))
         mockGetFileCheckProgress(dataString, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
@@ -361,7 +361,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedWithIssuesValue.value, someDateTime, None))
-        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]))).thenReturn(Future.successful(false))
+        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString)).thenReturn(Future.successful(false))
         mockGetFileCheckProgress(dataString, userType)
         setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)

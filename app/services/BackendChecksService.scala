@@ -14,9 +14,9 @@ class BackendChecksService @Inject() (val applicationConfig: ApplicationConfig, 
 
   implicit val backendChecksStepFunctionInputEncoder: Encoder[BackendChecksInput] = deriveEncoder[BackendChecksInput]
 
-  def triggerBackendChecks(consignmentId: UUID): Future[Boolean] = {
+  def triggerBackendChecks(consignmentId: UUID, consignmentRef: String): Future[Boolean] = {
     val stepFunctionName = "Backend Checks"
     val input = BackendChecksInput(consignmentId.toString)
-    stepFunction.triggerStepFunction(applicationConfig.backendChecksStepFunctionArn, input, stepFunctionName, consignmentId)
+    stepFunction.triggerStepFunction(applicationConfig.backendChecksStepFunctionArn, input, stepFunctionName, s"$consignmentRef-${System.currentTimeMillis()}")
   }
 }

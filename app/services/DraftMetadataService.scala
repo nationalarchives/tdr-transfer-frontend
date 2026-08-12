@@ -35,11 +35,11 @@ class DraftMetadataService @Inject() (
 
   implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)
 
-  def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: Token): Future[Boolean] = {
+  def triggerDraftMetadataValidator(consignmentId: UUID, consignmentRef: String, uploadFileName: String, token: Token): Future[Boolean] = {
     logger.info(s"Draft metadata validator was triggered by ${token.userId} for consignment:$consignmentId")
     val stepFunctionName = "Metadata Validation"
     val input = MetadataValidationInput(consignmentId.toString, uploadFileName)
-    stepFunction.triggerStepFunction(applicationConfig.metadataValidationStepFunctionArn, input, stepFunctionName, consignmentId)
+    stepFunction.triggerStepFunction(applicationConfig.metadataValidationStepFunctionArn, input, stepFunctionName, s"$consignmentRef-${System.currentTimeMillis()}")
   }
 
   def getErrorTypeFromErrorJson(consignmentId: UUID): Future[FileError.FileError] = {

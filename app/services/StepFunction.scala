@@ -14,13 +14,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class StepFunction @Inject() (val applicationConfig: ApplicationConfig)(implicit val executionContext: ExecutionContext) extends Logging {
   private val utils: StepFunctionUtils = StepFunctionUtils(sfnAsyncClient(applicationConfig.stepFunctionEndpoint))
 
-  def triggerStepFunction[T <: Product: Encoder](stepFunctionArn: String, input: T, stepFunctionName: String, executionId: UUID): Future[Boolean] = {
+  def triggerStepFunction[T <: Product: Encoder](stepFunctionArn: String, input: T, stepFunctionName: String, executionName: String): Future[Boolean] = {
     for {
       _ <- utils
         .startExecution(
           stateMachineArn = stepFunctionArn,
           input,
-          Some(executionId.toString)
+          Some(executionName)
         )
         .onError(err => {
           logger.error(s"Step function $stepFunctionName trigger failed: ${err.getMessage}")
