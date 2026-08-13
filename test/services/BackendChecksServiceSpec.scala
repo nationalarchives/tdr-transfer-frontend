@@ -16,7 +16,10 @@ import scala.concurrent.Future
 
 class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
 
+  val consignmentRef = "TEST-TDR-2021-GB"
+
   "triggerBackendChecks" should {
+
     "trigger the step function with the correct arguments" in {
       val consignmentId = UUID.randomUUID()
       val stepFunction = mock[StepFunction]
@@ -24,21 +27,21 @@ class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
       val arnCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val inputCaptor: ArgumentCaptor[BackendChecksInput] = ArgumentCaptor.forClass(classOf[BackendChecksInput])
       val nameCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
-      val execIdCaptor: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
+      val execIdCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val encoderCaptor: ArgumentCaptor[Encoder[BackendChecksInput]] = ArgumentCaptor.forClass(classOf[Encoder[BackendChecksInput]])
 
       when(applicationConfig.backendChecksStepFunctionArn).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[UUID])(any[Encoder[BackendChecksInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[String])(any[Encoder[BackendChecksInput]]))
         .thenReturn(Future(true))
 
       val service = new BackendChecksService(applicationConfig, stepFunction)
-      service.triggerBackendChecks(consignmentId)
+      service.triggerBackendChecks(consignmentId, consignmentRef)
       verify(stepFunction, times(1)).triggerStepFunction(arnCaptor.capture(), inputCaptor.capture(), nameCaptor.capture(), execIdCaptor.capture())(encoderCaptor.capture())
       arnCaptor.getValue shouldBe "stepFunctionArn"
       inputCaptor.getValue.consignmentId shouldBe consignmentId.toString
       inputCaptor.getValue.s3SourceBucketPrefix shouldBe None
       nameCaptor.getValue shouldBe "Backend Checks"
-      execIdCaptor.getValue shouldBe consignmentId
+      execIdCaptor.getValue.contains(consignmentRef) shouldBe true
     }
 
     "return an error if the step function fails to trigger" in {
@@ -47,13 +50,13 @@ class BackendChecksServiceSpec extends AnyWordSpec with MockitoSugar {
       val consignmentId = UUID.randomUUID()
 
       when(applicationConfig.backendChecksStepFunctionArn).thenReturn("stepFunctionArn")
-      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[UUID])(any[Encoder[BackendChecksInput]]))
+      when(stepFunction.triggerStepFunction(any[String], any[BackendChecksInput], any[String], any[String])(any[Encoder[BackendChecksInput]]))
         .thenThrow(new RuntimeException("something went wrong"))
 
       val service = new BackendChecksService(applicationConfig, stepFunction)
 
       val error = intercept[RuntimeException] {
-        service.triggerBackendChecks(consignmentId)
+        service.triggerBackendChecks(consignmentId, consignmentRef)
       }
 
       error.getMessage should equal("something went wrong")

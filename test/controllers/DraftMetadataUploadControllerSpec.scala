@@ -231,6 +231,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setUpdateConsignmentStatus(wiremockServer)
       val statuses = List(ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None))
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+      setConsignmentReferenceResponse(wiremockServer)
 
       val consignmentServiceMock = mock[ConsignmentService]
       when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
@@ -238,7 +239,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setUpdateClientSideFileNameResponse(wiremockServer)
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString, any[Token])).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 303
@@ -259,6 +260,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setUpdateConsignmentStatus(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setAddConsignmentStatusResponse(wiremockServer)
+      setConsignmentReferenceResponse(wiremockServer)
 
       val consignmentServiceMock = mock[ConsignmentService]
       when(consignmentServiceMock.updateDraftMetadataFileName(any[UUID], anyString, any[BearerAccessToken]))
@@ -266,7 +268,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       setUpdateClientSideFileNameResponse(wiremockServer)
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString, any[Token])).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 303
@@ -307,7 +309,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.successful(true))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString, any[Token])).thenReturn(Future.successful(true))
       val response = requestFileUploadWithoutFile(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200
@@ -330,7 +332,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, any[Array[Byte]])).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, any[Token])).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString, any[Token])).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 200

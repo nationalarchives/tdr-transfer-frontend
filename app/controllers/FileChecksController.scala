@@ -61,9 +61,9 @@ class FileChecksController @Inject() (
     }
   }
 
-  private def triggerBackendChecks(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
+  private def triggerBackendChecks(consignmentId: UUID, consignmentRef: String, token: BearerAccessToken): Future[Boolean] = {
     for {
-      backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId)
+      backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId, consignmentRef)
       uploadStatusUpdate =
         if (backendChecksTriggered) {
           CompletedValue
@@ -158,7 +158,7 @@ class FileChecksController @Inject() (
           val uploadStatus = statuses.find(_.statusType == UploadType.id)
           val alreadyTriggered = uploadStatus.exists(status => status.value == CompletedValue.value || status.value == CompletedWithIssuesValue.value)
           for {
-            backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
+            backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, reference, token)
             fileChecks <-
               if (backendChecksTriggered && !uploadStatus.exists(_.value == CompletedWithIssuesValue.value)) {
                 getFileChecksProgress(request, consignmentId)
@@ -193,6 +193,7 @@ class FileChecksController @Inject() (
 
   private def JudgmentCompleteTransfer(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[String] = {
     for {
+      consignmentRef <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
       result <- exportStatus match {
@@ -209,7 +210,7 @@ class FileChecksController @Inject() (
                 for {
                   _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, bearerAccessToken, legalCustodyTransferConfirmation)
                   _ <- consignmentExportService.updateTransferInitiated(consignmentId, bearerAccessToken)
-                  _ <- consignmentExportService.triggerExport(consignmentId, token)
+                  _ <- consignmentExportService.triggerExport(consignmentId, consignmentRef, token)
                 } yield "Completed"
               } else {
                 Future("FileChecksFailed")

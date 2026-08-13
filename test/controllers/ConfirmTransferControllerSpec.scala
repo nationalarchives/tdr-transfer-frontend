@@ -530,7 +530,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      wiremockServer.getAllServeEvents.size() should equal(4)
+      wiremockServer.getAllServeEvents.size() should equal(5)
     }
 
     forAll(userTypes) { userType =>
@@ -630,6 +630,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
     }
     setConsignmentTypeResponse(wiremockServer, consignmentType)
+    setConsignmentReferenceResponse(wiremockServer)
   }
 
   private def instantiateConfirmTransferController(

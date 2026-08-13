@@ -65,19 +65,21 @@ class DraftMetadataUploadController @Inject() (
       checkIfUploadIsInProgress.flatMap {
         case true  => Future.successful(Redirect(routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)))
         case false =>
-          uploadDraftMetadata(consignmentId, token)
-            .recoverWith { case error =>
-              val errorPage = for {
-                reference <- consignmentService.getConsignmentRef(consignmentId, token.bearerAccessToken)
-                consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataUploadType.id, Some(CompletedWithIssuesValue.value), None, None)
-                _ <- consignmentStatusService.updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)
-              } yield {
-                logger.error(error.getMessage, error)
-                Ok(views.html.draftmetadata.draftMetadataUploadError(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, token.bearerAccessToken.getValue)).uncache()
+          consignmentService.getConsignmentRef(consignmentId, token.bearerAccessToken).flatMap { consignmentRef =>
+            uploadDraftMetadata(consignmentId, consignmentRef, token)
+              .recoverWith { case error =>
+                val consignmentStatusInput = ConsignmentStatusInput(consignmentId, DraftMetadataUploadType.id, Some(CompletedWithIssuesValue.value), None, None)
+                val errorPage = consignmentStatusService
+                  .updateConsignmentStatus(consignmentStatusInput, token.bearerAccessToken)
+                  .map(_ => {
+                    logger.error(error.getMessage, error)
+                    Ok(views.html.draftmetadata.draftMetadataUploadError(consignmentId, consignmentRef, frontEndInfoConfiguration.frontEndInfo, token.bearerAccessToken.getValue))
+                      .uncache()
+                  })
+                IO.fromFuture(IO(errorPage))
               }
-              IO.fromFuture(IO(errorPage))
-            }
-            .unsafeToFuture()
+              .unsafeToFuture()
+          }
       }
   }
 
@@ -96,7 +98,7 @@ class DraftMetadataUploadController @Inject() (
     } yield page
   }
 
-  private def uploadDraftMetadata(consignmentId: UUID, token: Token)(implicit request: Request[MultipartFormData[TemporaryFile]]): IO[Result] = {
+  private def uploadDraftMetadata(consignmentId: UUID, consignmentRef: String, token: Token)(implicit request: Request[MultipartFormData[TemporaryFile]]): IO[Result] = {
     val uploadBucket = s"${applicationConfig.draft_metadata_s3_bucket_name}"
     val uploadFileName = applicationConfig.draftMetadataFileName
     val uploadKey = s"$consignmentId/$uploadFileName"
@@ -111,7 +113,7 @@ class DraftMetadataUploadController @Inject() (
       draftMetadataBytes = new BufferedInputStream(new FileInputStream(file.ref.getAbsoluteFile)).readAllBytes()
       _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadataBytes)))
       _ <- IO.fromFuture(IO { consignmentService.updateDraftMetadataFileName(consignmentId, file.filename, token.bearerAccessToken) })
-      _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, uploadFileName, token) })
+      _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, consignmentRef, uploadFileName, token) })
       uploadConsignmentStatus = ConsignmentStatusInput(consignmentId, DraftMetadataUploadType.id, Some(CompletedValue.value), None, None)
       _ <- IO.fromFuture(IO(consignmentStatusService.updateConsignmentStatus(uploadConsignmentStatus, token.bearerAccessToken)))
       successPage <- IO(Redirect(routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)))

@@ -55,7 +55,7 @@ class StepFunctionSpec extends AnyFlatSpec with BeforeAndAfterEach with BeforeAn
   val wiremockSfnServer = new WireMockServer(9003)
 
   "triggerStepFunction" should "trigger step function with the correct request" in {
-    val execId = UUID.randomUUID()
+    val execId = "TestExecId"
     mockSfnResponseOk()
     when(applicationConfig.stepFunctionEndpoint).thenReturn("http://localhost:9003")
 
@@ -70,7 +70,7 @@ class StepFunctionSpec extends AnyFlatSpec with BeforeAndAfterEach with BeforeAn
   }
 
   "triggerStepFunction" should "return an error when step function request fails" in {
-    val execId = UUID.randomUUID()
+    val execId = "TestExecId"
     mockSfnResponseNotOk()
     when(applicationConfig.stepFunctionEndpoint).thenReturn("http://localhost:9003")
 
