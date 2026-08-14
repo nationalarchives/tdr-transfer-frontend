@@ -7,7 +7,8 @@ import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.G
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService, DownloadService}
+import services.MessagingService.MetadataDownloadEvent
+import services.{ConsignmentService, ConsignmentStatusService, DownloadService, MessagingService}
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils
 
@@ -23,7 +24,8 @@ class DownloadMetadataController @Inject() (
     val consignmentStatusService: ConsignmentStatusService,
     val keycloakConfiguration: KeycloakConfiguration,
     val downloadService: DownloadService,
-    val applicationConfig: ApplicationConfig
+    val applicationConfig: ApplicationConfig,
+    val messagingService: MessagingService
 ) extends TokenSecurity
     with Logging {
 
@@ -70,6 +72,17 @@ class DownloadMetadataController @Inject() (
           GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
         )
       } yield {
+        if (applicationConfig.frontEndInfo.stage == "prod") {
+          messagingService.sendMetadataDownloadNotification(
+            MetadataDownloadEvent(
+              environment = applicationConfig.frontEndInfo.stage,
+              userId = request.token.userId.toString,
+              consignmentId = consignmentId.toString,
+              consignmentReference = metadata.consignmentReference
+            )
+          )
+        }
+
         Ok(excelFile)
           .as("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
           .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-${getCurrentDateTime}v$totalSubmissions.xlsx")
