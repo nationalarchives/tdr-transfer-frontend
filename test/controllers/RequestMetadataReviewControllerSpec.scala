@@ -144,6 +144,23 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       playStatus(content) mustBe SEE_OTHER
       redirectLocation(content).value must equal(s"/consignment/$consignmentId/confirm-transfer")
     }
+
+    "redirect to confirm transfer page when draft metadata was skipped" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Skipped", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .requestMetadataReviewPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request").withCSRFToken)
+
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).value must equal(s"/consignment/$consignmentId/confirm-transfer")
+    }
   }
 
   "submitMetadataForReview" should {
@@ -242,6 +259,24 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadataUpload", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, "Export", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val content = controller
+        .submitMetadataForReview(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/submit-request"))
+
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).value must equal(s"/consignment/$consignmentId/confirm-transfer")
+      verify(messagingService, times(0)).sendMetadataReviewRequestNotification(any[MetadataReviewRequestEvent])
+    }
+
+    "redirect to confirm transfer page and do not submit when draft metadata was skipped" in {
+      reset(messagingService)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val statuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), consignmentId, "DraftMetadata", "Skipped", someDateTime, None)
       )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
 
