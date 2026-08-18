@@ -1,0 +1,22 @@
+@import views.html.partials.transferReference
+@import java.util.UUID
+@(consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+
+@defining("Your metadata is being reviewed") { title =>
+  @main(title, name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds-from-desktop">
+          <h1 class="govuk-heading-l">@title</h1>
+          <p class="govuk-body">It is not possible to submit another metadata file.</p>
+          <p class="govuk-body">Continue to next page to check review status and download a copy of the metadata you submitted.</p>
+          <a role="button" class="govuk-button" data-module="govuk-button"
+             href="@routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)">
+            Check metadata review status
+          </a>
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+      </div>
+    }
+  }
+}
