@@ -77,6 +77,7 @@ class DownloadMetadataController @Inject() (
             MetadataDownloadEvent(
               environment = applicationConfig.frontEndInfo.stage,
               userId = request.token.userId.toString,
+              userName = request.token.name,
               consignmentId = consignmentId.toString,
               consignmentReference = metadata.consignmentReference
             )

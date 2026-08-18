@@ -43,6 +43,7 @@ object MessagingService {
   case class MetadataDownloadEvent(
       environment: String,
       userId: String,
+      userName: String,
       consignmentId: String,
       consignmentReference: String
   )

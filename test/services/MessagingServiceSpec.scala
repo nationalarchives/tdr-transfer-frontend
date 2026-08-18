@@ -47,12 +47,14 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
     val metadataDownloadEvent = MessagingService.MetadataDownloadEvent(
       environment = "prod",
       userId = "22579624-3eb9-4453-9b41-dd53a58fcfe7",
+      userName = "TNA Username",
       consignmentId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
       consignmentReference = "TDR-2024"
     )
     val expectedMessageString = """{
                                   |  "environment" : "prod",
                                   |  "userId" : "22579624-3eb9-4453-9b41-dd53a58fcfe7",
+                                  |  "userName" : "TNA Username",
                                   |  "consignmentId" : "c140d49c-93d0-4345-8d71-c97ff28b947e",
                                   |  "consignmentReference" : "TDR-2024"
                                   |}""".stripMargin

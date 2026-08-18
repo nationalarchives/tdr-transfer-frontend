@@ -213,6 +213,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         MetadataDownloadEvent(
           environment = "prod",
           userId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
+          userName = "TNA Username",
           consignmentId = consignmentId.toString,
           consignmentReference = consignmentReference
         )
