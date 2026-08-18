@@ -72,7 +72,7 @@ class DownloadMetadataController @Inject() (
           GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
         )
       } yield {
-        if (applicationConfig.frontEndInfo.stage == "prod") {
+        if (applicationConfig.frontEndInfo.stage == "prod" && request.token.isTNAUser) {
           messagingService.sendMetadataDownloadNotification(
             MetadataDownloadEvent(
               environment = applicationConfig.frontEndInfo.stage,

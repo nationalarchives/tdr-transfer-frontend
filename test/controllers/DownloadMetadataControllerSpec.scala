@@ -193,7 +193,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       status(response) must be(FOUND)
     }
 
-    "send a metadata download notification in prod" in {
+    "send a metadata download notification in prod for a TNA user" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TDR-2024-TEST"
       val messagingService = mock[MessagingService]
@@ -201,6 +201,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
       val controller = createController(
         consignmentType = "standard",
+        userType = "TNA".some,
         messagingService = messagingService,
         applicationConfig = prodApplicationConfig
       )
@@ -218,12 +219,25 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    "not send a metadata download notification outside prod" in {
+    "not send a metadata download notification for a non-TNA user in prod" in {
       val consignmentId = UUID.randomUUID()
       val messagingService = mock[MessagingService]
       mockFileMetadataResponse(List.empty[Files], consignmentId)
 
-      val controller = createController(consignmentType = "standard", messagingService = messagingService)
+      val controller = createController(consignmentType = "standard", messagingService = messagingService, applicationConfig = prodApplicationConfig)
+
+      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      status(response) must be(OK)
+
+      verify(messagingService, never()).sendMetadataDownloadNotification(org.mockito.ArgumentMatchers.any[MetadataDownloadEvent])
+    }
+
+    "not send a metadata download notification outside prod for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      val messagingService = mock[MessagingService]
+      mockFileMetadataResponse(List.empty[Files], consignmentId)
+
+      val controller = createController(consignmentType = "standard", userType = "TNA".some, messagingService = messagingService)
 
       val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
       status(response) must be(OK)
