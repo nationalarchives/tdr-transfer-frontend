@@ -44,12 +44,14 @@ class DraftMetadataUploadController @Inject() (
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
+      val hasDraftMetadataStatus = consignmentStatusService.getStatusValues(consignmentStatuses, DraftMetadataType).values.headOption.flatten.isDefined
       val stateChange = TransferState(CommonDraftMetadataUploadType).checkStateChange(CommonInProgressValue, CurrentState(consignmentId, consignmentStatuses))
       stateChange match {
         case Right(_) =>
           Ok(views.html.draftmetadata.draftMetadataUpload(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.bearerAccessToken.getValue))
             .uncache()
-        case Left(_) => Redirect(routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId))
+        case Left(_) if !hasDraftMetadataStatus => Redirect(routes.PrepareMetadataController.prepareMetadata(consignmentId))
+        case Left(_)                            => Redirect(routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId))
       }
     }
   }
