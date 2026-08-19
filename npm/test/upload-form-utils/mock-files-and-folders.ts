@@ -1,13 +1,17 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
+import { IFileEntry, EntryKind } from "../../src/upload/form/file-types"
+import {
+  IFileSystemDirectoryHandle,
+  IFileSystemFileHandle
+} from "../../src/upload/form/get-files-from-directory-picker"
 
 export const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
     item: (index: number) => file[index],
-    [Symbol.iterator]: jest.fn(),
     0: file[0],
-    1: file[1]
-  } as FileList
+    1: file[1],
+    [Symbol.iterator]: Array.prototype[Symbol.iterator]
+  } as unknown as FileList
 }
 
 export const mockDataTransferItemList: (
@@ -16,13 +20,13 @@ export const mockDataTransferItemList: (
 ) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
   return {
     item: jest.fn(),
-    [Symbol.iterator]: jest.fn(),
     add: jest.fn(),
     length: itemLength,
     clear: jest.fn(),
     0: entry,
-    remove: jest.fn()
-  } as DataTransferItemList
+    remove: jest.fn(),
+    [Symbol.iterator]: Array.prototype[Symbol.iterator]
+  } as unknown as DataTransferItemList
 }
 
 export const getDummyFolder: (folderName?: string) => File = (
@@ -50,8 +54,49 @@ export const getDummyFile: (fileName?: string, fileType?: string) => File = (
   } as unknown as File
 }
 
-export const dummyIFileWithPath = {
+export const dummyIFileWithPath: IFileEntry = {
   file: getDummyFile(),
   path: "Parent_Folder",
-  webkitRelativePath: "Parent_Folder"
-} as IFileWithPath
+  kind: EntryKind.File
+}
+
+export function createMockDirectoryHandle(
+  folderName: string,
+  files: { name: string; file: File }[]
+): IFileSystemDirectoryHandle {
+  const fileHandles: [string, IFileSystemFileHandle][] = files.map(
+    ({ name, file }) => [
+      name,
+      {
+        kind: "file" as const,
+        name,
+        getFile: () => Promise.resolve(file)
+      }
+    ]
+  )
+
+  return {
+    kind: "directory",
+    name: folderName,
+    entries: () => {
+      let index = 0
+      return {
+        next() {
+          if (index < fileHandles.length) {
+            return Promise.resolve({
+              value: fileHandles[index++],
+              done: false
+            })
+          }
+          return Promise.resolve({
+            value: undefined,
+            done: true
+          })
+        },
+        [Symbol.asyncIterator]() {
+          return this
+        }
+      } as AsyncIterableIterator<[string, IFileSystemFileHandle]>
+    }
+  }
+}

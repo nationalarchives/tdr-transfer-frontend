@@ -1,0 +1,461 @@
+@(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
+@defining("TDR Connector for SharePoint Help") { title =>
+@main(title, isLoggedIn = isLoggedIn, name = name) {
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">@title</h1>
+
+        <h2 class="govuk-heading-m">This user help guide includes:</h2>
+        <nav aria-label="List">
+            <ul class="govuk-list govuk-list--bullet">
+                <li><a href="#about">About TDR Connector for SharePoint</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li><a href="#installation-considerations">Installing the Connector onto SharePoint</a></li>
+                    <li><a href="#page-provisioning">Records Transfer Page Provisioning</a></li>
+                </ul>
+                <li><a href="#authorisation">Authorisation</a></li>
+                <li><a href="#before-transferring">Before Transferring Content from SharePoint to TDR</a></li>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li><a href="#exclude-sharepoint-site-name">Excluding SharePoint Site Name on the Public Catalogue (Discovery)</a></li>
+                </ul>
+                <li><a href="#how-to-use">How to use TDR Connector for SharePoint</a></li>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li><a href="#enable-third-party-cookies">Step 1: Ensure “third party cookies” are enabled on the web browser</a></li>
+                    <li><a href="#navigate-folders-files">Step 2: Navigate to folder(s)/file(s) to transfer in SharePoint</a></li>
+                    <li><a href="#select-folders-files">Step 3: Select the folder(s)/file(s) to transfer to TNA via TDR</a></li>
+                    <li><a href="#upload-to-tdr-action">Step 4: From the “actions” menu bar select “Upload to TDR”</a></li>
+                    <li><a href="#tdr-sign-in">Step 5: Click “Sign in to Transfer Digital Records” button</a></li>
+                    <li><a href="#enter-tdr-credential">Step 6: Enter TDR user credentials in the TDR login page</a></li>
+                    <li><a href="#click-continue-button">Step 7: Click “Continue” button</a></li>
+                    <li><a href="#start-copy">Step 8: Click “Start Upload” button</a></li>
+                    <li><a href="#wait-for-copy">Step 9: Wait for select folder(s)/file(s) to be copied to TDR</a></li>
+                    <li><a href="#email-confirmation">Step 10: Receipt of email confirmation of upload process to TDR</a></li>
+                    <li><a href="#what-happens-next">What Happens Next</a></li>
+                </ul>
+                <li><a href="#sharepoint-metadata-handling">SharePoint Metadata Handling</a></li>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li><a href="#sharepoint-system-metadata">SharePoint System Metadata</a></li>
+                    <li><a href="#sharepoint-metadata-sha256-checksum">SHA256 Checksum</a></li>
+                    <li><a href="#sharepoint-to-file-path-metadata-mapping">Mapping SharePoint Metadata to TDR <code class="govuk-!-font-size-16">file_path</code> Metadata Property</a></li>
+                    <li><a href="#ignore-site-name">Ignoring the <code class="govuk-!-font-size-16">SiteName</code></a></li>
+                </ul>
+            </ul>
+        </nav>
+
+        <h2 class="govuk-heading-m" id="about">About TDR Connector for SharePoint</h2>
+        <p class="govuk-body">
+            The TDR Connector for SharePoint provides a mechanism for copying files and their metadata at source
+            from SharePoint into the TDR web application, to allow transfer of content to The National Archives.
+        </p>
+        <p class="govuk-body">
+            The TDR Connector for SharePoint:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>uses SharePoint REST APIs to extract the content and metadata;</li>
+            <li>integrates with the TDR application;</li>
+            <li>copies selected SharePoint content to AWS S3 bucket hosted by TDR;</li>
+            <li>copies SharePoint metadata as a JSON object from the selected SharePoint content to AWS S3 bucket hosted by TDR.</li>
+        </ul>
+
+        <h2 class="govuk-heading-m" id="installation">Installation</h2>
+        <p class="govuk-body">
+            The SharePoint SPFx application can be installed at:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>Tenant level; and/or</li>
+            <li>Site collection level</li>
+        </ul>
+
+        <h3 class="govuk-heading-m" id="installation-considerations">Installing the Connector onto SharePoint</h3>
+        <p class="govuk-body">
+            [TO DO]
+        </p>
+
+        <h3 class="govuk-heading-m" id="page-provisioning">Records Transfer Page Provisioning</h3>
+        <p class="govuk-body">
+            Before the Records Transfer functionality can be used, a dedicated SharePoint site page must be provisioned
+            to host the Records Transfer SPFx web part.
+        </p>
+        <p class="govuk-body">
+            This is a one-time administrative configuration that must be completed after the application is installed on
+            the target SharePoint tenant/site.
+        </p>
+        <p class="govuk-body">
+            The page can be provisioned using one of the following methods:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li><b>Automated (Recommended):</b> Execute the provided Deploy-S3TransferWebPart.ps1 deployment script.
+                The script performs the following actions: </li>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Installs the application on the target site.</li>
+                <li>Creates the RecordsTransfer.aspx page under the Site Pages library.</li>
+                <li>Adds the Records Transfer web part to the page.</li>
+                <li>Publishes the page.</li>
+            </ul>
+            <li><b>Manual:</b> If the deployment script is not used, perform the following steps manually:</li>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Navigate to Site Contents → Site Pages.</li>
+                <li>Create a new page named RecordsTransfer.aspx.</li>
+                <li>Add the Records Transfer SPFx web part to the page using the web part toolbox.</li>
+                <li>Publish the page.</li>
+            </ul>
+        </ul>
+        <p class="govuk-body">
+            <b>Important:</b> The page name must be <b>RecordsTransfer.aspx</b>, as the List View Command Set is hardcoded to
+            redirect users to this page. If the page does not exist or the Records Transfer web part has not been added,
+            the transfer functionality will not be available, and users will be unable to initiate the records transfer process.
+        </p>
+
+        <h2 class="govuk-heading-m" id="authorisation">Authorisation</h2>
+        <p class="govuk-body">
+            Whether a user is permitted to use the TDR Connector for SharePoint to copy records from SharePoint
+            to TDR is based on two criteria, the user has a:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>SharePoint account that allows <b>read</b> access to the records to be copied; and</li>
+            <li>valid TDR account.</li>
+        </ul>
+        <p class="govuk-body">
+            <b>Both</b> conditions must be true for the user to be able to copy the records from SharePoint to TDR.
+        </p>
+
+        <h2 class="govuk-heading-m" id="before-transferring">Before Transferring Content from SharePoint to TDR</h2>
+        <h3 class="govuk-heading-s" id="exclude-sharepoint-site-name">
+            Excluding SharePoint Site Name on the Public Catalogue (Discovery)
+        </h3>
+        <p class="govuk-body">
+            By default the TDR Connector uses the SharePoint site name as part of the file path when copying metadata.
+            There maybe circumstances where it is not appropriate for the site name to be used.
+        </p>
+        <p class="govuk-body">
+            If the site name should not be used then inform your transfer adviser that the <code>SiteName</code> should be ignored
+            BEFORE proceeding with a transfer for the first time.
+        </p>
+        <p class="govuk-body">
+            For instructions on how to do this, see section: <a href="#ignore-site-name">Ignoring the <code class="govuk-!-font-size-16">SiteName</code></a>
+        </p>
+        <p class="govuk-body">
+            <b>Note:</b> this process is temporary, until a new feature is added to the TDR Connector for SharePoint
+            to allow the user to select whether to ignore the SiteName or not, without the need to contact a transfer adviser.
+        </p>
+
+        <h2 class="govuk-heading-m" id="how-to-use">How to use TDR Connector for SharePoint</h2>
+        <h3 class="govuk-heading-s" id="enable-third-party-cookies">
+            Step 1: Ensure “third party cookies” are enabled on the web browser
+        </h3>
+        <h4 class="govuk-heading-s" id="enable-third-party-cookies-what-happens">What Happens</h4>
+        <p class="govuk-body">
+            The TDR Connector for SharePoint makes use of a signed cookie to ensure that only the TDR user
+            can copy the records into the TDR AWS infrastructure.
+        </p>
+
+        <h3 class="govuk-heading-s" id="navigate-folders-files">
+            Step 2: Navigate to folder(s)/file(s) to transfer in SharePoint
+        </h3>
+        <h3 class="govuk-heading-s" id="navigate-folders-files-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            Standard SharePoint view of content.
+        </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/sp-site-navigation-v1.png")" class="screenshots" alt="SharePoint site navigation page" />
+
+        <h3 class="govuk-heading-s" id="select-folders-files">
+            Step 3: Select the folder(s)/file(s) to transfer to TNA via TDR
+        </h3>
+        <h3 class="govuk-heading-s" id="select-folders-files-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            Standard SharePoint item selection functionality.
+        </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/sp-selection-v1.png")" class="screenshots" alt="SharePoint select items to transfer" />
+
+        <h3 class="govuk-heading-s" id="upload-to-tdr-action">
+            Step 4: From the “actions” menu bar select “Upload to TDR”
+        </h3>
+        <h3 class="govuk-heading-s" id="upload-to-tdr-action-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            Opens up the TDR Connector for SharePoint.
+        </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/tdr-connector-action-v1.png")" class="screenshots" alt="SharePoint "Upload to TDR" menu item" />
+
+        <h3 class="govuk-heading-s" id="tdr-sign-in">
+            Step 5: Click “Sign in to Transfer Digital Records” button
+        </h3>
+        <h3 class="govuk-heading-s" id="tdr-sign-in-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            Redirects to the TDR login page to establish a secure connection between SharePoint and TDR to allow the copy of data.
+        </p>
+        <p class="govuk-body">
+            If the user already has a valid TDR session open the user does not need to re-enter the credentials
+            for their TDR account and Step 6 is skipped.
+        </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/sign-in-to-tdr-v1.png")" class="screenshots" alt="SharePoint sign into TDR page" />
+
+        <h3 class="govuk-heading-s" id="enter-tdr-credential">
+            Step 6: Enter TDR user credentials in the TDR login page
+        </h3>
+        <h3 class="govuk-heading-s" id="enter-tdr-credential-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            Taken to TDR login page to enter user credentials, once valid credentials are entered the user is
+            taken back to the TDR Connector for SharePoint.
+        </p>
+        <p class="govuk-body">
+            The TDR Connector for SharePoint retains the access token retrieved from entering the correct credentials.
+        </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/tdr-password-v1.png")" class="screenshots" alt="TDR enter username and password page" />
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/tdr-otp-v1.png")" class="screenshots" alt="TDR enter OTP page" />
+
+        <h3 class="govuk-heading-s" id="click-continue-button">
+            Step 7: Click “Continue” button
+        </h3>
+        <h3 class="govuk-heading-s" id="click-continue-button-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            User is taken to the next step in the process.
+        </p>
+        <p class="govuk-body">
+            TThe TDR Connector for SharePoint retrieves configuration to support the copying process. This includes:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>Capacity limits;</li>
+            <li>SharePoint system metadata to retrieve;</li>
+            <li>Display configuration;</li>
+        </ul>
+
+        <h3 class="govuk-heading-s" id="start-copy">
+            Step 8: Click “Start Upload” button
+        </h3>
+        <h3 class="govuk-heading-s" id="start-copy-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            In TDR a consignment is created, including a unique reference for that consignment, and the copy of
+            selected files and their metadata is initiated.
+        </p>
+        <p class="govuk-body">
+            For selected content, two uploads are made:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>File; and</li>
+            <li>Metadata JSON object for file</li>
+        </ul>
+        <p class="govuk-body">
+            The metadata JSON object contains the SharePoint metadata retrieved from the selected content,
+            and additional generated content to support the processing of the content within TDR.
+        </p>
+        <p class="govuk-body">
+            For details on what metadata is retrieved and how this maps to TDR metadata fields see this section:
+            <a href="#sharepoint-metadata-handling">SharePoint Metadata Handling</a>
+        </p>
+
+        <h3 class="govuk-heading-s" id="wait-for-copy">
+            Step 9: Wait for select folder(s)/file(s) to be copied to TDR
+        </h3>
+        <h3 class="govuk-heading-s" id="wait-for-copy-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            Selected files and their attendant metadata copied from SharePoint and sent to TDR holding area.
+        </p>
+        <p class="govuk-body">
+            On completion processing of the copied content is initiated in TDR.
+        </p>
+
+        <h3 class="govuk-heading-s" id="email-confirmation">
+            Step 10: Receipt of email confirmation of upload process to TDR
+        </h3>
+        <h3 class="govuk-heading-s" id="email-confirmation-what-happens">What Happens</h3>
+        <p class="govuk-body">
+            Once the processing of the copied content has been completed, an email will be sent to the TDR user’s
+            email address, with instructions for continuing the transfer within the TDR web application.
+        </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/copy-complete-email-v1.png")" class="screenshots" alt="Copy of items to TDR complete email" />
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/copy-failed-email-v1.png")" class="screenshots" alt="Copy of items to TDR failure email" />
+        <p class="govuk-body">
+            On receipt of email confirmation follow the instructions.
+        </p>
+        <p class="govuk-body">
+            If the upload process was:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li><b>successful</b> the user is invited to continue the transfer journey within TDR.</li>
+            <li><b>unsuccessful for whatever reason</b> the email will contain instructions on what to do next.</li>
+        </ul>
+
+        <h3 class="govuk-heading-s" id="what-happens-next">
+            What Happens Next
+        </h3>
+        <p class="govuk-body">
+            For a successful copy of items from SharePoint to TDR the email will provide a link to the next step
+            in the transfer process within the TDR web application.
+        </p>
+        <p class="govuk-body">
+            If the copy of the items from SharePoint to TDR is unsuccessful the email will provide instructions as what to do next.
+        </p>
+        <p class="govuk-body">
+            Depending on whether you have an active TDR web application session, or not, the email link with take
+            you directly into TDR web application without the need to log in.
+        </p>
+
+        <h2 class="govuk-heading-m" id="sharepoint-metadata-handling">SharePoint Metadata Handling</h2>
+        <h3 class="govuk-heading-s" id="sharepoint-system-metadata">SharePoint System Metadata</h3>
+        <p class="govuk-body">
+            A sub-set of the SharePoint “system” metadata for the selected content is retrieved by the SharePoint to TDR Connector.
+        </p>
+        <p class="govuk-body">
+            The exact metadata can change, but will include the following to provide the minimum metadata required by
+            The National Archives:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>
+                <code class="govuk-!-font-size-16">FileLeafRef</code> (maps to TDR metadata field
+                <code class="govuk-!-font-size-16">file_name</code>);
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">Modified</code> (maps to TDR metadata field
+                <code class="govuk-!-font-size-16">date_last_modified</code>);
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">Length</code> (maps to TDR metadata field
+                <code class="govuk-!-font-size-16">file_size</code>);
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">FileRef</code> (partially maps to TDR metadata field
+                <code class="govuk-!-font-size-16">file_path</code>);
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">SiteName</code> (partially maps to TDR metadata field
+                <code class="govuk-!-font-size-16">file_path</code>)
+                (this is the value of display name of the site);
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">LibraryName</code> (partially maps to TDR metadata field
+                <code class="govuk-!-font-size-16">file_path</code>)
+                (this is the value of the display name of the library)
+            </li>
+        </ul>
+
+        <h3 class="govuk-heading-s" id="sharepoint-metadata-sha256-checksum">SHA256 Checksum</h3>
+        <p class="govuk-body">
+            In addition to the SharePoint system metadata the SharePoint to TDR Connector generates a
+            SHA256 checksum of the file (excluding the metadata) to use for file integrity checks within the
+            TDR application once the copy is completed.
+        </p>
+
+        <h3 class="govuk-heading-s" id="connector-added-metadata">TDR Connector for SharePoint Added Metadata</h3>
+        <p class="govuk-body">
+            The TDR Connector for SharePoint adds additional metadata required to support the transfer to TDR.
+        </p>
+        <p class="govuk-body">
+            This includes:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>
+                <code class="govuk-!-font-size-16">matchId</code> (generated UUID to reconcile metadata JSON to copied file object)
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">transferId</code> (TDR consignment UUID from provided by TDR API endpoint)
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">source</code> (to identify the system where the transfer came from, ie “SharePoint”, hard coded value)#
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">userId</code> (TDR user account UUID from the access token)
+            </li>
+        </ul>
+
+        <h3 class="govuk-heading-s" id="sharepoint-to-file-path-metadata-mapping">Mapping SharePoint Metadata to TDR <code class="govuk-!-font-size-16">file_path</code> Metadata Property</h3>
+        <p class="govuk-body">
+            To meet TNA archival requirements TDR maps three SharePoint metadata field values into the
+            <code class="govuk-!-font-size-16">file_path</code> property:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li><code class="govuk-!-font-size-16">FileRef</code>;</li>
+            <li><code class="govuk-!-font-size-16">SiteName</code>;</li>
+            <li><code class="govuk-!-font-size-16">LibraryName</code>.</li>
+        </ul>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/sp-display-names-v1.png")" class="screenshots" alt="Example of Display Names for Site and Library" />
+        <p class="govuk-body">
+            In the above example the following SharePoint metadata will be extracted:
+        </p>
+        <table class="govuk-table">
+            <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">SharePoint Metadata Property</th>
+                <th scope="col" class="govuk-table__header">SharePoint Metadata Value</th>
+            </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">
+                    <code class="govuk-!-font-size-16">SiteName</code>
+                </th>
+                <td class="govuk-table__cell">
+                    <code class="govuk-!-font-size-16">TkTest</code>
+                </td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">
+                    <code class="govuk-!-font-size-16">LibraryName</code>
+                </th>
+                <td class="govuk-table__cell">
+                    <code class="govuk-!-font-size-16">TK Test Library</code>
+                </td>
+            </tr>
+            <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">
+                    <code class="govuk-!-font-size-16">FileRef</code>
+                </th>
+                <td class="govuk-table__cell">
+                    <code class="govuk-!-font-size-16">/sites/Retail/tkTestLibrary/testFolder/rnd_1000.jpg</code>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="govuk-body">
+            The TDR <code class="govuk-!-font-size-16">file_path</code> metadata value is in the format of:
+        </p>
+        <div class="govuk-inset-text">
+            <code class="govuk-!-font-size-16">/{SiteName value}/{LibraryName value}/{folder / sub-folders path}/{file name}.{extension}</code>
+        </div>
+        <p class="govuk-body">
+            From the example this gives a <code class="govuk-!-font-size-16">file_path</code> value of:
+        </p>
+        <div class="govuk-inset-text">
+            <code class="govuk-!-font-size-16">/TkTest/TK Test Library/testFolder/rnd_1000.jpg</code>
+        </div>
+        <p class="govuk-body">
+            <b>Note:</b> “sites” is a static value used across all SharePoint tenants and is ignored by TDR
+        </p>
+        <p class="govuk-body">
+            By default the <code class="govuk-!-font-size-16">LibraryName</code> value will be included as part of the “arrangement” on Discovery.
+            For the example above this will lead to an “arrangement” on Discovery of:
+        </p>
+        <div class="govuk-inset-text">
+            <code class="govuk-!-font-size-16">{series} >> TkTest >> TK Test Library >> testFolder</code>
+        </div>
+        <h3 class="govuk-heading-s" id="ignore-site-name">Ignoring the <code class="govuk-!-font-size-16">SiteName</code></h3>
+        <p class="govuk-body">
+            The <code class="govuk-!-font-size-16">SiteName</code> can be ignored at the transferring body level.
+        </p>
+        <p class="govuk-body">
+            <b>To do this:</b> Inform your transfer adviser that the SiteName should be ignored BEFORE proceeding
+            with a transfer for the first time.
+        </p>
+        <p class="govuk-body">
+            Once your request has been received, then:
+        </p>
+        <ol class="govuk-list govuk-list--number">
+            <li>the transfer adviser will request the override to be applied to TDR;</li>
+            <li>TDR will be configured to ignore the SiteName</li>
+            <li>the transfer adviser will inform you the override has been put in place</li>
+            <li>you can then proceed with your transfer.</li>
+        </ol>
+        <p class="govuk-body">
+            With the override in place, for the example above, the “arrangement” on Discovery will be:
+        </p>
+        <div class="govuk-inset-text">
+            <code class="govuk-!-font-size-16">{series} >> TK Test Library >> testFolder</code>
+        </div>
+        <p class="govuk-body">
+            <b>Note:</b> this process is temporary, until a new feature is added to the TDR Connector for SharePoint
+            to allow the user to select whether to ignore the SiteName or not, without the need to contact a transfer adviser.
+        </p>
+    </div>
+</div>
+}
+}

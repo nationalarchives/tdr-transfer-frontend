@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { UploadForm } from "../../src/upload/form/upload-form"
 import {
   getDummyFile,

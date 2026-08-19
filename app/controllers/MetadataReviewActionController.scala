@@ -96,11 +96,12 @@ class MetadataReviewActionController @Inject() (
   ): Future[Result] = {
     for {
       consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
-      action = consignment.metadataReviewLogs.lastOption.map(_.action)
-      totalSubmissions = consignment.metadataReviewLogs.count(_.action == Submission.value)
-      dateSubmitted = consignment.metadataReviewLogs.filter(_.action == Submission.value).lastOption.map(log => DateUtils.formatWithDaySuffix(log.eventTime)).getOrElse("Unknown")
+      sortedLogs = consignment.metadataReviewLogs.sortBy(_.eventTime)
+      action = sortedLogs.lastOption.map(_.action)
+      totalSubmissions = sortedLogs.count(_.action == Submission.value)
+      dateSubmitted = sortedLogs.filter(_.action == Submission.value).lastOption.map(log => DateUtils.formatWithDaySuffix(log.eventTime)).getOrElse("Unknown")
       userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
-      lastReviewLog = consignment.metadataReviewLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
+      lastReviewLog = sortedLogs.filter(log => log.action == Approval.value || log.action == Rejection.value).lastOption
       lastReviewerDetails <- lastReviewLog match {
         case Some(log) => keycloakConfiguration.userDetails(log.userId.toString).map(u => Some(u))
         case None      => Future.successful(None)

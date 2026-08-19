@@ -17,6 +17,7 @@ val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
 val pac4jVersion = "6.5.5"
 val sttpVersion = "3.11.0"
+val awsUtilsVersion = "0.1.338"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -31,19 +32,15 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.296",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.484",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.47",
+  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.47",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.139",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.237",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.338",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.338",
+  "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
+  "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
+  "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
+  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.46",
   "ch.qos.logback" % "logback-classic" % "1.6.2",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.63.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.63.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.63.0",
-  "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
-  "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.59.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.58.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.23.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
@@ -69,5 +66,7 @@ excludeDependencies ++= Seq(
   ExclusionRule(organization = "com.typesafe.akka"),
   ExclusionRule(organization = "com.typesafe.play")
 )
+
+(Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test")
 
 pipelineStages := Seq(digest)

@@ -27,6 +27,7 @@ GET         /consignment/:consignmentId/upload                                  
 POST        /start-upload                                                                                controllers.UploadController.startUpload()
 POST        /save-metadata                                                                               controllers.UploadController.saveClientMetadata()
 POST        /add-file-status                                                                             controllers.UploadController.addFileStatus()
+GET         /consignment/:consignmentId/file-path-check                                                  controllers.FilePathCheckController.filePathCheckPage(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/file-check-progress                                              controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/file-checks                                                      controllers.FileChecksController.fileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])
 GET         /consignment/:consignmentId/file-checks-results                                              controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
@@ -86,3 +87,8 @@ GET         /admin/manage-transfers/download-review-history                     
 GET         /admin/metadata-history/:consignmentId                                                       controllers.MetadataReviewHistoryController.getConsignmentMetadataHistory(consignmentId: java.util.UUID)
 GET         /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.consignmentMetadataDetails(consignmentId: java.util.UUID)
 POST        /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.submitReview(consignmentId: java.util.UUID, userEmail: String)
+
+# Routes for Connect for SharePoint pages
+GET         /connector-for-sharepoint/help                                                               controllers.ConnectorSharePointController.help()
+GET         /connector-for-sharepoint/licence                                                            controllers.ConnectorSharePointController.licence()
+GET         /connector-for-sharepoint/privacy-policy                                                     controllers.ConnectorSharePointController.privacyPolicy()

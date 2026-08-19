@@ -1,19 +1,24 @@
 package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import configuration.GraphQLConfiguration
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.UpdateTransferInitiated.updateTransferInitiated._
-import play.api.libs.ws.WSClient
-import play.api.{Configuration, Logging}
+import io.circe.Encoder
+import io.circe.generic.semiauto.deriveEncoder
+import play.api.Logging
 import services.ApiErrorHandling._
+import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.ExportInput
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentExportService @Inject() (val ws: WSClient, val configuration: Configuration, graphQLConfiguration: GraphQLConfiguration)(implicit
+class ConsignmentExportService @Inject() (val stepFunction: StepFunction, val applicationConfig: ApplicationConfig, graphQLConfiguration: GraphQLConfiguration)(implicit
     val executionContext: ExecutionContext
 ) extends Logging {
+
+  implicit val exportStepFunctionInputEncoder: Encoder[ExportInput] = deriveEncoder[ExportInput]
 
   def updateTransferInitiated(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -21,18 +26,10 @@ class ConsignmentExportService @Inject() (val ws: WSClient, val configuration: C
       .map(d => d.updateTransferInitiated.isDefined)
   }
 
-  def triggerExport(consignmentId: UUID, token: String): Future[Boolean] = {
-    val url = s"${configuration.get[String]("export.baseUrl")}/export/$consignmentId"
-    ws.url(url)
-      .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
-      .post("{}")
-      .flatMap(r =>
-        r.status match {
-          case 200 => Future(true)
-          case _   =>
-            logger.error(s"Export api response ${r.status} ${r.body}")
-            Future.failed(new Exception(s"Call to export API has returned a non 200 response for consignment $consignmentId"))
-        }
-      )
+  def triggerExport(consignmentId: UUID, consignmentRef: String, token: Token): Future[Boolean] = {
+    logger.info(s"Export was triggered by ${token.userId} for consignment:$consignmentId")
+    val stepFunctionName = "Export"
+    val input = ExportInput(consignmentId.toString)
+    stepFunction.triggerStepFunction(applicationConfig.exportStepFunctionArn, input, stepFunctionName, s"$consignmentRef-${System.currentTimeMillis()}")
   }
 }
