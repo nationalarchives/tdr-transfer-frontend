@@ -6,11 +6,11 @@ import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.MessagingService.MetadataReviewRequestEvent
-import services.Statuses.{ExportType, InProgressValue, MetadataReviewType}
+import services.Statuses.{DraftMetadataType, ExportType, InProgressValue, MetadataReviewType}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import uk.gov.nationalarchives.tdr.common.utils.statecontrol.{CurrentState, TransferState}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.{MetadataReviewType => CommonMetadataReviewType}
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{InProgressValue => CommonInProgressValue}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{InProgressValue => CommonInProgressValue, SkippedValue => CommonSkippedValue}
 
 import java.util.UUID
 import javax.inject.Inject
@@ -33,6 +33,10 @@ class RequestMetadataReviewController @Inject() (
     Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId))
   }
 
+  private def draftMetadataSkipped(consignmentStatuses: Seq[graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses]): Boolean = {
+    consignmentStatuses.exists(status => status.statusType == DraftMetadataType.id && status.value == CommonSkippedValue.value)
+  }
+
   def requestMetadataReviewPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val token = request.token.bearerAccessToken
     for {
@@ -45,7 +49,7 @@ class RequestMetadataReviewController @Inject() (
       reviewSubmissionLocked = metadataReviewInProgress && stateChange.isLeft
     } yield {
       exportStatus match {
-        case _ if exportStatus.isDefined => exportView(consignmentId)
+        case _ if exportStatus.isDefined || draftMetadataSkipped(consignmentStatuses) => exportView(consignmentId)
         case _ if reviewSubmissionLocked => Ok(views.html.standard.requestMetadataReviewInProgress(consignmentId, reference, request.token.name))
         case _ if stateChange.isLeft     => invalidStateChangeView(consignmentId)
         case _                           => Ok(views.html.standard.requestMetadataReview(consignmentId, reference, request.token.name, request.token.email))
@@ -64,10 +68,11 @@ class RequestMetadataReviewController @Inject() (
       reviewSubmissionLocked = metadataReviewInProgress && stateChange.isLeft
     } yield {
       exportStatus match {
-        case _ if exportStatus.isDefined => Future.successful(exportView(consignmentId))
-        case _ if reviewSubmissionLocked => Future.successful(Redirect(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)))
-        case _ if stateChange.isLeft     => Future.successful(invalidStateChangeView(consignmentId))
-        case _                           =>
+        case _ if exportStatus.isDefined                    => Future.successful(exportView(consignmentId))
+        case _ if draftMetadataSkipped(consignmentStatuses) => Future.successful(exportView(consignmentId))
+        case _ if reviewSubmissionLocked                    => Future.successful(Redirect(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)))
+        case _ if stateChange.isLeft                        => Future.successful(invalidStateChangeView(consignmentId))
+        case _                                              =>
           for {
             _ <-
               if (statusesToValue.isEmpty) {

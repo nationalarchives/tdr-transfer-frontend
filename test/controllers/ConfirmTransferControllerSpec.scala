@@ -182,6 +182,34 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/draft-metadata/prepare-metadata")
     }
 
+    "render the confirm transfer page when draft metadata was skipped and MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "DraftMetadata", "Skipped", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      mockGraphqlConsignmentSummaryResponse(dataString)
+
+      val confirmTransferPage = controller
+        .confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+
+      val confirmTransferPageAsString = contentAsString(confirmTransferPage)
+
+      playStatus(confirmTransferPage) mustBe OK
+      contentType(confirmTransferPage) mustBe Some("text/html")
+      checkConfirmTransferContent(confirmTransferPageAsString, consignmentSummaryResponse)
+    }
+
     "redirect to the review progress page with an authenticated user if the MetadataReview status is 'InProgress' & blockSkipMetadataReview is 'true'" in {
       val consignmentId = UUID.randomUUID()
 
