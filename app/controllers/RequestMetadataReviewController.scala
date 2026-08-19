@@ -49,11 +49,10 @@ class RequestMetadataReviewController @Inject() (
       reviewSubmissionLocked = metadataReviewInProgress && stateChange.isLeft
     } yield {
       exportStatus match {
-        case _ if exportStatus.isDefined                    => exportView(consignmentId)
-        case _ if draftMetadataSkipped(consignmentStatuses) => exportView(consignmentId)
-        case _ if reviewSubmissionLocked                    => Ok(views.html.standard.requestMetadataReviewInProgress(consignmentId, reference, request.token.name))
-        case _ if stateChange.isLeft                        => invalidStateChangeView(consignmentId)
-        case _                                              => Ok(views.html.standard.requestMetadataReview(consignmentId, reference, request.token.name, request.token.email))
+        case _ if exportStatus.isDefined || draftMetadataSkipped(consignmentStatuses) => exportView(consignmentId)
+        case _ if reviewSubmissionLocked => Ok(views.html.standard.requestMetadataReviewInProgress(consignmentId, reference, request.token.name))
+        case _ if stateChange.isLeft     => invalidStateChangeView(consignmentId)
+        case _                           => Ok(views.html.standard.requestMetadataReview(consignmentId, reference, request.token.name, request.token.email))
       }
     }
   }
