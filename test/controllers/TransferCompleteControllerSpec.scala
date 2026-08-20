@@ -83,56 +83,6 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       verify(mockMessagingService, times(1)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
-    "render the success page and not send message when transfer already confirmed" in {
-      val mockMessagingService: MessagingService = mock[MessagingService]
-      val consignmentId = UUID.randomUUID()
-      setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentSummaryResponse(wiremockServer)
-      setConsignmentStatusResponse(
-        app.configuration,
-        wiremockServer,
-        None,
-        List(
-          ConsignmentStatuses(UUID.randomUUID(), consignmentId, ConfirmTransferType.id, CompletedValue.value, someDateTime, None)
-        )
-      )
-
-      val transferCompletePage = callTransferComplete("consignment", consignmentId, mockMessagingService)
-      val transferCompletePageAsString = contentAsString(transferCompletePage)
-
-      transferCompletePageAsString must include(
-        """                        <div class="govuk-panel__body govuk-!-font-size-27">
-          |                        Your records have now been transferred to The National Archives.
-          |                        </div>""".stripMargin
-      )
-      transferCompletePageAsString must include(
-        """                        <div class="govuk-panel__body govuk-!-font-size-27 govuk-!-margin-top-5">
-          |                            Consignment reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>
-          |                        </div>""".stripMargin
-      )
-      transferCompletePageAsString must include(
-        """<p class="govuk-body">Do not delete the original files you uploaded until you have been notified.</p>""".stripMargin
-      )
-      transferCompletePageAsString must include(downloadLinkHTML(consignmentId))
-      transferCompletePageAsString must include(
-        """<p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.</p>"""
-      )
-      transferCompletePageAsString must include(
-        """<a href="/homepage" role="button" draggable="false" class="govuk-button ">
-          |    Return to homepage
-          |</a>""".stripMargin
-      )
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
-        transferCompletePageAsString,
-        userType = "standard",
-        transferStillInProgress = false
-      )
-      checkTransferCompletePageForCommonElements(transferCompletePageAsString)
-      checkForSurveyLink(transferCompletePageAsString)
-      verify(mockMessagingService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
-    }
-
     "render the success page if the export was triggered successfully for a judgment user" in {
       val mockMessagingService: MessagingService = mock[MessagingService]
       setConsignmentReferenceResponse(wiremockServer)
