@@ -11,6 +11,7 @@ import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc._
 import services.Statuses._
 import services._
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.SkippedValue
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -73,14 +74,19 @@ class ConfirmTransferController @Inject() (
             case None =>
               if (applicationConfig.blockSkipMetadataReview) {
                 val metadataReviewType = consignmentStatuses.find(_.statusType == MetadataReviewType.id)
-                if (metadataReviewType.isEmpty) {
-                  Future(Redirect(routes.PrepareMetadataController.prepareMetadata(consignmentId)))
-                } else {
-                  getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
-                    RedirectUtils.redirectIfReviewNotCompleted(consignmentId, consignmentStatuses)(
+                val draftMetadataSkipped = consignmentStatuses.exists(s => s.statusType == DraftMetadataType.id && s.value == SkippedValue.value)
+                (metadataReviewType, draftMetadataSkipped) match {
+                  case (None, true) =>
+                    getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
                       httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
-                    )
-                  }
+                    }
+                  case (None, false) => Future(Redirect(routes.PrepareMetadataController.prepareMetadata(consignmentId)))
+                  case (_, _)        =>
+                    getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
+                      RedirectUtils.redirectIfReviewNotCompleted(consignmentId, consignmentStatuses)(
+                        httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+                      )
+                    }
                 }
               } else {
                 getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
