@@ -9,6 +9,7 @@ import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
 import services.MessagingService.MetadataDownloadEvent
 import services.{ConsignmentService, ConsignmentStatusService, DownloadService, MessagingService}
+import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils
 
@@ -72,7 +73,7 @@ class DownloadMetadataController @Inject() (
           GuidanceUtils.loadGuidanceFile.toOption.getOrElse(Seq.empty)
         )
       } yield {
-        if (applicationConfig.frontEndInfo.stage == "prod" && request.token.isTNAUser) {
+        if (sendTNAUserDownloadNotification(request.token)) {
           messagingService.sendMetadataDownloadNotification(
             MetadataDownloadEvent(
               environment = applicationConfig.frontEndInfo.stage,
@@ -107,6 +108,9 @@ class DownloadMetadataController @Inject() (
         .withHeaders("Content-Disposition" -> s"attachment; filename=$reference-$getCurrentDateTime.xlsx")
     }
   }
+
+  private def sendTNAUserDownloadNotification(token: Token): Boolean =
+    applicationConfig.frontEndInfo.stage == "prod" && token.isTNAUser
 
   private def getCurrentDateTime = {
     val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")

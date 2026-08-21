@@ -14,6 +14,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class MessagingService @Inject() (val applicationConfig: ApplicationConfig)(implicit val ec: ExecutionContext) {
+  private val snsTopicArn = applicationConfig.notificationSnsTopicArn
   val client: SnsClient = sns(applicationConfig.snsEndpoint)
   val utils: SNSUtils = SNSUtils(client)
 
@@ -23,19 +24,19 @@ class MessagingService @Inject() (val applicationConfig: ApplicationConfig)(impl
   implicit val metadataReviewSubmittedEventEncoder: Encoder[MetadataReviewSubmittedEvent] = deriveEncoder[MetadataReviewSubmittedEvent]
 
   def sendTransferCompleteNotification(transferCompletedEvent: TransferCompleteEvent): PublishResponse = {
-    utils.publish(transferCompletedEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+    utils.publish(transferCompletedEvent.asJson.toString, snsTopicArn)
   }
 
   def sendMetadataReviewRequestNotification(metadataReviewRequestEvent: MetadataReviewRequestEvent): PublishResponse = {
-    utils.publish(metadataReviewRequestEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+    utils.publish(metadataReviewRequestEvent.asJson.toString, snsTopicArn)
   }
 
   def sendMetadataDownloadNotification(metadataDownloadEvent: MetadataDownloadEvent): PublishResponse = {
-    utils.publish(metadataDownloadEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+    utils.publish(metadataDownloadEvent.asJson.toString, snsTopicArn)
   }
 
   def sendMetadataReviewSubmittedNotification(metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent): PublishResponse = {
-    utils.publish(metadataReviewSubmittedEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+    utils.publish(metadataReviewSubmittedEvent.asJson.toString, snsTopicArn)
   }
 }
 
