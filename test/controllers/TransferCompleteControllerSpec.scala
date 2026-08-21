@@ -2,18 +2,13 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.http.Status.FORBIDDEN
 import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
-import services.MessagingService.TransferCompleteEvent
-import services.Statuses.{CompletedValue, ConfirmTransferType}
-import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
+import services.ConsignmentService
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
@@ -40,14 +35,13 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   "TransferCompleteController GET" should {
-    "render the success page if the export was triggered successfully and send transfer confirmed message" in {
-      val mockMessagingService: MessagingService = mock[MessagingService]
+    "render the success page if the export was triggered successfully" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentSummaryResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
 
-      val transferCompletePage = callTransferComplete("consignment", consignmentId, mockMessagingService)
+      val transferCompletePage = callTransferComplete("consignment", consignmentId)
       val transferCompletePageAsString = contentAsString(transferCompletePage)
 
       transferCompletePageAsString must include(
@@ -80,64 +74,12 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       )
       checkTransferCompletePageForCommonElements(transferCompletePageAsString)
       checkForSurveyLink(transferCompletePageAsString)
-      verify(mockMessagingService, times(1)).sendTransferCompleteNotification(any[TransferCompleteEvent])
-    }
-
-    "render the success page and not send message when transfer already confirmed" in {
-      val mockMessagingService: MessagingService = mock[MessagingService]
-      val consignmentId = UUID.randomUUID()
-      setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentSummaryResponse(wiremockServer)
-      setConsignmentStatusResponse(
-        app.configuration,
-        wiremockServer,
-        None,
-        List(
-          ConsignmentStatuses(UUID.randomUUID(), consignmentId, ConfirmTransferType.id, CompletedValue.value, someDateTime, None)
-        )
-      )
-
-      val transferCompletePage = callTransferComplete("consignment", consignmentId, mockMessagingService)
-      val transferCompletePageAsString = contentAsString(transferCompletePage)
-
-      transferCompletePageAsString must include(
-        """                        <div class="govuk-panel__body govuk-!-font-size-27">
-          |                        Your records have now been transferred to The National Archives.
-          |                        </div>""".stripMargin
-      )
-      transferCompletePageAsString must include(
-        """                        <div class="govuk-panel__body govuk-!-font-size-27 govuk-!-margin-top-5">
-          |                            Consignment reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>
-          |                        </div>""".stripMargin
-      )
-      transferCompletePageAsString must include(
-        """<p class="govuk-body">Do not delete the original files you uploaded until you have been notified.</p>""".stripMargin
-      )
-      transferCompletePageAsString must include(downloadLinkHTML(consignmentId))
-      transferCompletePageAsString must include(
-        """<p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.</p>"""
-      )
-      transferCompletePageAsString must include(
-        """<a href="/homepage" role="button" draggable="false" class="govuk-button ">
-          |    Return to homepage
-          |</a>""".stripMargin
-      )
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
-        transferCompletePageAsString,
-        userType = "standard",
-        transferStillInProgress = false
-      )
-      checkTransferCompletePageForCommonElements(transferCompletePageAsString)
-      checkForSurveyLink(transferCompletePageAsString)
-      verify(mockMessagingService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
     "render the success page if the export was triggered successfully for a judgment user" in {
-      val mockMessagingService: MessagingService = mock[MessagingService]
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentSummaryResponse(wiremockServer)
-      val transferCompletePage = callTransferComplete("judgment", messagingService = mockMessagingService)
+      val transferCompletePage = callTransferComplete("judgment")
       val transferCompletePageAsString = contentAsString(transferCompletePage)
 
       transferCompletePageAsString must include(
@@ -175,10 +117,9 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   forAll(userChecks) { (_, url) =>
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
-        val mockMessagingService: MessagingService = mock[MessagingService]
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentSummaryResponse(wiremockServer)
-        val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url, mockMessagingService)
+        val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
         val consignmentId = UUID.randomUUID()
         setConsignmentTypeResponse(wiremockServer, url)
 
@@ -193,17 +134,15 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
             .judgmentTransferComplete(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-complete").withCSRFToken)
         }
-        verify(mockMessagingService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
         status(transferCompleteSubmit) mustBe FORBIDDEN
       }
     }
   }
 
   "return forbidden for a TNA user" in {
-    val mockMessagingService: MessagingService = mock[MessagingService]
     setConsignmentReferenceResponse(wiremockServer)
     setConsignmentSummaryResponse(wiremockServer)
-    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "admin", mockMessagingService)
+    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "admin")
     val consignmentId = UUID.randomUUID()
     setConsignmentTypeResponse(wiremockServer, "standard")
     controller
@@ -211,10 +150,9 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
   }
 
-  private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String, messagingService: MessagingService) = {
+  private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
     val config = new ApplicationConfig(app.configuration)
 
@@ -223,11 +161,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       case "admin"    => getValidTNAUserKeycloakConfiguration()
       case _          => getValidStandardUserKeycloakConfiguration
     }
-    new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, messagingService, config, consignmentStatusService)
+    new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, config)
   }
 
-  private def callTransferComplete(path: String, consignmentId: UUID = UUID.randomUUID(), messagingService: MessagingService): Future[Result] = {
-    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path, messagingService)
+  private def callTransferComplete(path: String, consignmentId: UUID = UUID.randomUUID()): Future[Result] = {
+    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
     if (path.equals("judgment")) {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       controller
