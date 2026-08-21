@@ -587,7 +587,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       "finalTransferConfirmationSubmit" should {
         s"send the correct number of notifications when export status value is $exportStatusValue" in {
           val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
-//          val mockMessagingService = mock[MessagingService]
           stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
           mockUpdateTransferInitiatedResponse
           mockGraphqlConsignmentSummaryResponse()
