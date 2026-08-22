@@ -17,7 +17,7 @@ val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
 val pac4jVersion = "6.5.5"
 val sttpVersion = "3.11.0"
-val awsUtilsVersion = "0.1.338"
+val awsUtilsVersion = "0.1.339"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
