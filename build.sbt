@@ -17,7 +17,7 @@ val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
 val pac4jVersion = "6.5.5"
 val sttpVersion = "3.11.0"
-val awsUtilsVersion = "0.1.338"
+val awsUtilsVersion = "0.1.339"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -28,18 +28,18 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.305",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.296",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.484",
-  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.47",
-  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.47",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.306",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.298",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.485",
+  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.48",
+  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.48",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.139",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.237",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.238",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
-  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.46",
-  "ch.qos.logback" % "logback-classic" % "1.6.2",
+  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.48",
+  "ch.qos.logback" % "logback-classic" % "1.6.3",
   ws,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.23.0" % Test,
@@ -48,8 +48,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 disablePlugins(PlayLogback)
