@@ -142,8 +142,8 @@ class ConfirmTransferController @Inject() (
                 _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)
                 _ <- consignmentExportService.triggerExport(consignmentId, consignmentRef, request.token)
                 consignmentTransferSummary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
+                _ = sendTransferCompletedNotification(consignmentTransferSummary, consignmentId, request.token)
               } yield {
-                sendTransferCompletedNotification(consignmentTransferSummary, consignmentId, request.token)
                 Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
               }
             case _ =>
