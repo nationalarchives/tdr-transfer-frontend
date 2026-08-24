@@ -14,16 +14,19 @@ import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import org.apache.pekko.util.ByteString
 import org.dhatim.fastexcel.reader._
+import org.mockito.Mockito.{never, verify}
 import org.scalatest.prop.TableFor1
 import play.api.http.HttpVerbs.GET
-import play.api.http.Status.{FORBIDDEN, FOUND}
+import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, ConsignmentStatusService, DownloadService}
+import services.MessagingService.MetadataDownloadEvent
+import services.{ConsignmentService, ConsignmentStatusService, DownloadService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.{GuidanceItem, loadGuidanceFile}
+import viewsapi.FrontEndInfo
 
 import java.io.ByteArrayInputStream
 import java.time.{LocalDateTime, ZonedDateTime}
@@ -173,6 +176,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val downloadService = mock[DownloadService]
       val applicationConfig = new ApplicationConfig(app.configuration)
+      val messagingService = mock[MessagingService]
 
       val controller =
         new DownloadMetadataController(
@@ -181,11 +185,65 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           consignmentStatusService,
           getInvalidKeycloakConfiguration,
           downloadService,
-          applicationConfig
+          applicationConfig,
+          messagingService
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
       status(response) must be(FOUND)
+    }
+
+    "send a metadata download notification in prod for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      val consignmentReference = "TDR-2024-TEST"
+      val messagingService = mock[MessagingService]
+      mockFileMetadataResponse(List.empty[Files], consignmentId, consignmentReference)
+
+      val controller = createController(
+        consignmentType = "standard",
+        userType = "TNA".some,
+        messagingService = messagingService,
+        applicationConfig = prodApplicationConfig
+      )
+
+      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      status(response) must be(OK)
+
+      verify(messagingService).sendMetadataDownloadNotification(
+        MetadataDownloadEvent(
+          environment = "prod",
+          userId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
+          userName = "TNA Username",
+          consignmentId = consignmentId.toString,
+          consignmentReference = consignmentReference
+        )
+      )
+    }
+
+    "not send a metadata download notification for a non-TNA user in prod" in {
+      val consignmentId = UUID.randomUUID()
+      val messagingService = mock[MessagingService]
+      mockFileMetadataResponse(List.empty[Files], consignmentId)
+
+      val controller = createController(consignmentType = "standard", messagingService = messagingService, applicationConfig = prodApplicationConfig)
+
+      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      status(response) must be(OK)
+
+      verify(messagingService, never()).sendMetadataDownloadNotification(org.mockito.ArgumentMatchers.any[MetadataDownloadEvent])
+    }
+
+    "not send a metadata download notification outside prod for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      val messagingService = mock[MessagingService]
+      mockFileMetadataResponse(List.empty[Files], consignmentId)
+
+      val controller = createController(consignmentType = "standard", userType = "TNA".some, messagingService = messagingService)
+
+      val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      status(response) must be(OK)
+
+      verify(messagingService, never()).sendMetadataDownloadNotification(org.mockito.ArgumentMatchers.any[MetadataDownloadEvent])
     }
   }
 
@@ -225,6 +283,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val downloadService = mock[DownloadService]
       val applicationConfig = new ApplicationConfig(app.configuration)
+      val messagingService = mock[MessagingService]
 
       val controller =
         new DownloadMetadataController(
@@ -233,7 +292,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           consignmentStatusService,
           getInvalidKeycloakConfiguration,
           downloadService,
-          applicationConfig
+          applicationConfig,
+          messagingService
         )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
@@ -254,13 +314,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     new ReadableWorkbook(bufferedSource)
   }
 
-  private def createController(consignmentType: String, userType: Option[String] = None) = {
+  private def createController(
+      consignmentType: String,
+      userType: Option[String] = None,
+      applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration),
+      messagingService: MessagingService = mock[MessagingService]
+  ) = {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val downloadService = mock[DownloadService]
-    val applicationConfig = new ApplicationConfig(app.configuration)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
@@ -273,11 +337,16 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       consignmentStatusService,
       keycloakConfiguration,
       downloadService,
-      applicationConfig
+      applicationConfig,
+      messagingService
     )
   }
 
-  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files], consignmentId: UUID) = {
+  private def prodApplicationConfig = new ApplicationConfig(app.configuration) {
+    override def frontEndInfo: FrontEndInfo = super.frontEndInfo.copy(stage = "prod")
+  }
+
+  private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files], consignmentId: UUID, consignmentReference: String = "TDR-2024") = {
     val client: GraphQLClient[gcfm.Data, gcfm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
     val metadataReviewLog = gcfm.GetConsignment.MetadataReviewLogs(
       UUID.randomUUID(),
@@ -286,7 +355,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       "Submission",
       ZonedDateTime.parse("2021-02-03T10:33:30.414Z")
     )
-    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, List(metadataReviewLog), ""))))).asJson.printWith(Printer.noSpaces)
+    val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, List(metadataReviewLog), consignmentReference))))).asJson.printWith(Printer.noSpaces)
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentFilesMetadata"))
