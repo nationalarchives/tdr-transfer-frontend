@@ -91,4 +91,4 @@ POST        /admin/metadata-review/:consignmentId                               
 # Routes for Connect for SharePoint pages
 GET         /connector-for-sharepoint/help                                                               controllers.ConnectorSharePointController.help()
 GET         /connector-for-sharepoint/licence                                                            controllers.ConnectorSharePointController.licence()
-GET         /connector-for-sharepoint/privacy-policy                                                     controllers.ConnectorSharePointController.privacyPolicy()
+GET         /connector-for-sharepoint/faq                                                                controllers.ConnectorSharePointController.faq()
