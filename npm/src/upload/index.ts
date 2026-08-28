@@ -52,6 +52,14 @@ export class FileUploader {
         accessKeyId: "placeholder-id",
         secretAccessKey: "placeholder-secret"
       },
+      // The SDK otherwise adds an x-amz-checksum-crc32 to every request, which means
+      // reading each file a second time in JavaScript purely to hash it. TDR already
+      // takes its own SHA-256 of every file before uploading and the backend checks it,
+      // and the transfer is over TLS, so the extra checksum only costs time. It also
+      // forces a File body down the SDK's aws-chunked encoding path, which sets
+      // transfer-encoding headers a browser is not allowed to send.
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
       requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
 

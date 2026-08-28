@@ -1,4 +1,5 @@
 import {
+  PutObjectCommand,
   S3Client,
   ServiceOutputTypes,
   PutObjectCommandInput,
@@ -19,34 +20,51 @@ export interface ITdrFileWithPath {
   fileWithPath: IFileEntry
 }
 
-interface IFileProgressInfo {
-  processedChunks: number
-  totalChunks: number
-  totalFiles: number
-}
-
 export interface IUploadResult {
   sendData: ServiceOutputTypes[]
   processedChunks: number
   totalChunks: number
 }
 
+/**
+ * Number of files sent to S3 at the same time. Uploading one file at a time makes a
+ * consignment of many small files latency bound: every file costs a full request round
+ * trip before the next one starts. The upload endpoint is served by CloudFront over
+ * HTTP/2, so these requests are multiplexed onto a single connection rather than being
+ * limited to the browser's six connections per origin.
+ */
+export const defaultUploadConcurrency = 10
+
+/**
+ * Files smaller than this are sent with a single PutObject rather than through
+ * @aws-sdk/lib-storage. lib-storage always reads the body through a ReadableStream and
+ * concatenates it into a Buffer in the JavaScript heap before sending, which for a
+ * consignment of thousands of small files copies gigabytes for no benefit. Passing the
+ * File straight to PutObject lets the browser stream it to the network instead.
+ * Anything at or above the size is still uploaded with lib-storage so that large files
+ * continue to use multipart uploads.
+ */
+const multipartThresholdBytes = 5 * 1024 * 1024
+
 export class S3Upload {
   client: S3Client
   uploadUrl: string
   ifNoneMatchHeaderValue: string
   aclHeaderValue: string
+  concurrency: number
 
   constructor(
     client: S3Client,
     uploadUrl: string,
     ifNoneMatchHeaderValue: string,
-    aclHeaderValue: string
+    aclHeaderValue: string,
+    concurrency: number = defaultUploadConcurrency
   ) {
     this.client = client
     this.uploadUrl = uploadUrl.split("//")[1]
     this.ifNoneMatchHeaderValue = ifNoneMatchHeaderValue
     this.aclHeaderValue = aclHeaderValue
+    this.concurrency = Math.max(1, concurrency)
   }
 
   uploadToS3: (
@@ -62,73 +80,112 @@ export class S3Upload {
     callback,
     stage
   ) => {
-    if (userId) {
-      const totalFiles = iTdrFilesWithPath.length
-      const totalChunks: number = iTdrFilesWithPath.reduce(
-        (fileSizeTotal, tdrFileWithPath) =>
-          fileSizeTotal +
-          (tdrFileWithPath.fileWithPath.file.size
-            ? tdrFileWithPath.fileWithPath.file.size
-            : 1),
-        0
-      )
-      let processedChunks = 0
-      const sendData: ServiceOutputTypes[] = []
-      const fileIdsOfFilesThatFailedToUpload: string[] = []
-      for (const tdrFileWithPath of iTdrFilesWithPath) {
-        const uploadResult = await this.uploadSingleFile(
-          consignmentId,
-          userId,
-          stage,
-          tdrFileWithPath,
-          callback,
-          {
-            processedChunks,
-            totalChunks,
-            totalFiles
-          }
-        )
-        if (
-          uploadResult?.$metadata !== undefined &&
-          uploadResult.$metadata.httpStatusCode != 200
-        ) {
-          await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
-          fileIdsOfFilesThatFailedToUpload.push(tdrFileWithPath.fileId)
-        }
-        sendData.push(uploadResult)
-        processedChunks += tdrFileWithPath.fileWithPath.file.size
-          ? tdrFileWithPath.fileWithPath.file.size
-          : 1
-      }
-
-      return fileIdsOfFilesThatFailedToUpload.length === 0
-        ? {
-            sendData,
-            processedChunks,
-            totalChunks
-          }
-        : Error(
-            `User's files have failed to upload. fileIds of files: ${fileIdsOfFilesThatFailedToUpload.toString()}`
-          )
-    } else {
+    if (!userId) {
       return Error("No valid user id found")
     }
+
+    const totalFiles = iTdrFilesWithPath.length
+    // Empty files still need to move the progress bar, so they count as a single chunk.
+    const fileChunks = iTdrFilesWithPath.map((tdrFileWithPath) =>
+      tdrFileWithPath.fileWithPath.file.size
+        ? tdrFileWithPath.fileWithPath.file.size
+        : 1
+    )
+    const totalChunks = fileChunks.reduce(
+      (fileSizeTotal, fileSize) => fileSizeTotal + fileSize,
+      0
+    )
+
+    const sendData: ServiceOutputTypes[] = new Array(totalFiles)
+    const failedFileIds: (string | undefined)[] = new Array(totalFiles)
+    const reportedChunks: number[] = new Array(totalFiles).fill(0)
+    let processedChunks = 0
+
+    // Files are uploaded concurrently so progress is accumulated from each file's
+    // reported total rather than from a running count of completed files.
+    const recordProgress = (index: number, loaded: number) => {
+      const chunksForFile = Math.min(loaded, fileChunks[index])
+      const newChunks = chunksForFile - reportedChunks[index]
+      if (newChunks <= 0) {
+        return
+      }
+      reportedChunks[index] = chunksForFile
+      processedChunks += newChunks
+      this.updateUploadProgress(
+        processedChunks,
+        totalChunks,
+        totalFiles,
+        callback
+      )
+    }
+
+    let nextFileIndex = 0
+    let uploadError: unknown = undefined
+
+    const uploadWorker = async () => {
+      while (uploadError === undefined) {
+        const index = nextFileIndex++
+        if (index >= totalFiles) {
+          return
+        }
+        const tdrFileWithPath = iTdrFilesWithPath[index]
+        try {
+          const uploadResult = await this.uploadSingleFile(
+            consignmentId,
+            userId,
+            tdrFileWithPath,
+            (loaded) => recordProgress(index, loaded)
+          )
+          sendData[index] = uploadResult
+          recordProgress(index, fileChunks[index])
+          if (
+            uploadResult?.$metadata !== undefined &&
+            uploadResult.$metadata.httpStatusCode != 200
+          ) {
+            await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
+            failedFileIds[index] = tdrFileWithPath.fileId
+          }
+        } catch (e) {
+          // Stop the other workers picking up more files, then rethrow once they
+          // have finished so the error is not lost in an unhandled rejection.
+          uploadError = e
+          return
+        }
+      }
+    }
+
+    const workerCount = Math.min(this.concurrency, totalFiles)
+    await Promise.all(Array.from({ length: workerCount }, () => uploadWorker()))
+
+    if (uploadError !== undefined) {
+      throw uploadError
+    }
+
+    const fileIdsOfFilesThatFailedToUpload = failedFileIds.filter(
+      (fileId): fileId is string => fileId !== undefined
+    )
+
+    return fileIdsOfFilesThatFailedToUpload.length === 0
+      ? {
+          sendData,
+          processedChunks,
+          totalChunks
+        }
+      : Error(
+          `User's files have failed to upload. fileIds of files: ${fileIdsOfFilesThatFailedToUpload.toString()}`
+        )
   }
 
   private uploadSingleFile: (
     consignmentId: string,
     userId: string,
-    stage: string,
     tdrFileWithPath: ITdrFileWithPath,
-    updateProgressCallback: TProgressFunction,
-    progressInfo: IFileProgressInfo
+    onProgress: (loaded: number) => void
   ) => Promise<ServiceOutputTypes> = (
     consignmentId,
     userId,
-    stage,
     tdrFileWithPath,
-    updateProgressCallback,
-    progressInfo
+    onProgress
   ) => {
     const { fileWithPath, fileId } = tdrFileWithPath
     const key = `${userId}/${consignmentId}/${fileId}`
@@ -140,32 +197,20 @@ export class S3Upload {
       IfNoneMatch: this.ifNoneMatchHeaderValue
     }
 
+    if (fileWithPath.file.size < multipartThresholdBytes) {
+      // The caller reports the whole file as processed once this resolves, so there is
+      // no need for intermediate progress events on a single request.
+      return this.client.send(new PutObjectCommand(params))
+    }
+
     const progress = new Upload({ client: this.client, params })
 
-    const { processedChunks, totalChunks, totalFiles } = progressInfo
-    if (fileWithPath.file.size >= 1) {
-      // httpUploadProgress seems to only trigger if file size is greater than 0
-      progress.on("httpUploadProgress", (ev) => {
-        const loaded = ev.loaded
-        if (loaded) {
-          const chunks = loaded + processedChunks
-          this.updateUploadProgress(
-            chunks,
-            totalChunks,
-            totalFiles,
-            updateProgressCallback
-          )
-        }
-      })
-    } else {
-      const chunks = 1 + processedChunks
-      this.updateUploadProgress(
-        chunks,
-        totalChunks,
-        totalFiles,
-        updateProgressCallback
-      )
-    }
+    progress.on("httpUploadProgress", (ev) => {
+      const loaded = ev.loaded
+      if (loaded) {
+        onProgress(loaded)
+      }
+    })
     return progress.done()
   }
 
