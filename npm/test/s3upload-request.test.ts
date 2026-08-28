@@ -73,6 +73,26 @@ const createClient = (config = {}) =>
     ...config
   })
 
+const createFileUploader = () => {
+  const frontEndInfo: IFrontEndInfo = {
+    apiUrl: "",
+    uploadUrl: "https://upload.tdr-integration.nationalarchives.gov.uk",
+    authUrl: "",
+    stage: "test",
+    region: "eu-west-2",
+    clientId: "",
+    realm: "",
+    ifNoneMatchHeaderValue: "*",
+    aclHeaderValue: "bucket-owner-full-control"
+  }
+  return new FileUploader(
+    new ClientFileMetadataUpload(),
+    frontEndInfo,
+    { tokenParsed: {} } as Keycloak,
+    jest.fn()
+  )
+}
+
 beforeEach(() => {
   document.body.innerHTML = '<input name="csrfToken" value="abcde">'
 })
@@ -121,26 +141,62 @@ test("the SDK default of calculating a checksum cannot send a file body", async 
 })
 
 test("the file uploader configures the S3 client to only checksum when required", async () => {
-  const frontEndInfo: IFrontEndInfo = {
-    apiUrl: "",
-    uploadUrl: "https://upload.tdr-integration.nationalarchives.gov.uk",
-    authUrl: "",
-    stage: "test",
-    region: "eu-west-2",
-    clientId: "",
-    realm: "",
-    ifNoneMatchHeaderValue: "*",
-    aclHeaderValue: "bucket-owner-full-control"
-  }
-  const fileUploader = new FileUploader(
-    new ClientFileMetadataUpload(),
-    frontEndInfo,
-    { tokenParsed: {} } as Keycloak,
-    jest.fn()
-  )
-
-  const client = fileUploader.clientFileProcessing.s3Upload.client
+  const client = createFileUploader().clientFileProcessing.s3Upload.client
   await expect(client.config.requestChecksumCalculation()).resolves.toEqual(
     "WHEN_REQUIRED"
   )
+})
+
+test("the file uploader allows more than the SDK default number of attempts", async () => {
+  const client = createFileUploader().clientFileProcessing.s3Upload.client
+  await expect(client.config.maxAttempts()).resolves.toEqual(5)
+})
+
+test("a request that keeps failing with a network error is attempted five times", async () => {
+  let attempts = 0
+  const alwaysFailingHandler = {
+    ...captureRequestHandler,
+    async handle() {
+      attempts += 1
+      // The error a browser raises when a request cannot be made at all.
+      throw new TypeError("Failed to fetch")
+    }
+  }
+
+  await expect(
+    uploadWithClient(
+      createClient({
+        requestChecksumCalculation: "WHEN_REQUIRED",
+        maxAttempts: 5,
+        requestHandler: alwaysFailingHandler as never
+      })
+    )
+  ).rejects.toThrow("Failed to fetch")
+
+  expect(attempts).toEqual(5)
+})
+
+test("a file that recovers within the attempt limit still uploads", async () => {
+  let attempts = 0
+  const flakyHandler = {
+    ...captureRequestHandler,
+    async handle(request: ICapturedRequest) {
+      attempts += 1
+      if (attempts < 5) {
+        throw new TypeError("Failed to fetch")
+      }
+      return captureRequestHandler.handle(request)
+    }
+  }
+
+  const result = await uploadWithClient(
+    createClient({
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      maxAttempts: 5,
+      requestHandler: flakyHandler as never
+    })
+  )
+
+  expect(result).not.toBeInstanceOf(Error)
+  expect(attempts).toEqual(5)
 })

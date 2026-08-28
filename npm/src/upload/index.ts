@@ -60,6 +60,12 @@ export class FileUploader {
       // transfer-encoding headers a browser is not allowed to send.
       requestChecksumCalculation: "WHEN_REQUIRED",
       responseChecksumValidation: "WHEN_REQUIRED",
+      // A consignment can be tens of thousands of files, so a per file failure rate
+      // that would be unnoticeable on a small transfer becomes likely to be hit at
+      // least once across the whole upload, and one file exhausting its attempts fails
+      // the transfer. The extra attempts only cost time when a request is actually
+      // failing.
+      maxAttempts: 5,
       requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
 
