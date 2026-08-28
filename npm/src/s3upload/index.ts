@@ -46,6 +46,18 @@ export const defaultUploadConcurrency = 10
  */
 const multipartThresholdBytes = 5 * 1024 * 1024
 
+/**
+ * S3 rejects a request with 412 when If-None-Match is set and the object already
+ * exists. Each file is uploaded to a key containing its own newly generated file id, so
+ * nothing else can be writing to that key. A 412 therefore means an earlier attempt of
+ * this same upload reached S3 and only its response was lost, which the SDK cannot tell
+ * apart from the request never arriving. 412 is not retryable, so without this the
+ * retry that follows a dropped response would fail the whole transfer.
+ */
+const isAlreadyUploaded = (error: unknown): boolean =>
+  (error as { $metadata?: { httpStatusCode?: number } } | undefined)?.$metadata
+    ?.httpStatusCode === 412
+
 export class S3Upload {
   client: S3Client
   uploadUrl: string
@@ -129,27 +141,34 @@ export class S3Upload {
           return
         }
         const tdrFileWithPath = iTdrFilesWithPath[index]
+        let uploadResult: ServiceOutputTypes
         try {
-          const uploadResult = await this.uploadSingleFile(
+          uploadResult = await this.uploadSingleFile(
             consignmentId,
             userId,
             tdrFileWithPath,
             (loaded) => recordProgress(index, loaded)
           )
-          sendData[index] = uploadResult
-          recordProgress(index, fileChunks[index])
-          if (
-            uploadResult?.$metadata !== undefined &&
-            uploadResult.$metadata.httpStatusCode != 200
-          ) {
-            await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
-            failedFileIds[index] = tdrFileWithPath.fileId
-          }
         } catch (e) {
-          // Stop the other workers picking up more files, then rethrow once they
-          // have finished so the error is not lost in an unhandled rejection.
-          uploadError = e
-          return
+          if (!isAlreadyUploaded(e)) {
+            // Stop the other workers picking up more files, then rethrow once they
+            // have finished so the error is not lost in an unhandled rejection.
+            uploadError = e
+            return
+          }
+          sendData[index] = e as ServiceOutputTypes
+          recordProgress(index, fileChunks[index])
+          continue
+        }
+
+        sendData[index] = uploadResult
+        recordProgress(index, fileChunks[index])
+        if (
+          uploadResult?.$metadata !== undefined &&
+          uploadResult.$metadata.httpStatusCode != 200
+        ) {
+          await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
+          failedFileIds[index] = tdrFileWithPath.fileId
         }
       }
     }

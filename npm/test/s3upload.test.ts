@@ -640,3 +640,82 @@ test("a failure stops further files being uploaded and rejects with the error", 
 
   expect(s3Mock.calls().length).toBeLessThanOrEqual(5)
 })
+
+const preconditionFailedError = () =>
+  Object.assign(
+    new Error("At least one of the pre-conditions you specified did not hold"),
+    { name: "PreconditionFailed", $metadata: { httpStatusCode: 412 } }
+  )
+
+test("a file the retry finds already in S3 is not treated as a failure", async () => {
+  const tdrFileWithPath = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+  })
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(() => {
+    throw preconditionFailedError()
+  })
+  const s3Upload = new S3Upload(s3Client, "", "*", "bucket-owner-full-control")
+
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    [tdrFileWithPath],
+    jest.fn(),
+    ""
+  )
+
+  expect(isError(result)).toBe(false)
+  // The file is already in S3, so it must not be marked as failed.
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+test("a file the retry finds already in S3 still counts towards progress", async () => {
+  const callback = jest.fn()
+  const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}, {}, {}].map(
+    (tdrFileParams) => createTdrFile(tdrFileParams)
+  )
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(() => {
+    throw preconditionFailedError()
+  })
+  const s3Upload = new S3Upload(s3Client, "", "*", "bucket-owner-full-control")
+
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    tdrFilesWithPath,
+    callback,
+    ""
+  )
+
+  expect(isError(result)).toBe(false)
+  if (!isError(result)) {
+    expect(result.processedChunks).toEqual(result.totalChunks)
+  }
+  checkCallbackCalls(callback, 4, [25, 50, 75, 100])
+})
+
+test("an error that is not a precondition failure still stops the upload", async () => {
+  const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}].map((tdrFileParams) =>
+    createTdrFile(tdrFileParams)
+  )
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(() => {
+    throw Object.assign(new Error("Access Denied"), {
+      name: "AccessDenied",
+      $metadata: { httpStatusCode: 403 }
+    })
+  })
+  const s3Upload = new S3Upload(s3Client, "", "*", "bucket-owner-full-control")
+
+  await expect(
+    s3Upload.uploadToS3(
+      "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+      userId,
+      tdrFilesWithPath,
+      jest.fn(),
+      ""
+    )
+  ).rejects.toThrow("Access Denied")
+})
