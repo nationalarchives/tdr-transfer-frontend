@@ -32,9 +32,9 @@ class ConnectorSharePointController @Inject() (
     } else Ok(views.html.connectorforsharepoint.licence(request.isLoggedIn, request.name))
   }
 
-  def privacyPolicy(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+  def faq(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     if (blockPages) {
       notFound(request)
-    } else Ok(views.html.connectorforsharepoint.privacyPolicy(request.isLoggedIn, request.name))
+    } else Ok(views.html.connectorforsharepoint.faq(request.isLoggedIn, request.name))
   }
 }

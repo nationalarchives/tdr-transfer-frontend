@@ -51,11 +51,11 @@ class ConnectorSharePointControllerSpec extends FrontEndTestHelper {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(false)
       val controller = new ConnectorSharePointController(getAuthorisedSecurityComponents, mockConfig)
-      val help = controller.licence().apply(FakeRequest(GET, "/"))
-      val pageAsString = contentAsString(help)
+      val licence = controller.licence().apply(FakeRequest(GET, "/"))
+      val pageAsString = contentAsString(licence)
 
-      status(help) mustBe OK
-      contentType(help) mustBe Some("text/html")
+      status(licence) mustBe OK
+      contentType(licence) mustBe Some("text/html")
       checkLicencePageContent(pageAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = "standard", consignmentExists = false)
     }
@@ -64,11 +64,11 @@ class ConnectorSharePointControllerSpec extends FrontEndTestHelper {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(false)
       val controller = new ConnectorSharePointController(getUnauthorisedSecurityComponents, mockConfig)
-      val help = controller.licence().apply(FakeRequest(GET, "/"))
-      val pageAsString = contentAsString(help)
+      val licence = controller.licence().apply(FakeRequest(GET, "/"))
+      val pageAsString = contentAsString(licence)
 
-      status(help) mustBe OK
-      contentType(help) mustBe Some("text/html")
+      status(licence) mustBe OK
+      contentType(licence) mustBe Some("text/html")
       checkLicencePageContent(pageAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "standard", consignmentExists = false)
     }
@@ -77,44 +77,44 @@ class ConnectorSharePointControllerSpec extends FrontEndTestHelper {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(true)
       val controller = new ConnectorSharePointController(getUnauthorisedSecurityComponents, mockConfig)
-      val help = controller.licence().apply(FakeRequest(GET, "/"))
-      status(help) mustBe NOT_FOUND
-      contentType(help) mustBe Some("text/html")
+      val licence = controller.licence().apply(FakeRequest(GET, "/"))
+      status(licence) mustBe NOT_FOUND
+      contentType(licence) mustBe Some("text/html")
     }
 
-    "render the privacy policy page if a user is logged in" in {
+    "render the faq page if a user is logged in" in {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(false)
       val controller = new ConnectorSharePointController(getAuthorisedSecurityComponents, mockConfig)
-      val help = controller.privacyPolicy().apply(FakeRequest(GET, "/"))
-      val pageAsString = contentAsString(help)
+      val faq = controller.faq().apply(FakeRequest(GET, "/"))
+      val pageAsString = contentAsString(faq)
 
-      status(help) mustBe OK
-      contentType(help) mustBe Some("text/html")
-      checkPrivacyPolicyPageContent(pageAsString)
+      status(faq) mustBe OK
+      contentType(faq) mustBe Some("text/html")
+      checkFaqPageContent(pageAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = "standard", consignmentExists = false)
     }
 
-    "render the privacy policy page if a user is logged out" in {
+    "render the faq page if a user is logged out" in {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(false)
       val controller = new ConnectorSharePointController(getUnauthorisedSecurityComponents, mockConfig)
-      val help = controller.privacyPolicy().apply(FakeRequest(GET, "/"))
-      val pageAsString = contentAsString(help)
+      val faq = controller.faq().apply(FakeRequest(GET, "/"))
+      val pageAsString = contentAsString(faq)
 
-      status(help) mustBe OK
-      contentType(help) mustBe Some("text/html")
-      checkPrivacyPolicyPageContent(pageAsString)
+      status(faq) mustBe OK
+      contentType(faq) mustBe Some("text/html")
+      checkFaqPageContent(pageAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "standard", consignmentExists = false)
     }
 
-    "render not found error page when access to privacy policy page blocked" in {
+    "render not found error page when access to faq page blocked" in {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(true)
       val controller = new ConnectorSharePointController(getUnauthorisedSecurityComponents, mockConfig)
-      val help = controller.privacyPolicy().apply(FakeRequest(GET, "/"))
-      status(help) mustBe NOT_FOUND
-      contentType(help) mustBe Some("text/html")
+      val faq = controller.faq().apply(FakeRequest(GET, "/"))
+      status(faq) mustBe NOT_FOUND
+      contentType(faq) mustBe Some("text/html")
     }
   }
 
@@ -128,8 +128,8 @@ class ConnectorSharePointControllerSpec extends FrontEndTestHelper {
     pageAsString must include("""<h1 class="govuk-heading-l">TDR Connector for SharePoint Licence</h1>""")
   }
 
-  private def checkPrivacyPolicyPageContent(pageAsString: String): Unit = {
-    pageAsString must include("<title>TDR Connector for SharePoint Privacy Policy - Transfer Digital Records - GOV.UK</title>")
-    pageAsString must include("""<h1 class="govuk-heading-l">TDR Connector for SharePoint Privacy Policy</h1>""")
+  private def checkFaqPageContent(pageAsString: String): Unit = {
+    pageAsString must include("<title>TDR Connector for SharePoint Frequently Asked Questions - Transfer Digital Records - GOV.UK</title>")
+    pageAsString must include("""<h1 class="govuk-heading-l">TDR Connector for SharePoint Frequently Asked Questions</h1>""")
   }
 }
