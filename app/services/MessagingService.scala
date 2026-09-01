@@ -4,7 +4,7 @@ import configuration.ApplicationConfig
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax.EncoderOps
-import services.MessagingService.{MetadataReviewSubmittedEvent, MetadataReviewRequestEvent, TransferCompleteEvent}
+import services.MessagingService.{MetadataDownloadEvent, MetadataReviewSubmittedEvent, MetadataReviewRequestEvent, TransferCompleteEvent}
 import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.nationalarchives.aws.utils.sns.SNSClients.sns
@@ -14,27 +14,40 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class MessagingService @Inject() (val applicationConfig: ApplicationConfig)(implicit val ec: ExecutionContext) {
+  private val snsTopicArn = applicationConfig.notificationSnsTopicArn
   val client: SnsClient = sns(applicationConfig.snsEndpoint)
   val utils: SNSUtils = SNSUtils(client)
 
   implicit val transferCompletedEventEncoder: Encoder[TransferCompleteEvent] = deriveEncoder[TransferCompleteEvent]
+  implicit val metadataDownloadEventEncoder: Encoder[MetadataDownloadEvent] = deriveEncoder[MetadataDownloadEvent]
   implicit val metadataReviewRequestEventEncoder: Encoder[MetadataReviewRequestEvent] = deriveEncoder[MetadataReviewRequestEvent]
   implicit val metadataReviewSubmittedEventEncoder: Encoder[MetadataReviewSubmittedEvent] = deriveEncoder[MetadataReviewSubmittedEvent]
 
   def sendTransferCompleteNotification(transferCompletedEvent: TransferCompleteEvent): PublishResponse = {
-    utils.publish(transferCompletedEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+    utils.publish(transferCompletedEvent.asJson.toString, snsTopicArn)
   }
 
   def sendMetadataReviewRequestNotification(metadataReviewRequestEvent: MetadataReviewRequestEvent): PublishResponse = {
-    utils.publish(metadataReviewRequestEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+    utils.publish(metadataReviewRequestEvent.asJson.toString, snsTopicArn)
+  }
+
+  def sendMetadataDownloadNotification(metadataDownloadEvent: MetadataDownloadEvent): PublishResponse = {
+    utils.publish(metadataDownloadEvent.asJson.toString, snsTopicArn)
   }
 
   def sendMetadataReviewSubmittedNotification(metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent): PublishResponse = {
-    utils.publish(metadataReviewSubmittedEvent.asJson.toString, applicationConfig.notificationSnsTopicArn)
+    utils.publish(metadataReviewSubmittedEvent.asJson.toString, snsTopicArn)
   }
 }
 
 object MessagingService {
+  case class MetadataDownloadEvent(
+      environment: String,
+      userId: String,
+      userName: String,
+      consignmentId: String,
+      consignmentReference: String
+  )
   case class TransferCompleteEvent(
       transferringBodyName: Option[String],
       consignmentReference: String,
