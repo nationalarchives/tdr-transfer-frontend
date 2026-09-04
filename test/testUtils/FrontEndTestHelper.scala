@@ -37,7 +37,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
-import org.pac4j.core.context.session.{SessionStore, SessionStoreFactory}
+import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.context.{CallContext, FrameworkParameters}
 import org.pac4j.core.engine.DefaultSecurityLogic
 import org.pac4j.core.http.ajax.AjaxRequestResolver
@@ -76,6 +76,7 @@ import java.net.URI
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
+import scala.compat.java8.FunctionConverters.enrichAsJavaFunction
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -432,7 +433,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   def getValidKeycloakConfiguration: KeycloakConfiguration = {
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
-    accessToken.setOtherClaims("body", "Body")
+    accessToken.setOtherClaims("bodies", java.util.Arrays.asList("Body"))
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
@@ -442,7 +443,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   def getValidStandardUserKeycloakConfiguration: KeycloakConfiguration = {
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
-    accessToken.setOtherClaims("body", "Body")
+    accessToken.setOtherClaims("bodies", java.util.Arrays.asList("Body"))
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("standard_user", "true")
     accessToken.setName("Standard Username")
@@ -455,7 +456,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   def getValidJudgmentUserKeycloakConfiguration: KeycloakConfiguration = {
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
-    accessToken.setOtherClaims("body", "Body")
+    accessToken.setOtherClaims("bodies", java.util.Arrays.asList("Body"))
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("judgment_user", "true")
     accessToken.setName("Judgment Username")

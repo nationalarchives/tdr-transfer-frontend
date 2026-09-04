@@ -212,8 +212,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken).futureValue
 
-      val expectedJson = "{\"query\":\"query getSeries($body:String!)" +
-        "{getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
+      val expectedJson = "{\"query\":\"query getSeries($bodies:[String!]!)" +
+        "{getSeries(bodies:$bodies){seriesid bodyid name code description}}\",\"variables\":{\"bodies\":[\"Body\"]}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
     }
 
