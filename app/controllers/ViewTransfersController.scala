@@ -40,10 +40,6 @@ class ViewTransfersController @Inject() (
     def filterNonJudgmentStatuses: List[ConsignmentStatuses] = {
       statuses.map(s => toStatusType(s.statusType) -> s).filterNot(_._1.nonJudgmentStatus).map(_._2)
     }
-
-    def filterFileChecksStatuses: List[ConsignmentStatuses] = {
-      statuses.map(s => toStatusType(s.statusType) -> s).filter(_._1.fileCheckStatus).map(_._2)
-    }
   }
 
   def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
@@ -95,87 +91,272 @@ class ViewTransfersController @Inject() (
     }
 
     statusesToCheck match {
-      case s if s.containsStatuses(ExportType) => toExportAction(s.find(_.statusType == ExportType.id).get, judgmentType, consignmentId, consignmentRef)
-      case s if s.statusValue(ConfirmTransferType).contains(CompletedValue.value) =>
-        UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
-      case s if s.containsStatuses(MetadataReviewType) =>
-        UserAction(InReview.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
-      case s if s.containsStatuses(DraftMetadataType) =>
-        toDraftMetadataAction(s.find(_.statusType == DraftMetadataType.id).get, consignmentId)
+      case s if s.containsStatuses(ExportType) =>
+        ExportAction.validateStatuses(consignmentId, judgmentTransfer = Some(judgmentType), statuses = s, consignmentReference = Some(consignmentRef))
+      case s if s.statusValue(ConfirmTransferType).contains(CompletedValue.value) => ConfirmTransferAction.validateStatuses(consignmentId, statuses = s)
+      case s if s.containsStatuses(MetadataReviewType)                            => MetadataReviewAction.validateStatuses(consignmentId, statuses = s)
+      case s if s.containsStatuses(DraftMetadataType)                             =>
+        DraftMetadataAction.validateStatuses(consignmentId, judgmentTransfer = Some(judgmentType), statuses = s)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
-        toFileChecksAction(s, judgmentType, consignmentId)
-      case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
-      case s if s.containsStatuses(TransferAgreementType)        =>
-        toTransferAgreementAction(s.find(_.statusType == TransferAgreementType.id).get, consignmentId)
+        FileChecksAction.validateStatuses(consignmentId, judgmentTransfer = Some(judgmentType), statuses = s)
+      case s if s.containsStatuses(ClientChecksType, UploadType) =>
+        ClientSideChecksAction.validateStatuses(consignmentId, judgmentTransfer = Some(judgmentType), statuses = s)
+      case s if s.containsStatuses(TransferAgreementType) =>
+        TransferAgreementAction.validateStatuses(consignmentId, judgmentTransfer = Some(judgmentType), statuses = s)
       case s if s.containsStatuses(SeriesType) =>
-        toSeriesAction(s.find(_.statusType == SeriesType.id).get, consignmentId)
-      case s if s.isEmpty => toStartAction(consignmentId, judgmentType)
-      case _              => toContactUsAction(consignmentRef)
+        SeriesAction.validateStatuses(consignmentId, judgmentTransfer = Some(judgmentType), statuses = s)
+      case s if s.isEmpty => StartAction.validateStatuses(consignmentId, judgmentTransfer = Some(judgmentType), statuses = s)
+      case _              => ContactUsAction.validateStatuses(consignmentId, consignmentReference = Some(consignmentRef), statuses = Nil)
     }
   }
+}
 
-  private def toDraftMetadataAction(status: ConsignmentStatuses, consignmentId: UUID) = {
-    status.value match {
-      case CompletedValue.value | SkippedValue.value => UserAction(InProgress.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, Resume.value)
-      case CompletedWithIssuesValue.value            =>
-        UserAction(InProgress.value, routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, Resume.value)
-      case _ => UserAction(InProgress.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, Resume.value)
-    }
+case class ConsignmentTransfers(
+    consignmentId: Option[UUID],
+    reference: String,
+    status: String,
+    statusColour: String,
+    userAction: UserAction,
+    dateOfTransfer: String,
+    dateStarted: String,
+    numberOfFiles: Int
+)
+
+trait StatusAction {
+  val transferStatusDefault: TransferStatus
+  val actionTextDefault: ActionText
+  val requiredCompletedStatuses: List[StatusType]
+
+  private def generateMissingStatusUserActions(consignmentId: UUID): Map[StatusType, UserAction] =
+    Map(
+      SeriesType -> UserAction(InProgress.value, routes.SeriesDetailsController.seriesDetails(consignmentId).url, Resume.value)
+    )
+
+  protected def findActionStatus(actionStatus: StatusType, statuses: List[ConsignmentStatuses]): Option[ConsignmentStatuses] = {
+    statuses.find(_.statusType == actionStatus.id)
   }
 
-  private def toExportAction(status: ConsignmentStatuses, judgmentType: Boolean, consignmentId: UUID, consignmentRef: String): UserAction = {
-    val actionText = if (judgmentType) View.value else Download.value
-    val url =
-      if (judgmentType) routes.TransferCompleteController.judgmentTransferComplete(consignmentId).url
-      else routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url
-    status.value match {
+  protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean] = None,
+      consignmentReference: Option[String] = None
+  ): UserAction
+
+  def validateStatuses(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean] = None,
+      consignmentReference: Option[String] = None
+  ): UserAction = {
+
+    val defaultUserActions = generateMissingStatusUserActions(consignmentId)
+    val statusesPresent = statuses.map(_.statusType)
+    val statusesRequired = requiredCompletedStatuses.map(_.id)
+
+    val missingStatuses = statusesRequired.diff(statusesPresent)
+
+    missingStatuses match {
+      case _ if missingStatuses.contains(SeriesType.id) =>
+        defaultUserActions(SeriesType)
+      case _ => toUserAction(consignmentId, statuses, judgmentTransfer, consignmentReference)
+    }
+  }
+}
+
+case object ConfirmTransferAction extends StatusAction {
+  override val transferStatusDefault: TransferStatus = InProgress
+  override val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  override protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean] = None,
+      consignmentReference: Option[String] = None
+  ): UserAction = {
+    UserAction(transferStatusDefault.value, routes.TransferCompleteController.transferComplete(consignmentId).url, actionTextDefault.value)
+  }
+}
+
+case object MetadataReviewAction extends StatusAction {
+  override val transferStatusDefault: TransferStatus = InReview
+  override val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  override protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean] = None,
+      consignmentReference: Option[String] = None
+  ): UserAction = {
+    UserAction(transferStatusDefault.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, actionTextDefault.value)
+  }
+}
+
+case object TransferAgreementAction extends StatusAction {
+  private val actionStatus: StatusType = TransferAgreementType
+  override val transferStatusDefault: TransferStatus = InProgress
+  override val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  override protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean],
+      consignmentReference: Option[String]
+  ): UserAction = {
+    val transferAgreementStatus = statuses.find(_.statusType == actionStatus.id).get
+
+    val url = transferAgreementStatus.value match {
+      case v if v == InProgressValue.value => routes.TransferAgreementPart2Controller.transferAgreement(consignmentId).url
+      case _                               => routes.UploadController.uploadPage(consignmentId).url
+    }
+
+    UserAction(transferStatusDefault.value, url, actionTextDefault.value)
+  }
+}
+
+case object SeriesAction extends StatusAction {
+  private val actionStatus: StatusType = SeriesType
+  override val transferStatusDefault: TransferStatus = InProgress
+  override val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  override protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean],
+      consignmentReference: Option[String]
+  ): UserAction = {
+    val seriesStatus = findActionStatus(actionStatus, statuses).get
+
+    seriesStatus.value match {
+      case v if v == InProgressValue.value =>
+        UserAction(transferStatusDefault.value, routes.SeriesDetailsController.seriesDetails(consignmentId).url, actionTextDefault.value)
+      case _ =>
+        UserAction(transferStatusDefault.value, routes.TransferAgreementPart1Controller.transferAgreement(consignmentId).url, actionTextDefault.value)
+    }
+  }
+}
+
+case object ExportAction extends StatusAction {
+  private val actionStatus: StatusType = ExportType
+  override val transferStatusDefault: TransferStatus = Transferred
+  override val actionTextDefault: ActionText = Download
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  override protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean],
+      consignmentReference: Option[String]
+  ): UserAction = {
+
+    val (url, actionText) = judgmentTransfer match {
+      case Some(value) if value => (routes.TransferCompleteController.judgmentTransferComplete(consignmentId).url, View.value)
+      case _                    => (routes.DownloadMetadataController.downloadMetadataFile(consignmentId, None).url, actionTextDefault.value)
+    }
+
+    val exportStatus = findActionStatus(actionStatus, statuses).get
+
+    exportStatus.value match {
       // Even though export is InProgress once a user clicks export there is nothing else they can do, hence setting the status to transferred
-      case InProgressValue.value | CompletedValue.value => UserAction(Transferred.value, url, actionText)
-      case FailedValue.value                            => UserAction(Failed.value, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", ContactUs.value)
-      case _                                            => toContactUsAction(consignmentRef)
+      case InProgressValue.value | CompletedValue.value => UserAction(transferStatusDefault.value, url, actionText)
+      case FailedValue.value                            =>
+        UserAction(Failed.value, s"""mailto:%s?subject=Ref: ${consignmentReference.get} - Export failure""", ContactUs.value)
+      case _ => ContactUsAction.toUserAction(consignmentId, consignmentReference = consignmentReference)
     }
   }
+}
 
-  private def toContactUsAction(consignmentRef: String): UserAction = {
-    UserAction(ContactUs.value, s"mailto:%s?subject=Ref: $consignmentRef - Issue With Transfer", ContactUs.value)
+case object DraftMetadataAction extends StatusAction {
+  private val actionStatus: StatusType = DraftMetadataType
+  override val transferStatusDefault: TransferStatus = InProgress
+  override val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  override protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean],
+      consignmentReference: Option[String]
+  ): UserAction = {
+    val draftMetadataStatus = findActionStatus(actionStatus, statuses).get
+    draftMetadataStatus.value match {
+      case CompletedValue.value | SkippedValue.value =>
+        UserAction(transferStatusDefault.value, routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, actionTextDefault.value)
+      case CompletedWithIssuesValue.value =>
+        UserAction(
+          transferStatusDefault.value,
+          routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url,
+          actionTextDefault.value
+        )
+      case _ => UserAction(transferStatusDefault.value, routes.PrepareMetadataController.prepareMetadata(consignmentId).url, actionTextDefault.value)
+    }
   }
+}
 
-  private def toFileChecksAction(statuses: List[ConsignmentStatuses], judgmentType: Boolean, consignmentId: UUID): UserAction = {
-    val checksUrl = if (judgmentType) {
-      routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url
-    } else {
-      routes.FileChecksController.fileChecksPage(consignmentId, None).url
+case object FileChecksAction extends StatusAction {
+  override val transferStatusDefault: TransferStatus = InProgress
+  override val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  protected def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean],
+      consignmentReference: Option[String]
+  ): UserAction = {
+    val (checksUrl, resultsUrl) = judgmentTransfer match {
+      case Some(value) if value =>
+        (
+          routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url,
+          routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId, None).url
+        )
+      case _ =>
+        (routes.FileChecksController.fileChecksPage(consignmentId, None).url, routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url)
     }
 
-    val resultsUrl = if (judgmentType) {
-      routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId, None).url
-    } else {
-      routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url
-    }
-
-    val fileChecksStatuses: List[String] = statuses.filterFileChecksStatuses.map(_.value)
+    val fileChecksStatuses: List[String] = statuses
+      .map(s => toStatusType(s.statusType) -> s)
+      .filter(_._1.fileCheckStatus)
+      .map(_._2)
+      .map(_.value)
 
     fileChecksStatuses match {
       case fcs if fcs.contains(FailedValue.value) || fcs.contains(CompletedWithIssuesValue.value) =>
         UserAction(Failed.value, resultsUrl, Errors.value)
       case fcs if fcs.contains(InProgressValue.value) || fcs.size < 4 =>
-        UserAction(InProgress.value, checksUrl, Resume.value)
+        UserAction(transferStatusDefault.value, checksUrl, actionTextDefault.value)
       case _ =>
-        UserAction(InProgress.value, resultsUrl, Resume.value)
+        UserAction(transferStatusDefault.value, resultsUrl, actionTextDefault.value)
     }
   }
+}
 
-  private def toClientSideChecksAction(statuses: List[ConsignmentStatuses], consignmentId: UUID, judgmentType: Boolean): UserAction = {
-    val uploadUrl = if (judgmentType) {
-      routes.UploadController.judgmentUploadPage(consignmentId).url
-    } else {
-      routes.UploadController.uploadPage(consignmentId).url
-    }
+case object ClientSideChecksAction extends StatusAction {
+  val transferStatusDefault: TransferStatus = InProgress
+  val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
 
-    val checksUrl = if (judgmentType) {
-      routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url
-    } else {
-      routes.FileChecksController.fileChecksPage(consignmentId, None).url
+  override def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean],
+      consignmentReference: Option[String] = None
+  ): UserAction = {
+    val (uploadUrl, checksUrl) = judgmentTransfer match {
+      case Some(value) if value =>
+        (
+          routes.UploadController.judgmentUploadPage(consignmentId).url,
+          routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url
+        )
+      case _ =>
+        (
+          routes.UploadController.uploadPage(consignmentId).url,
+          routes.FileChecksController.fileChecksPage(consignmentId, None).url
+        )
     }
 
     val checkStatuses = statuses.filter(s => s.statusType == ClientChecksType.id || s.statusType == UploadType.id)
@@ -191,45 +372,52 @@ class ViewTransfersController @Inject() (
         UserAction(InProgress.value, checksUrl, Resume.value)
     }
   }
+}
+case object StartAction extends StatusAction {
+  val transferStatusDefault: TransferStatus = InProgress
+  val actionTextDefault: ActionText = Resume
+  override val requiredCompletedStatuses: List[StatusType] = Nil
 
-  private def toTransferAgreementAction(status: ConsignmentStatuses, consignmentId: UUID): UserAction = {
-    status.value match {
-      case v if v == InProgressValue.value =>
-        UserAction(InProgress.value, routes.TransferAgreementPart2Controller.transferAgreement(consignmentId).url, Resume.value)
-      case _ =>
-        UserAction(InProgress.value, routes.UploadController.uploadPage(consignmentId).url, Resume.value)
+  def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses] = Nil,
+      judgmentTransfer: Option[Boolean],
+      consignmentReference: Option[String] = None
+  ): UserAction = {
+    val startUrl = judgmentTransfer match {
+      case Some(value) if value => routes.BeforeUploadingController.beforeUploading(consignmentId).url
+      case _                    => routes.SeriesDetailsController.seriesDetails(consignmentId).url
     }
+    UserAction(transferStatusDefault.value, startUrl, actionTextDefault.value)
   }
 
-  private def toSeriesAction(status: ConsignmentStatuses, consignmentId: UUID): UserAction = {
-    status.value match {
-      case v if v == InProgressValue.value =>
-        UserAction(InProgress.value, routes.SeriesDetailsController.seriesDetails(consignmentId).url, Resume.value)
-      case _ =>
-        UserAction(InProgress.value, routes.TransferAgreementPart1Controller.transferAgreement(consignmentId).url, Resume.value)
+  override def validateStatuses(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses],
+      judgmentTransfer: Option[Boolean] = None,
+      consignmentReference: Option[String] = None
+  ): UserAction = {
+    judgmentTransfer match {
+      case Some(value) if value => toUserAction(consignmentId, judgmentTransfer = judgmentTransfer)
+      case _                    => super.validateStatuses(consignmentId, statuses, judgmentTransfer, consignmentReference)
     }
-  }
-
-  private def toStartAction(consignmentId: UUID, judgmentType: Boolean): UserAction = {
-    val startUrl = if (judgmentType) {
-      routes.BeforeUploadingController.beforeUploading(consignmentId).url
-    } else {
-      routes.SeriesDetailsController.seriesDetails(consignmentId).url
-    }
-    UserAction(InProgress.value, startUrl, Resume.value)
   }
 }
 
-case class ConsignmentTransfers(
-    consignmentId: Option[UUID],
-    reference: String,
-    status: String,
-    statusColour: String,
-    userAction: UserAction,
-    dateOfTransfer: String,
-    dateStarted: String,
-    numberOfFiles: Int
-)
+case object ContactUsAction extends StatusAction {
+  val transferStatusDefault: TransferStatus = ContactUs
+  val actionTextDefault: ActionText = ContactUs
+  override val requiredCompletedStatuses: List[StatusType] = Nil
+
+  def toUserAction(
+      consignmentId: UUID,
+      statuses: List[ConsignmentStatuses] = Nil,
+      judgmentTransfer: Option[Boolean] = None,
+      consignmentReference: Option[String]
+  ): UserAction = {
+    UserAction(transferStatusDefault.value, s"mailto:%s?subject=Ref: ${consignmentReference.get} - Issue With Transfer", actionTextDefault.value)
+  }
+}
 
 case class UserAction(transferStatus: String, actionUrl: String, actionText: String)
 
