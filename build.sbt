@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
-  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.48",
+  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.50",
   "ch.qos.logback" % "logback-classic" % "1.6.3",
   ws,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
