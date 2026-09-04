@@ -18,6 +18,9 @@ export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
   clientFileExtractMetadata: ClientFileExtractMetadata
   s3Upload: S3Upload
+  private progressBarElement: HTMLDivElement | null = null
+  private progressLabelElement: HTMLDivElement | null = null
+  private renderedPercent: number | null = null
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
@@ -29,20 +32,22 @@ export class ClientFileProcessing {
   }
 
   renderWeightedPercent = (weightedPercent: number) => {
-    const progressBarElement: HTMLDivElement | null =
-      document.querySelector(".progress-display")
-    const progressLabelElement: HTMLDivElement | null =
-      document.querySelector("#upload-percentage")
+    if (this.renderedPercent === weightedPercent) {
+      return
+    }
 
-    const currentPercentageWithSign = progressLabelElement?.innerText
-    const stringWeightedPercentage = weightedPercent.toString()
-    const stringWeightedPercentageWithSign = `${stringWeightedPercentage}%`
+    // The progress callback fires for every file, so the elements are looked up once
+    // rather than on each of the thousands of updates a large consignment produces.
+    this.progressBarElement ??= document.querySelector(".progress-display")
+    this.progressLabelElement ??= document.querySelector("#upload-percentage")
 
-    if (
-      progressBarElement &&
-      progressLabelElement &&
-      stringWeightedPercentageWithSign !== currentPercentageWithSign
-    ) {
+    const progressBarElement = this.progressBarElement
+    const progressLabelElement = this.progressLabelElement
+
+    if (progressBarElement && progressLabelElement) {
+      this.renderedPercent = weightedPercent
+      const stringWeightedPercentage = weightedPercent.toString()
+      const stringWeightedPercentageWithSign = `${stringWeightedPercentage}%`
       progressLabelElement.innerText = stringWeightedPercentageWithSign
       progressBarElement.style.width = stringWeightedPercentageWithSign
       progressBarElement.setAttribute("aria-valuenow", stringWeightedPercentage)

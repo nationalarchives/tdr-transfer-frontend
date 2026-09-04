@@ -1,11 +1,14 @@
-import { ITdrFileWithPath, IUploadResult, S3Upload } from "../src/s3upload"
+import {
+  defaultUploadConcurrency,
+  ITdrFileWithPath,
+  IUploadResult,
+  S3Upload
+} from "../src/s3upload"
 import { isError } from "../src/errorhandling"
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
-import {
-  IProgressInformation
-} from "@nationalarchives/file-information"
+import { IProgressInformation } from "@nationalarchives/file-information"
 import { EntryKind, IFileEntry } from "../src/upload/form/file-types"
-import {AwsClientStub, mockClient} from "aws-sdk-client-mock"
+import { AwsClientStub, mockClient } from "aws-sdk-client-mock"
 
 import {
   CreateMultipartUploadCommand,
@@ -32,7 +35,7 @@ interface ITdrFileWithPathAndBits extends ITdrFileWithPath {
 }
 
 const s3Mock = mockClient(S3Client)
-const s3Client = new S3Client({region: "eu-west-2"})
+const s3Client = new S3Client({ region: "eu-west-2" })
 
 const userId = "b088d123-1280-4959-91ca-74858f7ba226"
 
@@ -197,7 +200,7 @@ test("a single file upload returns an error if it fails", async () => {
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
   const s3Upload = new S3Upload(s3Client, "", "", "bucket-owner-full-control")
 
-  const result: | IUploadResult | Error = await s3Upload.uploadToS3(
+  const result: IUploadResult | Error = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
     [tdrFileWithPath],
@@ -268,10 +271,10 @@ test("multiple file uploads return the correct params and should call addFileSta
   s3Mock.reset()
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
   const s3Upload = new S3Upload(
-      s3Client,
+    s3Client,
     "https://tdr-fake-url.com/fake",
-      "*",
-      "bucket-owner-full-control"
+    "*",
+    "bucket-owner-full-control"
   )
 
   await s3Upload.uploadToS3(
@@ -298,13 +301,18 @@ test("multiple file uploads return the correct params and should call addFileSta
   fileIds.forEach((fileId) => {
     const fileIndex = fileIds.indexOf(fileId)
     const tdrFileWithPath = tdrFilesWithPathAndBits[fileIndex]
-    const putObjectParams = getPutObjectParamsUploaded(fileIndex)
+    const putObjectParams = getPutObjectParamsUploaded(fileIndex) as {
+      Body: unknown
+    }
 
-    expect(putObjectParams).toEqual({
+    // Files below the multipart threshold are sent as the File itself so that the
+    // browser streams them, rather than being copied into the JavaScript heap first.
+    expect(putObjectParams.Body).toBe(tdrFileWithPath.fileWithPath.file)
+    expect({ ...putObjectParams, Body: undefined }).toEqual({
       Key: `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileId}`,
       Bucket: "tdr-fake-url.com/fake",
       ACL: "bucket-owner-full-control",
-      Body: tdrFileWithPath.bits,
+      Body: undefined,
       IfNoneMatch: "*"
     })
   })
@@ -324,10 +332,10 @@ test("multiple file uploads return errors if they fail", async () => {
   s3Mock.reset()
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
   const s3Upload = new S3Upload(
-      s3Client,
+    s3Client,
     "https://tdr-fake-url.com/fake",
-      "",
-      "bucket-owner-full-control"
+    "",
+    "bucket-owner-full-control"
   )
 
   const result = await s3Upload.uploadToS3(
@@ -501,4 +509,213 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
       byteSizeofAllFiles + numberOfFilesWithZeroBytes
     )
   }
+})
+
+test("file uploads run concurrently, limited to the configured concurrency", async () => {
+  const tdrFilesWithPath: ITdrFileWithPath[] = Array.from({ length: 20 }, () =>
+    createTdrFile({})
+  )
+  let inFlight = 0
+  let maxInFlight = 0
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(async () => {
+    inFlight += 1
+    maxInFlight = Math.max(maxInFlight, inFlight)
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    inFlight -= 1
+    return { $metadata: { httpStatusCode: 200 } }
+  })
+  const s3Upload = new S3Upload(
+    s3Client,
+    "",
+    "",
+    "bucket-owner-full-control",
+    4
+  )
+
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    tdrFilesWithPath,
+    jest.fn(),
+    ""
+  )
+
+  expect(isError(result)).toBe(false)
+  expect(maxInFlight).toEqual(4)
+  expect(s3Mock.calls()).toHaveLength(20)
+})
+
+test("file uploads are concurrent by default", async () => {
+  const tdrFilesWithPath: ITdrFileWithPath[] = Array.from(
+    { length: defaultUploadConcurrency * 2 },
+    () => createTdrFile({})
+  )
+  let inFlight = 0
+  let maxInFlight = 0
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(async () => {
+    inFlight += 1
+    maxInFlight = Math.max(maxInFlight, inFlight)
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    inFlight -= 1
+    return { $metadata: { httpStatusCode: 200 } }
+  })
+  const s3Upload = new S3Upload(s3Client, "", "", "bucket-owner-full-control")
+
+  await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    tdrFilesWithPath,
+    jest.fn(),
+    ""
+  )
+
+  expect(maxInFlight).toEqual(defaultUploadConcurrency)
+})
+
+test("concurrent uploads return send data in the order the files were provided", async () => {
+  const fileIds = [
+    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
+    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
+    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
+    "6b6694d0-814c-4978-8dee-56ec920a0102"
+  ]
+  const tdrFilesWithPath: ITdrFileWithPath[] = fileIds.map((fileId) =>
+    createTdrFile({ fileId })
+  )
+  s3Mock.reset()
+  // Later files finish first so the results cannot simply be in completion order.
+  s3Mock.on(PutObjectCommand).callsFake(async (input: { Key: string }) => {
+    const delay =
+      (fileIds.length - fileIds.indexOf(input.Key.split("/")[2])) * 5
+    await new Promise((resolve) => setTimeout(resolve, delay))
+    return { $metadata: { httpStatusCode: 200 }, ETag: input.Key }
+  })
+  const s3Upload = new S3Upload(s3Client, "", "", "bucket-owner-full-control")
+
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    tdrFilesWithPath,
+    jest.fn(),
+    ""
+  )
+
+  expect(isError(result)).toBe(false)
+  if (!isError(result)) {
+    expect(
+      result.sendData.map((data) => (data as { ETag: string }).ETag)
+    ).toEqual(
+      fileIds.map(
+        (fileId) => `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileId}`
+      )
+    )
+  }
+})
+
+test("a failure stops further files being uploaded and rejects with the error", async () => {
+  const tdrFilesWithPath: ITdrFileWithPath[] = Array.from({ length: 50 }, () =>
+    createTdrFile({})
+  )
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).rejects("error")
+  const s3Upload = new S3Upload(
+    s3Client,
+    "",
+    "",
+    "bucket-owner-full-control",
+    5
+  )
+
+  await expect(
+    s3Upload.uploadToS3(
+      "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+      userId,
+      tdrFilesWithPath,
+      jest.fn(),
+      ""
+    )
+  ).rejects.toEqual(Error("error"))
+
+  expect(s3Mock.calls().length).toBeLessThanOrEqual(5)
+})
+
+const preconditionFailedError = () =>
+  Object.assign(
+    new Error("At least one of the pre-conditions you specified did not hold"),
+    { name: "PreconditionFailed", $metadata: { httpStatusCode: 412 } }
+  )
+
+test("a file the retry finds already in S3 is not treated as a failure", async () => {
+  const tdrFileWithPath = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+  })
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(() => {
+    throw preconditionFailedError()
+  })
+  const s3Upload = new S3Upload(s3Client, "", "*", "bucket-owner-full-control")
+
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    [tdrFileWithPath],
+    jest.fn(),
+    ""
+  )
+
+  expect(isError(result)).toBe(false)
+  // The file is already in S3, so it must not be marked as failed.
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+test("a file the retry finds already in S3 still counts towards progress", async () => {
+  const callback = jest.fn()
+  const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}, {}, {}].map(
+    (tdrFileParams) => createTdrFile(tdrFileParams)
+  )
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(() => {
+    throw preconditionFailedError()
+  })
+  const s3Upload = new S3Upload(s3Client, "", "*", "bucket-owner-full-control")
+
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    tdrFilesWithPath,
+    callback,
+    ""
+  )
+
+  expect(isError(result)).toBe(false)
+  if (!isError(result)) {
+    expect(result.processedChunks).toEqual(result.totalChunks)
+  }
+  checkCallbackCalls(callback, 4, [25, 50, 75, 100])
+})
+
+test("an error that is not a precondition failure still stops the upload", async () => {
+  const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}].map((tdrFileParams) =>
+    createTdrFile(tdrFileParams)
+  )
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).callsFake(() => {
+    throw Object.assign(new Error("Access Denied"), {
+      name: "AccessDenied",
+      $metadata: { httpStatusCode: 403 }
+    })
+  })
+  const s3Upload = new S3Upload(s3Client, "", "*", "bucket-owner-full-control")
+
+  await expect(
+    s3Upload.uploadToS3(
+      "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+      userId,
+      tdrFilesWithPath,
+      jest.fn(),
+      ""
+    )
+  ).rejects.toThrow("Access Denied")
 })
