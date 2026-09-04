@@ -4,13 +4,17 @@ import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.RedirectUtils
+import graphql.codegen.GetConsignmentSummary.getConsignmentSummary.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc._
+import services.MessagingService.TransferCompleteEvent
 import services.Statuses._
 import services._
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.SkippedValue
+import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -25,6 +29,7 @@ class ConfirmTransferController @Inject() (
     val confirmTransferService: ConfirmTransferService,
     val consignmentExportService: ConsignmentExportService,
     val consignmentStatusService: ConsignmentStatusService,
+    val messagingService: MessagingService,
     val applicationConfig: ApplicationConfig,
     langs: Langs
 )(implicit val ec: ExecutionContext)
@@ -73,14 +78,19 @@ class ConfirmTransferController @Inject() (
             case None =>
               if (applicationConfig.blockSkipMetadataReview) {
                 val metadataReviewType = consignmentStatuses.find(_.statusType == MetadataReviewType.id)
-                if (metadataReviewType.isEmpty) {
-                  Future(Redirect(routes.PrepareMetadataController.prepareMetadata(consignmentId)))
-                } else {
-                  getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
-                    RedirectUtils.redirectIfReviewNotCompleted(consignmentId, consignmentStatuses)(
+                val draftMetadataSkipped = consignmentStatuses.exists(s => s.statusType == DraftMetadataType.id && s.value == SkippedValue.value)
+                (metadataReviewType, draftMetadataSkipped) match {
+                  case (None, true) =>
+                    getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
                       httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
-                    )
-                  }
+                    }
+                  case (None, false) => Future(Redirect(routes.PrepareMetadataController.prepareMetadata(consignmentId)))
+                  case (_, _)        =>
+                    getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
+                      RedirectUtils.redirectIfReviewNotCompleted(consignmentId, consignmentStatuses)(
+                        httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+                      )
+                    }
                 }
               } else {
                 getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
@@ -92,6 +102,19 @@ class ConfirmTransferController @Inject() (
           }
         )
     }
+  }
+
+  private def sendTransferCompletedNotification(transferSummary: GetConsignment, consignmentId: UUID, token: Token) = {
+    messagingService.sendTransferCompleteNotification(
+      TransferCompleteEvent(
+        transferringBodyName = transferSummary.transferringBodyName,
+        consignmentReference = transferSummary.consignmentReference,
+        consignmentId = consignmentId.toString,
+        seriesName = transferSummary.seriesName,
+        userId = token.userId.toString,
+        userEmail = token.email
+      )
+    )
   }
 
   def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -118,7 +141,11 @@ class ConfirmTransferController @Inject() (
                 _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
                 _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)
                 _ <- consignmentExportService.triggerExport(consignmentId, consignmentRef, request.token)
-              } yield Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
+                consignmentTransferSummary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
+                _ = sendTransferCompletedNotification(consignmentTransferSummary, consignmentId, request.token)
+              } yield {
+                Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
+              }
             case _ =>
               throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")
           }

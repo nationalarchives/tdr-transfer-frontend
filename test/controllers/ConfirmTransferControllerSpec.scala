@@ -3,9 +3,6 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import errors.AuthorisationException
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -15,15 +12,20 @@ import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{clearInvocations, times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.prop.TableFor2
 import play.api.Play.materializer
 import play.api.i18n.Langs
 import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
+import services.MessagingService.TransferCompleteEvent
+import services.Statuses.{CompletedValue, StatusValue}
 import services._
 import testUtils.DefaultMockFormOptions.expectedConfirmTransferOptions
 import testUtils.{CheckPageForStaticElements, EnglishLang, FormTester, FrontEndTestHelper}
@@ -37,6 +39,8 @@ import scala.concurrent.ExecutionContext
 class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
+  private val mockMessageService = mock[MessagingService]
+
   val wiremockSfnServer = new WireMockServer(9003)
   val wiremockServer = new WireMockServer(9006)
   val wiremockExportServer = new WireMockServer(9007)
@@ -45,6 +49,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     wiremockServer.start()
     wiremockExportServer.start()
     wiremockSfnServer.start()
+    clearInvocations(mockMessageService)
   }
 
   override def afterEach(): Unit = {
@@ -180,6 +185,34 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(confirmTransferPage) mustBe SEE_OTHER
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/draft-metadata/prepare-metadata")
+    }
+
+    "render the confirm transfer page when draft metadata was skipped and MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "DraftMetadata", "Skipped", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      mockGraphqlConsignmentSummaryResponse(dataString)
+
+      val confirmTransferPage = controller
+        .confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+
+      val confirmTransferPageAsString = contentAsString(confirmTransferPage)
+
+      playStatus(confirmTransferPage) mustBe OK
+      contentType(confirmTransferPage) mustBe Some("text/html")
+      checkConfirmTransferContent(confirmTransferPageAsString, consignmentSummaryResponse)
     }
 
     "redirect to the review progress page with an authenticated user if the MetadataReview status is 'InProgress' & blockSkipMetadataReview is 'true'" in {
@@ -330,6 +363,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val failure: Throwable = confirmTransferPage.failed.futureValue
 
       failure mustBe an[AuthorisationException]
+      verify(mockMessageService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
     "display correct errors when an empty final transfer confirmation form is submitted" in {
@@ -369,6 +403,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       mockGraphqlConsignmentSummaryResponse()
       mockSfnResponseOk(wiremockSfnServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller
@@ -398,6 +433,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
       failure mustBe an[Exception]
+      verify(mockMessageService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
     "throw an authorisation exception when the user does not have permission to save the transfer confirmation" in {
@@ -424,6 +460,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
 
       failure mustBe an[AuthorisationException]
+      verify(mockMessageService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
     "redirects to the transfer complete page when a valid form is submitted" in {
@@ -433,6 +470,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       mockGraphqlConsignmentSummaryResponse()
       mockSfnResponseOk(wiremockSfnServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult: Result = controller
@@ -443,7 +481,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
             .withCSRFToken
         )
         .futureValue
-
+      verify(mockMessageService, times(1)).sendTransferCompleteNotification(any[TransferCompleteEvent])
       finalTransferConfirmationSubmitResult.header.status should equal(303)
     }
 
@@ -466,6 +504,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       finalTransferConfirmationSubmitError mustBe an[Exception]
+      verify(mockMessageService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
     "triggers the export step function when a valid form is submitted" in {
@@ -475,6 +514,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       mockGraphqlConsignmentSummaryResponse()
       mockSfnResponseOk(wiremockSfnServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller
@@ -487,6 +527,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       wiremockSfnServer.getAllServeEvents.size() should equal(1)
+      verify(mockMessageService, times(1)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
     "return an error when the call to the graphql api fails" in {
@@ -510,15 +551,17 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       finalTransferConfirmationSubmitError.getMessage should startWith("Unexpected response from GraphQL API")
+      verify(mockMessageService, times(0)).sendTransferCompleteNotification(any[TransferCompleteEvent])
     }
 
-    "calls the graphql api four times when a valid form is submitted" in {
+    "calls the graphql api correct number of times when a valid form is submitted" in {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
       mockGraphqlConsignmentSummaryResponse()
       mockSfnResponseOk(wiremockSfnServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller
@@ -530,7 +573,44 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      wiremockServer.getAllServeEvents.size() should equal(5)
+      wiremockServer.getAllServeEvents.size() should equal(6)
+      verify(mockMessageService, times(1)).sendTransferCompleteNotification(any[TransferCompleteEvent])
+    }
+
+    val exportStates: TableFor2[Option[StatusValue], Int] = Table(
+      ("Export Status Value", "Number of Notifications Sent"),
+      (Some(CompletedValue), 0),
+      (None, 1)
+    )
+
+    forAll(exportStates) { (exportStatusValue, numberOfNotifications) =>
+      "finalTransferConfirmationSubmit" should {
+        s"send the correct number of notifications when export status value is $exportStatusValue" in {
+          val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
+          stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+          mockUpdateTransferInitiatedResponse
+          mockGraphqlConsignmentSummaryResponse()
+          mockSfnResponseOk(wiremockSfnServer)
+          val statuses = exportStatusValue match {
+            case Some(status) => getMockConsignmentStatuses(status.value)
+            case None         => Nil
+          }
+          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = statuses)
+          setConsignmentSummaryResponse(wiremockServer)
+
+          val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+          controller
+            .finalTransferConfirmationSubmit(consignmentId)
+            .apply(
+              FakeRequest()
+                .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
+                .withCSRFToken
+            )
+            .futureValue
+
+          verify(mockMessageService, times(numberOfNotifications)).sendTransferCompleteNotification(any[TransferCompleteEvent])
+        }
+      }
     }
 
     forAll(userTypes) { userType =>
@@ -653,6 +733,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferService,
       consignmentExportService,
       consignmentStatusService,
+      mockMessageService,
       applicationConfig,
       langs
     )

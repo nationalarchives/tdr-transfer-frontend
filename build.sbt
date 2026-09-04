@@ -15,9 +15,9 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2
 
 val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
-val pac4jVersion = "6.5.4"
+val pac4jVersion = "6.5.5"
 val sttpVersion = "3.11.0"
-val awsUtilsVersion = "0.1.338"
+val awsUtilsVersion = "0.1.339"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -28,35 +28,28 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.305",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.306",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.299",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.486-SNAPSHOT",
-  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.44",
-  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.47",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.138",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.236",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.486",
+  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.48",
+  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.48",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.139",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.238",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
-  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.45",
-  "ch.qos.logback" % "logback-classic" % "1.5.38",
+  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.48",
+  "ch.qos.logback" % "logback-classic" % "1.6.3",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.63.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.63.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.63.0",
-  "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
-  "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.58.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.58.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.23.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
-  "org.jsoup" % "jsoup" % "1.22.2" % Test
+  "org.jsoup" % "jsoup" % "1.23.1" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 disablePlugins(PlayLogback)

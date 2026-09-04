@@ -8,7 +8,7 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, MessagingService}
+import services.ConsignmentService
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
@@ -36,9 +36,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
+      val consignmentId = UUID.randomUUID()
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentSummaryResponse(wiremockServer)
-      val consignmentId = UUID.randomUUID()
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+
       val transferCompletePage = callTransferComplete("consignment", consignmentId)
       val transferCompletePageAsString = contentAsString(transferCompletePage)
 
@@ -151,7 +153,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val messagingService = mock[MessagingService]
+
     val config = new ApplicationConfig(app.configuration)
 
     val keycloakConfiguration = path match {
@@ -159,7 +161,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       case "admin"    => getValidTNAUserKeycloakConfiguration()
       case _          => getValidStandardUserKeycloakConfiguration
     }
-    new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, messagingService, config)
+    new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, config)
   }
 
   private def callTransferComplete(path: String, consignmentId: UUID = UUID.randomUUID()): Future[Result] = {
