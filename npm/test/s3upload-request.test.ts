@@ -7,10 +7,8 @@ import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import Keycloak from "keycloak-js"
 import { IFrontEndInfo } from "../src"
 
-/**
- * These tests send commands through the real S3 client middleware stack, rather than
- * stubbing the client, so that they cover how the request is actually put on the wire.
- */
+// These tests send commands through the real S3 client middleware stack so that they
+// cover how the request is actually put on the wire.
 
 interface ICapturedRequest {
   headers: Record<string, string>
@@ -134,9 +132,8 @@ test("the request does not use headers a browser is not allowed to send", async 
 })
 
 test("the SDK default of calculating a checksum cannot send a file body", async () => {
-  // Guards the reason the client sets requestChecksumCalculation. The SDK default of
-  // WHEN_SUPPORTED pushes a file body onto its aws-chunked encoding path, which a
-  // browser cannot send.
+  // The SDK default of WHEN_SUPPORTED pushes a file body onto its aws-chunked encoding
+  // path, which a browser cannot send.
   await expect(uploadWithClient(createClient())).rejects.toThrow()
 })
 
@@ -153,10 +150,6 @@ test("the file uploader allows more than the SDK default number of attempts", as
 })
 
 test("the file uploader rate limits itself in response to throttling", async () => {
-  // Every file goes to the same {userId}/{consignmentId}/ prefix and S3 only raises
-  // the rate it allows for a new prefix gradually, so a consignment of small files
-  // gets 503 SlowDown. The standard retry mode has no rate limiter and gives up long
-  // before S3 has scaled up.
   const client = createFileUploader().clientFileProcessing.s3Upload.client
   const retryStrategy = await client.config.retryStrategy()
 
@@ -164,9 +157,8 @@ test("the file uploader rate limits itself in response to throttling", async () 
 })
 
 test("a file that keeps being throttled by S3 is retried rather than failing the transfer", async () => {
-  // S3 rejects a request with 503 SlowDown when the request rate for a prefix is
-  // higher than it has scaled up to allow. A consignment of small files is uploaded
-  // fast enough to provoke this, so being throttled must not fail the transfer.
+  // A consignment of small files is uploaded fast enough to provoke 503 SlowDown, so
+  // being throttled must not fail the transfer.
   let attempts = 0
   const throttlingHandler = {
     ...captureRequestHandler,

@@ -189,7 +189,6 @@ class FileChecksController @Inject() (
           }
         }
     } yield result).recover { case exception: Exception =>
-      // Without this the user is told their upload was interrupted with nothing anywhere to say why.
       logger.error(s"Failed to show the file checks page for consignment $consignmentId", exception)
       Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
     }

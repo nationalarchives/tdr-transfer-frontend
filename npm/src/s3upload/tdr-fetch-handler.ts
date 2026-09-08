@@ -8,26 +8,14 @@ export function createTimeoutError(timeoutInMs: number): Error {
   const timeoutError = new Error(
     `Request did not complete within ${timeoutInMs} ms`
   )
-  // The SDK classifies an error with this name as transient, so a request that has
-  // stalled is retried rather than failing the whole transfer.
+  // The SDK treats an error with this name as transient, so the request is retried.
   timeoutError.name = "TimeoutError"
   return timeoutError
 }
 
-/**
- * The slowest upload throughput a single request is expected to sustain. Parts of a
- * large file are sent four at a time and ten files are uploaded at once, so on a slow
- * connection each request only ever gets a small share of the available bandwidth. A
- * flat deadline would expire on a part that is transferring perfectly well, and the
- * retry that follows is no faster, so a large file can never finish.
- */
+// The slowest upload throughput a single request is expected to sustain.
 export const defaultMinimumThroughputBytesPerSecond = 16 * 1024
 
-/**
- * The size of the body about to be sent, so that the time it legitimately needs can be
- * added to the timeout. Anything whose size cannot be determined is treated as empty,
- * which leaves the base timeout unchanged.
- */
 const bodySizeInBytes = (body: unknown): number => {
   if (!body) {
     return 0
@@ -47,21 +35,10 @@ const bodySizeInBytes = (body: unknown): number => {
   return 0
 }
 
-/**
- * Represents the http options that can be passed to a browser http client.
- */
 export interface FetchHttpHandlerOptions {
-  /**
-   * The number of milliseconds a request is allowed on top of the time its body needs
-   * at minimumThroughputBytesPerSecond before being automatically terminated. The
-   * allowance for the body is what keeps this a way of spotting a request that has
-   * stalled rather than a limit on how large a file may be.
-   */
+  // Milliseconds a request is allowed on top of the time its body needs at
+  // minimumThroughputBytesPerSecond before being terminated.
   requestTimeoutMs?: number
-  /**
-   * The throughput a request is assumed to achieve at worst, used to work out how long
-   * its body should be given. Defaults to defaultMinimumThroughputBytesPerSecond.
-   */
   minimumThroughputBytesPerSecond?: number
 }
 
@@ -125,12 +102,8 @@ export class TdrFetchHandler implements HttpHandler {
       credentials: "include"
     }
 
-    // some browsers support abort signal
-    // The request is given its own controller rather than the caller's signal so
-    // that a request which stalls can be aborted when it times out. Without that
-    // the browser holds the HTTP/2 stream open indefinitely, and on a consignment
-    // of thousands of files those stalled streams accumulate until the whole
-    // transfer stops making progress with no error ever surfacing.
+    // The request gets its own controller so that it can be aborted when it times out,
+    // otherwise the browser holds the stalled HTTP/2 stream open indefinitely.
     const controller =
       typeof AbortController !== "undefined" ? new AbortController() : undefined
 
@@ -160,8 +133,6 @@ export class TdrFetchHandler implements HttpHandler {
           abortSignal.onabort = () => {
             const abortError = new Error("Request aborted")
             abortError.name = "AbortError"
-            // Aborting the caller's signal has to abort the fetch too, otherwise the
-            // browser carries on with a request whose result is thrown away.
             controller?.abort()
             reject(abortError)
           }
@@ -172,21 +143,14 @@ export class TdrFetchHandler implements HttpHandler {
     try {
       return toHttpResponse(await Promise.race(raceOfPromises))
     } finally {
-      // The timer keeps the request alive in the event loop, and on a large
-      // consignment there is one per request.
       if (timeoutId !== undefined) {
         clearTimeout(timeoutId)
       }
     }
   }
 
-  /**
-   * How long the request may take, being the configured allowance plus the time the
-   * body needs at the lowest throughput a request is expected to achieve. A part of a
-   * large file is orders of magnitude bigger than a request with an empty body. Giving
-   * them all the same deadline either expires on a part that is still transferring, or
-   * lets a genuinely stalled request sit for far too long.
-   */
+  // The configured allowance plus the time the body needs at the lowest expected
+  // throughput, so that a large part is not given the same deadline as an empty body.
   private timeoutForBody(body: unknown): number | undefined {
     const baseTimeoutInMs = this.config!.requestTimeoutMs
     if (!baseTimeoutInMs) {

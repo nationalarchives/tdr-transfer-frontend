@@ -304,8 +304,6 @@ test("multiple file uploads return the correct params and should call addFileSta
       Body: unknown
     }
 
-    // Files below the multipart threshold are sent as the File itself so that the
-    // browser streams them, rather than being copied into the JavaScript heap first.
     expect(putObjectParams.Body).toBe(tdrFileWithPath.fileWithPath.file)
     expect({ ...putObjectParams, Body: undefined }).toEqual({
       Key: `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileId}`,
@@ -722,14 +720,10 @@ test("an error that is not a precondition failure still stops the upload", async
 const megabytes = (count: number) => count * 1024 * 1024
 
 test("a large file on its own is given parts big enough to use the available bandwidth", () => {
-  // Four 16MB parts in flight, rather than four 5MB ones, raises the most a single
-  // file can transfer per round trip by the same factor.
   expect(partSizeForUpload(megabytes(2048), 1)).toEqual(megabytes(16))
 })
 
 test("large files uploading at the same time share the part budget", () => {
-  // Ten files each holding four 16MB parts would be 640MB of file content in memory,
-  // so the part size comes down as the number of files sharing the budget goes up.
   const partSize = partSizeForUpload(megabytes(2048), 10)
 
   expect(partSize).toBeLessThan(megabytes(16))
@@ -741,8 +735,6 @@ test("large files uploading at the same time still use bigger parts than the min
 })
 
 test("a file is not split into parts too big to fill the upload queue", () => {
-  // A 10MB file split into 16MB parts would be a single part, which can neither use
-  // the queue nor report progress as it goes.
   expect(partSizeForUpload(megabytes(10), 1)).toEqual(megabytes(5))
 })
 
@@ -759,8 +751,6 @@ test("a file too big for the part limit is given parts large enough to stay with
 })
 
 test("a large file is uploaded in parts of the size worked out for it", async () => {
-  // A 32MB file fills the queue with four 8MB parts. The lib-storage default of 5MB
-  // would make seven, so the part count shows the size reaching the upload.
   const tdrFileWithPath = createTdrFile({ fileSize: megabytes(32) })
   s3Mock.reset()
   s3Mock.on(UploadPartCommand).resolves({ ETag: "1" })

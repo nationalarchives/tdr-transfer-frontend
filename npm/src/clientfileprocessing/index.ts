@@ -36,8 +36,7 @@ export class ClientFileProcessing {
       return
     }
 
-    // The progress callback fires for every file, so the elements are looked up once
-    // rather than on each of the thousands of updates a large consignment produces.
+    // The progress callback fires for every file, so the elements are looked up once.
     this.progressBarElement ??= document.querySelector(".progress-display")
     this.progressLabelElement ??= document.querySelector("#upload-percentage")
 

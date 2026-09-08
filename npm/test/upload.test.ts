@@ -141,8 +141,6 @@ test("upload function refreshes idle session", async () => {
 })
 
 test("upload function redirects to the file checks page with uploadFailed set to true when a file upload rejects", async () => {
-  // A file whose upload exhausts its retries rejects rather than returning an error.
-  // If that is not handled the progress bar is left frozen part way through.
   mockUploadRejection(Error("Access Denied"))
 
   const uploadFiles = setUpFileUploader()
@@ -201,10 +199,7 @@ test("upload function stops warning the user about leaving the page when a file 
 })
 
 test("upload function leaves the logged out message in place instead of redirecting", async () => {
-  // refreshOrReturnToken shows the logged out message and a link back to login, so a
-  // redirect would only replace it. An expired refresh token is the only way a
-  // LoggedOutError arises, so the upload is driven through that rather than the error
-  // being injected somewhere it could not actually come from.
+  // An expired refresh token is the only way a LoggedOutError arises.
   mockUploadSuccess()
   const expiredRefreshToken = {
     exp: Math.round(new Date().getTime() / 1000) - 60

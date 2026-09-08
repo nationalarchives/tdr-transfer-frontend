@@ -45,8 +45,7 @@ export class FileUploader {
       isJudgmentUser: Boolean
     ) => void
   ) {
-    // Allowance for a request beyond the time its body needs to transfer. Anything
-    // longer than this without the body being sent means the request has stalled.
+    // Allowance for a request beyond the time its body needs to transfer.
     const requestTimeoutMs = 5 * 60 * 1000
     const config: S3ClientConfig = {
       region: "eu-west-2",
@@ -54,33 +53,16 @@ export class FileUploader {
         accessKeyId: "placeholder-id",
         secretAccessKey: "placeholder-secret"
       },
-      // The SDK otherwise adds an x-amz-checksum-crc32 to every request, which means
-      // reading each file a second time in JavaScript purely to hash it. TDR already
-      // takes its own SHA-256 of every file before uploading and the backend checks it,
-      // and the transfer is over TLS, so the extra checksum only costs time. It also
-      // forces a File body down the SDK's aws-chunked encoding path, which sets
-      // transfer-encoding headers a browser is not allowed to send.
+      // Avoids the SDK hashing every file a second time for a CRC32 checksum, on top of
+      // the SHA-256 TDR already takes, and its aws-chunked encoding of File bodies.
       requestChecksumCalculation: "WHEN_REQUIRED",
       responseChecksumValidation: "WHEN_REQUIRED",
-      // A consignment can be tens of thousands of files, so a per file failure rate
-      // that would be unnoticeable on a small transfer becomes likely to be hit at
-      // least once across the whole upload, and one file exhausting its attempts fails
-      // the transfer. The extra attempts only cost time when a request is actually
-      // failing.
+      // A single file exhausting its attempts fails the whole transfer, which is likely
+      // across a consignment of tens of thousands of files.
       maxAttempts: 10,
-      // Every file in a consignment is written under the same
-      // {userId}/{consignmentId}/ prefix, and S3 only raises the request rate it
-      // allows for a new prefix gradually. A consignment of small files is fast
-      // enough per file to outrun that, at which point S3 starts rejecting requests
-      // with 503 SlowDown. Large files never hit this because they are limited by
-      // bandwidth rather than by round trips, so the request rate stays low.
-      //
-      // The standard retry mode has no client side rate limiting: it retries a
-      // throttled request a few times over a handful of seconds and then gives up,
-      // which is far shorter than S3 takes to scale the prefix up. Because every
-      // worker is being throttled at once, the retry token bucket then drains and
-      // retrying stops altogether. Adaptive mode adds a rate limiter that slows the
-      // client down in response to throttling and speeds it back up as it recovers.
+      // Uploading many small files under one prefix outruns the request rate S3 allows
+      // for it, and only adaptive mode rate limits the client in response to the 503
+      // SlowDown responses that follow.
       retryMode: "adaptive",
       requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
@@ -135,14 +117,10 @@ export class FileUploader {
         errors.push(processResult)
       }
     } catch (e) {
-      // A file whose upload exhausts its retries rejects rather than returning an
-      // error. Without this the rejection has nothing to handle it, so the redirect
-      // below never runs and the user is left watching a progress bar that has
-      // stopped part way through with no explanation.
+      // A file whose upload exhausts its retries rejects rather than returning an error.
       const error = e instanceof Error ? e : Error(getErrorMessage(e))
       if (error instanceof LoggedOutError) {
-        // The user has already been shown the logged out message and a link back to
-        // login, which redirecting would only replace.
+        // The user has already been shown the logged out message and a login link.
         window.removeEventListener("beforeunload", pageUnloadAction)
         return
       }
