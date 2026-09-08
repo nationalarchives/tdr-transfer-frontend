@@ -48,11 +48,17 @@ class UploadController @Inject() (
     if (parts.length > 1) parts.init.mkString("/") else ""
   }
 
+  /** A directory whose only contents were excluded files still has to be recorded, because the excluded files are not sent to the API and the directory would otherwise be lost
+    * from the transfer altogether.
+    *
+    * The excluded files are taken from the partition rather than worked out by looking each original file up in the filtered ones. Searching a list for each file in turn is
+    * quadratic, so the largest expected consignment of 10,000 files means around 50 million comparisons of a path and a checksum, all of it done even in the normal case where
+    * nothing is excluded at all.
+    */
   private def findNewlyEmptyDirectories(
-      originalFiles: List[ClientSideMetadataInput],
+      excludedFiles: List[ClientSideMetadataInput],
       filteredFiles: List[ClientSideMetadataInput]
   ): List[String] = {
-    val excludedFiles: Seq[ClientSideMetadataInput] = originalFiles.filterNot(file => filteredFiles.contains(file))
     val parentDirsOfExcluded: Set[String] = excludedFiles.map(file => parentDirFromPath(file.originalPath)).filter(_.nonEmpty).toSet
     val remainingFilePaths: Seq[String] = filteredFiles.map(_.originalPath)
 
@@ -66,8 +72,8 @@ class UploadController @Inject() (
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
       case Some(metadataInput) =>
-        val filteredFiles = metadataInput.metadataInput.filterNot(file => ExcludedFilenames.isExcluded(filenameFromPath(file.originalPath)))
-        val newlyEmptyDirs = findNewlyEmptyDirectories(metadataInput.metadataInput, filteredFiles)
+        val (excludedFiles, filteredFiles) = metadataInput.metadataInput.partition(file => ExcludedFilenames.isExcluded(filenameFromPath(file.originalPath)))
+        val newlyEmptyDirs = findNewlyEmptyDirectories(excludedFiles, filteredFiles)
         val allEmptyDirs = metadataInput.emptyDirectories.map(_ ++ newlyEmptyDirs).orElse(Option.when(newlyEmptyDirs.nonEmpty)(newlyEmptyDirs))
         val filteredInput = metadataInput.copy(metadataInput = filteredFiles, emptyDirectories = allEmptyDirs)
         uploadService.saveClientMetadata(filteredInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
