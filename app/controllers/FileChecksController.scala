@@ -163,16 +163,12 @@ class FileChecksController @Inject() (
             backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, reference, token)
             fileChecks <-
               if (backendChecksTriggered && !uploadStatus.exists(_.value == CompletedWithIssuesValue.value)) {
-                // The checks cannot already have finished for an upload whose backend checks have only
-                // just been triggered, so the progress is not asked for. The query is over every file in
-                // the consignment, and on a consignment of tens of thousands of files it is slow enough
-                // to time out, which used to turn a successful upload into an interrupted one.
-                if (alreadyTriggered) getFileChecksProgress(request, consignmentId).map(Option(_)) else Future.successful(None)
+                getFileChecksProgress(request, consignmentId)
               } else {
                 throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
               }
           } yield {
-            if (fileChecks.exists(_.isComplete)) {
+            if (fileChecks.isComplete) {
               Ok(
                 views.html.fileChecksProgressAlreadyConfirmed(
                   consignmentId,

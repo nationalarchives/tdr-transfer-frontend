@@ -200,7 +200,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val backendChecksService = mock[BackendChecksService]
         val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)
 
-        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedValue.value, someDateTime, None))
+        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.eq(consignmentId), anyString())).thenReturn(Future.successful(true))
         mockGetFileCheckProgress(dataString, userType)
         setUpdateConsignmentStatus(wiremockServer)
@@ -224,6 +224,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         playStatus(fileChecksPage) mustBe OK
 
+        wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("updateConsignmentStatus")))
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(fileChecksCompletePageAsString, userType = userType)
         fileChecksCompletePageAsString must include(expectedTitle)
         fileChecksCompletePageAsString must include(expectedHeading)
@@ -233,37 +234,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
                                                                                  href="/$pathName/$consignmentId/file-checks">
         Continue"""
         )
-      }
-
-      s"render the $userType fileChecks page without asking for the checks progress when the backend checks have only just been triggered" in {
-        val backendChecksService = mock[BackendChecksService]
-        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
-        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.eq(consignmentId), anyString())).thenReturn(Future.successful(true))
-        setConsignmentTypeResponse(wiremockServer, userType)
-        setUpdateConsignmentStatus(wiremockServer)
-        setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
-
-        val fileChecksController = initialiseFileChecks(keycloakConfiguration, backendChecksService = backendChecksService.some)
-
-        val uploadFailed = "false"
-        val fileChecksPage = if (userType == "judgment") {
-          fileChecksController
-            .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
-            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
-        } else {
-          fileChecksController
-            .fileChecksPage(consignmentId, Some(uploadFailed))
-            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
-        }
-
-        val fileChecksPageAsString = contentAsString(fileChecksPage)
-
-        playStatus(fileChecksPage) mustBe OK
-        wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("updateConsignmentStatus")))
-        wiremockServer.verify(0, postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("getFileCheckProgress")))
-        fileChecksPageAsString must include(expectedTitle)
-        fileChecksPageAsString must include(expectedHeading)
       }
 
       s"render the $userType file checks complete page if the file checks are complete and all checks are not successful" in {
