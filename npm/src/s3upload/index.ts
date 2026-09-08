@@ -47,6 +47,74 @@ export const defaultUploadConcurrency = 10
 const multipartThresholdBytes = 5 * 1024 * 1024
 
 /**
+ * Number of parts of a file that are uploaded at the same time. This is the
+ * @aws-sdk/lib-storage default, set explicitly because the part size is worked out from
+ * it: a part is buffered in the JavaScript heap while it is in flight, so a file being
+ * uploaded holds queueSize parts in memory at once.
+ */
+const uploadQueueSize = 4
+
+/**
+ * The smallest part S3 accepts for any part other than the last one.
+ */
+const minPartSizeBytes = 5 * 1024 * 1024
+
+/**
+ * The largest part worth using. A part has to be buffered before it can be sent, so
+ * beyond this the memory costs more than the extra throughput is worth.
+ */
+const maxPartSizeBytes = 16 * 1024 * 1024
+
+/**
+ * The most a file may be split into, imposed by S3.
+ */
+const maxPartCount = 10000
+
+/**
+ * The total amount of file content that may be buffered for parts in flight across all
+ * of the files being uploaded at once.
+ */
+const maxTotalPartBytes = 256 * 1024 * 1024
+
+/**
+ * How large the parts of a file should be.
+ *
+ * A file is only ever sent queueSize parts at a time, so the fastest it can go is
+ * queueSize parts per round trip however much bandwidth is free. At the 5MB minimum
+ * that caps a single file at around 33MB/s on a connection with a 600ms round trip,
+ * regardless of the connection's actual speed. That is invisible while thousands of
+ * small files are still using the other workers, but a multi gigabyte file left
+ * uploading on its own at the end of a consignment is limited by nothing else, and it
+ * becomes the tail of the whole transfer.
+ *
+ * Larger parts raise that ceiling in proportion, but they also raise the memory in
+ * proportion, so the size is worked out from a fixed overall budget shared between the
+ * files that can be uploading at the same time. A consignment with one large file gives
+ * it the maximum, while one made up entirely of large files falls back towards the
+ * minimum rather than holding a part for each of them in memory at once.
+ */
+export const partSizeForUpload = (
+  fileSizeInBytes: number,
+  concurrentLargeFiles: number
+): number => {
+  const budgetPerFile = maxTotalPartBytes / Math.max(1, concurrentLargeFiles)
+  const partSize = Math.min(
+    maxPartSizeBytes,
+    Math.floor(budgetPerFile / uploadQueueSize),
+    // A file split into fewer parts than can be sent at once cannot fill the queue, so
+    // parts beyond that size buy no throughput and only cost memory.
+    Math.ceil(fileSizeInBytes / uploadQueueSize)
+  )
+  return Math.max(
+    partSize,
+    minPartSizeBytes,
+    // A file large enough to exceed the part limit has to use larger parts whatever the
+    // rest of this says, otherwise S3 rejects the upload part way through.
+    Math.ceil(fileSizeInBytes / maxPartCount)
+  )
+}
+
+/**
  * S3 rejects a request with 412 when If-None-Match is set and the object already
  * exists. Each file is uploaded to a key containing its own newly generated file id, so
  * nothing else can be writing to that key. A 412 therefore means an earlier attempt of
@@ -108,6 +176,14 @@ export class S3Upload {
       0
     )
 
+    // Only files large enough to be uploaded in parts hold part buffers in memory, so
+    // only they share the part budget.
+    const largeFileCount = iTdrFilesWithPath.filter(
+      (tdrFileWithPath) =>
+        tdrFileWithPath.fileWithPath.file.size >= multipartThresholdBytes
+    ).length
+    const concurrentLargeFiles = Math.min(this.concurrency, largeFileCount)
+
     const sendData: ServiceOutputTypes[] = new Array(totalFiles)
     const failedFileIds: (string | undefined)[] = new Array(totalFiles)
     const reportedChunks: number[] = new Array(totalFiles).fill(0)
@@ -147,6 +223,7 @@ export class S3Upload {
             consignmentId,
             userId,
             tdrFileWithPath,
+            concurrentLargeFiles,
             (loaded) => recordProgress(index, loaded)
           )
         } catch (e) {
@@ -199,11 +276,13 @@ export class S3Upload {
     consignmentId: string,
     userId: string,
     tdrFileWithPath: ITdrFileWithPath,
+    concurrentLargeFiles: number,
     onProgress: (loaded: number) => void
   ) => Promise<ServiceOutputTypes> = (
     consignmentId,
     userId,
     tdrFileWithPath,
+    concurrentLargeFiles,
     onProgress
   ) => {
     const { fileWithPath, fileId } = tdrFileWithPath
@@ -222,7 +301,12 @@ export class S3Upload {
       return this.client.send(new PutObjectCommand(params))
     }
 
-    const progress = new Upload({ client: this.client, params })
+    const progress = new Upload({
+      client: this.client,
+      params,
+      queueSize: uploadQueueSize,
+      partSize: partSizeForUpload(fileWithPath.file.size, concurrentLargeFiles)
+    })
 
     progress.on("httpUploadProgress", (ev) => {
       const loaded = ev.loaded
