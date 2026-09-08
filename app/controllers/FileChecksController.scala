@@ -10,6 +10,7 @@ import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax._
 import io.circe.Json
 import org.pac4j.play.scala.SecurityComponents
+import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.Statuses._
@@ -34,7 +35,8 @@ class FileChecksController @Inject() (
     val consignmentExportService: ConsignmentExportService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
-    with I18nSupport {
+    with I18nSupport
+    with Logging {
 
   implicit val jsonEncoder: Encoder[TransferProgress] = deriveEncoder[TransferProgress]
 
@@ -161,12 +163,16 @@ class FileChecksController @Inject() (
             backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, reference, token)
             fileChecks <-
               if (backendChecksTriggered && !uploadStatus.exists(_.value == CompletedWithIssuesValue.value)) {
-                getFileChecksProgress(request, consignmentId)
+                // The checks cannot already have finished for an upload whose backend checks have only
+                // just been triggered, so the progress is not asked for. The query is over every file in
+                // the consignment, and on a consignment of tens of thousands of files it is slow enough
+                // to time out, which used to turn a successful upload into an interrupted one.
+                if (alreadyTriggered) getFileChecksProgress(request, consignmentId).map(Option(_)) else Future.successful(None)
               } else {
                 throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
               }
           } yield {
-            if (fileChecks.isComplete) {
+            if (fileChecks.exists(_.isComplete)) {
               Ok(
                 views.html.fileChecksProgressAlreadyConfirmed(
                   consignmentId,
@@ -187,6 +193,8 @@ class FileChecksController @Inject() (
           }
         }
     } yield result).recover { case exception: Exception =>
+      // Without this the user is told their upload was interrupted with nothing anywhere to say why.
+      logger.error(s"Failed to show the file checks page for consignment $consignmentId", exception)
       Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
     }
   }
