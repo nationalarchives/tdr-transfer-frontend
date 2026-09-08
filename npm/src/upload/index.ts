@@ -3,7 +3,7 @@ import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFrontEndInfo } from "../index"
-import { isError } from "../errorhandling"
+import { isError, getErrorMessage, LoggedOutError } from "../errorhandling"
 import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
 import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
@@ -45,7 +45,9 @@ export class FileUploader {
       isJudgmentUser: Boolean
     ) => void
   ) {
-    const requestTimeoutMs = 20 * 60 * 1000
+    // Allowance for a request beyond the time its body needs to transfer. Anything
+    // longer than this without the body being sent means the request has stalled.
+    const requestTimeoutMs = 5 * 60 * 1000
     const config: S3ClientConfig = {
       region: "eu-west-2",
       credentials: {
@@ -65,7 +67,21 @@ export class FileUploader {
       // least once across the whole upload, and one file exhausting its attempts fails
       // the transfer. The extra attempts only cost time when a request is actually
       // failing.
-      maxAttempts: 5,
+      maxAttempts: 10,
+      // Every file in a consignment is written under the same
+      // {userId}/{consignmentId}/ prefix, and S3 only raises the request rate it
+      // allows for a new prefix gradually. A consignment of small files is fast
+      // enough per file to outrun that, at which point S3 starts rejecting requests
+      // with 503 SlowDown. Large files never hit this because they are limited by
+      // bandwidth rather than by round trips, so the request rate stays low.
+      //
+      // The standard retry mode has no client side rate limiting: it retries a
+      // throttled request a few times over a handful of seconds and then gives up,
+      // which is far shorter than S3 takes to scale the prefix up. Because every
+      // worker is being throttled at once, the retry token bucket then drains and
+      // retrying stops altogether. Adaptive mode adds a rate limiter that slows the
+      // client down in response to throttling and speeds it back up as it recovers.
+      retryMode: "adaptive",
       requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
 
@@ -93,18 +109,21 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
-    const refreshedToken = await refreshOrReturnToken(this.keycloak)
-
-    const cookiesUrl = `${this.uploadUrl}/cookies`
-    scheduleTokenRefresh(this.keycloak, cookiesUrl)
     const errors: Error[] = []
-    const cookiesResponse = await fetch(cookiesUrl, {
-      credentials: "include",
-      headers: { Authorization: `Bearer ${refreshedToken}` }
-    }).catch((err) => {
-      return err
-    })
-    if (!isError(cookiesResponse)) {
+
+    try {
+      const refreshedToken = await refreshOrReturnToken(this.keycloak)
+      if (isError(refreshedToken)) {
+        throw refreshedToken
+      }
+
+      const cookiesUrl = `${this.uploadUrl}/cookies`
+      scheduleTokenRefresh(this.keycloak, cookiesUrl)
+      await fetch(cookiesUrl, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${refreshedToken}` }
+      })
+
       const processResult = await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,
@@ -115,8 +134,19 @@ export class FileUploader {
       if (isError(processResult)) {
         errors.push(processResult)
       }
-    } else {
-      errors.push(cookiesResponse)
+    } catch (e) {
+      // A file whose upload exhausts its retries rejects rather than returning an
+      // error. Without this the rejection has nothing to handle it, so the redirect
+      // below never runs and the user is left watching a progress bar that has
+      // stopped part way through with no explanation.
+      const error = e instanceof Error ? e : Error(getErrorMessage(e))
+      if (error instanceof LoggedOutError) {
+        // The user has already been shown the logged out message and a link back to
+        // login, which redirecting would only replace.
+        window.removeEventListener("beforeunload", pageUnloadAction)
+        return
+      }
+      errors.push(error)
     }
 
     const isJudgmentUser: boolean =

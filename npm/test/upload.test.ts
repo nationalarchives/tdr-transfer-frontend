@@ -2,7 +2,7 @@ import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 enableFetchMocks()
 import { ClientFileProcessing } from "../src/clientfileprocessing"
 import { TProgressFunction } from "@nationalarchives/file-information"
-import { FileUploader } from "../src/upload"
+import { FileUploader, pageUnloadAction } from "../src/upload"
 import { createMockKeycloakInstance, mockKeycloakInstance } from "./utils"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
@@ -45,6 +45,20 @@ const mockUploadFailure: () => void = () => {
       _stage: string
     ): Promise<void | Error> => {
       return Promise.resolve(Error("Some error"))
+    }
+  }))
+}
+
+const mockUploadRejection: (error: unknown) => void = (error) => {
+  const mock = ClientFileProcessing as jest.Mock
+  mock.mockImplementation(() => ({
+    processClientFiles: async (
+      _consignmentId: string,
+      _files: IEntry[],
+      _callback: TProgressFunction,
+      _stage: string
+    ): Promise<void> => {
+      return Promise.reject(error)
     }
   }))
 }
@@ -124,6 +138,92 @@ test("upload function refreshes idle session", async () => {
   expect(mockUpdateToken).toHaveBeenCalled()
 
   consoleErrorSpy.mockRestore()
+})
+
+test("upload function redirects to the file checks page with uploadFailed set to true when a file upload rejects", async () => {
+  // A file whose upload exhausts its retries rejects rather than returning an error.
+  // If that is not handled the progress bar is left frozen part way through.
+  mockUploadRejection(Error("Access Denied"))
+
+  const uploadFiles = setUpFileUploader()
+
+  await expect(
+    uploadFiles.uploadFiles([dummyFile], {
+      consignmentId: "12345",
+      parentFolder: "TEST PARENT FOLDER NAME",
+      includeTopLevelFolder: false
+    })
+  ).resolves.toBeUndefined()
+
+  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
+    "12345",
+    "true",
+    false
+  )
+})
+
+test("upload function redirects to the file checks page when a file upload rejects with a non error value", async () => {
+  mockUploadRejection("something went wrong")
+
+  const uploadFiles = setUpFileUploader()
+
+  await uploadFiles.uploadFiles([dummyFile], {
+    consignmentId: "12345",
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
+  })
+
+  expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
+    "12345",
+    "true",
+    false
+  )
+})
+
+test("upload function stops warning the user about leaving the page when a file upload rejects", async () => {
+  mockUploadRejection(Error("Access Denied"))
+  const removeEventListener = jest.spyOn(window, "removeEventListener")
+
+  const uploadFiles = setUpFileUploader()
+
+  await uploadFiles.uploadFiles([dummyFile], {
+    consignmentId: "12345",
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
+  })
+
+  expect(removeEventListener).toHaveBeenCalledWith(
+    "beforeunload",
+    pageUnloadAction
+  )
+
+  removeEventListener.mockRestore()
+})
+
+test("upload function leaves the logged out message in place instead of redirecting", async () => {
+  // refreshOrReturnToken shows the logged out message and a link back to login, so a
+  // redirect would only replace it. An expired refresh token is the only way a
+  // LoggedOutError arises, so the upload is driven through that rather than the error
+  // being injected somewhere it could not actually come from.
+  mockUploadSuccess()
+  const expiredRefreshToken = {
+    exp: Math.round(new Date().getTime() / 1000) - 60
+  }
+  const keycloak = createMockKeycloakInstance(
+    jest.fn(),
+    true,
+    expiredRefreshToken
+  )
+
+  const uploadFiles = setUpFileUploader(keycloak)
+
+  await uploadFiles.uploadFiles([dummyFile], {
+    consignmentId: "12345",
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
+  })
+
+  expect(mockGoToFileChecksPage).not.toHaveBeenCalled()
 })
 
 function setUpFileUploader(mockKeycloak?: Keycloak): FileUploader {

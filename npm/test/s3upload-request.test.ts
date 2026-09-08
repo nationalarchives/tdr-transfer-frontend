@@ -149,8 +149,51 @@ test("the file uploader configures the S3 client to only checksum when required"
 
 test("the file uploader allows more than the SDK default number of attempts", async () => {
   const client = createFileUploader().clientFileProcessing.s3Upload.client
-  await expect(client.config.maxAttempts()).resolves.toEqual(5)
+  await expect(client.config.maxAttempts()).resolves.toEqual(10)
 })
+
+test("the file uploader rate limits itself in response to throttling", async () => {
+  // Every file goes to the same {userId}/{consignmentId}/ prefix and S3 only raises
+  // the rate it allows for a new prefix gradually, so a consignment of small files
+  // gets 503 SlowDown. The standard retry mode has no rate limiter and gives up long
+  // before S3 has scaled up.
+  const client = createFileUploader().clientFileProcessing.s3Upload.client
+  const retryStrategy = await client.config.retryStrategy()
+
+  expect((retryStrategy as { mode?: string }).mode).toEqual("adaptive")
+})
+
+test("a file that keeps being throttled by S3 is retried rather than failing the transfer", async () => {
+  // S3 rejects a request with 503 SlowDown when the request rate for a prefix is
+  // higher than it has scaled up to allow. A consignment of small files is uploaded
+  // fast enough to provoke this, so being throttled must not fail the transfer.
+  let attempts = 0
+  const throttlingHandler = {
+    ...captureRequestHandler,
+    async handle(request: ICapturedRequest) {
+      attempts += 1
+      if (attempts < 3) {
+        throw Object.assign(new Error("Please reduce your request rate."), {
+          name: "SlowDown",
+          $metadata: { httpStatusCode: 503 }
+        })
+      }
+      return captureRequestHandler.handle(request)
+    }
+  }
+
+  const result = await uploadWithClient(
+    createClient({
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      maxAttempts: 10,
+      retryMode: "adaptive",
+      requestHandler: throttlingHandler as never
+    })
+  )
+
+  expect(result).not.toBeInstanceOf(Error)
+  expect(attempts).toEqual(3)
+}, 30000)
 
 test("a request that keeps failing with a network error is attempted five times", async () => {
   let attempts = 0

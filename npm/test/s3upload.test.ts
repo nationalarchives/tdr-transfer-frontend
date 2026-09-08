@@ -8,17 +8,15 @@ import { isError } from "../src/errorhandling"
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 import { IProgressInformation } from "@nationalarchives/file-information"
 import { EntryKind, IFileEntry } from "../src/upload/form/file-types"
-import { AwsClientStub, mockClient } from "aws-sdk-client-mock"
+import { mockClient } from "aws-sdk-client-mock"
 
 import {
   CreateMultipartUploadCommand,
   PutObjectCommand,
   S3Client,
   ServiceInputTypes,
-  ServiceOutputTypes,
   UploadPartCommand
 } from "@aws-sdk/client-s3"
-import { getFileChecksProgress } from "../src/checks/get-checks-progress"
 
 enableFetchMocks()
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
