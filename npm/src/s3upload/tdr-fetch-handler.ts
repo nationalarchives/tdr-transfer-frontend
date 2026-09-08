@@ -87,14 +87,6 @@ export class TdrFetchHandler implements HttpHandler {
     // Do nothing. TLS and HTTP/2 connection pooling is handled by the browser.
   }
 
-  updateHttpClientConfig(key: never, value: never): void {
-    // Added to fix compilation issue
-  }
-
-  httpHandlerConfigs(): any {
-    // Added to fix compilation issue
-  }
-
   async handle(
     request: HttpRequest,
     { abortSignal }: HttpHandlerOptions = {}
@@ -152,7 +144,7 @@ export class TdrFetchHandler implements HttpHandler {
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined
     raceOfPromises.push(
-      new Promise<never>((resolve, reject) => {
+      new Promise<never>((_, reject) => {
         if (requestTimeoutInMs) {
           timeoutId = setTimeout(() => {
             controller?.abort()
@@ -164,7 +156,7 @@ export class TdrFetchHandler implements HttpHandler {
 
     if (abortSignal) {
       raceOfPromises.push(
-        new Promise<never>((resolve, reject) => {
+        new Promise<never>((_, reject) => {
           abortSignal.onabort = () => {
             const abortError = new Error("Request aborted")
             abortError.name = "AbortError"
@@ -191,9 +183,9 @@ export class TdrFetchHandler implements HttpHandler {
   /**
    * How long the request may take, being the configured allowance plus the time the
    * body needs at the lowest throughput a request is expected to achieve. A part of a
-   * large file is orders of magnitude bigger than the requests that carry no body, so
-   * giving them all the same deadline either expires on a part that is still
-   * transferring or lets a genuinely stalled request sit for far too long.
+   * large file is orders of magnitude bigger than a request with an empty body. Giving
+   * them all the same deadline either expires on a part that is still transferring, or
+   * lets a genuinely stalled request sit for far too long.
    */
   private timeoutForBody(body: unknown): number | undefined {
     const baseTimeoutInMs = this.config!.requestTimeoutMs
