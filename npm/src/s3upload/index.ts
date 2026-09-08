@@ -3,6 +3,7 @@ import {
   S3Client,
   ServiceOutputTypes,
   PutObjectCommandInput,
+  PutObjectCommandOutput,
   ObjectCannedACL
 } from "@aws-sdk/client-s3"
 
@@ -65,11 +66,17 @@ export const partSizeForUpload = (
   )
 }
 
-// With If-None-Match set, a 412 means an earlier attempt of this upload succeeded and
-// only its response was lost. It is not retryable, so it is treated as a success.
+// With If-None-Match: *, a 412 means the object already exists. Keys are unique per
+// file, so the file is already uploaded and this is treated as a success. The SDK does
+// not retry 412, so it surfaces as a thrown error.
 const isAlreadyUploaded = (error: unknown): boolean =>
   (error as { $metadata?: { httpStatusCode?: number } } | undefined)?.$metadata
     ?.httpStatusCode === 412
+
+// The error is not a result, so this stands in for the upload that already happened.
+const alreadyUploadedResult: PutObjectCommandOutput = {
+  $metadata: { httpStatusCode: 412 }
+}
 
 export class S3Upload {
   client: S3Client
@@ -172,7 +179,7 @@ export class S3Upload {
             uploadError = e
             return
           }
-          sendData[index] = e as ServiceOutputTypes
+          sendData[index] = alreadyUploadedResult
           recordProgress(index, fileChunks[index])
           continue
         }
