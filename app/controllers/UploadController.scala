@@ -48,13 +48,6 @@ class UploadController @Inject() (
     if (parts.length > 1) parts.init.mkString("/") else ""
   }
 
-  /** A directory whose only contents were excluded files still has to be recorded, because the excluded files are not sent to the API and the directory would otherwise be lost
-    * from the transfer altogether.
-    *
-    * The excluded files are taken from the partition rather than worked out by looking each original file up in the filtered ones. Searching a list for each file in turn is
-    * quadratic, so the largest expected consignment of 10,000 files means around 50 million comparisons of a path and a checksum, all of it done even in the normal case where
-    * nothing is excluded at all.
-    */
   private def findNewlyEmptyDirectories(
       excludedFiles: List[ClientSideMetadataInput],
       filteredFiles: List[ClientSideMetadataInput]
