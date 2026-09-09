@@ -74,7 +74,8 @@ const isAlreadyUploaded = (error: unknown): boolean => {
     return false
   }
 
-  const metadata = (error as { $metadata?: { httpStatusCode?: number } }).$metadata
+  const metadata = (error as { $metadata?: { httpStatusCode?: number } })
+    .$metadata
   return metadata !== undefined && metadata.httpStatusCode === 412
 }
 
