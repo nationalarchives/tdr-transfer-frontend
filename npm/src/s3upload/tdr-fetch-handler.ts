@@ -176,7 +176,7 @@ export class TdrFetchHandler implements HttpHandler {
 
 // The SDK's own AbortSignal only supports the onabort property, while a platform
 // signal supports listeners, which can be removed once the request has finished so
-// that a long lived signal does not retain a handler per request it outlives.
+// that a long-lived signal does not retain a handler per request it outlives.
 const listenForAbort = (
   abortSignal: NonNullable<HttpHandlerOptions["abortSignal"]>,
   onAbort: () => void

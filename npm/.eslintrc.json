@@ -8,6 +8,7 @@
   "extends": ["eslint:recommended", "plugin:prettier/recommended"],
   "globals": {
     "Atomics": "readonly",
+    "globalThis": "readonly",
     "SharedArrayBuffer": "readonly",
     "RequestInit": "readonly",
     "NodeListOf": "readonly",
