@@ -197,14 +197,12 @@ const listenForAbort = (
 const toHttpResponse = async (
   response: Response
 ): Promise<{ response: HttpResponse }> => {
-  const fetchHeaders: any = response.headers
   const transformedHeaders: HeaderBag = {}
+  response.headers.forEach((value, name) => {
+    transformedHeaders[name] = value
+  })
 
-  for (const pair of <Array<string[]>>fetchHeaders.entries()) {
-    transformedHeaders[pair[0]] = pair[1]
-  }
-
-  const hasReadableStream = response.body !== undefined
+  const hasReadableStream = !!response.body
 
   // Return the response with buffered body
   if (!hasReadableStream) {

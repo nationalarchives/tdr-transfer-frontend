@@ -69,9 +69,14 @@ export const partSizeForUpload = (
 // With If-None-Match: *, a 412 means the object already exists. Keys are unique per
 // file, so the file is already uploaded and this is treated as a success. The SDK does
 // not retry 412, so it surfaces as a thrown error.
-const isAlreadyUploaded = (error: unknown): boolean =>
-  (error as { $metadata?: { httpStatusCode?: number } } | undefined)?.$metadata
-    ?.httpStatusCode === 412
+const isAlreadyUploaded = (error: unknown): boolean => {
+  if (typeof error !== "object" || error === null) {
+    return false
+  }
+
+  const metadata = (error as { $metadata?: { httpStatusCode?: number } }).$metadata
+  return metadata !== undefined && metadata.httpStatusCode === 412
+}
 
 // The error is not a result, so this stands in for the upload that already happened.
 const alreadyUploadedResult: PutObjectCommandOutput = {
@@ -104,13 +109,13 @@ export class S3Upload {
     userId: string | undefined,
     iTdrFilesWithPath: ITdrFileWithPath[],
     callback: TProgressFunction,
-    stage: string
+    _stage: string
   ) => Promise<IUploadResult | Error> = async (
     consignmentId,
     userId,
     iTdrFilesWithPath,
     callback,
-    stage
+    _stage
   ) => {
     if (!userId) {
       return Error("No valid user id found")
@@ -154,50 +159,75 @@ export class S3Upload {
       )
     }
 
-    let nextFileIndex = 0
     let uploadError: unknown = undefined
 
-    const uploadWorker = async () => {
-      while (uploadError === undefined) {
-        const index = nextFileIndex++
-        if (index >= totalFiles) {
+    const processFileUpload = async (index: number): Promise<void> => {
+      const tdrFileWithPath = iTdrFilesWithPath[index]
+      let uploadResult: ServiceOutputTypes
+      try {
+        uploadResult = await this.uploadSingleFile(
+          consignmentId,
+          userId,
+          tdrFileWithPath,
+          concurrentLargeFiles,
+          (loaded) => recordProgress(index, loaded)
+        )
+      } catch (e) {
+        if (!isAlreadyUploaded(e)) {
+          // Stop the other workers, then rethrow once they have finished.
+          uploadError = e
           return
         }
-        const tdrFileWithPath = iTdrFilesWithPath[index]
-        let uploadResult: ServiceOutputTypes
-        try {
-          uploadResult = await this.uploadSingleFile(
-            consignmentId,
-            userId,
-            tdrFileWithPath,
-            concurrentLargeFiles,
-            (loaded) => recordProgress(index, loaded)
-          )
-        } catch (e) {
-          if (!isAlreadyUploaded(e)) {
-            // Stop the other workers, then rethrow once they have finished.
-            uploadError = e
-            return
-          }
-          sendData[index] = alreadyUploadedResult
-          recordProgress(index, fileChunks[index])
-          continue
-        }
-
-        sendData[index] = uploadResult
+        sendData[index] = alreadyUploadedResult
         recordProgress(index, fileChunks[index])
-        if (
-          uploadResult?.$metadata !== undefined &&
-          uploadResult.$metadata.httpStatusCode != 200
-        ) {
-          await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
-          failedFileIds[index] = tdrFileWithPath.fileId
-        }
+        return
+      }
+
+      sendData[index] = uploadResult
+      recordProgress(index, fileChunks[index])
+      if (
+        uploadResult?.$metadata !== undefined &&
+        uploadResult.$metadata.httpStatusCode != 200
+      ) {
+        await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
+        failedFileIds[index] = tdrFileWithPath.fileId
       }
     }
 
     const workerCount = Math.min(this.concurrency, totalFiles)
-    await Promise.all(Array.from({ length: workerCount }, () => uploadWorker()))
+    if (workerCount === 0) {
+      return {
+        sendData: [],
+        processedChunks: 0,
+        totalChunks
+      }
+    }
+
+    const batchSize = Math.ceil(totalFiles / workerCount)
+    const fileIndexBatches = Array.from(
+      { length: workerCount },
+      (_, workerIndex) => {
+        const startIndex = workerIndex * batchSize
+        const endIndex = Math.min(startIndex + batchSize, totalFiles)
+        return Array.from(
+          { length: endIndex - startIndex },
+          (_, offset) => startIndex + offset
+        )
+      }
+    )
+
+    const uploadWorker = async (fileIndexes: number[]) => {
+      for (const index of fileIndexes) {
+        if (uploadError !== undefined) {
+          return
+        }
+        await processFileUpload(index)
+      }
+    }
+
+    await Promise.all(
+      fileIndexBatches.map((fileIndexes) => uploadWorker(fileIndexes))
+    )
 
     if (uploadError !== undefined) {
       throw uploadError
