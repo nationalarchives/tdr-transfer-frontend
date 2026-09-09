@@ -16,6 +16,10 @@ export function createTimeoutError(timeoutInMs: number): Error {
 // The slowest upload throughput a single request is expected to sustain.
 export const defaultMinimumThroughputBytesPerSecond = 16 * 1024
 
+// A ceiling on the scaled timeout, so that a large body cannot let a dead connection
+// stay open for longer than a request was ever allowed before the scaling was added.
+export const maxRequestTimeoutMs = 20 * 60 * 1000
+
 const bodySizeInBytes = (body: unknown): number => {
   if (!body) {
     return 0
@@ -127,15 +131,17 @@ export class TdrFetchHandler implements HttpHandler {
       })
     )
 
+    let stopListeningForAbort: (() => void) | undefined
     if (abortSignal) {
       raceOfPromises.push(
         new Promise<never>((_, reject) => {
-          abortSignal.onabort = () => {
+          const onAbort = () => {
             const abortError = new Error("Request aborted")
             abortError.name = "AbortError"
             controller?.abort()
             reject(abortError)
           }
+          stopListeningForAbort = listenForAbort(abortSignal, onAbort)
         })
       )
     }
@@ -146,11 +152,13 @@ export class TdrFetchHandler implements HttpHandler {
       if (timeoutId !== undefined) {
         clearTimeout(timeoutId)
       }
+      stopListeningForAbort?.()
     }
   }
 
   // The configured allowance plus the time the body needs at the lowest expected
   // throughput, so that a large part is not given the same deadline as an empty body.
+  // Capped so a stalled request still gives up within maxRequestTimeoutMs.
   private timeoutForBody(body: unknown): number | undefined {
     const baseTimeoutInMs = this.config!.requestTimeoutMs
     if (!baseTimeoutInMs) {
@@ -159,10 +167,30 @@ export class TdrFetchHandler implements HttpHandler {
     const bytesPerSecond =
       this.config!.minimumThroughputBytesPerSecond ??
       defaultMinimumThroughputBytesPerSecond
-    return (
+    const scaledTimeoutInMs =
       baseTimeoutInMs +
       Math.ceil((bodySizeInBytes(body) / bytesPerSecond) * 1000)
-    )
+    return Math.min(scaledTimeoutInMs, maxRequestTimeoutMs)
+  }
+}
+
+// The SDK's own AbortSignal only supports the onabort property, while a platform
+// signal supports listeners, which can be removed once the request has finished so
+// that a long lived signal does not retain a handler per request it outlives.
+const listenForAbort = (
+  abortSignal: NonNullable<HttpHandlerOptions["abortSignal"]>,
+  onAbort: () => void
+): (() => void) => {
+  const eventTarget = abortSignal as Partial<globalThis.AbortSignal>
+  if (typeof eventTarget.addEventListener === "function") {
+    eventTarget.addEventListener("abort", onAbort, { once: true })
+    return () => eventTarget.removeEventListener?.("abort", onAbort)
+  }
+  abortSignal.onabort = onAbort
+  return () => {
+    if (abortSignal.onabort === onAbort) {
+      abortSignal.onabort = null
+    }
   }
 }
 

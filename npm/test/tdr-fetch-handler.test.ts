@@ -1,7 +1,10 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 enableFetchMocks()
 import { HttpRequest } from "@aws-sdk/protocol-http"
-import { TdrFetchHandler } from "../src/s3upload/tdr-fetch-handler"
+import {
+  maxRequestTimeoutMs,
+  TdrFetchHandler
+} from "../src/s3upload/tdr-fetch-handler"
 
 const createRequest = () =>
   new HttpRequest({
@@ -119,4 +122,82 @@ test("a part of a large file is given long enough to transfer on a slow connecti
   } finally {
     jest.useRealTimers()
   }
+})
+
+test("the time added for the body cannot take a request past the maximum timeout", async () => {
+  fetchMock.mockImplementation(() => new Promise(() => {}))
+
+  const handler = new TdrFetchHandler({
+    requestTimeoutMs: 5 * 60 * 1000,
+    // A body needing far longer to transfer than the maximum allows.
+    minimumThroughputBytesPerSecond: 1
+  })
+
+  jest.useFakeTimers()
+  try {
+    const handled = handler.handle(createRequestWithBody(1024))
+    handled.catch(() => {})
+
+    jest.advanceTimersByTime(maxRequestTimeoutMs)
+    await expect(handled).rejects.toThrow(
+      `Request did not complete within ${maxRequestTimeoutMs} ms`
+    )
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+test("aborting a platform signal aborts the request in flight", async () => {
+  fetchMock.mockImplementation(() => new Promise(() => {}))
+
+  const handler = new TdrFetchHandler({ requestTimeoutMs: 60000 })
+  const abortController = new AbortController()
+  const handled = handler.handle(createRequest(), {
+    abortSignal: abortController.signal
+  })
+
+  abortController.abort()
+
+  await expect(handled).rejects.toMatchObject({ name: "AbortError" })
+  expect(signalOfLastRequest()?.aborted).toBe(true)
+})
+
+test("a completed request stops listening to the caller's signal", async () => {
+  fetchMock.mockResponse("", { status: 200 })
+
+  const handler = new TdrFetchHandler({ requestTimeoutMs: 60000 })
+  const abortController = new AbortController()
+  const removeEventListener = jest.spyOn(
+    abortController.signal,
+    "removeEventListener"
+  )
+
+  await handler.handle(createRequest(), {
+    abortSignal: abortController.signal
+  })
+
+  expect(removeEventListener).toHaveBeenCalledWith(
+    "abort",
+    expect.any(Function)
+  )
+  removeEventListener.mockRestore()
+})
+
+test("a signal that only supports onabort still aborts the request", async () => {
+  fetchMock.mockImplementation(() => new Promise(() => {}))
+
+  // The AbortSignal from the SDK's own AbortController has no addEventListener.
+  const sdkSignal: { aborted: boolean; onabort: (() => void) | null } = {
+    aborted: false,
+    onabort: null
+  }
+
+  const handler = new TdrFetchHandler({ requestTimeoutMs: 60000 })
+  const handled = handler.handle(createRequest(), { abortSignal: sdkSignal })
+  await Promise.resolve()
+
+  sdkSignal.onabort?.()
+
+  await expect(handled).rejects.toMatchObject({ name: "AbortError" })
+  expect(signalOfLastRequest()?.aborted).toBe(true)
 })
