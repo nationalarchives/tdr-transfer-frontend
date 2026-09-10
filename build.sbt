@@ -52,6 +52,24 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
+val nettyVersion = "4.1.137.Final"
+dependencyOverrides ++= Seq(
+  "netty-buffer",
+  "netty-codec",
+  "netty-codec-dns",
+  "netty-codec-http",
+  "netty-codec-http2",
+  "netty-codec-socks",
+  "netty-common",
+  "netty-handler",
+  "netty-handler-proxy",
+  "netty-resolver",
+  "netty-resolver-dns",
+  "netty-transport",
+  "netty-transport-classes-epoll",
+  "netty-transport-native-unix-common"
+).map("io.netty" % _ % nettyVersion)
+
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
