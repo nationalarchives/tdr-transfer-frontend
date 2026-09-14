@@ -49,10 +49,9 @@ class UploadController @Inject() (
   }
 
   private def findNewlyEmptyDirectories(
-      originalFiles: List[ClientSideMetadataInput],
+      excludedFiles: List[ClientSideMetadataInput],
       filteredFiles: List[ClientSideMetadataInput]
   ): List[String] = {
-    val excludedFiles: Seq[ClientSideMetadataInput] = originalFiles.filterNot(file => filteredFiles.contains(file))
     val parentDirsOfExcluded: Set[String] = excludedFiles.map(file => parentDirFromPath(file.originalPath)).filter(_.nonEmpty).toSet
     val remainingFilePaths: Seq[String] = filteredFiles.map(_.originalPath)
 
@@ -66,8 +65,8 @@ class UploadController @Inject() (
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
       case Some(metadataInput) =>
-        val filteredFiles = metadataInput.metadataInput.filterNot(file => ExcludedFilenames.isExcluded(filenameFromPath(file.originalPath)))
-        val newlyEmptyDirs = findNewlyEmptyDirectories(metadataInput.metadataInput, filteredFiles)
+        val (excludedFiles, filteredFiles) = metadataInput.metadataInput.partition(file => ExcludedFilenames.isExcluded(filenameFromPath(file.originalPath)))
+        val newlyEmptyDirs = findNewlyEmptyDirectories(excludedFiles, filteredFiles)
         val allEmptyDirs = metadataInput.emptyDirectories.map(_ ++ newlyEmptyDirs).orElse(Option.when(newlyEmptyDirs.nonEmpty)(newlyEmptyDirs))
         val filteredInput = metadataInput.copy(metadataInput = filteredFiles, emptyDirectories = allEmptyDirs)
         uploadService.saveClientMetadata(filteredInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))

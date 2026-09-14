@@ -29,8 +29,8 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.306",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.298",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.485",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.299",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.486",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.48",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.48",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.139",
@@ -51,6 +51,24 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.2"
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
+
+val nettyVersion = "4.1.137.Final"
+dependencyOverrides ++= Seq(
+  "netty-buffer",
+  "netty-codec",
+  "netty-codec-dns",
+  "netty-codec-http",
+  "netty-codec-http2",
+  "netty-codec-socks",
+  "netty-common",
+  "netty-handler",
+  "netty-handler-proxy",
+  "netty-resolver",
+  "netty-resolver-dns",
+  "netty-transport",
+  "netty-transport-classes-epoll",
+  "netty-transport-native-unix-common"
+).map("io.netty" % _ % nettyVersion)
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")

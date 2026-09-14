@@ -38,7 +38,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfte
   private val bodyId = UUID.fromString("d3bbde54-f872-4c92-8623-59acf48a1bbd")
 
   private val accessToken = new AccessToken()
-  accessToken.setOtherClaims("body", bodyName)
+  accessToken.setOtherClaims("bodies", java.util.Arrays.asList(bodyName))
   private val token = Token(accessToken, new BearerAccessToken("some-token"))
 
   override def afterEach(): Unit = {
@@ -48,7 +48,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfte
   "getSeriesForUser" should "get the series from the API" in {
     val seriesResponse = GetSeries(seriesId, bodyId, "some series name", "some series body", None)
     val graphQlResponse = GraphQlResponse(Some(getSeries.Data(List(seriesResponse))), Nil)
-    when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(bodyName))))
+    when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(List(bodyName)))))
       .thenReturn(Future.successful(graphQlResponse))
 
     val series = seriesService.getSeriesForUser(token).futureValue
@@ -58,7 +58,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfte
   }
 
   "getSeriesForUser" should "return an error if the API call fails" in {
-    when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(bodyName))))
+    when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(List(bodyName)))))
       .thenReturn(Future.failed(new HttpError("something went wrong", StatusCode.InternalServerError)))
 
     seriesService.getSeriesForUser(token).failed.futureValue shouldBe a[HttpError[_]]
@@ -66,7 +66,7 @@ class SeriesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfte
 
   "getSeriesForUser" should "throw an AuthorisationException if the API returns an auth error" in {
     val response = GraphQlResponse[getSeries.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
-    when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(bodyName))))
+    when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(List(bodyName)))))
       .thenReturn(Future.successful(response))
 
     val results = seriesService.getSeriesForUser(token).failed.futureValue

@@ -2,10 +2,10 @@ package services
 
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetSeries.getSeries
-import javax.inject.Inject
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class SeriesService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit ec: ExecutionContext) {
@@ -13,7 +13,7 @@ class SeriesService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(i
   private val getSeriesClient = graphqlConfiguration.getClient[getSeries.Data, getSeries.Variables]()
 
   def getSeriesForUser(token: Token): Future[List[getSeries.GetSeries]] = {
-    val userTransferringBody: String = token.transferringBody
+    val userTransferringBody: List[String] = token.transferringBodies
       .getOrElse(throw new RuntimeException(s"Transferring body missing from token for user ${token.userId}"))
     val variables: getSeries.Variables = new getSeries.Variables(userTransferringBody)
 

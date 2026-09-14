@@ -10,6 +10,7 @@ import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax._
 import io.circe.Json
 import org.pac4j.play.scala.SecurityComponents
+import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.Statuses._
@@ -34,7 +35,8 @@ class FileChecksController @Inject() (
     val consignmentExportService: ConsignmentExportService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
-    with I18nSupport {
+    with I18nSupport
+    with Logging {
 
   implicit val jsonEncoder: Encoder[TransferProgress] = deriveEncoder[TransferProgress]
 
@@ -187,6 +189,7 @@ class FileChecksController @Inject() (
           }
         }
     } yield result).recover { case exception: Exception =>
+      logger.error(s"Failed to show the file checks page for consignment $consignmentId", exception)
       Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
     }
   }
