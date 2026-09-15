@@ -29,12 +29,12 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.306",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.299",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.301",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.486",
-  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.48",
-  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.48",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.139",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.240",
+  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.51",
+  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.51",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.141",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.244",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.23.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
-  "org.jsoup" % "jsoup" % "1.23.1" % Test
+  "org.jsoup" % "jsoup" % "1.23.2" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
