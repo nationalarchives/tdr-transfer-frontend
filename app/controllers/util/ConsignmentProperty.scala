@@ -1,9 +1,8 @@
 package controllers.util
 
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
-import uk.gov.nationalarchives.tdr.validation.Metadata
 import uk.gov.nationalarchives.tdr.validation.schema.MetadataValidationJsonSchema.ObjectMetadata
-import uk.gov.nationalarchives.tdr.validation.schema.{JsonSchemaDefinition, MetadataValidationJsonSchema, ValidationError}
+import uk.gov.nationalarchives.tdr.validation.schema.{JsonSchemaDefinition, Metadata, MetadataValidationJsonSchema, ValidationError}
 
 import java.util.Properties
 import scala.io.Source
