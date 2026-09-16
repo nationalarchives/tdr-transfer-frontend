@@ -3,7 +3,7 @@ import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFrontEndInfo } from "../index"
-import { isError } from "../errorhandling"
+import { isError, getErrorMessage, LoggedOutError } from "../errorhandling"
 import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
 import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
@@ -45,13 +45,25 @@ export class FileUploader {
       isJudgmentUser: Boolean
     ) => void
   ) {
-    const requestTimeoutMs = 20 * 60 * 1000
+    // Allowance for a request beyond the time its body needs to transfer.
+    const requestTimeoutMs = 5 * 60 * 1000
     const config: S3ClientConfig = {
       region: "eu-west-2",
       credentials: {
         accessKeyId: "placeholder-id",
         secretAccessKey: "placeholder-secret"
       },
+      // Avoids the SDK hashing every file a second time for a CRC32 checksum, on top of
+      // the SHA-256 TDR already takes, and its aws-chunked encoding of File bodies.
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
+      // A single file exhausting its attempts fails the whole transfer, which is likely
+      // across a consignment of tens of thousands of files.
+      maxAttempts: 10,
+      // Uploading many small files under one prefix outruns the request rate S3 allows
+      // for it, and only adaptive mode rate limits the client in response to the 503
+      // SlowDown responses that follow.
+      retryMode: "adaptive",
       requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
 
@@ -79,18 +91,21 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
-    const refreshedToken = await refreshOrReturnToken(this.keycloak)
-
-    const cookiesUrl = `${this.uploadUrl}/cookies`
-    scheduleTokenRefresh(this.keycloak, cookiesUrl)
     const errors: Error[] = []
-    const cookiesResponse = await fetch(cookiesUrl, {
-      credentials: "include",
-      headers: { Authorization: `Bearer ${refreshedToken}` }
-    }).catch((err) => {
-      return err
-    })
-    if (!isError(cookiesResponse)) {
+
+    try {
+      const refreshedToken = await refreshOrReturnToken(this.keycloak)
+      if (isError(refreshedToken)) {
+        throw refreshedToken
+      }
+
+      const cookiesUrl = `${this.uploadUrl}/cookies`
+      scheduleTokenRefresh(this.keycloak, cookiesUrl)
+      await fetch(cookiesUrl, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${refreshedToken}` }
+      })
+
       const processResult = await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,
@@ -101,8 +116,15 @@ export class FileUploader {
       if (isError(processResult)) {
         errors.push(processResult)
       }
-    } else {
-      errors.push(cookiesResponse)
+    } catch (e) {
+      // A file whose upload exhausts its retries rejects rather than returning an error.
+      const error = e instanceof Error ? e : Error(getErrorMessage(e))
+      if (error instanceof LoggedOutError) {
+        // The user has already been shown the logged out message and a login link.
+        window.removeEventListener("beforeunload", pageUnloadAction)
+        return
+      }
+      errors.push(error)
     }
 
     const isJudgmentUser: boolean =
