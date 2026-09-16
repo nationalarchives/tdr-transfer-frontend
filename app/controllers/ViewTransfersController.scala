@@ -157,7 +157,7 @@ trait StatusAction {
     val missingStatuses = statusesRequired.diff(statusesPresent)
 
     missingStatuses match {
-      case _ if missingStatuses.contains(SeriesType.id) =>
+      case _ if missingStatuses.contains(SeriesType.id) && judgmentTransfer.isDefined && !judgmentTransfer.get =>
         defaultUserActions(SeriesType)
       case _ => toUserAction(consignmentId, statuses, judgmentTransfer, consignmentReference)
     }
@@ -274,7 +274,7 @@ case object DraftMetadataAction extends StatusAction {
   private val actionStatus: StatusType = DraftMetadataType
   override val transferStatusDefault: TransferStatus = InProgress
   override val actionTextDefault: ActionText = Resume
-  override val requiredCompletedStatuses: List[StatusType] = Nil
+  override val requiredCompletedStatuses: List[StatusType] = List(SeriesType)
 
   override protected def toUserAction(
       consignmentId: UUID,
@@ -300,7 +300,7 @@ case object DraftMetadataAction extends StatusAction {
 case object FileChecksAction extends StatusAction {
   override val transferStatusDefault: TransferStatus = InProgress
   override val actionTextDefault: ActionText = Resume
-  override val requiredCompletedStatuses: List[StatusType] = Nil
+  override val requiredCompletedStatuses: List[StatusType] = List(SeriesType)
 
   protected def toUserAction(
       consignmentId: UUID,

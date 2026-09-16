@@ -319,6 +319,15 @@ object ConsignmentStatusesOptions {
       "Resume transfer"
     ),
     (
+      "all file checks completed no series",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+      ),
+      "/series",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
       "draft metadata completed with issues",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
@@ -337,6 +346,17 @@ object ConsignmentStatusesOptions {
         includeDefaultStatuses = false
       ),
       "/additional-metadata/download-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "draft metadata completed without series",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompleted,
+        includeDefaultStatuses = false
+      ),
+      "/series",
       "In Progress",
       "Resume transfer"
     ),
@@ -534,7 +554,7 @@ object ConsignmentStatusesOptions {
     (
       "av file check in progress",
       generateStatuses(
-        clientChecksCompleted ++ uploadCompleted ++ antivirusInProgress
+        seriesCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusInProgress
       ),
       "/file-checks",
       "In Progress",
