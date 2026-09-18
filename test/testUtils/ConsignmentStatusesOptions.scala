@@ -171,6 +171,15 @@ object ConsignmentStatusesOptions {
       "View errors"
     ),
     (
+      "client checks with series missing",
+      generateStatuses(
+        taCompleted ++ uploadInProgress ++ clientChecksInProgress
+      ),
+      "/series",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
       "av file check in progress",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusInProgress
@@ -207,6 +216,15 @@ object ConsignmentStatusesOptions {
       "Resume transfer"
     ),
     (
+      "av file check with series missing",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted
+      ),
+      "/series",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
       "checksum file check in progress",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumInProgress
@@ -239,6 +257,15 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted
       ),
       "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "checksum file check with series missing",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted
+      ),
+      "/series",
       "In Progress",
       "Resume transfer"
     ),
@@ -280,6 +307,16 @@ object ConsignmentStatusesOptions {
       "Resume transfer"
     ),
     (
+      "FFID file check with series missing",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted
+          ++ ffidCompleted
+      ),
+      "/series",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
       "Redaction file check in progress",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted
@@ -310,11 +347,30 @@ object ConsignmentStatusesOptions {
       "View errors"
     ),
     (
+      "Redaction file check with series missing",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted
+          ++ checksumCompleted ++ ffidCompleted ++ redactionWithIssues
+      ),
+      "/series",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
       "all file checks completed",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
       ),
       "/file-checks-results",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "all file checks completed with series missing",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+      ),
+      "/series",
       "In Progress",
       "Resume transfer"
     ),
@@ -330,6 +386,17 @@ object ConsignmentStatusesOptions {
       "Resume transfer"
     ),
     (
+      "draft metadata completed with issues with series missing",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompletedWithIssues,
+        includeDefaultStatuses = false
+      ),
+      "/series",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
       "draft metadata completed",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
@@ -337,6 +404,17 @@ object ConsignmentStatusesOptions {
         includeDefaultStatuses = false
       ),
       "/additional-metadata/download-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "draft metadata completed with missing series",
+      generateStatuses(
+        taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ allFileChecksCompleted
+          ++ draftMetadataCompleted,
+        includeDefaultStatuses = false
+      ),
+      "/series",
       "In Progress",
       "Resume transfer"
     ),
