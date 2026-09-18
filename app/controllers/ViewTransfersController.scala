@@ -82,6 +82,22 @@ class ViewTransfersController @Inject() (
       )
     }
 
+  private def seriesSkipped(statuses: List[ConsignmentStatuses], judgmentType: Boolean): Boolean = {
+    statuses.statusValue(SeriesType) match {
+      case Some(v) if v == CompletedValue.value => false
+      case _ if judgmentType                    => false
+      case _                                    => true
+    }
+  }
+
+  private def fileChecksUrl(judgmentType: Boolean, consignmentId: UUID): String = {
+    if (judgmentType) {
+      routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url
+    } else {
+      routes.FileChecksController.fileChecksPage(consignmentId, None).url
+    }
+  }
+
   private def toUserAction(consignment: Node): UserAction = {
     val judgmentType = consignment.consignmentType.contains("judgment")
     val consignmentId = consignment.consignmentid.get
@@ -101,11 +117,24 @@ class ViewTransfersController @Inject() (
       case s if s.containsStatuses(MetadataReviewType) =>
         UserAction(InReview.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
       case s if s.containsStatuses(DraftMetadataType) =>
-        toDraftMetadataAction(s.find(_.statusType == DraftMetadataType.id).get, consignmentId)
-      case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
-        toFileChecksAction(s, judgmentType, consignmentId)
-      case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
-      case s if s.containsStatuses(TransferAgreementType)        =>
+        if (seriesSkipped(s, judgmentType)) {
+          UserAction(InProgress.value, routes.SeriesDetailsController.seriesDetails(consignmentId).url, Resume.value)
+        } else {
+          toDraftMetadataAction(s.find(_.statusType == DraftMetadataType.id).get, consignmentId)
+        }
+      case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType, ServerRedactionType) =>
+        if (seriesSkipped(s, judgmentType)) {
+          UserAction(InProgress.value, routes.SeriesDetailsController.seriesDetails(consignmentId).url, Resume.value)
+        } else {
+          toFileChecksAction(s, judgmentType, consignmentId)
+        }
+      case s if s.containsStatuses(ClientChecksType, UploadType) =>
+        if (seriesSkipped(s, judgmentType)) {
+          UserAction(InProgress.value, routes.SeriesDetailsController.seriesDetails(consignmentId).url, Resume.value)
+        } else {
+          toClientSideChecksAction(statuses, consignmentId, judgmentType)
+        }
+      case s if s.containsStatuses(TransferAgreementType) =>
         toTransferAgreementAction(s.find(_.statusType == TransferAgreementType.id).get, consignmentId)
       case s if s.containsStatuses(SeriesType) =>
         toSeriesAction(s.find(_.statusType == SeriesType.id).get, consignmentId)
@@ -141,11 +170,7 @@ class ViewTransfersController @Inject() (
   }
 
   private def toFileChecksAction(statuses: List[ConsignmentStatuses], judgmentType: Boolean, consignmentId: UUID): UserAction = {
-    val checksUrl = if (judgmentType) {
-      routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url
-    } else {
-      routes.FileChecksController.fileChecksPage(consignmentId, None).url
-    }
+    val checksUrl = fileChecksUrl(judgmentType, consignmentId)
 
     val resultsUrl = if (judgmentType) {
       routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId, None).url
@@ -172,11 +197,7 @@ class ViewTransfersController @Inject() (
       routes.UploadController.uploadPage(consignmentId).url
     }
 
-    val checksUrl = if (judgmentType) {
-      routes.FileChecksController.judgmentFileChecksPage(consignmentId, None).url
-    } else {
-      routes.FileChecksController.fileChecksPage(consignmentId, None).url
-    }
+    val checksUrl = fileChecksUrl(judgmentType, consignmentId)
 
     val checkStatuses = statuses.filter(s => s.statusType == ClientChecksType.id || s.statusType == UploadType.id)
     val checkValues = checkStatuses.map(_.value)

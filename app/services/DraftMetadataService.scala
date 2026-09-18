@@ -10,7 +10,7 @@ import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import uk.gov.nationalarchives.tdr.common.utils.serviceinputs.Inputs.MetadataValidationInput
 import uk.gov.nationalarchives.tdr.keycloak.Token
-import uk.gov.nationalarchives.tdr.validation.Metadata
+import uk.gov.nationalarchives.tdr.validation.schema.Metadata
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID

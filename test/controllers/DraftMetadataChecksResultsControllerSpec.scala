@@ -20,7 +20,7 @@ import services.FileError.FileError
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, FailedValue}
 import services.{ConsignmentService, DraftMetadataService, Error, ErrorFileData, FileError, ValidationErrors}
 import testUtils.FrontEndTestHelper
-import uk.gov.nationalarchives.tdr.validation.Metadata
+import uk.gov.nationalarchives.tdr.validation.schema.Metadata
 
 import java.io.ByteArrayInputStream
 import java.util.{Properties, UUID}
