@@ -5,8 +5,7 @@ export class Disclosure {
   constructor(button: Element) {
     this.button = button
     const id: string | undefined = this.button.getAttribute("aria-controls") as
-      | string
-      | undefined
+      string | undefined
 
     if (!id) {
       return
