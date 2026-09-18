@@ -54,8 +54,7 @@ export class TdrFetchHandler implements HttpHandler {
 
   constructor(
     options?:
-      | FetchHttpHandlerOptions
-      | Provider<FetchHttpHandlerOptions | undefined>
+      FetchHttpHandlerOptions | Provider<FetchHttpHandlerOptions | undefined>
   ) {
     if (typeof options === "function") {
       this.configProvider = async () => (await options()) || {}
