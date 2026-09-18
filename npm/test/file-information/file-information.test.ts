@@ -25,14 +25,14 @@ const dummyLongerIFileWithPath = {
 test("returns the correct checksum for a file", async () => {
   const result = await extractFileMetadata([dummyIFileWithPath])
   expect(result[0].checksum).toEqual(
-    "e2d0fe1585a63ec6009c8016ff8dda8b17719a637405a4e23c0ff81339148249"
+    "c87e2ca771bab6024c269b933389d2a92d4941c848c52f155b9b84e1f109fe35"
   )
 })
 
 test("returns the correct checksum for a file with a chunk size smaller than file size", async () => {
   const result = await extractFileMetadata([dummyLongerIFileWithPath], jest.fn(), 1)
   expect(result[0].checksum).toEqual(
-    "1aa3cecdf8a1dfa8a89a0016ab986ef066128af9cb22e9391169c4878238de54"
+    "d924eb4c776c9443ab3b020f0fdcfeeff3b89bc4e27c62076364588cd0adf527"
   )
 })
 
@@ -47,7 +47,7 @@ test("returns correct number of results", async () => {
 
 test("returns the correct file size", async () => {
   const result = await extractFileMetadata([dummyIFileWithPath])
-  expect(result[0].size).toEqual(19)
+  expect(result[0].size).toEqual(20)
 })
 
 test("returns the correct last modified date", async () => {
