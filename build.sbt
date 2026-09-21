@@ -52,7 +52,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
-val nettyVersion = "4.1.137.Final"
+val nettyVersion = "4.1.138.Final"
 dependencyOverrides ++= Seq(
   "netty-buffer",
   "netty-codec",
