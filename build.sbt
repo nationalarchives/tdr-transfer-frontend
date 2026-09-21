@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.486",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.51",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.51",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.141",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.142",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.244",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
@@ -52,7 +52,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
-val nettyVersion = "4.1.137.Final"
+val nettyVersion = "4.1.138.Final"
 dependencyOverrides ++= Seq(
   "netty-buffer",
   "netty-codec",
