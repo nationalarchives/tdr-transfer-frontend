@@ -1,6 +1,5 @@
 name: TDR Tag and pre deploy Transfer Frontend
 on:
-  workflow_dispatch:
   push:
     branches:
       - master
