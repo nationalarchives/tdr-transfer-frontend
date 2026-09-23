@@ -23,7 +23,7 @@
                 <li>Functional / Business rule validation, eg. closure requirements</li>
             </ul>
             <p class="govuk-body">This may take a few minutes. If your consignment has a large number of records it may take longer.</p>
-
+            @CSRF.formField
             </div>
             @transferReference(consignmentRef, isJudgmentUser = false)
         </div>
