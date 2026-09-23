@@ -7,18 +7,17 @@ const mockGetCheckProgress = {
 }
 
 const mockVerifyChecksHaveCompleted = {
-  displayChecksCompletedBanner: jest.fn(),
   haveFileChecksCompleted: jest.fn(),
   hasDraftMetadataValidationCompleted: jest.fn()
 }
 
-const mockDisplayChecksCompletedBanner = {
-  displayChecksCompletedBanner: jest.fn()
+const mockRedirectToChecksResults = {
+  redirectToChecksResults: jest.fn()
 }
 
 import {Checks} from "../src/checks"
 import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../src/checks/verify-checks-have-completed"
-import {displayChecksCompletedBanner} from "../src/checks/display-checks-completed-banner"
+import {redirectToChecksResults} from "../src/checks/redirect-to-checks-results"
 
 beforeAll(() => {
   //stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
@@ -38,8 +37,8 @@ jest.mock(
 )
 
 jest.mock(
-    "../src/checks/display-checks-completed-banner",
-    () => mockDisplayChecksCompletedBanner
+    "../src/checks/redirect-to-checks-results",
+    () => mockRedirectToChecksResults
 )
 const mockGoToNextPage = jest.fn()
 
@@ -134,11 +133,6 @@ const mockTransferProgress: (progressType: string) => void = (
   )
 }
 
-const mockDisplayChecksHaveCompletedBanner: () => void = () =>
-    mockVerifyChecksHaveCompleted.displayChecksCompletedBanner.mockImplementation(
-        () => {}
-    )
-
 test("'updateFileCheckProgress' calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
   await checks.updateFileCheckProgress(false, mockGoToNextPage)
@@ -153,9 +147,7 @@ test("'updateDraftMetadataValidationProgress' calls setInterval correctly", asyn
   expect(setInterval).toHaveBeenCalledTimes(1)
 })
 
-test("'updateFileCheckProgress' shows a standard user, the notification banner and an enabled continue button if all checks are complete", async () => {
-  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
-                            <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
+test("'updateFileCheckProgress' redirects a standard user to the results page if all checks are complete", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
@@ -167,18 +159,14 @@ test("'updateFileCheckProgress' shows a standard user, the notification banner a
       () => true
   )
 
-  mockDisplayChecksHaveCompletedBanner()
-
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).toHaveBeenCalled()
+  expect(redirectToChecksResults).toHaveBeenCalled()
 })
 
-test("'updateDraftMetadataValidationProgress' shows a standard user, the notification banner and an enabled continue button if all checks are 'completed'", async () => {
-  document.body.innerHTML = `<div id="draft-metadata-checks-completed-banner" hidden></div>
-                            <a id="draft-metadata-checks-continue" class="govuk-button--disabled" disabled></a>`
+test("'updateDraftMetadataValidationProgress' redirects a standard user to the results page if all checks are 'completed'", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
@@ -190,18 +178,14 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, the notific
       () => true
   )
 
-  mockDisplayChecksHaveCompletedBanner()
-
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).toHaveBeenCalled()
+  expect(redirectToChecksResults).toHaveBeenCalled()
 })
 
-test("'updateDraftMetadataValidationProgress' shows a standard user, the notification banner and an enabled continue button if all checks are 'completedWithIssues'", async () => {
-  document.body.innerHTML = `<div id="draft-metadata-checks-completed-banner" hidden></div>
-                            <a id="draft-metadata-checks-continue" class="govuk-button--disabled" disabled></a>`
+test("'updateDraftMetadataValidationProgress' redirects a standard user to the results page if all checks are 'completedWithIssues'", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
@@ -213,19 +197,15 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, the notific
       () => true
   )
 
-  mockDisplayChecksHaveCompletedBanner()
-
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).toHaveBeenCalled()
+  expect(redirectToChecksResults).toHaveBeenCalled()
 })
 
-test("'updateFileCheckProgress' shows a standard user, no banner and a disabled continue button if the checks are in progress", async () => {
+test("'updateFileCheckProgress' does not redirect a standard user if the checks are in progress", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
-                            <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
   )
@@ -234,19 +214,15 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
       () => false
   )
-  mockDisplayChecksHaveCompletedBanner()
-
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
 })
 
-test("'updateDraftMetadataValidationProgress' shows a standard user, no banner and a disabled continue button if the checks are in progress", async () => {
+test("'updateDraftMetadataValidationProgress' does not redirect a standard user if the checks are in progress", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  document.body.innerHTML = `<div id="draft-metadata-completed-banner" hidden></div>
-                            <a id="draft-metadata-continue" class="govuk-button--disabled" disabled></a>`
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
   )
@@ -255,19 +231,15 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, no banner a
   mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
       () => false
   )
-  mockDisplayChecksHaveCompletedBanner()
-
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
 })
 
-test("'updateFileCheckProgress' shows a standard user, no banner and a disabled continue button if no file checks information is returned", async () => {
+test("'updateFileCheckProgress' does not redirect a standard user if no file checks information is returned", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
-                            <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
   )
@@ -276,19 +248,15 @@ test("'updateFileCheckProgress' shows a standard user, no banner and a disabled 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
       () => false
   )
-  mockDisplayChecksHaveCompletedBanner()
-
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).not.toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
 })
 
-test("'updateDraftMetadataValidationProgress' shows a standard user, no banner and a disabled continue button if no file checks information is returned", async () => {
+test("'updateDraftMetadataValidationProgress' does not redirect a standard user if no file checks information is returned", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  document.body.innerHTML = `<div id="draft-metadata-completed-banner" hidden></div>
-                            <a id="draft-metadata-continue" class="govuk-button--disabled" disabled></a>`
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
   )
@@ -297,19 +265,15 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, no banner a
   mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
       () => false
   )
-  mockDisplayChecksHaveCompletedBanner()
-
   checks.updateDraftMetadataValidationProgress()
   await jest.runOnlyPendingTimers()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' short-circuits the standard-user poll when backendChecksFailed is true", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
-                            <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
   )
@@ -318,15 +282,13 @@ test("'updateFileCheckProgress' short-circuits the standard-user poll when backe
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
       () => false
   )
-  mockDisplayChecksHaveCompletedBanner()
-
   jest.spyOn(global, "clearInterval")
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
-  // The terminal-failure branch must skip the progress/banner logic and stop polling.
+  // The terminal-failure branch must skip the progress/redirect logic and stop polling.
   expect(haveFileChecksCompleted).not.toHaveBeenCalled()
-  expect(displayChecksCompletedBanner).not.toHaveBeenCalled()
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
   expect(clearInterval).toHaveBeenCalled()
 })
 

@@ -11,6 +11,7 @@
                 @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-l">Checking your metadata</h1>
             <input id="consignmentId" type="hidden" value="@consignmentId">
+            <input id="fileChecksResultsUrl" type="hidden" value="@routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId)">
             <p class="govuk-body">Please wait while we check your metadata.</p>
             <p class="govuk-body">The following checks are now being performed:</p>
             <ul class="govuk-list govuk-list--bullet">
@@ -22,26 +23,6 @@
                 <li>Functional / Business rule validation, eg. closure requirements</li>
             </ul>
             <p class="govuk-body">This may take a few minutes. If your consignment has a large number of records it may take longer.</p>
-            <div class="govuk-notification-banner" id="draft-metadata-checks-completed-banner" tabindex="-1" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" hidden>
-                <div class="govuk-notification-banner__header">
-                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-                    Important
-                    </h2>
-                </div>
-                <div class="govuk-notification-banner__content">
-                    <h3 class="govuk-notification-banner__heading">Your metadata has been checked.</h3>
-                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
-                </div>
-            </div>
-                @CSRF.formField
-            <form action="@routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId)" method="get">
-                <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled" disabled>
-            Continue
-                </button>
-                <p class="govuk-visually-hidden" id="reason-disabled">
-                This button will be enabled when we have finished checking your metadata.
-                </p>
-            </form>
 
             </div>
             @transferReference(consignmentRef, isJudgmentUser = false)

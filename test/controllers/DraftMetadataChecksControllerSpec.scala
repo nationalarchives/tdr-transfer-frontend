@@ -13,7 +13,6 @@ import org.jsoup.Jsoup
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers._
-import play.api.Configuration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -31,9 +30,8 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.fromString("b5bbe4d6-01a7-4305-99ef-9fce4a67917a")
-  val zoneId = ZoneId.systemDefault()
+  val zoneId: ZoneId = ZoneId.systemDefault()
 
-  private val configuration: Configuration = mock[Configuration]
   private val expectedTitle: String = "<title>Checking your metadata - Transfer Digital Records - GOV.UK</title>"
   private val expectedHeading: String = """<h1 class="govuk-heading-l">Checking your metadata</h1>"""
   private val expectedInstruction: String = """<p class="govuk-body">Please wait while we check your metadata.</p>"""
@@ -48,30 +46,8 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   private val expectedBody: String = """<p class="govuk-body">This may take a few minutes. If your consignment has a large number of records it may take longer.</p>"""
   private val expectedInput: String = s"""<input id="consignmentId" type="hidden" value="${consignmentId}">"""
 
-  val expectedNotificationBanner =
-    """
-      |                <div class="govuk-notification-banner__header">
-      |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-      |                    Important
-      |                    </h2>
-      |                </div>
-      |                <div class="govuk-notification-banner__content">
-      |                    <h3 class="govuk-notification-banner__heading">Your metadata has been checked.</h3>
-      |                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
-      |                </div>
-      |""".stripMargin
-
-  val expectedFormAction =
-    """
-      |            <form action="/consignment/b5bbe4d6-01a7-4305-99ef-9fce4a67917a/draft-metadata/checks-results" method="get">
-      |                <button type="submit" role="button" draggable="false" id="draft-metadata-checks-continue" class="govuk-button" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled" disabled>
-      |            Continue
-      |                </button>
-      |                <p class="govuk-visually-hidden" id="reason-disabled" >
-      |                This button will be enabled when we have finished checking your metadata.
-      |                </p>
-      |            </form>
-      |""".stripMargin
+  private val expectedResultsUrlInput: String =
+    s"""<input id="fileChecksResultsUrl" type="hidden" value="/consignment/$consignmentId/draft-metadata/checks-results">"""
 
   private val expectedResponse =
     s"""[{"consignmentStatusId":"f3d9bab1-ac65-441b-8516-81a1590ed98e","consignmentId":"b5bbe4d6-01a7-4305-99ef-9fce4a67917a","statusType":"DraftMetadata","value":"Completed","createdDatetime":"2022-03-10T01:00:00Z[${zoneId.toString}]","modifiedDatetime":null}]""".stripMargin
@@ -158,13 +134,6 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
 
       val pageAsString: String = contentAsString(page)
 
-      val doc = Jsoup.parse(pageAsString)
-      val btn = doc.select("#draft-metadata-checks-continue").first()
-      btn must not be null
-      btn.hasAttr("disabled") mustBe true
-      btn.hasAttr("aria-disabled") mustBe true
-      btn.hasClass("govuk-button") mustBe true
-
       playStatus(page) mustBe OK
       contentType(page) mustBe Some("text/html")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = "Standard")
@@ -174,11 +143,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
       pageAsString must include(expectedChecks)
       pageAsString must include(expectedBody)
       pageAsString must include(expectedInput)
-      pageAsString must include(expectedNotificationBanner)
-
-      pageAsString must include(s"<form action=\"/consignment/$consignmentId/draft-metadata/checks-results\" method=\"get\">")
-      pageAsString must include("id=\"reason-disabled\"")
-      pageAsString must include("This button will be enabled when we have finished checking your metadata.")
+      pageAsString must include(expectedResultsUrlInput)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
