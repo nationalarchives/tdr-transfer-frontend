@@ -16,7 +16,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
-    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@9c969d5663e4b0907a42b9dcea21cf3c6808971a # TEMP: testing snapshot-argument-support branch, revert before merging
+    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@68960904fc1b628f92756d3f760e7ab64cfe95f2 # v0.0.44
     with:
       java-version: '17'
       repo-name: tdr-transfer-frontend
