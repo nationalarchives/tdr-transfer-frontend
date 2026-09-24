@@ -2,7 +2,7 @@ import {
   hasDraftMetadataValidationCompleted,
   haveFileChecksCompleted
 } from "./verify-checks-have-completed"
-import { displayChecksCompletedBanner } from "./display-checks-completed-banner"
+import { redirectToChecksResults } from "./redirect-to-checks-results"
 import {
   continueTransfer,
   getDraftMetadataValidationProgress,
@@ -60,7 +60,7 @@ export class Checks {
           const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
           if (checksCompleted) {
             clearInterval(intervalId)
-            displayChecksCompletedBanner("file-checks")
+            redirectToChecksResults()
           }
         },
         10000
@@ -78,7 +78,7 @@ export class Checks {
         )
         if (checksCompleted) {
           clearInterval(intervalId)
-          displayChecksCompletedBanner("draft-metadata-checks")
+          redirectToChecksResults()
         }
       } else {
         clearInterval(intervalId)
