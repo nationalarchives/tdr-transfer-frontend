@@ -1,5 +1,12 @@
 name: TDR Tag and pre deploy Transfer Frontend
 on:
+  workflow_dispatch:
+    inputs:
+      snapshot:
+        description: 'Build a dev snapshot from the current branch instead of the next release version'
+        type: boolean
+        required: false
+        default: false
   push:
     branches:
       - master
@@ -9,11 +16,12 @@ jobs:
     permissions:
       contents: write
       id-token: write
-    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@b98899c2acfaf872e0053671743a5b1284b0dab0 # v0.0.43
+    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@68960904fc1b628f92756d3f760e7ab64cfe95f2 # v0.0.44
     with:
       java-version: '17'
       repo-name: tdr-transfer-frontend
       image-name: transfer-frontend
+      snapshot: ${{ inputs.snapshot == true }}
       build-command: |
         sbt dist
     secrets:
@@ -32,7 +40,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: gh workflow run deploy.yml -f environment=intg -f to-deploy=$NEXT_VERSION
+      - run: |
+          if [ "$SNAPSHOT" = "true" ]; then
+            gh workflow run deploy.yml -f environment=dev -f to-deploy=$NEXT_VERSION
+          else
+            gh workflow run deploy.yml -f environment=intg -f to-deploy=$NEXT_VERSION
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
           NEXT_VERSION: ${{ needs.pre-deploy.outputs.next-version }}
+          SNAPSHOT: ${{ inputs.snapshot == true }}
+
