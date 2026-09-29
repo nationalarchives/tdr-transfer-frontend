@@ -5,10 +5,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
-import io.circe.Json
-import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import io.circe.{Json, Printer}
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
@@ -18,12 +17,10 @@ import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
-import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, UploadType}
 import services._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -121,14 +118,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
             |                <li>Identifying file formats</li>
             |                <li>Validating data integrity</li>
             |            </ul>""".stripMargin,
-          s"""            <form action="/consignment/$consignmentId/file-checks-results">
-             |                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button" data-tdr-module="button-disabled" data-module="govuk-button" aria-disabled="true" aria-describedby="reason-disabled" disabled>
-             |                Continue
-             |                </button>
-             |                <p class="govuk-visually-hidden" id="reason-disabled">
-             |                    This button will be enabled when we have finished checking your files.
-             |                </p>
-             |            </form>""".stripMargin
+          s"""<input id="fileChecksResultsUrl" type="hidden" value="/consignment/$consignmentId/file-checks-results">"""
         )
       }
 
@@ -172,17 +162,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
             """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
               |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
               |            </p>""".stripMargin
-          )
-          fileChecksPageAsString must include(
-            """                <div class="govuk-notification-banner__header">
-              |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-              |                        Important
-              |                    </h2>
-              |                </div>
-              |                <div class="govuk-notification-banner__content">
-              |                    <p class="govuk-notification-banner__heading">Your records have been checked</p>
-              |                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
-              |                </div>""".stripMargin
           )
           fileChecksPageAsString must include(expectedForm)
         }
