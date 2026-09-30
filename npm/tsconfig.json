@@ -13,6 +13,9 @@
     "paths": {
       "@nationalarchives/tdr-components": [
         "./node_modules/@nationalarchives/tdr-components/dist/index.d.ts"
+      ],
+      "@nationalarchives/file-information": [
+        "./src/file-information"
       ]
     }
   },

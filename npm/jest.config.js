@@ -3,6 +3,7 @@ module.exports = {
   moduleNameMapper: {
     "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts",
     "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist",
+    "@nationalarchives/file-information": "<rootDir>/src/file-information",
     '^sinon$': require.resolve('sinon')
   },
   testEnvironment: 'jsdom',

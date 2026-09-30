@@ -21,7 +21,16 @@ module.exports = {
   },
   resolve: {
     extensions: [".ts", ".js", ".mjs"],
-    fallback: { util: require.resolve("util/"), events: require.resolve("events") }
+    fallback: {
+        util: require.resolve("util/"),
+        events: require.resolve("events"),
+        crypto: false,
+        stream: false,
+        vm: false
+    },
+    alias: {
+        "@nationalarchives/file-information": path.resolve(__dirname, "src/file-information")
+    }
   },
   output: {
     filename: "main.js",
