@@ -44,6 +44,46 @@ export interface FetchHttpHandlerOptions {
   // minimumThroughputBytesPerSecond before being terminated.
   requestTimeoutMs?: number
   minimumThroughputBytesPerSecond?: number
+  // The upload URL (frontEndInfo.uploadUrl). Requests are only sent to its origin.
+  uploadUrl?: string
+}
+
+export function createDisallowedUrlError(): Error {
+  const error = new Error("Request URL is not allowed")
+  error.name = "DisallowedUrlError"
+  return error
+}
+
+const parseUrl = (url: string | undefined): URL | undefined => {
+  if (!url) {
+    return undefined
+  }
+  try {
+    return new URL(url)
+  } catch {
+    return undefined
+  }
+}
+
+// Only allows https requests, without credentials, to the origin of the upload URL.
+export const validateRequestUrl = (
+  url: string,
+  uploadUrl: string | undefined
+): URL => {
+  const allowedUrl = parseUrl(uploadUrl)
+  const requestUrl = parseUrl(url)
+  if (
+    !allowedUrl ||
+    !requestUrl ||
+    allowedUrl.protocol !== "https:" ||
+    requestUrl.protocol !== "https:" ||
+    requestUrl.username !== "" ||
+    requestUrl.password !== "" ||
+    requestUrl.origin !== allowedUrl.origin
+  ) {
+    throw createDisallowedUrlError()
+  }
+  return requestUrl
 }
 
 type FetchHttpHandlerConfig = FetchHttpHandlerOptions
@@ -91,7 +131,16 @@ export class TdrFetchHandler implements HttpHandler {
     }
 
     const { method } = request
-    const url = `${request.protocol}//${path}`
+    // Validate the destination against the configured upload URL before fetching
+    let validatedUrl: URL
+    try {
+      validatedUrl = validateRequestUrl(
+        `${request.protocol}//${path}`,
+        this.config!.uploadUrl
+      )
+    } catch (e) {
+      return Promise.reject(e)
+    }
     // Request constructor doesn't allow GET/HEAD request with body
     // ref: https://github.com/whatwg/fetch/issues/551
     const body =
@@ -115,7 +164,7 @@ export class TdrFetchHandler implements HttpHandler {
       ;(requestOptions as any)["signal"] = controller.signal
     }
 
-    const fetchRequest = new Request(url, requestOptions)
+    const fetchRequest = new Request(validatedUrl.toString(), requestOptions)
 
     const raceOfPromises: Promise<Response>[] = [fetch(fetchRequest)]
 
