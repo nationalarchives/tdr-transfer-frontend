@@ -49,7 +49,7 @@ libraryDependencies ++= Seq(
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.2"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.3"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 val nettyVersion = "4.2.18.Final"
