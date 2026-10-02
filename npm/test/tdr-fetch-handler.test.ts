@@ -6,12 +6,14 @@ import {
   TdrFetchHandler
 } from "../src/s3upload/tdr-fetch-handler"
 
+const uploadUrl = "https://upload.example.com"
+
 const createRequest = () =>
   new HttpRequest({
     method: "PUT",
     protocol: "https:",
     hostname: "upload.example.com",
-    path: "/user/consignment/file",
+    path: "/upload.example.com/user/consignment/file",
     headers: {}
   })
 
@@ -20,7 +22,7 @@ const createRequestWithBody = (sizeInBytes: number) =>
     method: "PUT",
     protocol: "https:",
     hostname: "upload.example.com",
-    path: "/user/consignment/file",
+    path: "/upload.example.com/user/consignment/file",
     headers: {},
     body: new Uint8Array(sizeInBytes)
   })
@@ -35,7 +37,7 @@ test("a request that does not complete within the timeout is aborted", async () 
   // A stalled request: the promise never settles on its own.
   fetchMock.mockImplementation(() => new Promise(() => {}))
 
-  const handler = new TdrFetchHandler({ requestTimeoutMs: 10 })
+  const handler = new TdrFetchHandler({ uploadUrl, requestTimeoutMs: 10 })
 
   await expect(handler.handle(createRequest())).rejects.toThrow(
     "Request did not complete within 10 ms"
@@ -46,7 +48,7 @@ test("a request that does not complete within the timeout is aborted", async () 
 test("the timeout error is named so the SDK treats it as retryable", async () => {
   fetchMock.mockImplementation(() => new Promise(() => {}))
 
-  const handler = new TdrFetchHandler({ requestTimeoutMs: 10 })
+  const handler = new TdrFetchHandler({ uploadUrl, requestTimeoutMs: 10 })
 
   await expect(handler.handle(createRequest())).rejects.toMatchObject({
     name: "TimeoutError"
@@ -57,7 +59,7 @@ test("a request that completes does not leave its timeout timer pending", async 
   fetchMock.mockResponse("", { status: 200 })
   const clearTimeoutSpy = jest.spyOn(global, "clearTimeout")
 
-  const handler = new TdrFetchHandler({ requestTimeoutMs: 60000 })
+  const handler = new TdrFetchHandler({ uploadUrl, requestTimeoutMs: 60000 })
   const { response } = await handler.handle(createRequest())
 
   expect(response.statusCode).toEqual(200)
@@ -70,7 +72,7 @@ test("a request that completes does not leave its timeout timer pending", async 
 test("a request with no timeout configured is still sent", async () => {
   fetchMock.mockResponse("", { status: 200 })
 
-  const handler = new TdrFetchHandler({})
+  const handler = new TdrFetchHandler({ uploadUrl })
   const { response } = await handler.handle(createRequest())
 
   expect(response.statusCode).toEqual(200)
@@ -80,6 +82,7 @@ test("the time the body needs is added to the timeout", async () => {
   fetchMock.mockImplementation(() => new Promise(() => {}))
 
   const handler = new TdrFetchHandler({
+    uploadUrl,
     requestTimeoutMs: 10,
     minimumThroughputBytesPerSecond: 1000
   })
@@ -94,6 +97,7 @@ test("a request with no body is only given the configured allowance", async () =
   fetchMock.mockImplementation(() => new Promise(() => {}))
 
   const handler = new TdrFetchHandler({
+    uploadUrl,
     requestTimeoutMs: 10,
     minimumThroughputBytesPerSecond: 1000
   })
@@ -106,7 +110,10 @@ test("a request with no body is only given the configured allowance", async () =
 test("a part of a large file is given long enough to transfer on a slow connection", async () => {
   fetchMock.mockImplementation(() => new Promise(() => {}))
 
-  const handler = new TdrFetchHandler({ requestTimeoutMs: 5 * 60 * 1000 })
+  const handler = new TdrFetchHandler({
+    uploadUrl,
+    requestTimeoutMs: 5 * 60 * 1000
+  })
   const partSizeBytes = 5 * 1024 * 1024
 
   jest.useFakeTimers()
@@ -128,6 +135,7 @@ test("the time added for the body cannot take a request past the maximum timeout
   fetchMock.mockImplementation(() => new Promise(() => {}))
 
   const handler = new TdrFetchHandler({
+    uploadUrl,
     requestTimeoutMs: 5 * 60 * 1000,
     // A body needing far longer to transfer than the maximum allows.
     minimumThroughputBytesPerSecond: 1
@@ -150,7 +158,7 @@ test("the time added for the body cannot take a request past the maximum timeout
 test("aborting a platform signal aborts the request in flight", async () => {
   fetchMock.mockImplementation(() => new Promise(() => {}))
 
-  const handler = new TdrFetchHandler({ requestTimeoutMs: 60000 })
+  const handler = new TdrFetchHandler({ uploadUrl, requestTimeoutMs: 60000 })
   const abortController = new AbortController()
   const handled = handler.handle(createRequest(), {
     abortSignal: abortController.signal
@@ -165,7 +173,7 @@ test("aborting a platform signal aborts the request in flight", async () => {
 test("a completed request stops listening to the caller's signal", async () => {
   fetchMock.mockResponse("", { status: 200 })
 
-  const handler = new TdrFetchHandler({ requestTimeoutMs: 60000 })
+  const handler = new TdrFetchHandler({ uploadUrl, requestTimeoutMs: 60000 })
   const abortController = new AbortController()
   const removeEventListener = jest.spyOn(
     abortController.signal,
@@ -192,7 +200,7 @@ test("a signal that only supports onabort still aborts the request", async () =>
     onabort: null
   }
 
-  const handler = new TdrFetchHandler({ requestTimeoutMs: 60000 })
+  const handler = new TdrFetchHandler({ uploadUrl, requestTimeoutMs: 60000 })
   const handled = handler.handle(createRequest(), { abortSignal: sdkSignal })
   await Promise.resolve()
 
@@ -200,4 +208,49 @@ test("a signal that only supports onabort still aborts the request", async () =>
 
   await expect(handled).rejects.toMatchObject({ name: "AbortError" })
   expect(signalOfLastRequest()?.aborted).toBe(true)
+})
+
+const requestTo = (protocol: string, path: string) =>
+  new HttpRequest({ method: "PUT", protocol, hostname: "", path, headers: {} })
+
+test("a request to the upload url is sent", async () => {
+  fetchMock.mockResponse("", { status: 200 })
+  const handler = new TdrFetchHandler({ uploadUrl })
+
+  await handler.handle(createRequest())
+
+  expect((fetchMock.mock.calls[0][0] as Request).url).toEqual(
+    "https://upload.example.com/user/consignment/file"
+  )
+})
+
+test.each([
+  ["a different host", "https:", "/evil.example.com/user/consignment/file"],
+  [
+    "a host prefixed by the upload host",
+    "https:",
+    "/upload.example.com.evil.com/f"
+  ],
+  ["credentials in the url", "https:", "/attacker@upload.example.com/f"],
+  ["a different port", "https:", "/upload.example.com:8443/f"],
+  ["plain http", "http:", "/upload.example.com/f"]
+])(
+  "a request to %s is rejected without being sent",
+  async (_, protocol, path) => {
+    const handler = new TdrFetchHandler({ uploadUrl })
+
+    await expect(
+      handler.handle(requestTo(protocol, path))
+    ).rejects.toMatchObject({ name: "DisallowedUrlError" })
+    expect(fetchMock).not.toHaveBeenCalled()
+  }
+)
+
+test("a request is rejected when no upload url is configured", async () => {
+  const handler = new TdrFetchHandler({})
+
+  await expect(handler.handle(createRequest())).rejects.toMatchObject({
+    name: "DisallowedUrlError"
+  })
+  expect(fetchMock).not.toHaveBeenCalled()
 })
