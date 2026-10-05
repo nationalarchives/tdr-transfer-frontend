@@ -1,0 +1,15 @@
+@(name: String)(implicit request: RequestHeader, messages: Messages)
+@defining("Sorry, there was an issue setting up your account.") { title =>
+  @main(title, name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <h1 class="govuk-heading-l">@title</h1>
+          <p class="govuk-body">
+            Don’t worry— just send us an email at <a class="govuk-link" href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> and we will fix it.
+          </p>
+        </div>
+      </div>
+    }
+  }
+}

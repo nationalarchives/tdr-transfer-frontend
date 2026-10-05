@@ -53,7 +53,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
   "HomepageController GET" should {
 
-    "render the registration complete page with an authenticated user with no user type" in {
+    "render the registration error page with an authenticated user with no user type" in {
       val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidKeycloakConfiguration,
@@ -65,8 +65,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
-      homepagePageAsString must include("Thank you for completing your registration")
-      homepagePageAsString must include("Next Steps")
+      homepagePageAsString must include("Sorry, there was an issue setting up your account.")
+      homepagePageAsString must include("Don’t worry— just send us an email")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = "", consignmentExists = false)
     }
 
