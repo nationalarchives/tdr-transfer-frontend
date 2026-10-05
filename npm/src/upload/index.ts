@@ -64,7 +64,10 @@ export class FileUploader {
       // for it, and only adaptive mode rate limits the client in response to the 503
       // SlowDown responses that follow.
       retryMode: "adaptive",
-      requestHandler: new TdrFetchHandler({ requestTimeoutMs })
+      requestHandler: new TdrFetchHandler({
+        requestTimeoutMs,
+        uploadUrl: frontendInfo.uploadUrl
+      })
     }
 
     const client = new S3Client(config)
