@@ -4,7 +4,7 @@
   "description": "Repository for TDR transfer code",
   "private": true,
   "scripts": {
-    "copy-govuk-image-assets": "copyfiles -f node_modules/govuk-frontend/dist/govuk/assets/images/* ../public/images -e node_modules/govuk-frontend/dist/govuk/assets/images/favicon*",
+    "copy-govuk-image-assets": "copyfiles -f -e 'node_modules/govuk-frontend/dist/govuk/assets/images/favicon*' 'node_modules/govuk-frontend/dist/govuk/assets/images/*' ../public/images",
     "copy-govuk-js-assets": "copyfiles -f node_modules/govuk-frontend/dist/govuk/all.bundle.js ../public/javascripts",
     "copy-assets": "npm-run-all copy-govuk-image-assets copy-govuk-js-assets",
     "sass-watch": "sass --no-source-map ./css-src/sass/main.scss ../public/stylesheets/main.css --watch",
