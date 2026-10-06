@@ -449,9 +449,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val pageAsString = contentAsString(page)
 
-      pageAsString must include("""<dd class="govuk-summary-list__value">
-                        2
-                    </dd>""")
+      pageAsString must include("Submission 2")
     }
 
     "show the formatted date submitted from the last Submission log" in {
