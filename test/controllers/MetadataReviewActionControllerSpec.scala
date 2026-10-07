@@ -453,6 +453,41 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       pageAsString must include("Submission 2")
     }
 
+    "show total, open, closed and retained record counts correctly" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[getConsignmentDetailsForMetadataReview.Data, getConsignmentDetailsForMetadataReview.Variables]()
+      val data = client
+        .GraphqlData(
+          Some(
+            getConsignmentDetailsForMetadataReview.Data(
+              Some(
+                getConsignmentDetailsForMetadataReview.GetConsignment(
+                  "TDR-2024-TEST",
+                  Some("SeriesName"),
+                  Some("TransferringBody"),
+                  userId,
+                  totalClosedRecords = 14,
+                  totalRetainedRecords = 13,
+                  includeTopLevelFolder = Some(false),
+                  totalFiles = 87,
+                  consignmentMetadata = List.empty,
+                  metadataReviewLogs = List(submissionLog)
+                )
+              )
+            )
+          )
+        )
+        .asJson
+        .printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql")).withRequestBody(containing("getConsignmentDetailsForMetadataReview")).willReturn(okJson(data)))
+
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
+      val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
+      val pageAsString = contentAsString(page)
+
+      pageAsString must include("Total records")
+      pageAsString must include("87 (Open: 73, Closed: 14, Retained: 13)")
+    }
+
     "show the formatted date submitted from the last Submission log" in {
       setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog))
 
