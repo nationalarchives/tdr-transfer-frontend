@@ -53,6 +53,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.3"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 val nettyVersion = "4.2.18.Final"
+val bouncyCastleVersion = "1.86"
 dependencyOverrides ++= Seq(
   "netty-buffer",
   "netty-codec",
@@ -69,6 +70,12 @@ dependencyOverrides ++= Seq(
   "netty-transport-classes-epoll",
   "netty-transport-native-unix-common"
 ).map("io.netty" % _ % nettyVersion)
+
+dependencyOverrides ++= Seq(
+  "bcprov-jdk18on",
+  "bcpkix-jdk18on",
+  "bcutil-jdk18on"
+).map("org.bouncycastle" % _ % bouncyCastleVersion)
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
