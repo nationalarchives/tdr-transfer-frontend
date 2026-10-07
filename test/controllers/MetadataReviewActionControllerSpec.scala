@@ -304,6 +304,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
               Some("TransferringBody"),
               userId,
               totalClosedRecords = 0,
+              totalRetainedRecords = 0,
               includeTopLevelFolder = Some(false),
               totalFiles = 10,
               consignmentMetadata = List(
@@ -581,6 +582,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
                   Some("TransferringBody"),
                   userId,
                   totalClosedRecords = 0,
+                  totalRetainedRecords = 0,
                   includeTopLevelFolder = Some(true),
                   totalFiles = 5,
                   consignmentMetadata = List.empty,

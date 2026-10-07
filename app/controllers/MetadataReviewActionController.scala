@@ -66,7 +66,7 @@ class MetadataReviewActionController @Inject() (
           }
         )
       } yield {
-        /*messagingService.sendMetadataReviewSubmittedNotification(
+        messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
             environment = applicationConfig.frontEndInfo.stage,
             consignmentReference = consignmentDetails.consignmentReference,
@@ -79,7 +79,7 @@ class MetadataReviewActionController @Inject() (
             closedRecords = consignmentDetails.totalClosedRecords > 0,
             totalRecords = consignmentDetails.totalFiles
           )
-        )*/
+        )
         Redirect(routes.MetadataReviewActionController.consignmentMetadataDetails(consignmentId))
           .flashing("success" -> "true")
       }
