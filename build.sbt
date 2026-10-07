@@ -23,18 +23,18 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll ExclusionRule(organization = "com.fasterxml.jackson.core"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
-  "io.circe" %% "circe-core" % "0.14.16",
-  "io.circe" %% "circe-generic" % "0.14.16",
+  "io.circe" %% "circe-core" % "0.14.17",
+  "io.circe" %% "circe-generic" % "0.14.17",
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.307",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.305",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.486",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.488",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.52",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.52",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.144",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.245",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.145",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.246",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
@@ -52,7 +52,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.3"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
-val nettyVersion = "4.2.18.Final"
+val nettyVersion = "4.2.19.Final"
 dependencyOverrides ++= Seq(
   "netty-buffer",
   "netty-codec",
