@@ -66,7 +66,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
       homepagePageAsString must include("Sorry, there was an issue setting up your account.")
-      homepagePageAsString must include("Don’t worry— just send us an email")
+      homepagePageAsString must include("Don’t worry - just send us an email")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = "", consignmentExists = false)
     }
 
