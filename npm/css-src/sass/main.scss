@@ -1,6 +1,12 @@
 @import 'overrides/all';
-@import '../../node_modules/govuk-frontend/dist/govuk/all';
-@import '../../node_modules/@nationalarchives/tdr-components/dist/all';
+// tdr-components' all.css bundles its own GOV.UK Frontend v5 styles, so import its components individually.
+// alert.css includes v5 govuk-inset-text styles, so import it before GOV.UK Frontend to let the v6 styles win.
+@import '../../node_modules/@nationalarchives/tdr-components/dist/components/alert/alert';
+@import '../../node_modules/govuk-frontend/dist/govuk/index';
+@import '../../node_modules/@nationalarchives/tdr-components/dist/components/card/card';
+@import '../../node_modules/@nationalarchives/tdr-components/dist/components/icon/icon';
+@import '../../node_modules/@nationalarchives/tdr-components/dist/components/multi-select-search/multi-select-search';
+@import '../../node_modules/@nationalarchives/tdr-components/dist/components/nested-navigation/nested-navigation';
 
 @import 'header';
 @import 'drag-and-drop';
@@ -15,7 +21,7 @@
 @import 'notification-banner-error';
 
 a {
-  color: $govuk-link-colour;
+  color: govuk-functional-colour('link');
 }
 
 .logged-in-user {
@@ -42,7 +48,7 @@ a {
 }
 
 .logged-out-error-link {
-  color: $govuk-error-colour;
+  color: govuk-functional-colour('error');
 }
 
 .govuk-checkboxes__item:last-child,

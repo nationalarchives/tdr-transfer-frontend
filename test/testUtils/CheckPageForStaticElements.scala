@@ -18,7 +18,7 @@ class CheckPageForStaticElements() {
     |    <meta name="robots" content="noindex">
     |    <link rel="stylesheet" media="screen" href="/assets/stylesheets/main.css">
     |    <link rel="shortcut icon" type="image/ico" href="/assets/images/favicon.ico">
-    |    <script  src="/assets/javascripts/all.js" type="text/javascript"></script>
+    |    <script  src="/assets/javascripts/all.bundle.js" type="text/javascript"></script>
     |    <script  src="/assets/javascripts/main.js" type="text/javascript"></script>""".stripMargin)
     page must include("""<a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>""")
     page must include("""href="/contact">""")
@@ -53,7 +53,7 @@ class CheckPageForStaticElements() {
       pageRequiresAwsServices: Boolean
   ) = {
     page must include(
-      """<a class="govuk-header__link" href="/sign-out">
+      """<a class="govuk-service-navigation__link" href="/sign-out">
         |                                        Sign out
         |                                    </a>""".stripMargin
     )
