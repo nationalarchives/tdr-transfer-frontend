@@ -41,8 +41,16 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements()
   val userTypeTable: TableFor3[String, String, String] = Table(
     ("userType", "downloadTemplate", "headers"),
-    ("standard", "MetadataDownloadTemplate", "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,related material,restrictions on use,evidence provided by,note,former filepath,catalogue placement"),
-    ("TNA", "MetadataReviewDetailTemplate", "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,checksum,restrictions on use,related material,evidence provided by,reference,note,original_identifier,held_by,former filepath,catalogue placement,inventor"),
+    (
+      "standard",
+      "MetadataDownloadTemplate",
+      "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,related material,restrictions on use,evidence provided by,note,former filepath,catalogue placement"
+    ),
+    (
+      "TNA",
+      "MetadataReviewDetailTemplate",
+      "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,checksum,restrictions on use,related material,evidence provided by,reference,note,original_identifier,held_by,former filepath,catalogue placement,inventor"
+    )
   )
 
   override def beforeEach(): Unit = {
