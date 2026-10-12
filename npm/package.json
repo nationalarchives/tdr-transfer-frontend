@@ -94,7 +94,7 @@
     "stylelint": "^17.1.1",
     "stylelint-config-sass-guidelines": "^13.0.0",
     "stylelint-order": "^7.0.1",
-    "ts-jest": "^29.4.6",
+    "ts-jest": "^29.4.14",
     "ts-loader": "^9.5.4",
     "typescript": "5.9.3",
     "webpack": "^5.105.0",
