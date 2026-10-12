@@ -39,7 +39,7 @@ class HomepageController @Inject() (
       } else if (request.token.isTNAUser) {
         Ok(views.html.tna.homepage(request.token.name))
       } else {
-        Ok(views.html.registrationComplete(request.token.name))
+        Ok(views.html.registrationError(request.token.name))
       }
     }
   }
@@ -51,7 +51,7 @@ class HomepageController @Inject() (
       } else if (request.token.isStandardUser) {
         Redirect(routes.HomepageController.homepage())
       } else {
-        Ok(views.html.registrationComplete(request.token.name))
+        Ok(views.html.registrationError(request.token.name))
       }
     }
   }

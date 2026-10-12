@@ -51,84 +51,84 @@
             }
 
             <h1 class="govuk-heading-l">Transfer details for @consignmentDetails.consignmentReference</h1>
-            <dl class="govuk-summary-list">
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Status
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        <strong class="govuk-tag @tagClass(action)">@tagLabel(action)</strong>
-                    </dd>
+            <div class="govuk-summary-card">
+                <div class="govuk-summary-card__title-wrapper">
+                    <h2 class="govuk-summary-card__title">
+                        Submission @totalSubmissions
+                    </h2>
+                    <div class="govuk-summary-card__actions">
+                        <a class="govuk-link" href="@routes.MetadataReviewHistoryController.getConsignmentMetadataHistory(consignmentId)">View submission history<span class="govuk-visually-hidden"> (Submission @totalSubmissions)</span></a>
+                    </div>
                 </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key">
-                        Submission number
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @totalSubmissions
-                    </dd>
-                    <dd class="govuk-summary-list__actions">
-                        <a class="govuk-link" href="@routes.MetadataReviewHistoryController.getConsignmentMetadataHistory(consignmentId)">View submission history<span class="govuk-visually-hidden"> submission number</span></a>
-                    </dd>
+                <div class="govuk-summary-card__content">
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Status
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                <strong class="govuk-tag @tagClass(action)">@tagLabel(action)</strong>
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Date submitted
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @dateSubmitted
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Department
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                            @consignmentDetails.transferringBodyName
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Contact email
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                <a href="mailto:@userEmail" class="govuk-link">@userEmail</a>
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Series
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                            @consignmentDetails.seriesName
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Total records
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @consignmentDetails.totalFiles (Open: @(consignmentDetails.totalFiles - consignmentDetails.totalClosedRecords), Closed: @consignmentDetails.totalClosedRecords, Retained: @consignmentDetails.totalRetainedRecords)
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Legal status
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @consignmentDetails.consignmentMetadata.find(_.propertyName == "LegalStatus").map(_.value).getOrElse("")
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
+                            <dt class="govuk-summary-list__key">
+                                Display top level folder
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @(consignmentDetails.includeTopLevelFolder.map(v => if(v) "Yes" else "No").getOrElse(""))
+                            </dd>
+                        </div>
+                    </dl>
                 </div>
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Date submitted
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @dateSubmitted
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Department
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                    @consignmentDetails.transferringBodyName
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Contact email
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        <a href="mailto:@userEmail" class="govuk-link">
-                        @userEmail</a>
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Series
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                    @consignmentDetails.seriesName
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Total/open/closed records
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        Total: @consignmentDetails.totalFiles  Open: @(consignmentDetails.totalFiles - consignmentDetails.totalClosedRecords)  Closed: @consignmentDetails.totalClosedRecords
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Legal status
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @consignmentDetails.consignmentMetadata.find(_.propertyName == "LegalStatus").map(_.value).getOrElse("")
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
-                    <dt class="govuk-summary-list__key">
-                        Display top level folder
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @(consignmentDetails.includeTopLevelFolder.map(v => if(v) "Yes" else "No").getOrElse(""))
-                    </dd>
-                </div>
-            </dl>
+            </div>
 
             @if(lastReviewedByName.isDefined || lastUpdated.isDefined) {
                 @lastReviewedByName.map { reviewedByName =>
