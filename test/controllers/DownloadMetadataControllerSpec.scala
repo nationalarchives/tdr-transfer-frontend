@@ -15,7 +15,7 @@ import io.circe.syntax.EncoderOps
 import org.apache.pekko.util.ByteString
 import org.dhatim.fastexcel.reader._
 import org.mockito.Mockito.{never, verify}
-import org.scalatest.prop.TableFor1
+import org.scalatest.prop.TableFor3
 import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.FakeRequest
@@ -29,8 +29,8 @@ import uk.gov.nationalarchives.tdr.validation.utils.GuidanceUtils.{GuidanceItem,
 import viewsapi.FrontEndInfo
 
 import java.io.ByteArrayInputStream
-import java.time.{LocalDateTime, ZonedDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.jdk.CollectionConverters._
@@ -39,10 +39,18 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
-  val userTypeTable: TableFor1[String] = Table(
-    "userType",
-    "standard",
-    "TNA"
+  val userTypeTable: TableFor3[String, String, String] = Table(
+    ("userType", "downloadTemplate", "headers"),
+    (
+      "standard",
+      "MetadataDownloadTemplate",
+      "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,related material,restrictions on use,evidence provided by,note,former filepath,catalogue placement"
+    ),
+    (
+      "TNA",
+      "MetadataReviewDetailTemplate",
+      "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,checksum,restrictions on use,related material,evidence provided by,reference,note,original_identifier,held_by,former filepath,catalogue placement,inventor"
+    )
   )
 
   override def beforeEach(): Unit = {
@@ -55,7 +63,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "DownloadMetadataController downloadMetadataCsv GET" should {
-    forAll(userTypeTable)(userType => {
+    forAll(userTypeTable)((userType, template, totalHeaders) => {
       s"download the csv for a multiple properties and rows when $userType user" in {
         val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
         val uuid1 = UUID.randomUUID().toString
@@ -84,36 +92,16 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
           gcfm.GetConsignment.Files(UUID.randomUUID(), Some("filename"), metadataFileTwo)
         )
 
-        val wb: ReadableWorkbook = getFileFromController(files, userType)
+        val wb: ReadableWorkbook = getFileFromController(files, userType, template)
         val ws: Sheet = wb.getFirstSheet
         val rows: List[Row] = ws.read.asScala.toList
 
         rows.length must equal(3)
+        rows.head.getCellCount must equal(totalHeaders.split(",").length)
 
-        rows.head.getCellCount must equal(23)
-        rows.head.getCell(0).asString must equal("filepath")
-        rows.head.getCell(1).asString must equal("filename")
-        rows.head.getCell(2).asString must equal("date last modified")
-        rows.head.getCell(3).asString must equal("date of the record")
-        rows.head.getCell(4).asString must equal("description")
-        rows.head.getCell(5).asString must equal("former reference")
-        rows.head.getCell(6).asString must equal("closure status")
-        rows.head.getCell(7).asString must equal("closure start date")
-        rows.head.getCell(8).asString must equal("closure period")
-        rows.head.getCell(9).asString must equal("foi exemption code")
-        rows.head.getCell(10).asString must equal("foi schedule date")
-        rows.head.getCell(11).asString must equal("is filename closed")
-        rows.head.getCell(12).asString must equal("alternate filename")
-        rows.head.getCell(13).asString must equal("is description closed")
-        rows.head.getCell(14).asString must equal("alternate description")
-        rows.head.getCell(15).asString must equal("language")
-        rows.head.getCell(16).asString must equal("translated filename")
-        rows.head.getCell(17).asString must equal("copyright")
-        rows.head.getCell(18).asString must equal("copyright details")
-        rows.head.getCell(19).asString must equal("related material")
-        rows.head.getCell(20).asString must equal("restrictions on use")
-        rows.head.getCell(21).asString must equal("evidence provided by")
-        rows.head.getCell(22).asString must equal("note")
+        totalHeaders.split(",").zipWithIndex.foreach { case (header, index) =>
+          rows.head.getCell(index).asString must equal(header)
+        }
 
         val copyrightIndex = rows.head.iterator.asScala.toList.zipWithIndex
           .find { case (cell, _) => cell.asString == "copyright" }
@@ -303,12 +291,13 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
   private def getFileFromController(
       files: List[Files],
-      userType: String
+      userType: String,
+      template: String = "MetadataDownloadTemplate"
   ): ReadableWorkbook = {
     val consignmentId = UUID.randomUUID()
     mockFileMetadataResponse(files, consignmentId)
     val controller = createController("standard", userType.some)
-    val response = controller.downloadMetadataFile(consignmentId, None)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+    val response = controller.downloadMetadataFile(consignmentId, template.some)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
     val responseByteArray: ByteString = contentAsBytes(response)
     val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
     new ReadableWorkbook(bufferedSource)

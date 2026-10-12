@@ -267,6 +267,7 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
               transferringBodyName = Some("TransferringBody"),
               userid = userId,
               totalClosedRecords = 2,
+              totalRetainedRecords = 0,
               includeTopLevelFolder = Some(false),
               totalFiles = 10,
               consignmentMetadata = List.empty,

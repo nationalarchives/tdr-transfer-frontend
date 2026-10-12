@@ -30,11 +30,11 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.307",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.305",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.488",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.490",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.52",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.52",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.145",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.246",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.147",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.247",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
@@ -53,6 +53,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.3"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 val nettyVersion = "4.2.19.Final"
+val bouncyCastleVersion = "1.86"
 dependencyOverrides ++= Seq(
   "netty-buffer",
   "netty-codec",
@@ -69,6 +70,12 @@ dependencyOverrides ++= Seq(
   "netty-transport-classes-epoll",
   "netty-transport-native-unix-common"
 ).map("io.netty" % _ % nettyVersion)
+
+dependencyOverrides ++= Seq(
+  "bcprov-jdk18on",
+  "bcpkix-jdk18on",
+  "bcutil-jdk18on"
+).map("org.bouncycastle" % _ % bouncyCastleVersion)
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
