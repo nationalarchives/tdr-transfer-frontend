@@ -15,7 +15,7 @@ import io.circe.syntax.EncoderOps
 import org.apache.pekko.util.ByteString
 import org.dhatim.fastexcel.reader._
 import org.mockito.Mockito.{never, verify}
-import org.scalatest.prop.TableFor3
+import org.scalatest.prop.TableFor2
 import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.FakeRequest
@@ -39,18 +39,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
-  val userTypeTable: TableFor3[String, String, String] = Table(
-    ("userType", "downloadTemplate", "headers"),
-    (
-      "standard",
-      "MetadataDownloadTemplate",
-      "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,related material,restrictions on use,evidence provided by,note,former filepath,catalogue placement"
-    ),
-    (
-      "TNA",
-      "MetadataReviewDetailTemplate",
-      "filepath,filename,date last modified,date of the record,description,former reference,closure status,closure start date,closure period,foi exemption code,foi schedule date,is filename closed,alternate filename,is description closed,alternate description,language,translated filename,copyright,copyright details,checksum,restrictions on use,related material,evidence provided by,reference,note,original_identifier,held_by,former filepath,catalogue placement,inventor"
-    )
+  val userTypeTable: TableFor2[String, String] = Table(
+    ("userType", "downloadTemplate"),
+    ("standard", "MetadataDownloadTemplate"),
+    ("TNA", "MetadataReviewDetailTemplate")
   )
 
   override def beforeEach(): Unit = {
@@ -63,11 +55,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "DownloadMetadataController downloadMetadataCsv GET" should {
-    forAll(userTypeTable)((userType, template, totalHeaders) => {
+    forAll(userTypeTable)((userType, template) => {
       s"download the csv for a multiple properties and rows when $userType user" in {
         val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
         val uuid1 = UUID.randomUUID().toString
         val uuid2 = UUID.randomUUID().toString
+        val metadataConfiguration = ConfigUtils.loadConfiguration
+        val tdrFileHeaderMapper = metadataConfiguration.propertyToOutputMapper("tdrFileHeader")
+        val expectedHeaders = metadataConfiguration
+          .downloadFileDisplayProperties(template)
+          .sortBy(_.columnIndex)
+          .map(displayProperty => tdrFileHeaderMapper(displayProperty.key))
 
         val metadataFileOne = List(
           FileMetadata(fileUUID, uuid1),
@@ -97,9 +95,9 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         val rows: List[Row] = ws.read.asScala.toList
 
         rows.length must equal(3)
-        rows.head.getCellCount must equal(totalHeaders.split(",").length)
+        rows.head.getCellCount must equal(expectedHeaders.length)
 
-        totalHeaders.split(",").zipWithIndex.foreach { case (header, index) =>
+        expectedHeaders.zipWithIndex.foreach { case (header, index) =>
           rows.head.getCell(index).asString must equal(header)
         }
 
