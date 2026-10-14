@@ -2,7 +2,7 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.util.{DateUtils, ExcelUtils}
+import controllers.util.{ConsignmentRecordCounts, DateUtils, ExcelUtils}
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 import graphql.codegen.GetConsignmentReviewDetails.getConsignmentReviewDetails.GetConsignmentReviewDetails
 import uk.gov.nationalarchives.tdr.common.utils.statuses.MetadataReviewLogAction._
@@ -92,7 +92,7 @@ class MetadataReviewExportService @Inject() (
     val series = reviewDetail.seriesName.getOrElse("")
     val totalRecords = consignment.totalFiles.toString
     val totalClosed = consignment.totalClosedRecords.toString
-    val totalOpen = (consignment.totalFiles - consignment.totalClosedRecords).toString
+    val totalOpen = ConsignmentRecordCounts.openRecords(consignment).toString
     val commonFields = List(consignmentRef, currentStatus, userEmail, lastUpdated, department, series, totalRecords, totalOpen, totalClosed)
     val sortedLogs = consignment.metadataReviewLogs.sortBy(_.eventTime.toInstant.toEpochMilli)
     val submissions = sortedLogs.filter(_.action == Submission.value)
