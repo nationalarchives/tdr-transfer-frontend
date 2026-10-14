@@ -2,6 +2,7 @@
 @import controllers.MetadataReviewHistoryController.HistoryRow
 
 @import java.util.UUID
+@import controllers.util.ConsignmentRecordCounts.openRecords
 @(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, historyRows: List[HistoryRow], userEmail: String, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @tagClass(status: String) = @{
@@ -52,7 +53,7 @@
                         Total/open/closed records
                     </dt>
                     <dd class="govuk-summary-list__value">
-                        Total: @consignmentDetails.totalFiles  Open: @(consignmentDetails.totalFiles - consignmentDetails.totalClosedRecords)  Closed: @consignmentDetails.totalClosedRecords
+                        Total: @consignmentDetails.totalFiles  Open: @openRecords(consignmentDetails)  Closed: @consignmentDetails.totalClosedRecords
                     </dd>
                 </div>
             </dl>

@@ -215,11 +215,37 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       val row = rows(1)
       row.getCell(0).asString mustBe "TDR-2024-TEST1"
       row.getCell(1).asString mustBe "Rejected"
+      row.getCell(6).asString mustBe "87"
+      row.getCell(7).asString mustBe "60"
+      row.getCell(8).asString mustBe "14"
       row.getCell(9).asString mustBe "1"
       row.getCell(11).asString mustBe "Rejected"
       row.getCell(14).asString mustBe "Bad data"
 
       wb.close()
+    }
+
+    "review history excel should display the correct total, open and closed record counts" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentReviewDetailsResponse(wiremockServer, consignmentId, "TDR-2024-RETAINED", "Requested")
+      setConsignmentDetailsForMetadataReviewResponse(
+        wiremockServer,
+        "TDR-2024-RETAINED",
+        List(gcdfmr.GetConsignment.MetadataReviewLogs(UUID.randomUUID(), consignmentId, userId, "Submission", ZonedDateTime.parse("2024-07-05T10:34:00Z"), None)),
+        totalFiles = 2,
+        totalClosedRecords = 1,
+        totalRetainedRecords = 1
+      )
+
+      val response = instantiateController().downloadMetadataReviewHistory().apply(FakeRequest(GET, "/admin/manage-transfers/download-review-history").withCSRFToken)
+      val wb = new ReadableWorkbook(new ByteArrayInputStream(contentAsBytes(response).toArray))
+      try {
+        val rows = wb.getFirstSheet.read.asScala.toList
+        rows.length mustBe 2
+        rows(1).getCell(6).asString mustBe "2"
+        rows(1).getCell(7).asString mustBe "0"
+        rows(1).getCell(8).asString mustBe "1"
+      } finally wb.close()
     }
 
     "add a Transferred row when consignment status is Transferred" in {
@@ -362,7 +388,10 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
   private def setConsignmentDetailsForMetadataReviewResponse(
       wiremockServer: WireMockServer,
       consignmentReference: String,
-      logs: List[gcdfmr.GetConsignment.MetadataReviewLogs]
+      logs: List[gcdfmr.GetConsignment.MetadataReviewLogs],
+      totalFiles: Int = 87,
+      totalClosedRecords: Int = 14,
+      totalRetainedRecords: Int = 13
   ): Unit = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcdfmr.Data, gcdfmr.Variables]()
     val data: client.GraphqlData = client.GraphqlData(
@@ -374,10 +403,10 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
               Some("Mock Series"),
               Some("Mock Dept"),
               userId,
-              totalClosedRecords = 14,
-              totalRetainedRecords = 13,
+              totalClosedRecords = totalClosedRecords,
+              totalRetainedRecords = totalRetainedRecords,
               includeTopLevelFolder = Some(false),
-              totalFiles = 87,
+              totalFiles = totalFiles,
               consignmentMetadata = List.empty,
               metadataReviewLogs = logs
             )
