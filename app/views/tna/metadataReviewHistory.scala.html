@@ -50,10 +50,10 @@
 
                 <div class="govuk-summary-list__row">
                     <dt class="govuk-summary-list__key">
-                        Total/open/closed records
+                        Total records
                     </dt>
                     <dd class="govuk-summary-list__value">
-                        Total: @consignmentDetails.totalFiles  Open: @openRecords(consignmentDetails)  Closed: @consignmentDetails.totalClosedRecords
+                        @consignmentDetails.totalFiles (Open: @openRecords(consignmentDetails), Closed: @consignmentDetails.totalClosedRecords, Retained: @consignmentDetails.totalRetainedRecords)
                     </dd>
                 </div>
             </dl>

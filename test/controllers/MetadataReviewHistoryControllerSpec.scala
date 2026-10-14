@@ -114,15 +114,17 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
 
       pageAsString must include("TransferringBody")
       pageAsString must include("SeriesName")
-      pageAsString must include("Total: 10  Open: 8  Closed: 2")
+      pageAsString must include("Total records")
+      pageAsString must include("10 (Open: 8, Closed: 2, Retained: 0)")
     }
 
-    "show the correct total, open and closed record counts" in {
+    "show the correct total, open, closed and retained record counts" in {
       setGraphQLResponse(List(submissionLog), totalFiles = 2, totalClosedRecords = 1, totalRetainedRecords = 1)
       val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val result = controller.getConsignmentMetadataHistory(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId/history").withCSRFToken)
 
-      contentAsString(result) must include("Total: 2  Open: 0  Closed: 1")
+      contentAsString(result) must include("Total records")
+      contentAsString(result) must include("2 (Open: 0, Closed: 1, Retained: 1)")
     }
 
     "show one history row for a single submission with no review" in {
