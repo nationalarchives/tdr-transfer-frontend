@@ -182,12 +182,13 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       headerRow.getCell(6).asString mustBe "No. Records"
       headerRow.getCell(7).asString mustBe "No. Open"
       headerRow.getCell(8).asString mustBe "No. Closed"
-      headerRow.getCell(9).asString mustBe "Submission No."
-      headerRow.getCell(10).asString mustBe "Date Submitted"
-      headerRow.getCell(11).asString mustBe "Review Action"
-      headerRow.getCell(12).asString mustBe "Date Reviewed"
-      headerRow.getCell(13).asString mustBe "Reviewed By"
-      headerRow.getCell(14).asString mustBe "Reason for Action"
+      headerRow.getCell(9).asString mustBe "No. Retained"
+      headerRow.getCell(10).asString mustBe "Submission No."
+      headerRow.getCell(11).asString mustBe "Date Submitted"
+      headerRow.getCell(12).asString mustBe "Review Action"
+      headerRow.getCell(13).asString mustBe "Date Reviewed"
+      headerRow.getCell(14).asString mustBe "Reviewed By"
+      headerRow.getCell(15).asString mustBe "Reason for Action"
 
       wb.close()
     }
@@ -218,14 +219,15 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       row.getCell(6).asString mustBe "87"
       row.getCell(7).asString mustBe "60"
       row.getCell(8).asString mustBe "14"
-      row.getCell(9).asString mustBe "1"
-      row.getCell(11).asString mustBe "Rejected"
-      row.getCell(14).asString mustBe "Bad data"
+      row.getCell(9).asString mustBe "13"
+      row.getCell(10).asString mustBe "1"
+      row.getCell(12).asString mustBe "Rejected"
+      row.getCell(15).asString mustBe "Bad data"
 
       wb.close()
     }
 
-    "review history excel should display the correct total, open and closed record counts" in {
+    "review history excel should display the correct total, open, closed and retained record counts" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentReviewDetailsResponse(wiremockServer, consignmentId, "TDR-2024-RETAINED", "Requested")
       setConsignmentDetailsForMetadataReviewResponse(
@@ -245,6 +247,7 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
         rows(1).getCell(6).asString mustBe "2"
         rows(1).getCell(7).asString mustBe "0"
         rows(1).getCell(8).asString mustBe "1"
+        rows(1).getCell(9).asString mustBe "1"
       } finally wb.close()
     }
 
@@ -270,11 +273,13 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       rows.length mustBe 3
 
       val approvedRow = rows(1)
-      approvedRow.getCell(11).asString mustBe "Approved"
+      approvedRow.getCell(9).asString mustBe "13"
+      approvedRow.getCell(12).asString mustBe "Approved"
 
       val transferredRow = rows(2)
-      transferredRow.getCell(11).asString mustBe "Transferred"
-      transferredRow.getCell(9).asString mustBe "1"
+      transferredRow.getCell(9).asString mustBe "13"
+      transferredRow.getCell(12).asString mustBe "Transferred"
+      transferredRow.getCell(10).asString mustBe "1"
 
       wb.close()
     }
@@ -299,8 +304,9 @@ class ManageTransfersControllerSpec extends FrontEndTestHelper {
       rows.length mustBe 2
       val row = rows(1)
       row.getCell(0).asString mustBe "TDR-2024-PEND"
-      row.getCell(9).asString mustBe "1"
-      row.getCell(11).asString mustBe ""
+      row.getCell(9).asString mustBe "13"
+      row.getCell(10).asString mustBe "1"
+      row.getCell(12).asString mustBe ""
 
       wb.close()
     }

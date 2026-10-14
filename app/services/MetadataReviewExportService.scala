@@ -30,6 +30,7 @@ class MetadataReviewExportService @Inject() (
     "No. Records",
     "No. Open",
     "No. Closed",
+    "No. Retained",
     "Submission No.",
     "Date Submitted",
     "Review Action",
@@ -93,7 +94,8 @@ class MetadataReviewExportService @Inject() (
     val totalRecords = consignment.totalFiles.toString
     val totalClosed = consignment.totalClosedRecords.toString
     val totalOpen = ConsignmentRecordCounts.openRecords(consignment).toString
-    val commonFields = List(consignmentRef, currentStatus, userEmail, lastUpdated, department, series, totalRecords, totalOpen, totalClosed)
+    val totalRetained = consignment.totalRetainedRecords.toString
+    val commonFields = List(consignmentRef, currentStatus, userEmail, lastUpdated, department, series, totalRecords, totalOpen, totalClosed, totalRetained)
     val sortedLogs = consignment.metadataReviewLogs.sortBy(_.eventTime.toInstant.toEpochMilli)
     val submissions = sortedLogs.filter(_.action == Submission.value)
     val reviews = sortedLogs.filter(log => log.action == Rejection.value || log.action == Approval.value)
