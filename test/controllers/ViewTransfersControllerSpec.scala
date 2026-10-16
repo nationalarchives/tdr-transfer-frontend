@@ -350,7 +350,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
                |                  <a class="govuk-link govuk-pagination__link" href="$href" aria-label="Page $page">$page</a>
                |                </li>""".stripMargin)
         } else if (page + 2 == currentPage || page - 2 == currentPage) {
-          viewTransfersPageAsString should include("""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""")
+          viewTransfersPageAsString should include("""<li class="govuk-pagination__item govuk-pagination__item--ellipsis">&ctdot;</li>""")
         }
       }
     }
