@@ -114,7 +114,17 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
 
       pageAsString must include("TransferringBody")
       pageAsString must include("SeriesName")
-      pageAsString must include("Total: 10")
+      pageAsString must include("Total records")
+      pageAsString must include("10 (Open: 8, Closed: 2, Retained: 0)")
+    }
+
+    "show the correct total, open, closed and retained record counts" in {
+      setGraphQLResponse(List(submissionLog), totalFiles = 2, totalClosedRecords = 1, totalRetainedRecords = 1)
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
+      val result = controller.getConsignmentMetadataHistory(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId/history").withCSRFToken)
+
+      contentAsString(result) must include("Total records")
+      contentAsString(result) must include("2 (Open: 0, Closed: 1, Retained: 1)")
     }
 
     "show one history row for a single submission with no review" in {
@@ -255,7 +265,12 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
     new MetadataReviewHistoryController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService, messagingService, config)
   }
 
-  private def setGraphQLResponse(logs: List[getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs]): Unit = {
+  private def setGraphQLResponse(
+      logs: List[getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs],
+      totalFiles: Int = 10,
+      totalClosedRecords: Int = 2,
+      totalRetainedRecords: Int = 0
+  ): Unit = {
     val client = new GraphQLConfiguration(app.configuration).getClient[getConsignmentDetailsForMetadataReview.Data, getConsignmentDetailsForMetadataReview.Variables]()
     val data: client.GraphqlData = client.GraphqlData(
       Some(
@@ -266,10 +281,10 @@ class MetadataReviewHistoryControllerSpec extends FrontEndTestHelper {
               seriesName = Some("SeriesName"),
               transferringBodyName = Some("TransferringBody"),
               userid = userId,
-              totalClosedRecords = 2,
-              totalRetainedRecords = 0,
+              totalClosedRecords = totalClosedRecords,
+              totalRetainedRecords = totalRetainedRecords,
               includeTopLevelFolder = Some(false),
-              totalFiles = 10,
+              totalFiles = totalFiles,
               consignmentMetadata = List.empty,
               metadataReviewLogs = logs
             )
