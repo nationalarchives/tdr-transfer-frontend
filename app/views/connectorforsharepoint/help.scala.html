@@ -33,6 +33,10 @@
                     <li><a href="#email-confirmation">Step 10: Receipt of email confirmation of upload process to TDR</a></li>
                     <li><a href="#what-happens-next">What Happens Next</a></li>
                 </ul>
+                <li><a href="#sharepoint-cross-folder-selection">SharePoint Cross Folder Selection</a></li>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li><a href="#cross-folder-selection-example">Cross Folder Selection Example</a></li>
+                </ul>
                 <li><a href="#sharepoint-metadata-handling">SharePoint Metadata Handling</a></li>
                 <ul class="govuk-list govuk-list--bullet">
                     <li><a href="#sharepoint-system-metadata">SharePoint System Metadata</a></li>
@@ -89,23 +93,31 @@
                 The script performs the following actions: </li>
             <ul class="govuk-list govuk-list--bullet">
                 <li>Installs the application on the target site.</li>
-                <li>Creates the RecordsTransfer.aspx page under the Site Pages library.</li>
+                <li>Creates the TDRConnectorSharePoint.aspx page under the Site Pages library.</li>
                 <li>Adds the Records Transfer web part to the page.</li>
                 <li>Publishes the page.</li>
             </ul>
             <li><b>Manual:</b> If the deployment script is not used, perform the following steps manually:</li>
             <ul class="govuk-list govuk-list--bullet">
                 <li>Navigate to Site Contents → Site Pages.</li>
-                <li>Create a new page named RecordsTransfer.aspx.</li>
+                <li>Create a new page named TDRConnectorSharePoint.aspx.</li>
                 <li>Add the Records Transfer SPFx web part to the page using the web part toolbox.</li>
                 <li>Publish the page.</li>
             </ul>
         </ul>
-        <p class="govuk-body">
-            <b>Important:</b> The page name must be <b>RecordsTransfer.aspx</b>, as the List View Command Set is hardcoded to
-            redirect users to this page. If the page does not exist or the Records Transfer web part has not been added,
-            the transfer functionality will not be available, and users will be unable to initiate the records transfer process.
-        </p>
+        <div class="govuk-inset-text">
+            <p class="govuk-body">
+                <b>Important:</b>
+            </p>
+            <p class="govuk-body">
+                The page name must be <b>TDRConnectorSharePoint.aspx</b>, as the List View Command Set is hardcoded to
+                redirect users to this page.
+            </p>
+            <p class="govuk-body">
+                If the page does not exist or the Records Transfer web part has not been added,
+                the transfer functionality will not be available, and users will be unable to initiate the records transfer process.
+            </p>
+        </div>
 
         <h2 class="govuk-heading-m" id="authorisation">Authorisation</h2>
         <p class="govuk-body">
@@ -166,6 +178,17 @@
         <p class="govuk-body">
             Standard SharePoint item selection functionality.
         </p>
+        <div class="govuk-inset-text">
+            <p class="govuk-body">
+                <b>Cross Folder Selection:</b>
+            </p>
+            <p class="govuk-body">
+                Standard SharePoint item selection functionality does not support cross folder selection.
+            </p>
+            <p class="govuk-body">See here for how to select items across folders for upload:
+                <a href="#sharepoint-cross-folder-selection">SharePoint Cross Folder Selection</a>
+            </p>
+        </div>
         <img src="@routes.Assets.versioned("images/sharepoint-connector/sp-selection-v1.png")" class="screenshots" alt="SharePoint select items to transfer" />
 
         <h3 class="govuk-heading-s" id="upload-to-tdr-action">
@@ -212,7 +235,7 @@
             User is taken to the next step in the process.
         </p>
         <p class="govuk-body">
-            TThe TDR Connector for SharePoint retrieves configuration to support the copying process. This includes:
+            The TDR Connector for SharePoint retrieves configuration to support the copying process. This includes:
         </p>
         <ul class="govuk-list govuk-list--bullet">
             <li>Capacity limits;</li>
@@ -290,6 +313,84 @@
             Depending on whether you have an active TDR web application session, or not, the email link with take
             you directly into TDR web application without the need to log in.
         </p>
+
+        <h2 class="govuk-heading-m" id="sharepoint-cross-folder-selection">SharePoint Cross Folder Selection</h2>
+        <p class="govuk-body">
+            The TDR Connector for SharePoint relies on SharePoint's native item selection functionality.
+        </p>
+        <p class="govuk-body">
+            This functionality does not allow for cross folder selection, ie go to one folder and select a file,
+            then go to a different folder and select another item. In this scenario the first item selection is lost.
+        </p>
+        <p class="govuk-body">
+            If the records that need uploading are spread across multiple different folders then:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>
+                Select these folders, or the parent folder at the highest level that includes all the records for uploading;
+            </li>
+            <li>
+                Use the TDR Connector for SharePoint's Select Files functionality
+                to navigate the selected records structure, and remove unwanted files.
+            </li>
+        </ul>
+        <h3 class="govuk-heading-s" id="cross-folder-selection-example">Cross Folder Selection Example</h3>
+        <p class="govuk-body">Have the following structure of records within a SharePoint library, <code class="govuk-!-font-size-16">myLibrary</code>:</p>
+        <ul class="govuk-list">
+            <li>
+                <code class="govuk-!-font-size-16">myLibrary/<b>file1.txt</b></code>
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">myLibrary/folder1/file3.txt</code>
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">myLibrary/folder1/subFolder1/<b>file2.txt</b></code>
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">myLibrary/folder2/<b>file4.txt</b></code>
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">myLibrary/folder2/subFolder2/file5.txt</code>
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">myLibrary/folder2/subFolder2/<b>file6.txt</b></code>
+            </li>
+        </ul>
+        <p class="govuk-body">
+            Need to upload the following files from the structure:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>
+                <code class="govuk-!-font-size-16">file1.txt</code>;
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">file2.txt</code>;
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">file4.txt</code>;
+            </li>
+            <li>
+                <code class="govuk-!-font-size-16">file6.txt</code>;
+            </li>
+        </ul>
+        <p class="govuk-body">
+            As the required files are spread across multiple different folders within the hierarchy of the library will need to:
+        </p>
+        <ol class="govuk-list govuk-list--number">
+            <li>Select the following at the library level</li>
+            <ul class="govuk-list govuk-list--bullet">
+                <li><code class="govuk-!-font-size-16">myLibrary/file1.txt</code>;</li>
+                <li><code class="govuk-!-font-size-16">myLibrary/folder1</code>;</li>
+                <li><code class="govuk-!-font-size-16">myLibrary/folder2</code></li>
+            </ul>
+            <li>
+                In the Connector "Selected Files" view navigate within selected hierarchy removing the unwanted files from the selection:
+            </li>
+            <ul class="govuk-list govuk-list--bullet">
+                <li><code class="govuk-!-font-size-16">myLibrary/folder1/file3.txt</code>;</li>
+                <li><code class="govuk-!-font-size-16">myLibrary/folder2/subFolder2/file5.txt</code></li>
+            </ul>
+        </ol>
 
         <h2 class="govuk-heading-m" id="sharepoint-metadata-handling">SharePoint Metadata Handling</h2>
         <h3 class="govuk-heading-s" id="sharepoint-system-metadata">SharePoint System Metadata</h3>
