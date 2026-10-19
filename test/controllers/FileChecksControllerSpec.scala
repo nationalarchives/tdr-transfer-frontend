@@ -155,6 +155,10 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         fileChecksPageAsString must include(expectedTitle)
         fileChecksPageAsString must include(expectedHeading)
         fileChecksPageAsString must include(expectedInstruction)
+        // The poller only starts when this class is present, and it cannot call the progress
+        // endpoint without a csrfToken field, so the two have to be rendered together.
+        fileChecksPageAsString must include("file-check-progress")
+        fileChecksPageAsString must include("""name="csrfToken"""")
         if (userType == "judgment") {
           fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")
         } else {
@@ -208,6 +212,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         fileChecksCompletePageAsString must include(expectedTitle)
         fileChecksCompletePageAsString must include(expectedHeading)
         fileChecksCompletePageAsString must include("Your upload and checks have been completed.")
+        // The checks are already finished, so this page must not start the progress poller. It
+        // renders no csrfToken field, which the poller needs to call the progress endpoint.
+        fileChecksCompletePageAsString must not include "file-check-progress"
         fileChecksCompletePageAsString must not include (
           s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
