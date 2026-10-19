@@ -291,7 +291,10 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
   }
 
   private def setGetConsignmentDetailsForMetadataReviewResponse(
-      logs: List[getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs] = List.empty
+      logs: List[getConsignmentDetailsForMetadataReview.GetConsignment.MetadataReviewLogs] = List.empty,
+      totalFiles: Int = 10,
+      totalClosedRecords: Int = 0,
+      totalRetainedRecords: Int = 0
   ) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[getConsignmentDetailsForMetadataReview.Data, getConsignmentDetailsForMetadataReview.Variables]()
     val data: client.GraphqlData = client.GraphqlData(
@@ -303,10 +306,10 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
               Some("SeriesName"),
               Some("TransferringBody"),
               userId,
-              totalClosedRecords = 0,
-              totalRetainedRecords = 0,
+              totalClosedRecords = totalClosedRecords,
+              totalRetainedRecords = totalRetainedRecords,
               includeTopLevelFolder = Some(false),
-              totalFiles = 10,
+              totalFiles = totalFiles,
               consignmentMetadata = List(
                 getConsignmentDetailsForMetadataReview.GetConsignment.ConsignmentMetadata("LegalStatus", "Public Record(s)")
               ),
@@ -485,7 +488,24 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val pageAsString = contentAsString(page)
 
       pageAsString must include("Total records")
-      pageAsString must include("87 (Open: 73, Closed: 14, Retained: 13)")
+      pageAsString must include("87 (Open: 60, Closed: 14, Retained: 13)")
+    }
+
+    List(
+      (2, 1, 1, 0),
+      (2, 0, 2, 0),
+      (2, 2, 0, 0),
+      (2, 0, 0, 2),
+      (0, 0, 0, 0)
+    ).foreach { case (total, closed, retained, open) =>
+      s"show $open open records for $total total, $closed closed and $retained retained records" in {
+        setGetConsignmentDetailsForMetadataReviewResponse(List(submissionLog), total, closed, retained)
+
+        val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
+        val page = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
+
+        contentAsString(page) must include(s"$total (Open: $open, Closed: $closed, Retained: $retained)")
+      }
     }
 
     "show the formatted date submitted from the last Submission log" in {

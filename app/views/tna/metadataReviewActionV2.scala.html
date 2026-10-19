@@ -4,6 +4,7 @@
 @import views.html.partials.{downloadMetadataLink, errorSummary, inputDropdown}
 
 @import java.util.UUID
+@import controllers.util.ConsignmentRecordCounts.openRecords
 @(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, action: String, totalSubmissions: Int, dateSubmitted: String, lastReviewedByName: Option[String], lastReviewedByEmail: Option[String], lastUpdated: Option[String], lastNote: Option[String], userEmail: String, dropdownField: DropdownField, statusReasonErrors: Seq[String], isTransferAdvisor: Boolean, showSuccessBanner: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @tagClass(status: String) = @{
@@ -107,7 +108,7 @@
                                 Total records
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @consignmentDetails.totalFiles (Open: @(consignmentDetails.totalFiles - consignmentDetails.totalClosedRecords), Closed: @consignmentDetails.totalClosedRecords, Retained: @consignmentDetails.totalRetainedRecords)
+                                @consignmentDetails.totalFiles (Open: @openRecords(consignmentDetails), Closed: @consignmentDetails.totalClosedRecords, Retained: @consignmentDetails.totalRetainedRecords)
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row govuk-summary-list__row--no-actions">
