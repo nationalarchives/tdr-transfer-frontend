@@ -128,9 +128,13 @@ const getProgress: (
 ) => Promise<IProgress | Error> = async (progressEndpoint) => {
   const consignmentId = getConsignmentId()
   if (!isError(consignmentId)) {
-    const csrfInput: HTMLInputElement = document.querySelector(
+    const csrfInput: HTMLInputElement | null = document.querySelector(
       "input[name='csrfToken']"
-    )!
+    )
+
+    if (!csrfInput) {
+      return Error("No csrfToken found on the page")
+    }
 
     const result: Response | Error = await fetch(progressEndpoint, {
       credentials: "include",

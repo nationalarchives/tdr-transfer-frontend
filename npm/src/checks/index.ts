@@ -63,8 +63,14 @@ export class Checks {
       )
 
     const poll = async () => {
-      const fileChecksProgress: IFileCheckProgress | Error =
-        await getFileChecksProgress()
+      // Any throw here would end the chain for good and leave the page inert, so unexpected
+      // errors are funnelled into the same retry path as a failed read.
+      let fileChecksProgress: IFileCheckProgress | Error
+      try {
+        fileChecksProgress = await getFileChecksProgress()
+      } catch (err) {
+        fileChecksProgress = err instanceof Error ? err : Error(String(err))
+      }
 
       if (isError(fileChecksProgress)) {
         consecutiveFailures += 1

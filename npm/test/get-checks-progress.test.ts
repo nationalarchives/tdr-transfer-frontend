@@ -110,6 +110,20 @@ test("'getFileChecksProgress' returns the correct consignment data with a succes
   }
 })
 
+test("'getFileChecksProgress' returns an error rather than throwing when the page has no csrfToken", async () => {
+  // fileChecksProgressAlreadyConfirmed starts the poller but renders no csrfToken field.
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    `
+  fetchMock.mockResponse(JSON.stringify(data.getConsignment))
+
+  const fileChecksProgress: IFileCheckProgress | Error =
+      await getFileChecksProgress()
+  expect(isError(fileChecksProgress)).toBe(true)
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
 test("'getFileChecksProgress' surfaces backendChecksFailed when the api flags it", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   document.body.innerHTML = `
