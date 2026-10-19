@@ -422,7 +422,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       contentAsString(fileChecksResults) must include("\"backendChecksFailed\":true")
     }
 
-    "throw an error if the API returns an error" in {
+    "return a retryable error if the API returns an error" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       wiremockServer.stubFor(
@@ -431,12 +431,27 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           .willReturn(serverError())
       )
 
-      val saveMetadataResponse = controller
+      val fileChecksResponse = controller
         .fileCheckProgress(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
 
-      val exception: Throwable = saveMetadataResponse.failed.futureValue
-      exception.getMessage must startWith("Unexpected response from GraphQL API")
+      // The poller retries on a non-200, so a failed read must not bring down the request and
+      // leave the file checks page unable to progress.
+      playStatus(fileChecksResponse) mustBe SERVICE_UNAVAILABLE
+      contentAsString(fileChecksResponse) must include("Could not retrieve file check progress")
+    }
+
+    "not return the per file data the progress poller does not use" in {
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
+
+      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
+
+      val fileChecksResults = controller
+        .fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
+
+      playStatus(fileChecksResults) mustBe OK
+      contentAsString(fileChecksResults) must not include "\"files\""
     }
   }
 

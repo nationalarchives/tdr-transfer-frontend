@@ -46,6 +46,9 @@ jest.useFakeTimers()
 
 beforeEach(() => {
   jest.clearAllMocks()
+  // Polls now reschedule themselves, so a chain left pending by an earlier test would
+  // otherwise keep firing and be counted against the test that follows it.
+  jest.clearAllTimers()
   mockGoToNextPage.mockRestore()
 })
 
@@ -133,11 +136,44 @@ const mockTransferProgress: (progressType: string) => void = (
   )
 }
 
-test("'updateFileCheckProgress' calls setInterval correctly", async () => {
-  jest.spyOn(global, "setInterval")
+test("'updateFileCheckProgress' schedules the first poll with setTimeout", async () => {
+  jest.spyOn(global, "setTimeout")
   await checks.updateFileCheckProgress(false, mockGoToNextPage)
-  jest.runOnlyPendingTimers()
-  expect(setInterval).toHaveBeenCalledTimes(1)
+
+  expect(setTimeout).toHaveBeenCalledTimes(1)
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 10000)
+})
+
+test("'updateFileCheckProgress' does not start a poll until the previous one has settled", async () => {
+  mockGetFileChecksProgress("inProgress")
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
+      () => false
+  )
+
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  // One request per completed poll, rather than one per interval tick regardless of whether
+  // the previous request has returned.
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(1)
+
+  await jest.runOnlyPendingTimers()
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(2)
+})
+
+test("'updateFileCheckProgress' retries with backoff instead of giving up after a failed read", async () => {
+  mockGetFileChecksProgress("noData")
+  jest.spyOn(global, "setTimeout")
+
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  expect(haveFileChecksCompleted).not.toHaveBeenCalled()
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 20000)
+
+  await jest.runOnlyPendingTimers()
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 40000)
 })
 
 test("'updateDraftMetadataValidationProgress' calls setInterval correctly", async () => {
@@ -282,14 +318,14 @@ test("'updateFileCheckProgress' short-circuits the standard-user poll when backe
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
       () => false
   )
-  jest.spyOn(global, "clearInterval")
+  jest.spyOn(global, "setTimeout")
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   // The terminal-failure branch must skip the progress/redirect logic and stop polling.
   expect(haveFileChecksCompleted).not.toHaveBeenCalled()
   expect(redirectToChecksResults).not.toHaveBeenCalled()
-  expect(clearInterval).toHaveBeenCalled()
+  expect(setTimeout).toHaveBeenCalledTimes(1)
 })
 
 test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all checks are complete", async () => {
