@@ -83,9 +83,7 @@ class FileChecksController @Inject() (
       .map { progress =>
         val json = progress.asJson
           .mapObject(
-            // The per file data is not used by the progress poller and is large enough to be
-            // worth neither serialising here nor parsing in the browser: a 10,000 file
-            // consignment returns over 20,000 entries on every poll.
+            // Not read by the poller, and over 20,000 entries for a 10,000 file consignment.
             _.remove("files")
               .add(
                 "backendChecksFailed",
@@ -100,8 +98,7 @@ class FileChecksController @Inject() (
         Ok(json.noSpaces)
       }
       .recover { case exception: Exception =>
-        // Returning a retryable response keeps the poller alive; an unhandled failure here
-        // becomes a 500 that used to stop the file checks page from ever progressing.
+        // A retryable response keeps the poller alive; a 500 would stop the page progressing.
         logger.error(s"Failed to get the file check progress for consignment $consignmentId", exception)
         ServiceUnavailable(Json.obj("error" -> Json.fromString("Could not retrieve file check progress")).noSpaces)
       }

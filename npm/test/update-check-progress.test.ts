@@ -46,8 +46,7 @@ jest.useFakeTimers()
 
 beforeEach(() => {
   jest.clearAllMocks()
-  // Polls now reschedule themselves, so a chain left pending by an earlier test would
-  // otherwise keep firing and be counted against the test that follows it.
+  // A pending chain from an earlier test would otherwise count against this one.
   jest.clearAllTimers()
   mockGoToNextPage.mockRestore()
 })
@@ -153,8 +152,7 @@ test("'updateFileCheckProgress' does not start a poll until the previous one has
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
-  // One request per completed poll, rather than one per interval tick regardless of whether
-  // the previous request has returned.
+  // One request per completed poll, not one per interval tick.
   expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(1)
 
   await jest.runOnlyPendingTimers()
@@ -192,8 +190,7 @@ test("'updateFileCheckProgress' falls back to reloading once reads keep failing"
 })
 
 test("'updateFileCheckProgress' keeps polling when a read throws rather than returns an error", async () => {
-  // A missing csrfToken used to throw a TypeError out of the poll, which silently ended the
-  // chain and left the page inert with no further requests and no reload.
+  // A missing csrfToken threw a TypeError, which silently ended the chain.
   mockGetCheckProgress.getFileChecksProgress.mockImplementation(() =>
     Promise.reject(new TypeError("Cannot read properties of null"))
   )

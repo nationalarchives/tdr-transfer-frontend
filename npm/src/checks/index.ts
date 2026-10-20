@@ -49,9 +49,7 @@ export class Checks {
 
     let consecutiveFailures = 0
 
-    // The next poll is only scheduled once the previous one has settled. setInterval fires
-    // regardless of whether the last request has returned, so a slow progress response made
-    // the browser pile up concurrent requests against an already struggling endpoint.
+    // Chained rather than setInterval so slow reads cannot pile up concurrent requests.
     const scheduleNextPoll = (delayMs: number) => {
       setTimeout(poll, delayMs)
     }
@@ -63,8 +61,7 @@ export class Checks {
       )
 
     const poll = async () => {
-      // Any throw here would end the chain for good and leave the page inert, so unexpected
-      // errors are funnelled into the same retry path as a failed read.
+      // An uncaught throw would end the chain and leave the page inert.
       let fileChecksProgress: IFileCheckProgress | Error
       try {
         fileChecksProgress = await getFileChecksProgress()
@@ -74,10 +71,7 @@ export class Checks {
 
       if (isError(fileChecksProgress)) {
         consecutiveFailures += 1
-        // A failed read used to reload the page immediately. That did restart polling, but it
-        // is a costly way to retry one request: it re-runs the same expensive query server
-        // side and relies on the server rendering a pollable page again. Retry in place first
-        // and only reload once the endpoint looks persistently unavailable.
+        // Reloading retries at the cost of re-running the same query, so retry in place first.
         if (consecutiveFailures >= FILE_CHECKS_MAX_CONSECUTIVE_FAILURES) {
           window.location.reload()
           return
