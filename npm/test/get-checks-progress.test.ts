@@ -305,6 +305,34 @@ test("'getDraftMetadataValidationProgress' throws a exception after errors from 
   await expect(getDraftMetadataValidationProgress()).resolves.toEqual(Error("Failed to retrieve progress for draft metadata validation: Retrieving progress failed: There was an error"))
 })
 
+test("getFileChecksProgress returns an error when the request does not settle before the timeout", async () => {
+  jest.useFakeTimers()
+  fetchMock.mockImplementation(
+    (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          const abortError = Error("Aborted")
+          abortError.name = "AbortError"
+          reject(abortError)
+        })
+      })
+  )
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="7d4ae1dd-caeb-496d-b503-ab0e8d82a12c">
+    <input name="csrfToken" value="abcde">
+    `
+
+  const progress = getFileChecksProgress()
+  await jest.advanceTimersByTimeAsync(30000)
+
+  await expect(progress).resolves.toEqual(
+    Error(
+      "Failed to retrieve progress for file checks: Retrieving progress timed out after 30000ms"
+    )
+  )
+  jest.useRealTimers()
+})
+
 test("getConsignmentId returns the correct id when the hidden input is present", () => {
   const consignmentId = "91847ae4-3bfd-4fac-b448-68948dd95820"
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`

@@ -4,6 +4,9 @@ import {
 } from "@nationalarchives/tdr-generated-graphql"
 import { isError } from "../errorhandling"
 
+// Without this a stalled request never settles, so the poll chain stops silently.
+const PROGRESS_REQUEST_TIMEOUT_MS = 30000
+
 export interface IProgress {}
 
 export interface IFileCheckProgress extends IProgress {
@@ -147,27 +150,42 @@ const getProgress: (
       return Error("No csrfToken found on the page")
     }
 
-    const result: Response | Error = await fetch(progressEndpoint, {
-      credentials: "include",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Csrf-Token": csrfInput.value,
-        "X-Requested-With": "XMLHttpRequest"
-      }
-    }).catch((err) => {
-      return Error(err)
-    })
+    const controller = new AbortController()
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      PROGRESS_REQUEST_TIMEOUT_MS
+    )
 
-    if (isError(result)) {
-      return result
-    } else if (result.status != 200) {
-      return Error(`Retrieving progress failed: ${result.statusText}`)
-    } else {
-      // A non JSON body would otherwise reject rather than return an Error.
-      return await result
-        .json()
-        .catch(() => Error(`Progress response was not valid JSON`))
+    try {
+      const result: Response | Error = await fetch(progressEndpoint, {
+        credentials: "include",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Csrf-Token": csrfInput.value,
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        signal: controller.signal
+      }).catch((err) => {
+        return err?.name === "AbortError"
+          ? Error(
+              `Retrieving progress timed out after ${PROGRESS_REQUEST_TIMEOUT_MS}ms`
+            )
+          : Error(err)
+      })
+
+      if (isError(result)) {
+        return result
+      } else if (result.status != 200) {
+        return Error(`Retrieving progress failed: ${result.statusText}`)
+      } else {
+        // A non JSON body would otherwise reject rather than return an Error.
+        return await result
+          .json()
+          .catch(() => Error(`Progress response was not valid JSON`))
+      }
+    } finally {
+      clearTimeout(timeoutId)
     }
   } else {
     return Error(`Failed to retrieve consignment id: ${consignmentId.message}`)
