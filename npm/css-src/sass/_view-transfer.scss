@@ -1,5 +1,5 @@
 .not-applicable {
-  color: $govuk-secondary-text-colour;
+  color: govuk-functional-colour('secondary-text');
 }
 
 //Table
@@ -50,7 +50,7 @@
 
 .tdr-arrow-expander::before {
   @include govuk-shape-arrow($direction: right, $base: 15px);
-  border-color: $govuk-link-colour;
+  border-color: govuk-functional-colour('link');
   bottom: 0;
 
   content: '';
@@ -62,17 +62,17 @@
 }
 
 .tdr-arrow-expander:focus {
-  background-color: $govuk-focus-colour;
+  background-color: govuk-functional-colour('focus');
   box-decoration-break: clone;
-  box-shadow: 0 -2px $govuk-focus-colour, 0 4px $govuk-focus-text-colour;
-  color: $govuk-focus-text-colour;
+  box-shadow: 0 -2px govuk-functional-colour('focus'), 0 4px govuk-functional-colour('focus-text');
+  color: govuk-functional-colour('focus-text');
   outline: 3px solid transparent;
   text-decoration: none;
 }
 
 .tdr-arrow-expander[aria-expanded='true']::before {
   @include govuk-shape-arrow($direction: down, $base: 15px);
-  border-color: $govuk-link-colour;
+  border-color: govuk-functional-colour('link');
   left: 7px;
 }
 

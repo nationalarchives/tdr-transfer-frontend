@@ -21,16 +21,17 @@
     <meta name="robots" content="noindex">
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/ico" href="@routes.Assets.versioned("images/favicon.ico")">
-    <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/all.js")" type="text/javascript"></script>
+    <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/all.bundle.js")" type="text/javascript"></script>
     <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
 
     </head>
     <body class="govuk-template__body js-enabled govuk-frontend-supported">
         <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
-        <header class="govuk-header" role="banner" data-module="govuk-header">
-            <div class="govuk-header__container govuk-width-container tna-header">
+        <header class="govuk-template__header">
+          <div class="govuk-header">
+            <div class="govuk-header__container govuk-width-container">
                 <div class="govuk-header__logo">
-                    <a href="@Messages("nationalArchives.homepage")" class="govuk-header__link govuk-header__link--homepage">
+                    <a href="@Messages("nationalArchives.homepage")" class="govuk-header__homepage-link">
                         <svg
                         xmlns="http://www.w3.org/2000/svg"
                         xml:space="preserve"
@@ -57,24 +58,32 @@
                     </a>
                 </div>
 
-                <div class="govuk-header__content">
-                    <a href="@if(isLoggedIn) {/homepage} else {/}" class="govuk-header__link govuk-header__service-name">
-                        Transfer Digital Records
-                    </a>
+            </div>
+          </div>
+
+          <section aria-label="Service information" class="govuk-service-navigation" data-module="govuk-service-navigation">
+            <div class="govuk-width-container">
+                <div class="govuk-service-navigation__container">
+                    <span class="govuk-service-navigation__service-name">
+                        <a href="@if(isLoggedIn) {/homepage} else {/}" class="govuk-service-navigation__link">
+                            Transfer Digital Records
+                        </a>
+                    </span>
                     @if(isLoggedIn) {
-                        <nav aria-label="Menu" class="govuk-header__navigation govuk-header__navigation--end">
-                            <button type="button" class="govuk-header__menu-button govuk-js-header-toggle" aria-controls="navigation" aria-label="Show or hide menu" hidden>
-                                Menu</button>
-                            <ul id="navigation" class="govuk-header__navigation-list">
+                        <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+                            <button type="button" class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle" aria-controls="navigation" hidden aria-hidden="true">
+                                Menu
+                            </button>
+                            <ul class="govuk-service-navigation__list" id="navigation">
                                 @if(!isJudgmentUser && !isTnaUser) {
-                                    <li class="govuk-header__navigation-item">
-                                        <a class="govuk-header__link" href="/view-transfers">
+                                    <li class="govuk-service-navigation__item">
+                                        <a class="govuk-service-navigation__link" href="/view-transfers">
                                             View transfers
                                         </a>
                                     </li>
                                 }
-                                <li class="govuk-header__navigation-item">
-                                    <a class="govuk-header__link" href="/sign-out">
+                                <li class="govuk-service-navigation__item">
+                                    <a class="govuk-service-navigation__link" href="/sign-out">
                                         Sign out
                                     </a>
                                 </li>
@@ -83,11 +92,9 @@
                     }
                 </div>
             </div>
-        </header>
+          </section>
 
-        <div class="govuk-width-container">
-
-            <div class="govuk-phase-banner">
+            <div class="govuk-phase-banner govuk-width-container">
                 <p class="govuk-phase-banner__content">
                     <strong class="govuk-tag govuk-phase-banner__content__tag">BETA</strong>
                     @if(isLoggedIn) {
@@ -104,6 +111,9 @@
                     }
                 </p>
             </div>
+        </header>
+
+        <div class="govuk-width-container">
             @backLink.getOrElse("")
 
             <main class="govuk-main-wrapper " id="main-content" role="main">
@@ -126,8 +136,9 @@
         </dialog>
         }
 
-        <footer class="govuk-footer " role="contentinfo">
-            <div class="govuk-width-container ">
+        <footer class="govuk-template__footer">
+          <div class="govuk-footer">
+            <div class="govuk-width-container">
                 <div class="govuk-footer__meta">
                     <div class="govuk-footer__meta-item govuk-footer__meta-item--grow">
                         <h2 class="govuk-visually-hidden">Support links</h2>
@@ -187,6 +198,7 @@
                     </div>
                 </div>
             </div>
+          </div>
         </footer>
     </body>
 </html>
