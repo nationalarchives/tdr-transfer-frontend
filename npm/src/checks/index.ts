@@ -15,7 +15,7 @@ import { isError } from "../errorhandling"
 
 const FILE_CHECKS_POLL_INTERVAL_MS = 10000
 const FILE_CHECKS_MAX_POLL_INTERVAL_MS = 120000
-const FILE_CHECKS_MAX_CONSECUTIVE_FAILURES = 5
+const FILE_CHECKS_MAX_CONSECUTIVE_FAILURES = 3
 
 export class Checks {
   checkJudgmentTransferProgress: (
@@ -74,8 +74,10 @@ export class Checks {
 
       if (isError(fileChecksProgress)) {
         consecutiveFailures += 1
-        // A single failed read used to stop polling for good. Retry with backoff first and
-        // only fall back to reloading once the endpoint looks persistently unavailable.
+        // A failed read used to reload the page immediately. That did restart polling, but it
+        // is a costly way to retry one request: it re-runs the same expensive query server
+        // side and relies on the server rendering a pollable page again. Retry in place first
+        // and only reload once the endpoint looks persistently unavailable.
         if (consecutiveFailures >= FILE_CHECKS_MAX_CONSECUTIVE_FAILURES) {
           window.location.reload()
           return

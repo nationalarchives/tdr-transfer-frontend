@@ -176,6 +176,21 @@ test("'updateFileCheckProgress' retries with backoff instead of giving up after 
   expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 40000)
 })
 
+test("'updateFileCheckProgress' falls back to reloading once reads keep failing", async () => {
+  mockGetFileChecksProgress("noData")
+
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimers()
+
+  // The third failure reloads instead of scheduling another poll, so the chain stops here.
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(3)
+
+  await jest.runOnlyPendingTimers()
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(3)
+})
+
 test("'updateFileCheckProgress' keeps polling when a read throws rather than returns an error", async () => {
   // A missing csrfToken used to throw a TypeError out of the poll, which silently ended the
   // chain and left the page inert with no further requests and no reload.
