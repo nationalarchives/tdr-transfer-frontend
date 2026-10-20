@@ -4,15 +4,21 @@ updates:
     directory: "/npm"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 15
     versioning-strategy: increase
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 15
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 15
     commit-message:
       prefix: "chore"
       include: "scope"
