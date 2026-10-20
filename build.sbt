@@ -8,7 +8,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
-scalaVersion := "2.13.18"
+scalaVersion := "3.10.0"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2" % Test
@@ -33,8 +33,8 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.492",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.54",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.54",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.150",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.254",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.151",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.255",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
@@ -48,8 +48,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.3"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.3"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.4"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4"
 dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
