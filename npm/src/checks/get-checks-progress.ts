@@ -69,25 +69,32 @@ export const getFileChecksProgress: () => Promise<
   const progress = await getProgress("file-check-progress")
   if (!isError(progress)) {
     const response = progress as Consignment & { backendChecksFailed?: boolean }
-    if (response) {
-      const fileChecks = response.fileChecks
-      const isBackendChecksCompleted =
-        response.consignmentStatuses?.every(
-          ({ value }) => value !== "InProgress"
-        ) ?? false
-
-      return {
-        isBackendChecksCompleted: isBackendChecksCompleted,
-        antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
-        checksumProcessed: fileChecks.checksumProgress.filesProcessed,
-        ffidProcessed: fileChecks.ffidProgress.filesProcessed,
-        totalFiles: response.totalFiles,
-        backendChecksFailed: Boolean(response.backendChecksFailed)
-      }
-    } else {
+    const fileChecks = response?.fileChecks
+    // An unexpected shape would otherwise throw while reading the nested counts.
+    if (
+      !fileChecks?.antivirusProgress ||
+      !fileChecks?.checksumProgress ||
+      !fileChecks?.ffidProgress
+    ) {
       return Error(
-        `No file checks progress metadata found for consignment: ${response}`
+        `No file checks progress metadata found for consignment: ${JSON.stringify(
+          response
+        )}`
       )
+    }
+
+    const isBackendChecksCompleted =
+      response.consignmentStatuses?.every(
+        ({ value }) => value !== "InProgress"
+      ) ?? false
+
+    return {
+      isBackendChecksCompleted: isBackendChecksCompleted,
+      antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
+      checksumProcessed: fileChecks.checksumProgress.filesProcessed,
+      ffidProcessed: fileChecks.ffidProgress.filesProcessed,
+      totalFiles: response.totalFiles,
+      backendChecksFailed: Boolean(response.backendChecksFailed)
     }
   } else
     return Error(
@@ -101,7 +108,11 @@ export const getTransferProgress: () => Promise<Boolean | Error> = async () => {
     const transferProgress = progress as ITransferProgress
     const transferProgressInput: HTMLInputElement | null =
       document.querySelector("#transferProgress")
-    transferProgressInput.value = transferProgress.fileChecksStatus
+
+    // Declared nullable but dereferenced regardless, which threw on pages without the input.
+    if (transferProgressInput) {
+      transferProgressInput.value = transferProgress.fileChecksStatus
+    }
 
     return (
       transferProgress.fileChecksStatus === "CompletedWithIssues" ||
@@ -153,7 +164,10 @@ const getProgress: (
     } else if (result.status != 200) {
       return Error(`Retrieving progress failed: ${result.statusText}`)
     } else {
-      return await result.json()
+      // A non JSON body would otherwise reject rather than return an Error.
+      return await result
+        .json()
+        .catch(() => Error(`Progress response was not valid JSON`))
     }
   } else {
     return Error(`Failed to retrieve consignment id: ${consignmentId.message}`)
