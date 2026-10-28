@@ -1,12 +1,83 @@
 @(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
-@defining("TDR Connector for SharePoint Licence") { title =>
+@defining("TDR Connector for SharePoint – Terms of Use") { title =>
     @main(title, isLoggedIn = isLoggedIn, name = name) {
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 <h1 class="govuk-heading-l">@title</h1>
-
                 <p class="govuk-body">
-                    [TO DO]
+                    The TDR Connector for SharePoint App is provided by The National Archives of the United Kingdom
+                    to enable organisations to transfer records from a SharePoint file store to The National Archives
+                    for the purposes of permanent preservation under the Public Records Act 1958.
+                </p>
+
+                <h2 class="govuk-heading-m">
+                    1. Use of the App
+                </h2>
+                <p class="govuk-body">
+                    <b>(a)</b> This TDR Connector for SharePoint App is only intended to be used by bodies in the United Kingdom
+                    that are transferring records from a SharePoint file store to The National Archives for the purposes
+                    of permanent preservation  under the Public Records Act 1958 (the Act).
+                </p>
+                <p class="govuk-body">
+                    <b>(b)</b> This includes both bodies subject to the Act, and bodies which, though not subject to the Act,
+                    transfer their records to The National Archives under the power of the Keeper of Public Records
+                    to accept responsibility for the safe keeping of records other than public records under s2(4)(e) of the Act.
+                </p>
+                <p class="govuk-body">
+                    <b>(c)</b> Users of the TDR Connector for SharePoint App are free to download the App and to install it
+                    on their chosen SharePoint tenant or specific site.
+                </p>
+                <p class="govuk-body">
+                    <b>(d)</b> To use this TDR Connector for SharePoint App, you will need to
+                    [insert any appropriate phrase for what technical set-up a transferring body will already need
+                    to have to enable the App to work. What is the base required version of SharePoint needed to run it, and so on].
+                </p>
+
+                <h2 class="govuk-heading-m">
+                    2. Purpose of the App
+                </h2>
+                <p class="govuk-body">
+                    <b>(a)</b> This TDR Connector for SharePoint App is provided to enable The National Archives to carry
+                    out its public task activity of transferring public records and their associated metadata for the purposes
+                    of permanent preservation under the Act, and for the safekeeping of records other than public records.
+                </p>
+                <p class="govuk-body">
+                    <b>(b)</b> For the avoidance of doubt, the TDR Connector for SharePoint App is not made available
+                    for re-use and is not licensed by these terms of use to be re-used. It should only be used for the
+                    specified purpose of transferring selected records from a SharePoint platform to The National Archives
+                    for the purpose of permanent preservation under the Act. The App must not be modified or copied by
+                    the user (other than to enable it to be installed when first downloaded), and it must not be used
+                    for any purpose other than transferring records to The National Archives via TDR.
+                </p>
+
+                <h2 class="govuk-heading-m">
+                    3. Privacy
+                </h2>
+                <p class="govuk-body">
+                    <b>(a)</b> The processing of any personal data of users of the TDR Connector for SharePoint App,
+                    and the personal data of any individuals that is contained in the records to be transferred to
+                    The National Archives for permanent preservation under the Act, will be carried out in accordance
+                    with The National Archives’ published
+                    <a href="https://www.nationalarchives.gov.uk/terms-and-conditions/privacy-notice/">Privacy Notice</a>.
+                </p>
+
+                <h2 class="govuk-heading-m">
+                    4. Duration
+                </h2>
+                <p class="govuk-body">
+                    <b>(a)</b> The TDR Connector for SharePoint App is intended to operate for a period of ten years from its time of release,
+                    and so may be usable until 31 December 2036.
+                </p>
+                <p class="govuk-body">
+                    <b>(b)</b> The National Archives will issue enhanced or revised versions of the TDR Connector for SharePoint App
+                    from time-to-time during that 10 year period as needed. Users are responsible for ensuring that they
+                    use the latest version of the TDR Connector for SharePoint App provided on the Microsoft SharePoint Store when transferring
+                    records to The National Archives.
+                </p>
+                <p class="govuk-body">
+                    <b>(c)</b> Users must delete the TDR Connector for SharePoint App when they have completed their transfer of records to
+                    The National Archives, and can download the latest version of the App again when they next need to
+                    make a transfer of records to The National Archives.
                 </p>
             </div>
         </div>
