@@ -397,6 +397,21 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
     }
 
+    "use the summary query so that a file status row is not fetched for every file" in {
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
+
+      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
+
+      val fileChecksResults = controller
+        .fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
+
+      playStatus(fileChecksResults) mustBe OK
+
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("getFileCheckProgressSummary")))
+      wiremockServer.verify(0, postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("fileStatuses")))
+    }
+
     "return backendChecksFailed=true when ClientChecks Failed and ServerFFID InProgress" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 

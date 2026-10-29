@@ -42,7 +42,7 @@ class FileChecksController @Inject() (
 
   private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)(implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
     consignmentService
-      .getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+      .fileCheckProgressSummary(consignmentId, request.token.bearerAccessToken)
       .map { fileCheckProgress =>
         FileChecksProgress(
           fileCheckProgress.allChecksSucceeded,
@@ -78,7 +78,7 @@ class FileChecksController @Inject() (
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     val token = request.token.bearerAccessToken
-    consignmentService.fileCheckProgress(consignmentId, token).map { progress =>
+    consignmentService.fileCheckProgressSummary(consignmentId, token).map { progress =>
       val json = progress.asJson
         .mapObject(
           _.add(
@@ -204,7 +204,7 @@ class FileChecksController @Inject() (
           Future("TransferAlreadyCompleted")
         case None =>
           for {
-            fileCheck <- consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
+            fileCheck <- consignmentService.fileCheckProgressSummary(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
                 val token: Token = request.token
