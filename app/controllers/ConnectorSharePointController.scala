@@ -33,8 +33,6 @@ class ConnectorSharePointController @Inject() (
   }
 
   def faq(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    if (blockPages) {
-      notFound(request)
-    } else Ok(views.html.connectorforsharepoint.faq(request.isLoggedIn, request.name))
+    notFound(request)
   }
 }

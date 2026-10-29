@@ -147,10 +147,12 @@
         <p class="govuk-body">
             For instructions on how to do this, see section: <a href="#ignore-site-name">Ignoring the <code class="govuk-!-font-size-16">SiteName</code></a>
         </p>
-        <p class="govuk-body">
-            <b>Note:</b> this process is temporary, until a new feature is added to the TDR Connector for SharePoint
-            to allow the user to select whether to ignore the SiteName or not, without the need to contact a transfer adviser.
-        </p>
+        <div class="govuk-inset-text">
+            <p class="govuk-body">
+                <b>Note:</b> this process is temporary, until a new feature is added to the TDR Connector for SharePoint
+                to allow the user to select whether to ignore the SiteName or not, without the need to contact a transfer adviser.
+            </p>
+        </div>
 
         <h2 class="govuk-heading-m" id="how-to-use">How to use TDR Connector for SharePoint</h2>
         <h3 class="govuk-heading-s" id="enable-third-party-cookies">
@@ -196,7 +198,7 @@
         </h3>
         <h3 class="govuk-heading-s" id="upload-to-tdr-action-what-happens">What Happens</h3>
         <p class="govuk-body">
-            Opens up the TDR Connector for SharePoint.
+            User is taken to the TDR Connector for SharePoint "Sign in to Transfer Digital Records" view.
         </p>
         <img src="@routes.Assets.versioned("images/sharepoint-connector/tdr-connector-action-v1.png")" class="screenshots" alt="SharePoint "Upload to TDR" menu item" />
 
@@ -225,6 +227,7 @@
             The TDR Connector for SharePoint retains the access token retrieved from entering the correct credentials.
         </p>
         <img src="@routes.Assets.versioned("images/sharepoint-connector/tdr-password-v1.png")" class="screenshots" alt="TDR enter username and password page" />
+
         <img src="@routes.Assets.versioned("images/sharepoint-connector/tdr-otp-v1.png")" class="screenshots" alt="TDR enter OTP page" />
 
         <h3 class="govuk-heading-s" id="click-continue-button">
@@ -232,8 +235,9 @@
         </h3>
         <h3 class="govuk-heading-s" id="click-continue-button-what-happens">What Happens</h3>
         <p class="govuk-body">
-            User is taken to the next step in the process.
+            User is taken to the "Selected Files" view of the TDR Connector for SharePoint.
         </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/connector-selected-files-view-v1.png")" class="screenshots" alt="Connector selected files view" />
         <p class="govuk-body">
             The TDR Connector for SharePoint retrieves configuration to support the copying process. This includes:
         </p>
@@ -248,9 +252,13 @@
         </h3>
         <h3 class="govuk-heading-s" id="start-copy-what-happens">What Happens</h3>
         <p class="govuk-body">
+            User is taken to the "Upload" view of the TDR Connector for SharePoint
+        </p>
+        <p class="govuk-body">
             In TDR a consignment is created, including a unique reference for that consignment, and the copy of
             selected files and their metadata is initiated.
         </p>
+        <img src="@routes.Assets.versioned("images/sharepoint-connector/connector-upload-view-v1.png")" class="screenshots" alt="Connector upload view" />
         <p class="govuk-body">
             For selected content, two uploads are made:
         </p>
@@ -286,8 +294,11 @@
             Once the processing of the copied content has been completed, an email will be sent to the TDR user’s
             email address, with instructions for continuing the transfer within the TDR web application.
         </p>
+
         <img src="@routes.Assets.versioned("images/sharepoint-connector/copy-complete-email-v1.png")" class="screenshots" alt="Copy of items to TDR complete email" />
+
         <img src="@routes.Assets.versioned("images/sharepoint-connector/copy-failed-email-v1.png")" class="screenshots" alt="Copy of items to TDR failure email" />
+
         <p class="govuk-body">
             On receipt of email confirmation follow the instructions.
         </p>
