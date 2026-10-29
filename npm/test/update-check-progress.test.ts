@@ -46,6 +46,8 @@ jest.useFakeTimers()
 
 beforeEach(() => {
   jest.clearAllMocks()
+  // A pending chain from an earlier test would otherwise count against this one.
+  jest.clearAllTimers()
   mockGoToNextPage.mockRestore()
 })
 
@@ -133,11 +135,74 @@ const mockTransferProgress: (progressType: string) => void = (
   )
 }
 
-test("'updateFileCheckProgress' calls setInterval correctly", async () => {
-  jest.spyOn(global, "setInterval")
+test("'updateFileCheckProgress' schedules the first poll with setTimeout", async () => {
+  jest.spyOn(global, "setTimeout")
   await checks.updateFileCheckProgress(false, mockGoToNextPage)
-  jest.runOnlyPendingTimers()
-  expect(setInterval).toHaveBeenCalledTimes(1)
+
+  expect(setTimeout).toHaveBeenCalledTimes(1)
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 10000)
+})
+
+test("'updateFileCheckProgress' does not start a poll until the previous one has settled", async () => {
+  mockGetFileChecksProgress("inProgress")
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
+      () => false
+  )
+
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  // One request per completed poll, not one per interval tick.
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(1)
+
+  await jest.runOnlyPendingTimers()
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(2)
+})
+
+test("'updateFileCheckProgress' retries with backoff instead of giving up after a failed read", async () => {
+  mockGetFileChecksProgress("noData")
+  jest.spyOn(global, "setTimeout")
+
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  expect(haveFileChecksCompleted).not.toHaveBeenCalled()
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 20000)
+
+  await jest.runOnlyPendingTimers()
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 40000)
+})
+
+test("'updateFileCheckProgress' falls back to reloading once reads keep failing", async () => {
+  mockGetFileChecksProgress("noData")
+
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimers()
+
+  // The third failure reloads instead of scheduling another poll, so the chain stops here.
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(3)
+
+  await jest.runOnlyPendingTimers()
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(3)
+})
+
+test("'updateFileCheckProgress' keeps polling when a read throws rather than returns an error", async () => {
+  // A missing csrfToken threw a TypeError, which silently ended the chain.
+  mockGetCheckProgress.getFileChecksProgress.mockImplementation(() =>
+    Promise.reject(new TypeError("Cannot read properties of null"))
+  )
+  jest.spyOn(global, "setTimeout")
+
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 20000)
+
+  await jest.runOnlyPendingTimers()
+  expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(2)
 })
 
 test("'updateDraftMetadataValidationProgress' calls setInterval correctly", async () => {
@@ -282,14 +347,14 @@ test("'updateFileCheckProgress' short-circuits the standard-user poll when backe
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
       () => false
   )
-  jest.spyOn(global, "clearInterval")
+  jest.spyOn(global, "setTimeout")
   checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   // The terminal-failure branch must skip the progress/redirect logic and stop polling.
   expect(haveFileChecksCompleted).not.toHaveBeenCalled()
   expect(redirectToChecksResults).not.toHaveBeenCalled()
-  expect(clearInterval).toHaveBeenCalled()
+  expect(setTimeout).toHaveBeenCalledTimes(1)
 })
 
 test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all checks are complete", async () => {
