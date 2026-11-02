@@ -3,21 +3,22 @@ updates:
   - package-ecosystem: "npm"
     directory: "/npm"
     schedule:
-      interval: "daily"
-    groups: 
-      npm-dependencies:
-        applies-to: version-updates
-        patterns: 
-         - "*"
+      interval: "weekly"
+    cooldown:
+      default-days: 15
     versioning-strategy: increase
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    cooldown:
+      default-days: 15
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 15
     commit-message:
       prefix: "chore"
       include: "scope"

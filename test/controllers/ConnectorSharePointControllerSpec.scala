@@ -82,30 +82,24 @@ class ConnectorSharePointControllerSpec extends FrontEndTestHelper {
       contentType(licence) mustBe Some("text/html")
     }
 
-    "render the faq page if a user is logged in" in {
+    "render not found error page for faq page if a user is logged in" in {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(false)
       val controller = new ConnectorSharePointController(getAuthorisedSecurityComponents, mockConfig)
       val faq = controller.faq().apply(FakeRequest(GET, "/"))
-      val pageAsString = contentAsString(faq)
 
-      status(faq) mustBe OK
+      status(faq) mustBe NOT_FOUND
       contentType(faq) mustBe Some("text/html")
-      checkFaqPageContent(pageAsString)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = "standard", consignmentExists = false)
     }
 
-    "render the faq page if a user is logged out" in {
+    "render not found error page for faq page if a user is logged out" in {
       val mockConfig: ApplicationConfig = mock[ApplicationConfig]
       when(mockConfig.blockConnectorSharePointPages).thenReturn(false)
       val controller = new ConnectorSharePointController(getUnauthorisedSecurityComponents, mockConfig)
       val faq = controller.faq().apply(FakeRequest(GET, "/"))
-      val pageAsString = contentAsString(faq)
 
-      status(faq) mustBe OK
+      status(faq) mustBe NOT_FOUND
       contentType(faq) mustBe Some("text/html")
-      checkFaqPageContent(pageAsString)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "standard", consignmentExists = false)
     }
 
     "render not found error page when access to faq page blocked" in {
