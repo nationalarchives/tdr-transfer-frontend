@@ -99,18 +99,22 @@
             The page can be provisioned by:
         </p>
         <ul class="govuk-list govuk-list--bullet">
-            <li>Navigating to Site Contents >> Site Pages.</li>
-            <li>Creating a new page named TDRConnectorSharePoint.aspx.</li>
-            <li>Adding the TDR Connector for SharePoint SPFx web part to the page using the web part toolbox.</li>
-            <li>Publishing the page.</li>
+            <li>Selecting the "Site Contents" >> "New" >> "Page" option.</li>
+            <li>In the Template gallery under "Full-page apps" you should see TDR Connector for SharePoint, select this.</li>
+            <li>In the create page from template view select "Use this template"</li>
+            <li>For the title ensure enter: TDRConnectorSharePoint</li>
+            <li>Save the page</li>
+            <li>Navigate to library and proceed with upload</li>
         </ul>
+        <p class="govuk-body">
+            Once the page has been provisions navigate to a library and proceed with upload
+        </p>
         <div class="govuk-inset-text">
             <p class="govuk-body">
                 <b>Important:</b>
             </p>
             <p class="govuk-body">
-                The page name must be <b>TDRConnectorSharePoint.aspx</b>, as the List View Command Set is hardcoded to
-                redirect users to this page.
+                The page name must be <b>TDRConnectorSharePoint.aspx</b>.
             </p>
             <p class="govuk-body">
                 If the page does not exist or the TDR Connector for SharePoint web part has not been added,
@@ -242,7 +246,6 @@
         </p>
         <ul class="govuk-list govuk-list--bullet">
             <li>Capacity limits;</li>
-            <li>SharePoint system metadata to retrieve;</li>
             <li>Display configuration;</li>
         </ul>
 
@@ -462,7 +465,7 @@
                 <code class="govuk-!-font-size-16">transferId</code> (TDR consignment UUID from provided by TDR API endpoint)
             </li>
             <li>
-                <code class="govuk-!-font-size-16">source</code> (to identify the system where the transfer came from, ie “SharePoint”, hard coded value)#
+                <code class="govuk-!-font-size-16">source</code> (to identify the system where the transfer came from, ie “SharePoint”, hard coded value)
             </li>
             <li>
                 <code class="govuk-!-font-size-16">userId</code> (TDR user account UUID from the access token)
