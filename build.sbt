@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.24.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
-  "org.jsoup" % "jsoup" % "1.23.2" % Test
+  "org.jsoup" % "jsoup" % "1.24.1" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
@@ -53,7 +53,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4"
 dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
-val nettyVersion = "4.2.19.Final"
+val nettyVersion = "4.2.20.Final"
 val bouncyCastleVersion = "1.86"
 dependencyOverrides ++= Seq(
   "netty-buffer",
@@ -82,7 +82,7 @@ disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.4.0"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.5.0"
 
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.20.2"
 libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.20.2"
