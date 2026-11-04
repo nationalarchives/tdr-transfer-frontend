@@ -78,21 +78,30 @@ class FileChecksController @Inject() (
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     val token = request.token.bearerAccessToken
-    consignmentService.fileCheckProgress(consignmentId, token).map { progress =>
-      val json = progress.asJson
-        .mapObject(
-          _.add(
-            "backendChecksFailed",
-            Json.fromBoolean({
-              val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
-              // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
-              val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
-              backendChecksFailed(clientChecksStatus, serverFFIDStatus)
-            })
+    consignmentService
+      .fileCheckProgress(consignmentId, token)
+      .map { progress =>
+        val json = progress.asJson
+          .mapObject(
+            // Not read by the poller, and over 20,000 entries for a 10,000 file consignment.
+            _.remove("files")
+              .add(
+                "backendChecksFailed",
+                Json.fromBoolean({
+                  val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+                  // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
+                  val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
+                  backendChecksFailed(clientChecksStatus, serverFFIDStatus)
+                })
+              )
           )
-        )
-      Ok(json.noSpaces)
-    }
+        Ok(json.noSpaces)
+      }
+      .recover { case exception: Exception =>
+        // A retryable response keeps the poller alive; a 500 would stop the page progressing.
+        logger.error(s"Failed to get the file check progress for consignment $consignmentId", exception)
+        ServiceUnavailable(Json.obj("error" -> Json.fromString("Could not retrieve file check progress")).noSpaces)
+      }
   }
 
   def transferProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
