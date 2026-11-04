@@ -53,7 +53,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4"
 dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
-val nettyVersion = "4.2.19.Final"
+val nettyVersion = "4.2.20.Final"
 val bouncyCastleVersion = "1.86"
 dependencyOverrides ++= Seq(
   "netty-buffer",
