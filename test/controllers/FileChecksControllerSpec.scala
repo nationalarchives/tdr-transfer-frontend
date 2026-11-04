@@ -155,6 +155,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         fileChecksPageAsString must include(expectedTitle)
         fileChecksPageAsString must include(expectedHeading)
         fileChecksPageAsString must include(expectedInstruction)
+        // The poller needs both the class that starts it and a csrfToken to call the endpoint.
+        fileChecksPageAsString must include("file-check-progress")
+        fileChecksPageAsString must include("""name="csrfToken"""")
         if (userType == "judgment") {
           fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")
         } else {
@@ -208,6 +211,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         fileChecksCompletePageAsString must include(expectedTitle)
         fileChecksCompletePageAsString must include(expectedHeading)
         fileChecksCompletePageAsString must include("Your upload and checks have been completed.")
+        // Checks are done and no csrfToken is rendered, so the poller must not start here.
+        fileChecksCompletePageAsString must not include "file-check-progress"
         fileChecksCompletePageAsString must not include (
           s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
@@ -422,7 +427,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       contentAsString(fileChecksResults) must include("\"backendChecksFailed\":true")
     }
 
-    "throw an error if the API returns an error" in {
+    "return a retryable error if the API returns an error" in {
       val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       wiremockServer.stubFor(
@@ -431,12 +436,27 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           .willReturn(serverError())
       )
 
-      val saveMetadataResponse = controller
+      val fileChecksResponse = controller
         .fileCheckProgress(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
 
-      val exception: Throwable = saveMetadataResponse.failed.futureValue
-      exception.getMessage must startWith("Unexpected response from GraphQL API")
+      // The poller retries on a non-200, so a failed read must not bring down the request and
+      // leave the file checks page unable to progress.
+      playStatus(fileChecksResponse) mustBe SERVICE_UNAVAILABLE
+      contentAsString(fileChecksResponse) must include("Could not retrieve file check progress")
+    }
+
+    "not return the per file data the progress poller does not use" in {
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
+
+      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
+
+      val fileChecksResults = controller
+        .fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
+
+      playStatus(fileChecksResults) mustBe OK
+      contentAsString(fileChecksResults) must not include "\"files\""
     }
   }
 

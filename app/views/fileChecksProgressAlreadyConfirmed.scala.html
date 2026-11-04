@@ -6,7 +6,7 @@
 @title = @{if(isJudgmentUser){"Checking your document"} else {"Checking your records"}}
 @main(title, name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
-    <div class="govuk-grid-row file-check-progress">
+    <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-l">@title</h1>
