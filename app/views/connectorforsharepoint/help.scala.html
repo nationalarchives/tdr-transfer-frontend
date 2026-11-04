@@ -57,14 +57,14 @@
         </p>
         <ul class="govuk-list govuk-list--bullet">
             <li>uses SharePoint REST APIs to extract the content and metadata;</li>
-            <li>integrates with the TDR application;</li>
-            <li>copies selected SharePoint content to AWS S3 bucket hosted by TDR;</li>
-            <li>copies SharePoint metadata as a JSON object from the selected SharePoint content to AWS S3 bucket hosted by TDR.</li>
+            <li>integrates with the TDR web application;</li>
+            <li>copies selected SharePoint content to TDR;</li>
+            <li>copies SharePoint metadata from the selected SharePoint content to TDR.</li>
         </ul>
 
         <h2 class="govuk-heading-m" id="installation">Installation</h2>
         <p class="govuk-body">
-            The SharePoint SPFx application can be installed at:
+            The Connector application can be installed at:
         </p>
         <ul class="govuk-list govuk-list--bullet">
             <li>Tenant level; and/or</li>
@@ -74,13 +74,13 @@
         <h3 class="govuk-heading-s" id="site-level-installation">Site level installation</h3>
         <ol class="govuk-body">
             <li>Navigate to the site to install the Connector</li>
-            <li>Open: Settings >> Add an app option</li>
+            <li>Open: "Settings" >> "Add an app" option</li>
             <li>On the SharePoint apps page select "From SharePoint Store"</li>
             <li>On the "From SharePoint Store" view search for "TDR Connector for SharePoint"</li>
             <li>Install the app</li>
         </ol>
         <p class="govuk-body">
-            To check the app is installed return to Settings >> Add an app.
+            To check the app is installed return to "Settings" >> "Add an app".
         </p>
         <p class="govuk-body">
             The TDR Connector for SharePoint app should appear under the "Added apps" section.
@@ -89,7 +89,7 @@
         <h3 class="govuk-heading-s" id="page-provisioning">Connector page provisioning</h3>
         <p class="govuk-body">
             Before the Connector functionality can be used, a dedicated SharePoint site page must be provisioned
-            to host the Connector SPFx web part.
+            to host the Connector.
         </p>
         <p class="govuk-body">
             This is a one-time administrative configuration that must be completed after the application is installed on
@@ -102,23 +102,22 @@
             <li>Selecting the "Site Contents" >> "New" >> "Page" option.</li>
             <li>In the Template gallery under "Full-page apps" you should see TDR Connector for SharePoint, select this.</li>
             <li>In the create page from template view select "Use this template"</li>
-            <li>For the title ensure enter: TDRConnectorSharePoint</li>
+            <li>For the title ensure to enter: TDRConnectorSharePoint</li>
             <li>Save the page</li>
-            <li>Navigate to library and proceed with upload</li>
         </ul>
         <p class="govuk-body">
-            Once the page has been provisions navigate to a library and proceed with upload
+            Once the page has been provisioned navigate to a library and proceed with upload
         </p>
         <div class="govuk-inset-text">
             <p class="govuk-body">
-                <b>Important:</b>
+                <b>Important</b>
             </p>
             <p class="govuk-body">
                 The page name must be <b>TDRConnectorSharePoint.aspx</b>.
             </p>
             <p class="govuk-body">
-                If the page does not exist or the TDR Connector for SharePoint web part has not been added,
-                the transfer functionality will not be available, and users will be unable to initiate the records transfer process.
+                If the page does not exist, the transfer functionality will not be available, and users will be unable
+                to initiate the records transfer process.
             </p>
         </div>
 
@@ -140,20 +139,22 @@
             Excluding SharePoint site name on the public catalogue (Discovery)
         </h3>
         <p class="govuk-body">
-            By default the TDR Connector uses the SharePoint site name as part of the file path when copying metadata.
+            By default, the Connector uses the SharePoint site name as part of the file path when copying metadata.
             There maybe circumstances where it is not appropriate for the site name to be used.
         </p>
         <p class="govuk-body">
-            If the site name should not be used then inform your transfer adviser that the <code>SiteName</code> should be ignored
-            BEFORE proceeding with a transfer for the first time.
+            If the site name should not be used then inform your transfer archivist that the
+            <code class="govuk-!-font-size-16">SiteName</code> should be ignored <b>before</b> proceeding with a transfer for
+            the first time.
         </p>
         <p class="govuk-body">
             For instructions on how to do this, see section: <a href="#ignore-site-name">Ignoring the <code class="govuk-!-font-size-16">SiteName</code></a>
         </p>
         <div class="govuk-inset-text">
             <p class="govuk-body">
-                <b>Note:</b> this process is temporary, until a new feature is added to the TDR Connector for SharePoint
-                to allow the user to select whether to ignore the SiteName or not, without the need to contact a transfer adviser.
+                This process is temporary, until a new feature is added to the TDR Connector for SharePoint
+                to allow the user to select whether to ignore the <code class="govuk-!-font-size-16">SiteName</code> or not,
+                without the need to contact a transfer archivist.
             </p>
         </div>
 
@@ -164,7 +165,7 @@
         <h4 class="govuk-heading-s" id="enable-third-party-cookies-what-happens">What happens</h4>
         <p class="govuk-body">
             The TDR Connector for SharePoint makes use of a signed cookie to ensure that only the TDR user
-            can copy the records into the TDR AWS infrastructure.
+            can copy the records into TDR.
         </p>
 
         <h3 class="govuk-heading-s" id="navigate-folders-files">
@@ -191,7 +192,7 @@
                 Standard SharePoint item selection functionality does not support cross folder selection.
             </p>
             <p class="govuk-body">See here for how to select items across folders for upload:
-                <a href="#sharepoint-cross-folder-selection">SharePoint Cross Folder Selection</a>
+                <a href="#sharepoint-cross-folder-selection">SharePoint cross folder selection</a>
             </p>
         </div>
         <img src="@routes.Assets.versioned("images/sharepoint-connector/sp-selection-v1.png")" class="screenshots" alt="SharePoint select items to transfer" />
@@ -224,10 +225,7 @@
         <h4 class="govuk-heading-s" id="enter-tdr-credential-what-happens">What happens</h4>
         <p class="govuk-body">
             Taken to TDR login page to enter user credentials, once valid credentials are entered the user is
-            taken back to the TDR Connector for SharePoint.
-        </p>
-        <p class="govuk-body">
-            The TDR Connector for SharePoint retains the access token retrieved from entering the correct credentials.
+            taken back to the TDR Connector for SharePoint view.
         </p>
         <img src="@routes.Assets.versioned("images/sharepoint-connector/tdr-password-v1.png")" class="screenshots" alt="TDR enter username and password page" />
 
@@ -241,13 +239,6 @@
             User is taken to the "Selected Files" view of the TDR Connector for SharePoint.
         </p>
         <img src="@routes.Assets.versioned("images/sharepoint-connector/connector-selected-files-view-v1.png")" class="screenshots" alt="Connector selected files view" />
-        <p class="govuk-body">
-            The TDR Connector for SharePoint retrieves configuration to support the copying process. This includes:
-        </p>
-        <ul class="govuk-list govuk-list--bullet">
-            <li>Capacity limits;</li>
-            <li>Display configuration;</li>
-        </ul>
 
         <h3 class="govuk-heading-s" id="start-copy">
             Step 8: Click “Start Upload” button
@@ -261,20 +252,10 @@
             selected files and their metadata is initiated.
         </p>
         <img src="@routes.Assets.versioned("images/sharepoint-connector/connector-upload-view-v1.png")" class="screenshots" alt="Connector upload view" />
-        <p class="govuk-body">
-            For selected content, two uploads are made:
-        </p>
-        <ul class="govuk-list govuk-list--bullet">
-            <li>File; and</li>
-            <li>Metadata JSON object for file</li>
-        </ul>
-        <p class="govuk-body">
-            The metadata JSON object contains the SharePoint metadata retrieved from the selected content,
-            and additional generated content to support the processing of the content within TDR.
-        </p>
+
         <p class="govuk-body">
             For details on what metadata is retrieved and how this maps to TDR metadata fields see this section:
-            <a href="#sharepoint-metadata-handling">SharePoint Metadata Handling</a>
+            <a href="#sharepoint-metadata-handling">SharePoint metadata handling</a>
         </p>
 
         <h3 class="govuk-heading-s" id="wait-for-copy">
@@ -282,10 +263,10 @@
         </h3>
         <h4 class="govuk-heading-s" id="wait-for-copy-what-happens">What happens</h4>
         <p class="govuk-body">
-            Selected files and their attendant metadata copied from SharePoint and sent to TDR holding area.
+            Selected files and their attendant metadata copied from SharePoint and sent to TDR.
         </p>
         <p class="govuk-body">
-            On completion processing of the copied content is initiated in TDR.
+            On completion processing of the copied content is initiated within TDR.
         </p>
 
         <h3 class="govuk-heading-s" id="email-confirmation">
@@ -323,8 +304,8 @@
             If the copy of the items from SharePoint to TDR is unsuccessful the email will provide instructions as what to do next.
         </p>
         <p class="govuk-body">
-            Depending on whether you have an active TDR web application session, or not, the email link with take
-            you directly into TDR web application without the need to log in.
+            Depending on whether you have an active TDR web application session, or not, the email link will take
+            the user directly into TDR web application without the need to log in.
         </p>
 
         <h2 class="govuk-heading-m" id="sharepoint-cross-folder-selection">SharePoint cross folder selection</h2>
@@ -332,8 +313,8 @@
             The TDR Connector for SharePoint relies on SharePoint's native item selection functionality.
         </p>
         <p class="govuk-body">
-            This functionality does not allow for cross folder selection, ie go to one folder and select a file,
-            then go to a different folder and select another item. In this scenario the first item selection is lost.
+            This functionality does not allow for cross folder selection, i.e. going to one folder and selecting a file,
+            then going to a different folder and selecting another item. In this scenario the first item selection is lost.
         </p>
         <p class="govuk-body">
             If the records that need uploading are spread across multiple different folders then:
@@ -408,7 +389,7 @@
         <h2 class="govuk-heading-m" id="sharepoint-metadata-handling">SharePoint metadata handling</h2>
         <h3 class="govuk-heading-s" id="sharepoint-system-metadata">SharePoint system metadata</h3>
         <p class="govuk-body">
-            A sub-set of the SharePoint “system” metadata for the selected content is retrieved by the SharePoint to TDR Connector.
+            A sub-set of the SharePoint “system” metadata for the selected content is retrieved by the TDR Connector for SharePoint.
         </p>
         <p class="govuk-body">
             The exact metadata can change, but will include the following to provide the minimum metadata required by
@@ -445,7 +426,7 @@
 
         <h3 class="govuk-heading-s" id="sharepoint-metadata-sha256-checksum">SHA256 checksum</h3>
         <p class="govuk-body">
-            In addition to the SharePoint system metadata the SharePoint to TDR Connector generates a
+            In addition to the SharePoint system metadata the TDR Connector for SharePoint generates a
             SHA256 checksum of the file (excluding the metadata) to use for file integrity checks within the
             TDR application once the copy is completed.
         </p>
@@ -465,10 +446,10 @@
                 <code class="govuk-!-font-size-16">transferId</code> (TDR consignment UUID from provided by TDR API endpoint)
             </li>
             <li>
-                <code class="govuk-!-font-size-16">source</code> (to identify the system where the transfer came from, ie “SharePoint”, hard coded value)
+                <code class="govuk-!-font-size-16">source</code> (to identify the system where the transfer came from)
             </li>
             <li>
-                <code class="govuk-!-font-size-16">userId</code> (TDR user account UUID from the access token)
+                <code class="govuk-!-font-size-16">userId</code> (TDR user account UUID)
             </li>
         </ul>
 
@@ -533,11 +514,11 @@
             <code class="govuk-!-font-size-16">/TkTest/TK Test Library/testFolder/rnd_1000.jpg</code>
         </div>
         <p class="govuk-body">
-            <b>Note:</b> “sites” is a static value used across all SharePoint tenants and is ignored by TDR
+            Note: “sites” is a static value used across all SharePoint tenants and is ignored by TDR
         </p>
         <p class="govuk-body">
-            By default the <code class="govuk-!-font-size-16">LibraryName</code> value will be included as part of the “arrangement” on Discovery.
-            For the example above this will lead to an “arrangement” on Discovery of:
+            By default, the <code class="govuk-!-font-size-16">LibraryName</code> value will be included as part of the
+            “arrangement” on Discovery. For the example this will lead to an “arrangement” on Discovery of:
         </p>
         <div class="govuk-inset-text">
             <code class="govuk-!-font-size-16">{series} >> TkTest >> TK Test Library >> testFolder</code>
@@ -547,26 +528,26 @@
             The <code class="govuk-!-font-size-16">SiteName</code> can be ignored at the transferring body level.
         </p>
         <p class="govuk-body">
-            <b>To do this:</b> Inform your transfer adviser that the SiteName should be ignored BEFORE proceeding
+            To do this inform your transfer archivist that the SiteName should be ignored <b>before</b> proceeding
             with a transfer for the first time.
         </p>
         <p class="govuk-body">
             Once your request has been received, then:
         </p>
         <ol class="govuk-list govuk-list--number">
-            <li>the transfer adviser will request the override to be applied to TDR;</li>
-            <li>TDR will be configured to ignore the SiteName</li>
-            <li>the transfer adviser will inform you the override has been put in place</li>
+            <li>the transfer archivist will request the override to be applied to TDR;</li>
+            <li>TDR will be configured to ignore the <code class="govuk-!-font-size-16">SiteName</code></li>
+            <li>the transfer archivist will inform you the override has been put in place</li>
             <li>you can then proceed with your transfer.</li>
         </ol>
         <p class="govuk-body">
-            With the override in place, for the example above, the “arrangement” on Discovery will be:
+            With the override in place, from the example, the “arrangement” on Discovery will be:
         </p>
         <div class="govuk-inset-text">
             <code class="govuk-!-font-size-16">{series} >> TK Test Library >> testFolder</code>
         </div>
         <p class="govuk-body">
-            <b>Note:</b> this process is temporary, until a new feature is added to the TDR Connector for SharePoint
+            Note: this process is temporary, until a new feature is added to the TDR Connector for SharePoint
             to allow the user to select whether to ignore the SiteName or not, without the need to contact a transfer adviser.
         </p>
     </div>
