@@ -78,17 +78,20 @@ class FileChecksController @Inject() (
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     val token = request.token.bearerAccessToken
-    consignmentService.fileCheckProgressSummary(consignmentId, token).map { progress =>
-      val json = progress.asJson
-        .mapObject(
-          _.add(
-            "backendChecksFailed",
-            Json.fromBoolean({
-              val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
-              // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
-              val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
-              backendChecksFailed(clientChecksStatus, serverFFIDStatus)
-            })
+    consignmentService
+      .fileCheckProgressSummary(consignmentId, token)
+      .map { progress =>
+        val json = progress.asJson
+          .mapObject(
+            _.add(
+              "backendChecksFailed",
+              Json.fromBoolean({
+                val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+                // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
+                val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
+                backendChecksFailed(clientChecksStatus, serverFFIDStatus)
+              })
+            )
           )
         Ok(json.noSpaces)
       }
