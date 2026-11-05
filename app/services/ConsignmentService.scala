@@ -19,6 +19,7 @@ import graphql.codegen.GetConsignmentReviewDetails.{getConsignmentReviewDetails 
 import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
 import graphql.codegen.GetConsignmentMetadata.{getConsignmentMetadata => gcm}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import graphql.codegen.GetFileCheckProgressSummary.{getFileCheckProgressSummary => gfcps}
 import graphql.codegen.UpdateClientSideDraftMetadataFileName.{updateClientSideDraftMetadataFileName => ucsdmfn}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
@@ -33,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
 
-  private val getFileCheckProgressClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
+  private val getFileCheckProgressSummaryClient = graphqlConfiguration.getClient[gfcps.Data, gfcps.Variables]()
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
   private val getConsignmentFilesMetadataClient = graphqlConfiguration.getClient[gcfm.Data, gcfm.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
@@ -51,9 +52,12 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignmentForMetadataReviewRequest = graphqlConfiguration.getClient[gcfmrr.Data, gcfmrr.Variables]()
   private val getConsignmentMetadataClient = graphqlConfiguration.getClient[gcm.Data, gcm.Variables]()
 
-  def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
-    val variables = gfcp.Variables(consignmentId)
-    sendApiRequest(getFileCheckProgressClient, gfcp.document, token, variables).map(data => {
+  /** Returns the file check progress counts and consignment statuses only. Prefer this over [[getConsignmentFileChecks]] unless the per-file statuses are needed, as it avoids
+    * fetching a row per file.
+    */
+  def fileCheckProgressSummary(consignmentId: UUID, token: BearerAccessToken): Future[gfcps.GetConsignment] = {
+    val variables = gfcps.Variables(consignmentId)
+    sendApiRequest(getFileCheckProgressSummaryClient, gfcps.document, token, variables).map(data => {
       data.getConsignment match {
         case Some(progress) => progress
         case None           => throw new RuntimeException(s"No data found for file checks for consignment $consignmentId")
@@ -125,6 +129,9 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.addConsignment)
   }
 
+  /** Returns the file check progress along with a `fileStatuses` entry per file in the consignment. Only use this where the per-file statuses are needed; use
+    * [[fileCheckProgressSummary]] otherwise.
+    */
   def getConsignmentFileChecks(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables: gfcp.Variables = new GetFileCheckProgress.getFileCheckProgress.Variables(consignmentId)
 
