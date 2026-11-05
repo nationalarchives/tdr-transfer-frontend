@@ -94,7 +94,7 @@ class FileChecksResultsController @Inject() (
                   Future(Ok(views.html.transferAlreadyCompleted(consignmentId, reference, request.token.name, isJudgmentUser = true)).uncache())
                 case None =>
                   consignmentService
-                    .getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+                    .fileCheckProgressSummary(consignmentId, request.token.bearerAccessToken)
                     .map(fileCheck =>
                       if (fileCheck.allChecksSucceeded) {
                         Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache()
