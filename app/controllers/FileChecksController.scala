@@ -90,9 +90,13 @@ class FileChecksController @Inject() (
               backendChecksFailed(clientChecksStatus, serverFFIDStatus)
             })
           )
-        )
-      Ok(json.noSpaces)
-    }
+        Ok(json.noSpaces)
+      }
+      .recover { case exception: Exception =>
+        // A retryable response keeps the poller alive; a 500 would stop the page progressing.
+        logger.error(s"Failed to get the file check progress for consignment $consignmentId", exception)
+        ServiceUnavailable(Json.obj("error" -> Json.fromString("Could not retrieve file check progress")).noSpaces)
+      }
   }
 
   def transferProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>

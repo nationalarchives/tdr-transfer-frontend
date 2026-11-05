@@ -2,6 +2,7 @@ import {
   getConsignmentId,
   getDraftMetadataValidationProgress,
   getFileChecksProgress,
+  getTransferProgress,
   IDraftMetadataValidationProgress,
   IFileCheckProgress
 } from "../src/checks/get-checks-progress"
@@ -108,6 +109,61 @@ test("'getFileChecksProgress' returns the correct consignment data with a succes
     expect(fileChecksProgress!.totalFiles).toBe(10)
     expect(fileChecksProgress!.backendChecksFailed).toBe(false)
   }
+})
+
+test("'getFileChecksProgress' returns an error rather than throwing when the page has no csrfToken", async () => {
+  // fileChecksProgressAlreadyConfirmed starts the poller but renders no csrfToken field.
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    `
+  fetchMock.mockResponse(JSON.stringify(data.getConsignment))
+
+  const fileChecksProgress: IFileCheckProgress | Error =
+      await getFileChecksProgress()
+  expect(isError(fileChecksProgress)).toBe(true)
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+test("'getFileChecksProgress' returns an error rather than throwing when the body is not valid JSON", async () => {
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    <input name="csrfToken" value="abcde">
+    `
+  fetchMock.mockResponse("<html>not json</html>")
+
+  const fileChecksProgress: IFileCheckProgress | Error =
+      await getFileChecksProgress()
+  expect(isError(fileChecksProgress)).toBe(true)
+})
+
+test("'getFileChecksProgress' returns an error rather than throwing when fileChecks is missing", async () => {
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    <input name="csrfToken" value="abcde">
+    `
+  fetchMock.mockResponse(JSON.stringify({ totalFiles: 10 }))
+
+  const fileChecksProgress: IFileCheckProgress | Error =
+      await getFileChecksProgress()
+  expect(isError(fileChecksProgress)).toBe(true)
+})
+
+test("'getTransferProgress' returns a result rather than throwing when the page has no transferProgress input", async () => {
+  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="${consignmentId}">
+    <input name="csrfToken" value="abcde">
+    `
+  fetchMock.mockResponse(
+    JSON.stringify({ fileChecksStatus: "Completed", exportStatus: "InProgress" })
+  )
+
+  const transferProgress: Boolean | Error = await getTransferProgress()
+  expect(isError(transferProgress)).toBe(false)
+  expect(transferProgress).toBe(true)
 })
 
 test("'getFileChecksProgress' surfaces backendChecksFailed when the api flags it", async () => {
@@ -247,6 +303,34 @@ test("'getDraftMetadataValidationProgress' throws a exception after errors from 
     `
 
   await expect(getDraftMetadataValidationProgress()).resolves.toEqual(Error("Failed to retrieve progress for draft metadata validation: Retrieving progress failed: There was an error"))
+})
+
+test("getFileChecksProgress returns an error when the request does not settle before the timeout", async () => {
+  jest.useFakeTimers()
+  fetchMock.mockImplementation(
+    (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          const abortError = Error("Aborted")
+          abortError.name = "AbortError"
+          reject(abortError)
+        })
+      })
+  )
+  document.body.innerHTML = `
+    <input id="consignmentId" type="hidden" value="7d4ae1dd-caeb-496d-b503-ab0e8d82a12c">
+    <input name="csrfToken" value="abcde">
+    `
+
+  const progress = getFileChecksProgress()
+  await jest.advanceTimersByTimeAsync(30000)
+
+  await expect(progress).resolves.toEqual(
+    Error(
+      "Failed to retrieve progress for file checks: Retrieving progress timed out after 30000ms"
+    )
+  )
+  jest.useRealTimers()
 })
 
 test("getConsignmentId returns the correct id when the hidden input is present", () => {
