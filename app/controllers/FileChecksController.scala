@@ -42,7 +42,7 @@ class FileChecksController @Inject() (
 
   private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)(implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
     consignmentService
-      .getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+      .fileCheckProgressSummary(consignmentId, request.token.bearerAccessToken)
       .map { fileCheckProgress =>
         FileChecksProgress(
           fileCheckProgress.allChecksSucceeded,
@@ -78,21 +78,28 @@ class FileChecksController @Inject() (
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     val token = request.token.bearerAccessToken
-    consignmentService.fileCheckProgress(consignmentId, token).map { progress =>
-      val json = progress.asJson
-        .mapObject(
-          _.add(
-            "backendChecksFailed",
-            Json.fromBoolean({
-              val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
-              // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
-              val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
-              backendChecksFailed(clientChecksStatus, serverFFIDStatus)
-            })
+    consignmentService
+      .fileCheckProgressSummary(consignmentId, token)
+      .map { progress =>
+        val json = progress.asJson
+          .mapObject(
+            _.add(
+              "backendChecksFailed",
+              Json.fromBoolean({
+                val clientChecksStatus = progress.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
+                // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
+                val serverFFIDStatus = progress.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
+                backendChecksFailed(clientChecksStatus, serverFFIDStatus)
+              })
+            )
           )
-        )
-      Ok(json.noSpaces)
-    }
+        Ok(json.noSpaces)
+      }
+      .recover { case exception: Exception =>
+        // A retryable response keeps the poller alive; a 500 would stop the page progressing.
+        logger.error(s"Failed to get the file check progress for consignment $consignmentId", exception)
+        ServiceUnavailable(Json.obj("error" -> Json.fromString("Could not retrieve file check progress")).noSpaces)
+      }
   }
 
   def transferProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
@@ -204,7 +211,7 @@ class FileChecksController @Inject() (
           Future("TransferAlreadyCompleted")
         case None =>
           for {
-            fileCheck <- consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
+            fileCheck <- consignmentService.fileCheckProgressSummary(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
                 val token: Token = request.token
