@@ -88,6 +88,7 @@ GET         /admin/metadata-history/:consignmentId                              
 GET         /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.consignmentMetadataDetails(consignmentId: java.util.UUID)
 POST        /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.submitReview(consignmentId: java.util.UUID, userEmail: String)
 GET         /admin/file-checks-failures/:consignmentId                                                   controllers.FileChecksFailuresController.fileChecksFailures(consignmentId: java.util.UUID)
+GET         /admin/file-checks-failures/:consignmentId/download                                          controllers.FileChecksFailuresController.downloadFileCheckFailuresReport(consignmentId: java.util.UUID)
 
 # Routes for Connect for SharePoint pages
 GET         /connector-for-sharepoint/help                                                               controllers.ConnectorSharePointController.help()

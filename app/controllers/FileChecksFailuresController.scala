@@ -6,13 +6,7 @@ import controllers.util.ExcelUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.Statuses._
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, FileCheckFailureService}
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusActionType, TNASupport, UserFixable}
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{StatusValue => CommonStatusValue}
-import scala.util.Try
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -35,49 +29,13 @@ class FileChecksFailuresController @Inject() (
     with I18nSupport {
 
   def fileChecksFailures(consignmentId: UUID): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
-    val pageTitle = "File check failures"
-
-    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap { fileCheck =>
-      val clientChecksStatus = fileCheck.consignmentStatuses.find(_.statusType == ClientChecksType.id).map(_.value).getOrElse("")
-      // Defaults to InProgress because the server FFID status is created by getFiles; if absent, getFiles itself failed.
-      val serverFFIDStatus = fileCheck.consignmentStatuses.find(_.statusType == ServerFFIDType.id).map(_.value).getOrElse(InProgressValue.value)
-      val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
-      val reference = fileCheck.consignmentReference
-
-      if (backendChecksFailed(clientChecksStatus, serverFFIDStatus)) {
-        Future.successful(Ok(views.html.standard.filechecks.fileChecksBackendFailure(request.token.name, pageTitle, reference)))
-      } else if (fileCheck.allChecksSucceeded) {
-        Future.successful(NotFound(views.html.notFoundError("", isLoggedIn = false, isJudgmentUser = false)(request2Messages(request), request)))
-      } else {
-        val fileStatuses = fileCheck.files.flatMap(_.fileStatuses)
-        val fileStatusList = fileStatuses.map(_.statusValue)
-        val failedResult = Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
-        val statusActions: Set[StatusActionType] = fileStatuses.flatMap { status =>
-          Try(toStatusType(status.statusType)).toOption.flatMap { statusType =>
-            StatusActions.action(statusType, CommonStatusValue(status.statusValue)).map(_.actionType)
-          }
-        }.toSet
-        val consignmentInfo = ConsignmentFolderInfo(fileCheck.totalFiles, parentFolder)
-        val result = statusActions match {
-          case a if a == Set[StatusActionType](TNASupport) =>
-            Ok(views.html.standard.filechecks.fileChecksTnaSupport(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-          case a if a == Set[StatusActionType](UserFixable) =>
-            Ok(views.html.standard.filechecks.fileChecksUserFixableResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-          case a if a == Set[StatusActionType](UserFixable, TNASupport) =>
-            Ok(views.html.standard.filechecks.fileChecksUserFixableAndTNASupportResult(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
-          case _ =>
-            failedResult
-        }
-        Future.successful(result)
-      }
-    }
+    Future.successful(Ok(views.html.tna.fileChecksFailures(consignmentId, request.token.name)))
   }
 
   def downloadFileCheckFailuresReport(consignmentId: UUID): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
-    for {
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      failures <- fileCheckFailureService.getFileCheckFailures(consignmentId)
-    } yield {
+    // TNA users can't query consignments outside metadata review via the API, so the consignment ID is used as the reference
+    val reference = consignmentId.toString
+    fileCheckFailureService.getFileCheckFailures(consignmentId).map { failures =>
       val headers = List("StatusType", "StatusValue", "Filepath", "Filename", "Action Required", "Error Details", "File Format", "PUID")
       val dataRows: List[List[String]] = failures.flatMap { failure =>
         val fileFormats = failure.matches.flatMap(_.formatName).mkString("|")

@@ -1,0 +1,15 @@
+@import java.util.UUID
+@import views.html.partials.downloadMetadataLink
+@(consignmentId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+
+@main("File check failures", name = name, isTnaUser = true) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">File check failures</h1>
+
+            <p class="govuk-body">Download the error report to identify the problem files:</p>
+
+            @downloadMetadataLink(consignmentId, "Download error report (Excel)", routes.FileChecksFailuresController.downloadFileCheckFailuresReport(consignmentId).url)
+        </div>
+    </div>
+}
