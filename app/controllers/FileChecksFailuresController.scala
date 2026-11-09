@@ -5,7 +5,6 @@ import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfigura
 import controllers.util.ExcelUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.Results.NotFound
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, FileCheckFailureService}
@@ -13,8 +12,6 @@ import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusActions.{StatusActionType, TNASupport, UserFixable}
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusTypes.toStatusType
 import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.{StatusValue => CommonStatusValue}
-import viewsapi.Caching.preventCaching
-
 import scala.util.Try
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -106,5 +103,3 @@ class FileChecksFailuresController @Inject() (
     dateTimeFormatter.format(LocalDateTime.now())
   }
 }
-
-case class ConsignmentFolderInfo(numberOfFiles: Int, parentFolder: String)
