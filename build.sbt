@@ -15,9 +15,9 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2
 
 val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
-val pac4jVersion = "6.6.0"
+val pac4jVersion = "6.6.1"
 val sttpVersion = "3.11.0"
-val awsUtilsVersion = "0.1.341"
+val awsUtilsVersion = "0.1.343"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.308",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.308",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.309",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.496",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.55",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.55",
@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.24.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
-  "org.jsoup" % "jsoup" % "1.23.2" % Test
+  "org.jsoup" % "jsoup" % "1.24.1" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
@@ -53,7 +53,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4"
 dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
-val nettyVersion = "4.2.19.Final"
+val nettyVersion = "4.2.20.Final"
 val bouncyCastleVersion = "1.86"
 dependencyOverrides ++= Seq(
   "netty-buffer",
