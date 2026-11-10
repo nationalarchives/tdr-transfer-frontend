@@ -28,13 +28,12 @@ class FileChecksFailuresController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  def fileChecksFailures(consignmentId: UUID): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
-    Future.successful(Ok(views.html.tna.fileChecksFailures(consignmentId, request.token.name)))
+  def fileChecksFailures(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+    Future.successful(Ok(views.html.tna.fileChecksFailures(consignmentId, consignmentRef, request.token.name)))
   }
 
-  def downloadFileCheckFailuresReport(consignmentId: UUID): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
-    // TNA users can't query consignments outside metadata review via the API, so the consignment ID is used as the reference
-    val reference = consignmentId.toString
+  def downloadFileCheckFailuresReport(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+    val reference = s"$consignmentId-$consignmentRef"
     fileCheckFailureService.getFileCheckFailures(consignmentId).map { failures =>
       val headers = List("StatusType", "StatusValue", "Filepath", "Filename", "Action Required", "Error Details", "File Format", "PUID")
       val dataRows: List[List[String]] = failures.flatMap { failure =>

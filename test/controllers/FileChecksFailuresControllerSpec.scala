@@ -17,13 +17,14 @@ class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val consignmentId: UUID = UUID.fromString("0a3f617c-04e8-41c2-9f24-99622a779528")
+  val consignmentRef = "consignment-reference"
   val configuration: Configuration = mock[Configuration]
-  val path = s"/admin/file-checks-failures/$consignmentId"
+  val path = s"/admin/file-checks-failures/$consignmentId/$consignmentRef"
 
   "FileChecksFailuresController fileChecksFailures" should {
     "render the page with a link to download the error report for a TNA user" in {
       val result = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
-        .fileChecksFailures(consignmentId)
+        .fileChecksFailures(consignmentId, consignmentRef)
         .apply(FakeRequest(GET, path).withCSRFToken)
 
       status(result) mustBe OK
@@ -35,7 +36,7 @@ class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
 
     "return forbidden for a non TNA user" in {
       val result = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
-        .fileChecksFailures(consignmentId)
+        .fileChecksFailures(consignmentId, consignmentRef)
         .apply(FakeRequest(GET, path).withCSRFToken)
 
       status(result) mustBe FORBIDDEN
@@ -43,7 +44,7 @@ class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
   }
 
   "FileChecksFailuresController downloadFileCheckFailuresReport" should {
-    "return an Excel file named with the consignment ID for a TNA user" in {
+    "return an Excel file named with the consignment ID and reference for a TNA user" in {
       val service = mock[FileCheckFailureService]
       val failures = List(
         FileCheckFailure(
@@ -56,18 +57,18 @@ class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
       when(service.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
 
       val result = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), service)
-        .downloadFileCheckFailuresReport(consignmentId)
+        .downloadFileCheckFailuresReport(consignmentId, consignmentRef)
         .apply(FakeRequest(GET, s"$path/download").withCSRFToken)
 
       status(result) mustBe OK
       contentType(result) mustBe Some("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-      header("Content-Disposition", result).getOrElse("") must include(s"attachment; filename=$consignmentId-file-check-failures-")
+      header("Content-Disposition", result).getOrElse("") must include(s"attachment; filename=$consignmentId-$consignmentRef-file-check-failures-")
       contentAsBytes(result).nonEmpty mustBe true
     }
 
     "return forbidden for a non TNA user" in {
       val result = instantiateController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
-        .downloadFileCheckFailuresReport(consignmentId)
+        .downloadFileCheckFailuresReport(consignmentId, consignmentRef)
         .apply(FakeRequest(GET, s"$path/download").withCSRFToken)
 
       status(result) mustBe FORBIDDEN
