@@ -3,7 +3,6 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import controllers.util.RedirectUtils
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
@@ -13,7 +12,6 @@ import play.api.mvc._
 import services.MessagingService.TransferCompleteEvent
 import services.Statuses._
 import services._
-import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.SkippedValue
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.Caching.preventCaching
 
@@ -77,20 +75,13 @@ class ConfirmTransferController @Inject() (
               }
             case None =>
               if (applicationConfig.blockSkipMetadataReview) {
-                val metadataReviewType = consignmentStatuses.find(_.statusType == MetadataReviewType.id)
-                val draftMetadataSkipped = consignmentStatuses.exists(s => s.statusType == DraftMetadataType.id && s.value == SkippedValue.value)
-                (metadataReviewType, draftMetadataSkipped) match {
-                  case (None, true) =>
-                    getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
-                      httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
-                    }
-                  case (None, false) => Future(Redirect(routes.PrepareMetadataController.prepareMetadata(consignmentId)))
-                  case (_, _)        =>
-                    getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
-                      RedirectUtils.redirectIfReviewNotCompleted(consignmentId, consignmentStatuses)(
-                        httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
-                      )
-                    }
+                val draftMetadataStatus = consignmentStatuses.exists(s => s.statusType == MetadataReviewType.id && s.value == CompletedValue.value)
+                if (draftMetadataStatus) {
+                  getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
+                    httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+                  }
+                } else {
+                  Future(Redirect(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)))
                 }
               } else {
                 getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
