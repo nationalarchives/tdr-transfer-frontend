@@ -166,7 +166,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       ("not present", None),
       ("'Skipped'", Some("Skipped")),
       ("'InProgress'", Some("InProgress")),
-      ("'CompletedWithIssues'", Some("CompletedWithIssues")),
+      ("'CompletedWithIssues'", Some("CompletedWithIssues"))
     )
 
     forAll(metadataReviewNotCompletedStatuses) { (description, draftMetadataStatus) =>
