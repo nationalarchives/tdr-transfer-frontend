@@ -49,8 +49,14 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.23.0"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.23.0"
+val jackson2Version = "2.23.0"
+dependencyOverrides ++= Seq(
+  "com.fasterxml.jackson.core" % "jackson-databind" % jackson2Version,
+  "com.fasterxml.jackson.core" % "jackson-core" % jackson2Version,
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % jackson2Version,
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jackson2Version,
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % jackson2Version
+)
 dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 dependencyOverrides ++= Seq(
