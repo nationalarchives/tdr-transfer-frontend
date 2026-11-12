@@ -75,8 +75,8 @@ class ConfirmTransferController @Inject() (
               }
             case None =>
               if (applicationConfig.blockSkipMetadataReview) {
-                val draftMetadataStatus = consignmentStatuses.exists(s => s.statusType == MetadataReviewType.id && s.value == CompletedValue.value)
-                if (draftMetadataStatus) {
+                val isMetadataReviewCompleted = consignmentStatuses.exists(s => s.statusType == MetadataReviewType.id && s.value == CompletedValue.value)
+                if (isMetadataReviewCompleted) {
                   getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
                     httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
                   }
