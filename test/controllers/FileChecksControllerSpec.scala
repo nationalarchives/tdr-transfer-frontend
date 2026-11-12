@@ -264,7 +264,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
-        setConsignmentSummaryResponse(wiremockServer, seriesName = Some("MOCK1"))
+        setConsignmentSummaryResponse(wiremockServer, seriesName = Some("MOCK1"), transferringBodyName = Some("Mock Body"))
         val messagingService = mock[MessagingService]
         val fileChecksController = initialiseFileChecks(keycloakConfiguration, messagingService = messagingService)
 
@@ -302,6 +302,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
               environment = "mockStage",
               consignmentReference = "TEST-TDR-2021-GB",
               consignmentId = consignmentId.toString,
+              transferringBodyName = Some("Mock Body"),
               seriesName = Some("MOCK1"),
               userId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
               errorMessage = Some("TimeoutError: Request timed out")
@@ -334,6 +335,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         org.mockito.Mockito.verify(messagingService).sendUploadFailedNotification(captor.capture())
         captor.getValue.errorMessage mustBe None
         captor.getValue.seriesName mustBe None
+        captor.getValue.transferringBodyName mustBe None
       }
 
       s"render the $userType error page if the user upload succeeds but backendChecks fails to trigger" in {

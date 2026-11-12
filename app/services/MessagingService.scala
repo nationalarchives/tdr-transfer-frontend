@@ -88,6 +88,7 @@ object MessagingService {
       environment: String,
       consignmentReference: String,
       consignmentId: String,
+      transferringBodyName: Option[String],
       seriesName: Option[String],
       userId: String,
       errorMessage: Option[String]

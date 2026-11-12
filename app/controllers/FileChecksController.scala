@@ -67,20 +67,22 @@ class FileChecksController @Inject() (
   ) = {
     for {
       _ <- consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedWithIssuesValue.value), None, None), token)
-      seriesName <- consignmentService
+      consignmentDetails <- consignmentService
         .getConsignmentConfirmTransfer(consignmentId, token)
-        .map(_.seriesName)
+        .map(consignment => (consignment.transferringBodyName, consignment.seriesName))
         .recover { case e: Exception =>
-          // The notification is still worth sending without the series.
-          logger.error(s"Failed to get the series for consignment $consignmentId", e)
-          None
+          // The notification is still worth sending without these details.
+          logger.error(s"Failed to get the transferring body and series for consignment $consignmentId", e)
+          (None, None)
         }
+      (transferringBodyName, seriesName) = consignmentDetails
     } yield {
       messagingService.sendUploadFailedNotification(
         UploadFailedEvent(
           environment = applicationConfig.frontEndInfo.stage,
           consignmentReference = consignmentRef,
           consignmentId = consignmentId.toString,
+          transferringBodyName = transferringBodyName,
           seriesName = seriesName,
           userId = request.token.userId.toString,
           errorMessage = sanitiseUploadError(error)

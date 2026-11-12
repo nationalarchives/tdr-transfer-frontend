@@ -126,6 +126,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
       environment = "intg",
       consignmentReference = "TDR-2024",
       consignmentId = "consignment-id",
+      transferringBodyName = Some("Mock Body"),
       seriesName = Some("MOCK1"),
       userId = "user-id",
       errorMessage = Some("TimeoutError: Request timed out")
@@ -134,6 +135,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
                                   |  "environment" : "intg",
                                   |  "consignmentReference" : "TDR-2024",
                                   |  "consignmentId" : "consignment-id",
+                                  |  "transferringBodyName" : "Mock Body",
                                   |  "seriesName" : "MOCK1",
                                   |  "userId" : "user-id",
                                   |  "errorMessage" : "TimeoutError: Request timed out"
