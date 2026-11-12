@@ -161,112 +161,40 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/file-checks?uploadFailed=false")
     }
 
-    "redirect to the prepare your metadata page with an authenticated user if the MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
-      val consignmentId = UUID.randomUUID()
+    val metadataReviewNotCompletedStatuses: TableFor2[String, Option[String]] = Table(
+      ("Description", "MetadataReview status value"),
+      ("not present", None),
+      ("'Skipped'", Some("Skipped")),
+      ("'InProgress'", Some("InProgress")),
+      ("'CompletedWithIssues'", Some("CompletedWithIssues"))
+    )
 
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None)
-      )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+    forAll(metadataReviewNotCompletedStatuses) { (description, draftMetadataStatus) =>
+      s"redirect to the request metadata review page with an authenticated user if the MetadataReview status is $description & blockSkipMetadataReview is 'true'" in {
+        val consignmentId = UUID.randomUUID()
 
-      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
-      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      mockGraphqlConsignmentSummaryResponse(dataString)
+        val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None)
+        ) ++ draftMetadataStatus.map(value => ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", value, someDateTime, None))
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
-      val confirmTransferPage = controller
-        .confirmTransfer(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+        val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
+        val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
+        val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+        mockGraphqlConsignmentSummaryResponse(dataString)
 
-      playStatus(confirmTransferPage) mustBe SEE_OTHER
-      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/draft-metadata/prepare-metadata")
-    }
+        val confirmTransferPage = controller
+          .confirmTransfer(consignmentId)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
 
-    "render the confirm transfer page when draft metadata was skipped and MetadataReview status is not present & blockSkipMetadataReview is 'true'" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "DraftMetadata", "Skipped", someDateTime, None)
-      )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-
-      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
-      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      mockGraphqlConsignmentSummaryResponse(dataString)
-
-      val confirmTransferPage = controller
-        .confirmTransfer(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-
-      val confirmTransferPageAsString = contentAsString(confirmTransferPage)
-
-      playStatus(confirmTransferPage) mustBe OK
-      contentType(confirmTransferPage) mustBe Some("text/html")
-      checkConfirmTransferContent(confirmTransferPageAsString, consignmentSummaryResponse)
-    }
-
-    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'InProgress' & blockSkipMetadataReview is 'true'" in {
-      val consignmentId = UUID.randomUUID()
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", "InProgress", someDateTime, None)
-      )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-
-      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
-      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      mockGraphqlConsignmentSummaryResponse(dataString)
-
-      val confirmTransferPage = controller
-        .confirmTransfer(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-
-      playStatus(confirmTransferPage) mustBe SEE_OTHER
-      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
-    }
-
-    "redirect to the review progress page with an authenticated user if the MetadataReview status is 'CompletedWithIssues' & blockSkipMetadataReview is 'true'" in {
-      val consignmentId = UUID.randomUUID()
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, blockSkipMetadataReview = true)
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "MetadataReview", "CompletedWithIssues", someDateTime, None)
-      )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-
-      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
-      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      mockGraphqlConsignmentSummaryResponse(dataString)
-
-      val confirmTransferPage = controller
-        .confirmTransfer(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-
-      playStatus(confirmTransferPage) mustBe SEE_OTHER
-      redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
+        playStatus(confirmTransferPage) mustBe SEE_OTHER
+        redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/metadata-review/request")
+      }
     }
 
     "render the confirm transfer page with an authenticated user if the MetadataReview status is 'Completed' & blockSkipMetadataReview is 'true'" in {
