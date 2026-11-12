@@ -126,16 +126,16 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
       environment = "intg",
       consignmentReference = "TDR-2024",
       consignmentId = "consignment-id",
+      seriesName = Some("MOCK1"),
       userId = "user-id",
-      isJudgmentUser = false,
       errorMessage = Some("TimeoutError: Request timed out")
     )
     val expectedMessageString = """{
                                   |  "environment" : "intg",
                                   |  "consignmentReference" : "TDR-2024",
                                   |  "consignmentId" : "consignment-id",
+                                  |  "seriesName" : "MOCK1",
                                   |  "userId" : "user-id",
-                                  |  "isJudgmentUser" : false,
                                   |  "errorMessage" : "TimeoutError: Request timed out"
                                   |}""".stripMargin
     service.sendUploadFailedNotification(uploadFailedEvent)
