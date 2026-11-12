@@ -24,6 +24,18 @@ export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.returnValue = ""
 }
 
+const maxUploadErrorLength = 200
+
+// A response blocked by a proxy or firewall has no S3 error code, so the SDK reports it
+// as "Unknown" and the HTTP status is the only indication of what happened.
+export const summariseUploadError: (error: Error) => string = (error) => {
+  const statusCode = (error as { $metadata?: { httpStatusCode?: number } })
+    .$metadata?.httpStatusCode
+  const status = statusCode ? `HTTP ${statusCode} ` : ""
+  const message = error.message ? `${error.name}: ${error.message}` : error.name
+  return `${status}${message}`.slice(0, maxUploadErrorLength)
+}
+
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
   stage: string
@@ -32,7 +44,8 @@ export class FileUploader {
   goToNextPage: (
     consignmentId: string,
     uploadFailed: String,
-    isJudgmentUser: Boolean
+    isJudgmentUser: Boolean,
+    errorMessage?: string
   ) => void
 
   constructor(
@@ -42,7 +55,8 @@ export class FileUploader {
     goToNextPage: (
       consignmentId: string,
       uploadFailed: String,
-      isJudgmentUser: Boolean
+      isJudgmentUser: Boolean,
+      errorMessage?: string
     ) => void
   ) {
     // Allowance for a request beyond the time its body needs to transfer.
@@ -136,7 +150,12 @@ export class FileUploader {
     const uploadFailed = errors.length > 0
 
     window.removeEventListener("beforeunload", pageUnloadAction)
-    this.goToNextPage(consignmentId, uploadFailed.toString(), isJudgmentUser)
+    this.goToNextPage(
+      consignmentId,
+      uploadFailed.toString(),
+      isJudgmentUser,
+      uploadFailed ? summariseUploadError(errors[0]) : undefined
+    )
   }
 
   initialiseFormListeners(): void {

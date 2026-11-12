@@ -18,6 +18,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, UploadType}
+import services.MessagingService.UploadFailedEvent
 import services._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -62,7 +63,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   def initialiseFileChecks(
       keycloakConfiguration: KeycloakConfiguration,
       controllerComponents: SecurityComponents = getAuthorisedSecurityComponents,
-      backendChecksService: Option[BackendChecksService] = None
+      backendChecksService: Option[BackendChecksService] = None,
+      messagingService: MessagingService = mock[MessagingService]
   ): FileChecksController = {
 
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -83,7 +85,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       backendChecksService.getOrElse(backendChecks),
       consignmentStatusService,
       confirmTransferService,
-      consignmentExportService
+      consignmentExportService,
+      messagingService
     )
   }
 
@@ -261,16 +264,18 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
-        val fileChecksController = initialiseFileChecks(keycloakConfiguration)
+        val messagingService = mock[MessagingService]
+        val fileChecksController = initialiseFileChecks(keycloakConfiguration, messagingService = messagingService)
 
         val uploadFailed = "true"
+        val error = Some("TimeoutError:\nRequest timed out")
         val fileChecksPage = if (userType == "judgment") {
           fileChecksController
-            .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
+            .judgmentFileChecksPage(consignmentId, Some(uploadFailed), error)
             .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         } else {
           fileChecksController
-            .fileChecksPage(consignmentId, Some(uploadFailed))
+            .fileChecksPage(consignmentId, Some(uploadFailed), error)
             .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         }
 
@@ -289,6 +294,44 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
         fileChecksPageAsString must include("""<p>Your upload was interrupted and could not be completed.</p>""")
         wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("updateConsignmentStatus")))
+        org.mockito.Mockito
+          .verify(messagingService)
+          .sendUploadFailedNotification(
+            UploadFailedEvent(
+              environment = "mockStage",
+              consignmentReference = "TEST-TDR-2021-GB",
+              consignmentId = consignmentId.toString,
+              userId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
+              isJudgmentUser = userType == "judgment",
+              errorMessage = Some("TimeoutError: Request timed out")
+            )
+          )
+      }
+
+      s"send an upload failed notification without an error message for a $userType user if no error is provided" in {
+        mockGetFileCheckProgress(progressData(6, 12, 8, allChecksSucceeded = false), userType)
+        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedValue.value, someDateTime, None))
+        setUpdateConsignmentStatus(wiremockServer)
+        setConsignmentReferenceResponse(wiremockServer)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
+
+        val messagingService = mock[MessagingService]
+        val fileChecksController = initialiseFileChecks(keycloakConfiguration, messagingService = messagingService)
+
+        val fileChecksPage = if (userType == "judgment") {
+          fileChecksController
+            .judgmentFileChecksPage(consignmentId, Some("true"))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=true").withCSRFToken)
+        } else {
+          fileChecksController
+            .fileChecksPage(consignmentId, Some("true"))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=true").withCSRFToken)
+        }
+
+        playStatus(fileChecksPage) mustBe OK
+        val captor = org.mockito.ArgumentCaptor.forClass(classOf[UploadFailedEvent])
+        org.mockito.Mockito.verify(messagingService).sendUploadFailedNotification(captor.capture())
+        captor.getValue.errorMessage mustBe None
       }
 
       s"render the $userType error page if the user upload succeeds but backendChecks fails to trigger" in {

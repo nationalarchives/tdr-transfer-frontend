@@ -9,15 +9,14 @@ export const goToNextPage: (formId: string) => void = (formId: string) => {
 export const goToFileChecksPage = (
   consignmentId: string,
   uploadFailed: String,
-  isJudgmentUser: Boolean
+  isJudgmentUser: Boolean,
+  errorMessage?: string
 ): void => {
-  if (isJudgmentUser) {
-    location.assign(
-      `/judgment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
-    )
-  } else {
-    location.assign(
-      `/consignment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
-    )
-  }
+  const pathPrefix = isJudgmentUser ? "judgment" : "consignment"
+  const errorParam = errorMessage
+    ? `&error=${encodeURIComponent(errorMessage)}`
+    : ""
+  location.assign(
+    `/${pathPrefix}/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}${errorParam}`
+  )
 }
