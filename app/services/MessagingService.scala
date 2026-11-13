@@ -4,7 +4,7 @@ import configuration.ApplicationConfig
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax.EncoderOps
-import services.MessagingService.{MetadataDownloadEvent, MetadataReviewSubmittedEvent, MetadataReviewRequestEvent, TransferCompleteEvent}
+import services.MessagingService.{MetadataDownloadEvent, MetadataReviewSubmittedEvent, MetadataReviewRequestEvent, TransferCompleteEvent, UploadFailedEvent}
 import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.nationalarchives.aws.utils.sns.SNSClients.sns
@@ -22,6 +22,7 @@ class MessagingService @Inject() (val applicationConfig: ApplicationConfig)(impl
   implicit val metadataDownloadEventEncoder: Encoder[MetadataDownloadEvent] = deriveEncoder[MetadataDownloadEvent]
   implicit val metadataReviewRequestEventEncoder: Encoder[MetadataReviewRequestEvent] = deriveEncoder[MetadataReviewRequestEvent]
   implicit val metadataReviewSubmittedEventEncoder: Encoder[MetadataReviewSubmittedEvent] = deriveEncoder[MetadataReviewSubmittedEvent]
+  implicit val uploadFailedEventEncoder: Encoder[UploadFailedEvent] = deriveEncoder[UploadFailedEvent]
 
   def sendTransferCompleteNotification(transferCompletedEvent: TransferCompleteEvent): PublishResponse = {
     utils.publish(transferCompletedEvent.asJson.toString, snsTopicArn)
@@ -37,6 +38,10 @@ class MessagingService @Inject() (val applicationConfig: ApplicationConfig)(impl
 
   def sendMetadataReviewSubmittedNotification(metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent): PublishResponse = {
     utils.publish(metadataReviewSubmittedEvent.asJson.toString, snsTopicArn)
+  }
+
+  def sendUploadFailedNotification(uploadFailedEvent: UploadFailedEvent): PublishResponse = {
+    utils.publish(uploadFailedEvent.asJson.toString, snsTopicArn)
   }
 }
 
@@ -78,5 +83,14 @@ object MessagingService {
       userId: String,
       closedRecords: Boolean,
       totalRecords: Int
+  )
+  case class UploadFailedEvent(
+      environment: String,
+      consignmentReference: String,
+      consignmentId: String,
+      transferringBodyName: Option[String],
+      seriesName: Option[String],
+      userId: String,
+      errorMessage: Option[String]
   )
 }

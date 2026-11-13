@@ -15,6 +15,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.Statuses._
 import services._
+import services.MessagingService.UploadFailedEvent
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.Caching.preventCaching
 
@@ -32,7 +33,8 @@ class FileChecksController @Inject() (
     val backendChecksService: BackendChecksService,
     val consignmentStatusService: ConsignmentStatusService,
     val confirmTransferService: ConfirmTransferService,
-    val consignmentExportService: ConsignmentExportService
+    val consignmentExportService: ConsignmentExportService,
+    val messagingService: MessagingService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport
@@ -54,10 +56,38 @@ class FileChecksController @Inject() (
       }
   }
 
-  private def handleFailedUpload(consignmentId: UUID, consignmentRef: String, isJudgmentUser: Boolean, token: BearerAccessToken)(implicit request: Request[AnyContent]) = {
+  private val maxUploadErrorLength = 200
+
+  // The error comes from a user controlled query parameter, so it is cleaned and bounded before being sent on.
+  private def sanitiseUploadError(error: Option[String]): Option[String] =
+    error.map(_.replaceAll("\\p{Cntrl}", " ").trim.take(maxUploadErrorLength)).filter(_.nonEmpty)
+
+  private def handleFailedUpload(consignmentId: UUID, consignmentRef: String, isJudgmentUser: Boolean, token: BearerAccessToken, error: Option[String])(implicit
+      request: Request[AnyContent]
+  ) = {
     for {
       _ <- consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedWithIssuesValue.value), None, None), token)
+      consignmentDetails <- consignmentService
+        .getConsignmentConfirmTransfer(consignmentId, token)
+        .map(consignment => (consignment.transferringBodyName, consignment.seriesName))
+        .recover { case e: Exception =>
+          // The notification is still worth sending without these details.
+          logger.error(s"Failed to get the transferring body and series for consignment $consignmentId", e)
+          (None, None)
+        }
+      (transferringBodyName, seriesName) = consignmentDetails
     } yield {
+      messagingService.sendUploadFailedNotification(
+        UploadFailedEvent(
+          environment = applicationConfig.frontEndInfo.stage,
+          consignmentReference = consignmentRef,
+          consignmentId = consignmentId.toString,
+          transferringBodyName = transferringBodyName,
+          seriesName = seriesName,
+          userId = request.token.userId.toString,
+          errorMessage = sanitiseUploadError(error)
+        )
+      )
       Ok(views.html.uploadInProgress(consignmentId, consignmentRef, "Uploading your records", request.token.name, isJudgmentUser))
         .uncache()
     }
@@ -122,24 +152,25 @@ class FileChecksController @Inject() (
     } yield Ok(result.asJson.noSpaces)
   }
 
-  def fileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val token = request.token.bearerAccessToken
-    for {
-      reference <- consignmentService.getConsignmentRef(consignmentId, token)
-      result <- uploadFailed match {
-        case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = false, token)
-        case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = false)
-      }
-    } yield result
-  }
-
-  def judgmentFileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {
+  def fileChecksPage(consignmentId: UUID, uploadFailed: Option[String], error: Option[String] = None): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val token = request.token.bearerAccessToken
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, token)
         result <- uploadFailed match {
-          case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
+          case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = false, token, error)
+          case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = false)
+        }
+      } yield result
+  }
+
+  def judgmentFileChecksPage(consignmentId: UUID, uploadFailed: Option[String], error: Option[String] = None): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      val token = request.token.bearerAccessToken
+      for {
+        reference <- consignmentService.getConsignmentRef(consignmentId, token)
+        result <- uploadFailed match {
+          case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token, error)
           case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
         }
       } yield result
