@@ -13,6 +13,7 @@ import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
+import graphql.codegen.GetConsignmentFileCheckFailures.{getConsignmentFileCheckFailures => gcfcf}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.GetConsignmentReviewDetails.{getConsignmentReviewDetails => gcrd}
@@ -48,6 +49,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfmr.Data, gcfmr.Variables]()
   private val getConsignmentReviewDetailsClient = graphqlConfiguration.getClient[gcrd.Data, gcrd.Variables]()
   private val getConsignmentDetailsForReviewClient = graphqlConfiguration.getClient[gcdfmr.Data, gcdfmr.Variables]()
+  private val getConsignmentFileCheckFailuresClient = graphqlConfiguration.getClient[gcfcf.Data, gcfcf.Variables]()
   private val updateDraftMetadataFileNameClient = graphqlConfiguration.getClient[ucsdmfn.Data, ucsdmfn.Variables]()
   private val getConsignmentForMetadataReviewRequest = graphqlConfiguration.getClient[gcfmrr.Data, gcfmrr.Variables]()
   private val getConsignmentMetadataClient = graphqlConfiguration.getClient[gcm.Data, gcm.Variables]()
@@ -181,6 +183,12 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   def getConsignmentReviewDetails(statusFilter: Option[String], token: BearerAccessToken): Future[List[gcrd.GetConsignmentReviewDetails]] = {
     sendApiRequest(getConsignmentReviewDetailsClient, gcrd.document, token, gcrd.Variables(statusFilter))
       .map(data => data.getConsignmentReviewDetails)
+  }
+
+  def getConsignmentFileCheckFailures(consignmentId: Option[UUID], token: BearerAccessToken): Future[List[gcfcf.GetConsignmentFileCheckFailures]] = {
+    val variables = gcfcf.Variables(consignmentId)
+    sendApiRequest(getConsignmentFileCheckFailuresClient, gcfcf.document, token, variables)
+      .map(_.getConsignmentFileCheckFailures)
   }
 
   def getConsignmentDetailForMetadataReview(consignmentId: UUID, token: BearerAccessToken): Future[gcdfmr.GetConsignment] = {

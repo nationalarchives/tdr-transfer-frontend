@@ -1,0 +1,67 @@
+@(name:String, consignmentReference: String, transferringBody: String, series: String, formattedUploadDate: String, contactEmail: String)(implicit messages: Messages, request: RequestHeader)
+@defining("Welcome to the Transfer Digital Records service") { title =>
+    @main(title, name = name, isTnaUser = true) {
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        <h1 class="govuk-heading-l">
+          Failed consignment details
+        </h1>
+
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">
+              Consignment @consignmentReference   </h2>
+          </div>
+
+          <div class="govuk-summary-card__content">
+            <dl class="govuk-summary-list">
+
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">
+                  Transferring body
+                </dt>
+                <dd class="govuk-summary-list__value">
+                  @transferringBody
+                </dd>
+              </div>
+
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">
+                  Series
+                </dt>
+                <dd class="govuk-summary-list__value">
+                  @series
+                </dd>
+              </div>
+
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">
+                  Date uploaded
+                </dt>
+                <dd class="govuk-summary-list__value">
+                  @formattedUploadDate
+                </dd>
+              </div>
+
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">
+                  Contact email
+                </dt>
+                <dd class="govuk-summary-list__value">
+                  <a class="govuk-link" href="mailto:@contactEmail">
+                    @contactEmail
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+        <p class="govuk-body">
+          <a href="/file-check-failures/@consignmentReference/error-report" class="govuk-button govuk-button--secondary" data-module="govuk-button" data-govuk-button-init="">
+            Download error report
+          </a>
+        </p>
+      </div>
+    </div>
+    }
+}
