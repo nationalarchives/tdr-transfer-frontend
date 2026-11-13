@@ -23,7 +23,7 @@ permissions:
   contents: write
 jobs:
   deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_deploy.yml@f563794aa48b4ea16cae01caf704aa241a37539f # v0.0.48
+    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_deploy.yml@fc52a93f9636579d7478f01a8a960007134ad30f # v0.0.51
     with:
       service: frontend
       image-name: transfer-frontend
