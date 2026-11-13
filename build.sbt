@@ -18,6 +18,7 @@ val playPac4jVersion = "13.0.3-PLAY3.0"
 val pac4jVersion = "6.6.1"
 val sttpVersion = "3.11.0"
 val awsUtilsVersion = "0.1.343"
+val jackson3Version = "3.3.0"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
@@ -33,8 +34,8 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.496",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.55",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.55",
-  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.153",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.263",
+  "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.154",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.266",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
@@ -48,10 +49,21 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.4"
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4"
+val jackson2Version = "2.23.0"
+dependencyOverrides ++= Seq(
+  "com.fasterxml.jackson.core" % "jackson-databind" % jackson2Version,
+  "com.fasterxml.jackson.core" % "jackson-core" % jackson2Version,
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % jackson2Version,
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jackson2Version,
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % jackson2Version
+)
 dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
+dependencyOverrides ++= Seq(
+  "tools.jackson.core" % "jackson-databind" % jackson3Version,
+  "tools.jackson.core" % "jackson-core" % jackson3Version,
+  "tools.jackson.dataformat" % "jackson-dataformat-yaml" % jackson3Version
+)
 
 val nettyVersion = "4.2.20.Final"
 val bouncyCastleVersion = "1.86"
