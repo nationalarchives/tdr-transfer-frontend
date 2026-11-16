@@ -54,7 +54,7 @@ dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 
 val nettyVersion = "4.2.20.Final"
-val bouncyCastleVersion = "1.86"
+val bouncyCastleVersion = "1.87"
 dependencyOverrides ++= Seq(
   "netty-buffer",
   "netty-codec",
