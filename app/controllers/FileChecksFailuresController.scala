@@ -31,6 +31,7 @@ class FileChecksFailuresController @Inject() (
     } yield {
       Ok(
         views.html.tna.fileChecksFailures(
+          consignmentId,
           request.token.name,
           consignment.consignmentReference,
           consignment.transferringBodyName.getOrElse(""),

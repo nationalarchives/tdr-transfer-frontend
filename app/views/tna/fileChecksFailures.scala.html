@@ -1,4 +1,4 @@
-@(name:String, consignmentReference: String, transferringBody: String, series: String, formattedUploadDate: String, contactEmail: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: java.util.UUID, name:String, consignmentReference: String, transferringBody: String, series: String, formattedUploadDate: String, contactEmail: String)(implicit messages: Messages, request: RequestHeader)
 @defining("Welcome to the Transfer Digital Records service") { title =>
     @main(title, name = name, isTnaUser = true) {
     <div class="govuk-grid-row">
@@ -57,7 +57,7 @@
           </div>
         </div>
         <p class="govuk-body">
-          <a href="/file-check-failures/@consignmentReference/error-report" class="govuk-button govuk-button--secondary" data-module="govuk-button" data-govuk-button-init="">
+          <a href="@routes.FileChecksResultsController.downloadFileCheckFailuresReport(consignmentId)" class="govuk-button govuk-button--secondary" data-module="govuk-button" data-govuk-button-init="">
             Download error report
           </a>
         </p>
