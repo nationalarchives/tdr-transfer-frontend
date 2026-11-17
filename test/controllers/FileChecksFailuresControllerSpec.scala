@@ -6,6 +6,7 @@ import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentFileCheckFailures.{getConsignmentFileCheckFailures => gcfcf}
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.jsoup.Jsoup
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -17,6 +18,7 @@ import testUtils.FrontEndTestHelper
 import java.time.ZonedDateTime
 import java.util.UUID
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters._
 
 class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -33,7 +35,7 @@ class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
   }
 
   "fileChecksFailures" should {
-    "show the upload status creation time" in {
+    "show the consignment details, formatted upload date, contact email and error report download" in {
       setGraphQLResponse(
         List(
           gcfcf.GetConsignmentFileCheckFailures.ConsignmentStatuses("Series", uploadDate.minusDays(1)),
@@ -42,11 +44,21 @@ class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
       )
 
       val response = controller.fileChecksFailures(consignmentId).apply(FakeRequest(GET, s"/admin/file-checks-failures/$consignmentId").withCSRFToken)
-      val page = contentAsString(response)
+      val page = Jsoup.parse(contentAsString(response))
 
       playStatus(response) mustBe OK
-      page must include("5th July 2026, 8:00am")
-      page must include(s"""href="/consignment/$consignmentId/file-checks-results/download-failures"""")
+      page.select(".govuk-summary-card__title").text() mustBe "Consignment TDR-2026-TEST"
+      val summaryRows = page.select(".govuk-summary-list__row").asScala.map { row =>
+        row.select("dt").text() -> row.select("dd").text()
+      }.toList
+      summaryRows mustBe List(
+        "Transferring body" -> "Body",
+        "Series" -> "Series",
+        "Date uploaded" -> "5th July 2026, 8:00am",
+        "Contact email" -> "email@test.com"
+      )
+      page.select("a[href='mailto:email@test.com']").text() mustBe "email@test.com"
+      page.select(s"a[href='/consignment/$consignmentId/file-checks-results/download-failures']").text() mustBe "Download error report"
     }
 
     "fail explicitly when the upload status is missing" in {

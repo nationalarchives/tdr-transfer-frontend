@@ -628,6 +628,38 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       contentAsBytes(result).nonEmpty mustBe true
     }
 
+    "return an Excel file containing file check failures for a TNA user" in {
+      val mockFileCheckFailureService = mock[FileCheckFailureService]
+      val failures = List(
+        FileCheckFailure(
+          originalPath = "folder/test-file.txt",
+          filename = "test-file.txt",
+          matches = List(FileFormatMatch(Some("fmt/111"), Some("Plain Text File"))),
+          statusActions = List(FileCheckStatusAction("PasswordProtected", "PasswordProtected", "Contact TNA", "File is password protected"))
+        )
+      )
+      when(mockFileCheckFailureService.getFileCheckFailures(consignmentId)).thenReturn(Future.successful(failures))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), fileCheckFailureService = mockFileCheckFailureService)
+      val result = controller
+        .downloadFileCheckFailuresReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-check-failures-report").withCSRFToken)
+
+      status(result) mustBe OK
+      contentType(result) mustBe Some("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+      header("Content-Disposition", result).get must include("attachment; filename=TEST-TDR-2021-GB-file-check-failures-")
+
+      val wb = parseExcel(contentAsBytes(result))
+      val rows = wb.getFirstSheet.read.asScala.toList
+      rows.length mustBe 2
+      rows(1).getCell(2).asString mustBe "folder/test-file.txt"
+      rows(1).getCell(4).asString mustBe "Contact TNA"
+      rows(1).getCell(5).asString mustBe "File is password protected"
+    }
+
     "return an Excel file when failures have multiple status actions" in {
       val mockFileCheckFailureService = mock[FileCheckFailureService]
       val failures = List(
