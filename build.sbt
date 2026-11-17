@@ -35,12 +35,12 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.55",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.55",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.156",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.266",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.270",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.55",
-  "ch.qos.logback" % "logback-classic" % "1.6.6",
+  "ch.qos.logback" % "logback-classic" % "1.6.7",
   ws,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.24.0" % Test,
@@ -49,6 +49,8 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.23.0"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.23.0"
 val jackson2Version = "2.23.0"
 dependencyOverrides ++= Seq(
   "com.fasterxml.jackson.core" % "jackson-databind" % jackson2Version,
