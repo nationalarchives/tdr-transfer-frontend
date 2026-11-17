@@ -48,9 +48,13 @@ class FileChecksFailuresControllerSpec extends FrontEndTestHelper {
 
       playStatus(response) mustBe OK
       page.select(".govuk-summary-card__title").text() mustBe "Consignment TDR-2026-TEST"
-      val summaryRows = page.select(".govuk-summary-list__row").asScala.map { row =>
-        row.select("dt").text() -> row.select("dd").text()
-      }.toList
+      val summaryRows = page
+        .select(".govuk-summary-list__row")
+        .asScala
+        .map { row =>
+          row.select("dt").text() -> row.select("dd").text()
+        }
+        .toList
       summaryRows mustBe List(
         "Transferring body" -> "Body",
         "Series" -> "Series",
