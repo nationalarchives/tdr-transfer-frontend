@@ -20,13 +20,15 @@ const data: GetFileCheckProgressQuery = {
   getConsignment: {
     files: [],
     parentFolder: "parentFolder",
+    consignmentReference: "TDR-2024-TEST",
     totalFiles: 10,
     allChecksSucceeded: false,
     fileChecks: {
       antivirusProgress: { filesProcessed: 2 },
       ffidProgress: { filesProcessed: 4 },
       checksumProgress: { filesProcessed: 3 }
-    }
+    },
+    consignmentStatuses: []
   }
 }
 
