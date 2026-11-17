@@ -35,17 +35,20 @@ class AccessibilityControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForContentOnAccessibilityStatementPage(pageAsString: String): Unit = {
-    pageAsString must include("""<h1 class="govuk-heading-l">Accessibility statement</h1>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">How accessible this website is</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">Feedback and contact information</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">Reporting accessibility problems with this website</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">Enforcement procedure</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">Technical information on this website’s accessibility</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">Compliance status</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">Non-accessible content</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">How this website was tested</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">What we are doing to improve accessibility</h2>""")
-    pageAsString must include("""<h2 class="govuk-heading-m">Preparation of this accessibility statement</h2>""")
-    pageAsString must include("<title>Accessibility statement - Transfer Digital Records - GOV.UK</title>")
+    val normalizedPage = pageAsString.replaceAll("\\s+", " ").replaceAll(">\\s+", ">").replaceAll("\\s+</", "</")
+    normalizedPage must include("""<h1 class="govuk-heading-l">Accessibility statement</h1>""")
+    normalizedPage must include("""<h2 class="govuk-heading-m">How accessible this website is</h2>""")
+    normalizedPage must include("""<h2 class="govuk-heading-m">Reporting accessibility problems with this website</h2>""")
+    normalizedPage must include("""<h3 class="govuk-heading-s">Feedback and contact information</h3>""")
+    normalizedPage must include("""<h2 class="govuk-heading-m">Enforcement procedure</h2>""")
+    normalizedPage must include("""<h2 class="govuk-heading-m">Technical information on this website’s accessibility</h2>""")
+    normalizedPage must include("""<h2 class="govuk-heading-m">Compliance status</h2>""")
+    normalizedPage must include("""<h2 class="govuk-heading-m">What we're doing to improve accessibility</h2>""")
+    normalizedPage must include("""<h2 class="govuk-heading-m">Preparation of this accessibility statement</h2>""")
+    normalizedPage must include("An independent accessibility audit carried out by RNIB in November 2025")
+    normalizedPage must include("heading levels are not always structured sequentially")
+    normalizedPage must include("duplicate alternative text, missing fieldset legends and disabled autocomplete functionality")
+    normalizedPage must include("This statement was prepared on 5 October 2026.")
+    normalizedPage must include("<title>Accessibility statement - Transfer Digital Records - GOV.UK</title>")
   }
 }
