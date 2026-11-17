@@ -64,14 +64,13 @@ class FileChecksController @Inject() (
 
   private def handleFailedUpload(consignmentId: UUID, consignmentRef: String, isJudgmentUser: Boolean, token: BearerAccessToken, error: Option[String])(implicit
       request: Request[AnyContent]
-  ) = {
+  ): Future[Result] = {
     for {
       _ <- consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedWithIssuesValue.value), None, None), token)
       consignmentDetails <- consignmentService
         .getConsignmentConfirmTransfer(consignmentId, token)
         .map(consignment => (consignment.transferringBodyName, consignment.seriesName))
         .recover { case e: Exception =>
-          // The notification is still worth sending without these details.
           logger.error(s"Failed to get the transferring body and series for consignment $consignmentId", e)
           (None, None)
         }
