@@ -120,6 +120,30 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
     verify(mockUtils).publish(expectedMessageString, testArn)
   }
 
+  "sendUploadFailedNotification" should "call publish with the correct parameters" in {
+    val service = createService
+    val uploadFailedEvent = MessagingService.UploadFailedEvent(
+      environment = "intg",
+      consignmentReference = "TDR-2024",
+      consignmentId = "consignment-id",
+      transferringBodyName = Some("Mock Body"),
+      seriesName = Some("MOCK1"),
+      userId = "user-id",
+      errorMessage = Some("TimeoutError: Request timed out")
+    )
+    val expectedMessageString = """{
+                                  |  "environment" : "intg",
+                                  |  "consignmentReference" : "TDR-2024",
+                                  |  "consignmentId" : "consignment-id",
+                                  |  "transferringBodyName" : "Mock Body",
+                                  |  "seriesName" : "MOCK1",
+                                  |  "userId" : "user-id",
+                                  |  "errorMessage" : "TimeoutError: Request timed out"
+                                  |}""".stripMargin
+    service.sendUploadFailedNotification(uploadFailedEvent)
+    verify(mockUtils).publish(expectedMessageString, testArn)
+  }
+
   def createService: MessagingService = {
     when(config.get[String]("sns.endpoint")).thenReturn("http://localhost:9009")
     when(config.get[String]("notificationSnsTopicArn")).thenReturn(testArn)
