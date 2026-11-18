@@ -4,7 +4,9 @@ RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontend
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
 RUN apk update && apk upgrade p11-kit busybox expat libretls zlib openssl libcrypto3 libssl3 && apk add bash unzip && \
-    apk add openjdk17 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
+    wget -O /etc/apk/keys/amazoncorretto.rsa.pub https://apk.corretto.aws/amazoncorretto.rsa.pub && \
+    echo "https://apk.corretto.aws/" >> /etc/apk/repositories && \
+    apk update && apk add --no-cache 'amazon-corretto-21>=21.0.13.1.2'
     unzip -qq tdr-transfer-frontend-*.zip
 RUN chown -R frontenduser /play
 
