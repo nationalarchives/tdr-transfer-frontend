@@ -110,7 +110,7 @@ class FileChecksResultsController @Inject() (
       } yield result
   }
 
-  def downloadFileCheckFailuresReport(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def downloadFileCheckFailuresReport(consignmentId: UUID): Action[AnyContent] = standardAndTnaUserAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       failures <- fileCheckFailureService.getFileCheckFailures(consignmentId)
