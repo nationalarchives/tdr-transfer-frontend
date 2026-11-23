@@ -17,7 +17,7 @@ val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
 val pac4jVersion = "6.6.1"
 val sttpVersion = "3.11.0"
-val awsUtilsVersion = "0.1.343"
+val awsUtilsVersion = "0.1.344"
 val jackson3Version = "3.3.0"
 
 libraryDependencies ++= Seq(
@@ -29,17 +29,17 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.308",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.309",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.309",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.497",
-  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.55",
-  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.55",
+  "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.56",
+  "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.56",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.156",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.270",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.272",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
-  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.55",
+  "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.56",
   "ch.qos.logback" % "logback-classic" % "1.6.7",
   ws,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
@@ -67,8 +67,8 @@ dependencyOverrides ++= Seq(
   "tools.jackson.dataformat" % "jackson-dataformat-yaml" % jackson3Version
 )
 
-val nettyVersion = "4.2.20.Final"
-val bouncyCastleVersion = "1.86"
+val nettyVersion = "4.2.21.Final"
+val bouncyCastleVersion = "1.87"
 dependencyOverrides ++= Seq(
   "netty-buffer",
   "netty-codec",
