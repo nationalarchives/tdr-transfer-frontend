@@ -14,6 +14,7 @@ import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
 import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
+import graphql.codegen.GetConsignmentFileCheckFailures.{getConsignmentFileCheckFailures => gcfcf}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
@@ -46,6 +47,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val getConsignmentClient = mock[GraphQLClient[gc.Data, gc.Variables]]
+  private val getConsignmentFileCheckFailuresClient = mock[GraphQLClient[gcfcf.Data, gcfcf.Variables]]
   private val addConsignmentClient = mock[GraphQLClient[addConsignment.Data, addConsignment.Variables]]
   private val getConsignmentFolderInfoClient = mock[GraphQLClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]]
   private val getConsignmentTypeClient = mock[GraphQLClient[gct.Data, gct.Variables]]
@@ -57,6 +59,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val updateDraftMetadataFileNameClient = mock[GraphQLClient[ucsdmfn.Data, ucsdmfn.Variables]]
 
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
+  when(graphQlConfig.getClient[gcfcf.Data, gcfcf.Variables]()).thenReturn(getConsignmentFileCheckFailuresClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
   when(graphQlConfig.getClient[gct.Data, gct.Variables]()).thenReturn(getConsignmentTypeClient)
@@ -88,6 +91,44 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     Mockito.reset(getConsignmentClient)
     Mockito.reset(addConsignmentClient)
     Mockito.reset(getConsignmentTypeClient)
+  }
+
+  "getConsignmentFileCheckFailures" should {
+    "return file check failures for a supplied consignment id" in {
+      val consignment = gcfcf.GetConsignmentFileCheckFailures(Some(consignmentId), "TDR-2026-TEST", Some("Body"), Some("Series"), UUID.randomUUID(), Nil)
+      val otherConsignment = consignment.copy(consignmentid = Some(UUID.randomUUID()))
+      val response = GraphQlResponse(Some(gcfcf.Data(List(otherConsignment, consignment))), Nil)
+      when(getConsignmentFileCheckFailuresClient.getResult(bearerAccessToken, gcfcf.document, Some(gcfcf.Variables(Some(consignmentId)))))
+        .thenReturn(Future.successful(response))
+
+      consignmentService.getConsignmentFileCheckFailures(Some(consignmentId), bearerAccessToken).futureValue shouldBe List(otherConsignment, consignment)
+    }
+
+    "return all file check failures when no consignment id is supplied" in {
+      val first = gcfcf.GetConsignmentFileCheckFailures(Some(consignmentId), "TDR-2026-TEST", Some("Body"), Some("Series"), UUID.randomUUID(), Nil)
+      val second = first.copy(consignmentid = Some(UUID.randomUUID()))
+      val response = GraphQlResponse(Some(gcfcf.Data(List(first, second))), Nil)
+      when(getConsignmentFileCheckFailuresClient.getResult(bearerAccessToken, gcfcf.document, Some(gcfcf.Variables(None))))
+        .thenReturn(Future.successful(response))
+
+      consignmentService.getConsignmentFileCheckFailures(None, bearerAccessToken).futureValue shouldBe List(first, second)
+    }
+
+    "return an empty list when no failures are returned" in {
+      val response = GraphQlResponse(Some(gcfcf.Data(Nil)), Nil)
+      when(getConsignmentFileCheckFailuresClient.getResult(bearerAccessToken, gcfcf.document, Some(gcfcf.Variables(Some(consignmentId)))))
+        .thenReturn(Future.successful(response))
+
+      consignmentService.getConsignmentFileCheckFailures(Some(consignmentId), bearerAccessToken).futureValue shouldBe empty
+    }
+
+    "return authorisation error if user does not have permission" in {
+      val response = GraphQlResponse[gcfcf.Data](None, List(NotAuthorisedError("Not authorised", Nil, Nil)))
+      when(getConsignmentFileCheckFailuresClient.getResult(bearerAccessToken, gcfcf.document, Some(gcfcf.Variables(Some(consignmentId)))))
+        .thenReturn(Future.successful(response))
+
+      consignmentService.getConsignmentFileCheckFailures(Some(consignmentId), bearerAccessToken).failed.futureValue shouldBe a[AuthorisationException]
+    }
   }
 
   "consignmentExists" should {

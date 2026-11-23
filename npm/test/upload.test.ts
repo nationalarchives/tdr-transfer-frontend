@@ -2,7 +2,11 @@ import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 enableFetchMocks()
 import { ClientFileProcessing } from "../src/clientfileprocessing"
 import { TProgressFunction } from "@nationalarchives/file-information"
-import { FileUploader, pageUnloadAction } from "../src/upload"
+import {
+  FileUploader,
+  pageUnloadAction,
+  summariseUploadError
+} from "../src/upload"
 import { createMockKeycloakInstance, mockKeycloakInstance } from "./utils"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
@@ -79,7 +83,8 @@ test("upload function will redirect to the file checks page with uploadFailed se
   expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
     "12345",
     "true",
-    false
+    false,
+    "Error: Some error"
   )
 
   mockGoToFileChecksPage.mockRestore()
@@ -99,7 +104,8 @@ test("upload function redirects to the file checks page with uploadFailed set to
   expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
     "12345",
     "false",
-    false
+    false,
+    undefined
   )
 
   mockGoToFileChecksPage.mockRestore()
@@ -156,7 +162,8 @@ test("upload function redirects to the file checks page with uploadFailed set to
   expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
     "12345",
     "true",
-    false
+    false,
+    "Error: Access Denied"
   )
 })
 
@@ -174,7 +181,8 @@ test("upload function redirects to the file checks page when a file upload rejec
   expect(mockGoToFileChecksPage).toHaveBeenLastCalledWith(
     "12345",
     "true",
-    false
+    false,
+    "Error: something went wrong"
   )
 })
 
@@ -245,3 +253,26 @@ function setUpFileUploader(mockKeycloak?: Keycloak): FileUploader {
     mockGoToFileChecksPage
   )
 }
+
+test("summariseUploadError includes the error name and message", () => {
+  const error = new Error("Access Denied")
+  error.name = "AccessDenied"
+  expect(summariseUploadError(error)).toEqual("AccessDenied: Access Denied")
+})
+
+test("summariseUploadError truncates long error messages", () => {
+  expect(summariseUploadError(Error("x".repeat(500))).length).toEqual(200)
+})
+
+test("summariseUploadError includes the HTTP status when a response blocks the upload", () => {
+  const error = Object.assign(new Error("Unknown"), {
+    $metadata: { httpStatusCode: 403 }
+  })
+  expect(summariseUploadError(error)).toEqual("HTTP 403 Error: Unknown")
+})
+
+test("summariseUploadError describes a request blocked before reaching the server", () => {
+  expect(summariseUploadError(new TypeError("Failed to fetch"))).toEqual(
+    "TypeError: Failed to fetch"
+  )
+})
