@@ -7,7 +7,7 @@
 
 @main("Checking your document", name = name, isJudgmentUser = true) {
     @defining(play.core.PlayVersion.current) { version =>
-    <div class="govuk-grid-row file-check-progress" data-judgment-user="true">
+    <div class="govuk-grid-row file-check-progress">
         @CSRF.formField
         <div class="govuk-grid-column-two-thirds">
             @frontEndInputs(frontEndInfo)

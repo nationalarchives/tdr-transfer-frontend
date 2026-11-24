@@ -116,8 +116,9 @@ export const renderModules = async () => {
 
   // Checks pages poll with the session cookie and don't need Keycloak, so polling starts without waiting on a Keycloak init that can time out.
   if (fileChecksContainer) {
-    // The server renders separate judgment and standard pages, so the page states which flow to poll.
-    const isJudgmentUser = fileChecksContainer.dataset.judgmentUser === "true"
+    // Only the judgment page renders the form that the judgment flow submits once the transfer completes.
+    const isJudgmentUser =
+      fileChecksContainer.querySelector("#file-checks-form") !== null
     const checksModule = await import("./checks")
     const nextPageModule = await import("./nextpageredirect/next-page-redirect")
     new checksModule.Checks().updateFileCheckProgress(

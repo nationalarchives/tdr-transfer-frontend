@@ -149,11 +149,11 @@ test("renderModules starts draft metadata validation polling even when Keycloak 
 })
 
 test.each([
-  ["true", true],
-  ["false", false]
+  ["judgment", true],
+  ["standard", false]
 ])(
-  "renderModules starts file checks polling without Keycloak, taking the user type from data-judgment-user=%s",
-  async (judgmentUserAttribute, expectedIsJudgmentUser) => {
+  "renderModules starts the %s file checks poll without Keycloak",
+  async (_, isJudgmentPage) => {
     const keycloakInstance = getKeycloakInstance as jest.Mock
     keycloakInstance.mockImplementation(() =>
       Promise.resolve(Error("Timeout when waiting for 3rd party check iframe message."))
@@ -161,8 +161,10 @@ test.each([
     mockUpdateFileCheckProgress.mockClear()
 
     document.body.innerHTML =
-      `<div class="file-check-progress" data-judgment-user="${judgmentUserAttribute}">` +
+      '<div class="file-check-progress">' +
       getFrontEndInfoHtml() +
+      // Only the judgment page renders the form the judgment flow submits.
+      (isJudgmentPage ? '<form id="file-checks-form"></form>' : "") +
       "</div>"
 
     await renderModules()
@@ -170,7 +172,7 @@ test.each([
     expect(keycloakInstance).not.toHaveBeenCalled()
     expect(mockUpdateFileCheckProgress).toHaveBeenCalledTimes(1)
     expect(mockUpdateFileCheckProgress).toHaveBeenCalledWith(
-      expectedIsJudgmentUser,
+      isJudgmentPage,
       expect.any(Function)
     )
 
