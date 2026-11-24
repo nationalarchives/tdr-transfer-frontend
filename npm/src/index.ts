@@ -114,7 +114,7 @@ export const renderModules = async () => {
     }
   }
 
-  // Checks pages poll with the session cookie, so they must not wait on a Keycloak init that can time out.
+  // Checks pages poll with the session cookie and don't need Keycloak, so polling starts without waiting on a Keycloak init that can time out.
   if (fileChecksContainer) {
     // The server renders separate judgment and standard pages, so the page states which flow to poll.
     const isJudgmentUser = fileChecksContainer.dataset.judgmentUser === "true"
