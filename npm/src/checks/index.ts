@@ -23,7 +23,6 @@ interface IChecksPollOptions<T> {
   shouldReload?: (progress: T) => boolean
 }
 
-// Polls until the checks complete, then redirects to the checks results page.
 const pollChecksProgress = <T>({
   intervalMs,
   getProgress,
@@ -32,7 +31,6 @@ const pollChecksProgress = <T>({
 }: IChecksPollOptions<T>): void => {
   let consecutiveFailures = 0
 
-  // Chained rather than setInterval so slow reads cannot pile up concurrent requests.
   const scheduleNextPoll = (delayMs: number) => {
     setTimeout(poll, delayMs)
   }
@@ -40,9 +38,7 @@ const pollChecksProgress = <T>({
   const backoffDelayMs = () =>
     Math.min(intervalMs * 2 ** consecutiveFailures, MAX_POLL_INTERVAL_MS)
 
-  // A single failed read used to stop polling for good, leaving the page stuck after the checks finished.
   const poll = async () => {
-    // An uncaught throw would end the chain and leave the page inert.
     let progress: T | Error
     try {
       progress = await getProgress()
@@ -52,7 +48,6 @@ const pollChecksProgress = <T>({
 
     if (isError(progress)) {
       consecutiveFailures += 1
-      // Reloading retries at the cost of re-running the same query, so retry in place first.
       if (consecutiveFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
         window.location.reload()
         return

@@ -116,7 +116,6 @@ export const renderModules = async () => {
 
   // Checks pages poll with the session cookie and don't need Keycloak, so polling starts without waiting on a Keycloak init that can time out.
   if (fileChecksContainer) {
-    // Only the judgment page renders the form that the judgment flow submits once the transfer completes.
     const isJudgmentUser =
       fileChecksContainer.querySelector("#file-checks-form") !== null
     const checksModule = await import("./checks")

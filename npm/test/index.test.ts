@@ -163,7 +163,6 @@ test.each([
     document.body.innerHTML =
       '<div class="file-check-progress">' +
       getFrontEndInfoHtml() +
-      // Only the judgment page renders the form the judgment flow submits.
       (isJudgmentPage ? '<form id="file-checks-form"></form>' : "") +
       "</div>"
 
