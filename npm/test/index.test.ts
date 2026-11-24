@@ -3,6 +3,12 @@ import { renderModules } from "../src/index"
 
 jest.mock("../src/auth")
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+const mockUpdateDraftMetadataValidationProgress = jest.fn()
+jest.mock("../src/checks", () => ({
+  Checks: jest.fn().mockImplementation(() => ({
+    updateDraftMetadataValidationProgress: mockUpdateDraftMetadataValidationProgress
+  }))
+}))
 import { getKeycloakInstance } from "../src/auth"
 import { createMockKeycloakInstance } from "./utils"
 
@@ -118,6 +124,24 @@ test("renderModules does not call authorisation when dialog box is not present o
   await renderModules()
 
   expect(keycloakInstance).toHaveBeenCalledTimes(0)
+
+  keycloakInstance.mockRestore()
+})
+
+test("renderModules starts draft metadata validation polling even when Keycloak initialisation fails", async () => {
+  const keycloakInstance = getKeycloakInstance as jest.Mock
+  keycloakInstance.mockImplementation(() =>
+    Promise.resolve(Error("Timeout when waiting for 3rd party check iframe message."))
+  )
+
+  document.body.innerHTML =
+    '<div class="draft-metadata-validation-progress">' +
+    getFrontEndInfoHtml() +
+    "</div>"
+
+  await renderModules()
+
+  expect(mockUpdateDraftMetadataValidationProgress).toHaveBeenCalledTimes(1)
 
   keycloakInstance.mockRestore()
 })

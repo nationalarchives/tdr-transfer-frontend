@@ -205,11 +205,59 @@ test("'updateFileCheckProgress' keeps polling when a read throws rather than ret
   expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(2)
 })
 
-test("'updateDraftMetadataValidationProgress' calls setInterval correctly", async () => {
-  jest.spyOn(global, "setInterval")
-  await checks.updateDraftMetadataValidationProgress()
-  jest.runOnlyPendingTimers()
-  expect(setInterval).toHaveBeenCalledTimes(1)
+test("'updateDraftMetadataValidationProgress' schedules the first poll with setTimeout", async () => {
+  jest.spyOn(global, "setTimeout")
+  checks.updateDraftMetadataValidationProgress()
+
+  expect(setTimeout).toHaveBeenCalledTimes(1)
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 5000)
+})
+
+test("'updateDraftMetadataValidationProgress' keeps polling after a failed read and redirects once validation completes", async () => {
+  mockGetCheckProgress.getDraftMetadataValidationProgress
+    .mockImplementationOnce(() => Error("Retrieving progress failed: Bad Gateway"))
+    .mockImplementationOnce(() => typesOfValidationProgress["completed"])
+  mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
+      () => true
+  )
+  jest.spyOn(global, "setTimeout")
+
+  checks.updateDraftMetadataValidationProgress()
+  await jest.runOnlyPendingTimers()
+
+  expect(redirectToChecksResults).not.toHaveBeenCalled()
+  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 10000)
+
+  await jest.runOnlyPendingTimers()
+  expect(redirectToChecksResults).toHaveBeenCalled()
+})
+
+test("'updateDraftMetadataValidationProgress' falls back to reloading once reads keep failing", async () => {
+  mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(
+      () => Error("Retrieving progress failed")
+  )
+
+  checks.updateDraftMetadataValidationProgress()
+  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimers()
+
+  expect(mockGetCheckProgress.getDraftMetadataValidationProgress).toHaveBeenCalledTimes(3)
+
+  await jest.runOnlyPendingTimers()
+  expect(mockGetCheckProgress.getDraftMetadataValidationProgress).toHaveBeenCalledTimes(3)
+})
+
+test("'updateDraftMetadataValidationProgress' keeps polling when a read throws rather than returns an error", async () => {
+  mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(() =>
+    Promise.reject(new TypeError("Failed to fetch"))
+  )
+
+  checks.updateDraftMetadataValidationProgress()
+  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimers()
+
+  expect(mockGetCheckProgress.getDraftMetadataValidationProgress).toHaveBeenCalledTimes(2)
 })
 
 test("'updateFileCheckProgress' redirects a standard user to the results page if all checks are complete", async () => {

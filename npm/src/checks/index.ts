@@ -14,8 +14,9 @@ import {
 import { isError } from "../errorhandling"
 
 const FILE_CHECKS_POLL_INTERVAL_MS = 10000
-const FILE_CHECKS_MAX_POLL_INTERVAL_MS = 120000
-const FILE_CHECKS_MAX_CONSECUTIVE_FAILURES = 3
+const DRAFT_METADATA_POLL_INTERVAL_MS = 5000
+const MAX_POLL_INTERVAL_MS = 120000
+const MAX_CONSECUTIVE_POLL_FAILURES = 3
 
 export class Checks {
   checkJudgmentTransferProgress: (
@@ -57,7 +58,7 @@ export class Checks {
     const backoffDelayMs = () =>
       Math.min(
         FILE_CHECKS_POLL_INTERVAL_MS * 2 ** consecutiveFailures,
-        FILE_CHECKS_MAX_POLL_INTERVAL_MS
+        MAX_POLL_INTERVAL_MS
       )
 
     const poll = async () => {
@@ -72,7 +73,7 @@ export class Checks {
       if (isError(fileChecksProgress)) {
         consecutiveFailures += 1
         // Reloading retries at the cost of re-running the same query, so retry in place first.
-        if (consecutiveFailures >= FILE_CHECKS_MAX_CONSECUTIVE_FAILURES) {
+        if (consecutiveFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
           window.location.reload()
           return
         }
@@ -98,22 +99,49 @@ export class Checks {
     scheduleNextPoll(FILE_CHECKS_POLL_INTERVAL_MS)
   }
 
-  updateDraftMetadataValidationProgress: () => void | Error = () => {
-    const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
-      const validationChecksProgress: IDraftMetadataValidationProgress | Error =
-        await getDraftMetadataValidationProgress()
-      if (!isError(validationChecksProgress)) {
-        const checksCompleted = hasDraftMetadataValidationCompleted(
-          validationChecksProgress
-        )
-        if (checksCompleted) {
-          clearInterval(intervalId)
-          redirectToChecksResults()
-        }
-      } else {
-        clearInterval(intervalId)
-        return validationChecksProgress
+  updateDraftMetadataValidationProgress: () => void = () => {
+    let consecutiveFailures = 0
+
+    const scheduleNextPoll = (delayMs: number) => {
+      setTimeout(poll, delayMs)
+    }
+
+    const backoffDelayMs = () =>
+      Math.min(
+        DRAFT_METADATA_POLL_INTERVAL_MS * 2 ** consecutiveFailures,
+        MAX_POLL_INTERVAL_MS
+      )
+
+    // A single failed read used to stop polling for good, leaving the page stuck after validation finished.
+    const poll = async () => {
+      let validationChecksProgress: IDraftMetadataValidationProgress | Error
+      try {
+        validationChecksProgress = await getDraftMetadataValidationProgress()
+      } catch (err) {
+        validationChecksProgress =
+          err instanceof Error ? err : Error(String(err))
       }
-    }, 5000)
+
+      if (isError(validationChecksProgress)) {
+        consecutiveFailures += 1
+        if (consecutiveFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
+          window.location.reload()
+          return
+        }
+        scheduleNextPoll(backoffDelayMs())
+        return
+      }
+
+      consecutiveFailures = 0
+
+      if (hasDraftMetadataValidationCompleted(validationChecksProgress)) {
+        redirectToChecksResults()
+        return
+      }
+
+      scheduleNextPoll(DRAFT_METADATA_POLL_INTERVAL_MS)
+    }
+
+    scheduleNextPoll(DRAFT_METADATA_POLL_INTERVAL_MS)
   }
 }

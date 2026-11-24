@@ -141,24 +141,9 @@ export const renderModules = async () => {
   }
 
   if (draftMetadataValidationContainer) {
-    const frontEndInfo = getFrontEndInfo()
-    const errorHandlingModule = await import("./errorhandling")
-    if (!errorHandlingModule.isError(frontEndInfo)) {
-      const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
-      if (!errorHandlingModule.isError(keycloak)) {
-        const checksModule = await import("./checks")
-        const resultOrError =
-          new checksModule.Checks().updateDraftMetadataValidationProgress()
-        if (errorHandlingModule.isError(resultOrError)) {
-          errorHandlingModule.handleUploadError(resultOrError)
-        }
-      } else {
-        errorHandlingModule.handleUploadError(keycloak)
-      }
-    } else {
-      errorHandlingModule.handleUploadError(frontEndInfo)
-    }
+    // Polling authenticates with the session cookie, so it must not wait on a Keycloak init that can time out.
+    const checksModule = await import("./checks")
+    new checksModule.Checks().updateDraftMetadataValidationProgress()
   }
 
   if (timeoutDialog) {
