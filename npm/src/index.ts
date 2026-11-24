@@ -114,34 +114,19 @@ export const renderModules = async () => {
     }
   }
 
+  // Checks pages poll with the session cookie, so they must not wait on a Keycloak init that can time out.
   if (fileChecksContainer) {
-    const frontEndInfo = getFrontEndInfo()
-    const errorHandlingModule = await import("./errorhandling")
-    if (!errorHandlingModule.isError(frontEndInfo)) {
-      const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
-      if (!errorHandlingModule.isError(keycloak)) {
-        const isJudgmentUser = keycloak.tokenParsed?.judgment_user
-        const checksModule = await import("./checks")
-        const nextPageModule =
-          await import("./nextpageredirect/next-page-redirect")
-        const resultOrError = new checksModule.Checks().updateFileCheckProgress(
-          isJudgmentUser,
-          nextPageModule.goToNextPage
-        )
-        if (errorHandlingModule.isError(resultOrError)) {
-          errorHandlingModule.handleUploadError(resultOrError)
-        }
-      } else {
-        errorHandlingModule.handleUploadError(keycloak)
-      }
-    } else {
-      errorHandlingModule.handleUploadError(frontEndInfo)
-    }
+    // The server renders separate judgment and standard pages, so the page states which flow to poll.
+    const isJudgmentUser = fileChecksContainer.dataset.judgmentUser === "true"
+    const checksModule = await import("./checks")
+    const nextPageModule = await import("./nextpageredirect/next-page-redirect")
+    new checksModule.Checks().updateFileCheckProgress(
+      isJudgmentUser,
+      nextPageModule.goToNextPage
+    )
   }
 
   if (draftMetadataValidationContainer) {
-    // Polling authenticates with the session cookie, so it must not wait on a Keycloak init that can time out.
     const checksModule = await import("./checks")
     new checksModule.Checks().updateDraftMetadataValidationProgress()
   }

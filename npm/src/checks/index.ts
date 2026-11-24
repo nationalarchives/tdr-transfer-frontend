@@ -39,7 +39,7 @@ export class Checks {
   updateFileCheckProgress: (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void
-  ) => void | Error = (
+  ) => void = (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void
   ) => {

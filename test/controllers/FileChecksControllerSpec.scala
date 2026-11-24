@@ -160,6 +160,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         fileChecksPageAsString must include(expectedInstruction)
         // The poller needs both the class that starts it and a csrfToken to call the endpoint.
         fileChecksPageAsString must include("file-check-progress")
+        fileChecksPageAsString must include(s"""data-judgment-user="${userType == "judgment"}"""")
         fileChecksPageAsString must include("""name="csrfToken"""")
         if (userType == "judgment") {
           fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")

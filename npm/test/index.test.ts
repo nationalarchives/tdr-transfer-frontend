@@ -4,9 +4,11 @@ import { renderModules } from "../src/index"
 jest.mock("../src/auth")
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 const mockUpdateDraftMetadataValidationProgress = jest.fn()
+const mockUpdateFileCheckProgress = jest.fn()
 jest.mock("../src/checks", () => ({
   Checks: jest.fn().mockImplementation(() => ({
-    updateDraftMetadataValidationProgress: mockUpdateDraftMetadataValidationProgress
+    updateDraftMetadataValidationProgress: mockUpdateDraftMetadataValidationProgress,
+    updateFileCheckProgress: mockUpdateFileCheckProgress
   }))
 }))
 import { getKeycloakInstance } from "../src/auth"
@@ -145,6 +147,36 @@ test("renderModules starts draft metadata validation polling even when Keycloak 
 
   keycloakInstance.mockRestore()
 })
+
+test.each([
+  ["true", true],
+  ["false", false]
+])(
+  "renderModules starts file checks polling without Keycloak, taking the user type from data-judgment-user=%s",
+  async (judgmentUserAttribute, expectedIsJudgmentUser) => {
+    const keycloakInstance = getKeycloakInstance as jest.Mock
+    keycloakInstance.mockImplementation(() =>
+      Promise.resolve(Error("Timeout when waiting for 3rd party check iframe message."))
+    )
+    mockUpdateFileCheckProgress.mockClear()
+
+    document.body.innerHTML =
+      `<div class="file-check-progress" data-judgment-user="${judgmentUserAttribute}">` +
+      getFrontEndInfoHtml() +
+      "</div>"
+
+    await renderModules()
+
+    expect(keycloakInstance).not.toHaveBeenCalled()
+    expect(mockUpdateFileCheckProgress).toHaveBeenCalledTimes(1)
+    expect(mockUpdateFileCheckProgress).toHaveBeenCalledWith(
+      expectedIsJudgmentUser,
+      expect.any(Function)
+    )
+
+    keycloakInstance.mockRestore()
+  }
+)
 
 test("renderModules should initialise the multi-select search module if the tna-multi-select-search element is present on the page", async () => {
   const keycloakInstance = getKeycloakInstance as jest.Mock
