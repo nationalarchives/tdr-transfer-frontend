@@ -40,7 +40,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "tdr-state-control" % "0.0.56",
-  "ch.qos.logback" % "logback-classic" % "1.6.7",
+  "ch.qos.logback" % "logback-classic" % "1.6.8",
   ws,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.24.0" % Test,
