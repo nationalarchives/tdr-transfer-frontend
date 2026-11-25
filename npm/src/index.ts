@@ -114,51 +114,21 @@ export const renderModules = async () => {
     }
   }
 
+  // Checks pages poll with the session cookie and don't need Keycloak, so polling starts without waiting on a Keycloak init that can time out.
   if (fileChecksContainer) {
-    const frontEndInfo = getFrontEndInfo()
-    const errorHandlingModule = await import("./errorhandling")
-    if (!errorHandlingModule.isError(frontEndInfo)) {
-      const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
-      if (!errorHandlingModule.isError(keycloak)) {
-        const isJudgmentUser = keycloak.tokenParsed?.judgment_user
-        const checksModule = await import("./checks")
-        const nextPageModule =
-          await import("./nextpageredirect/next-page-redirect")
-        const resultOrError = new checksModule.Checks().updateFileCheckProgress(
-          isJudgmentUser,
-          nextPageModule.goToNextPage
-        )
-        if (errorHandlingModule.isError(resultOrError)) {
-          errorHandlingModule.handleUploadError(resultOrError)
-        }
-      } else {
-        errorHandlingModule.handleUploadError(keycloak)
-      }
-    } else {
-      errorHandlingModule.handleUploadError(frontEndInfo)
-    }
+    const isJudgmentUser =
+      fileChecksContainer.querySelector("#file-checks-form") !== null
+    const checksModule = await import("./checks")
+    const nextPageModule = await import("./nextpageredirect/next-page-redirect")
+    new checksModule.Checks().updateFileCheckProgress(
+      isJudgmentUser,
+      nextPageModule.goToNextPage
+    )
   }
 
   if (draftMetadataValidationContainer) {
-    const frontEndInfo = getFrontEndInfo()
-    const errorHandlingModule = await import("./errorhandling")
-    if (!errorHandlingModule.isError(frontEndInfo)) {
-      const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance(frontEndInfo)
-      if (!errorHandlingModule.isError(keycloak)) {
-        const checksModule = await import("./checks")
-        const resultOrError =
-          new checksModule.Checks().updateDraftMetadataValidationProgress()
-        if (errorHandlingModule.isError(resultOrError)) {
-          errorHandlingModule.handleUploadError(resultOrError)
-        }
-      } else {
-        errorHandlingModule.handleUploadError(keycloak)
-      }
-    } else {
-      errorHandlingModule.handleUploadError(frontEndInfo)
-    }
+    const checksModule = await import("./checks")
+    new checksModule.Checks().updateDraftMetadataValidationProgress()
   }
 
   if (timeoutDialog) {

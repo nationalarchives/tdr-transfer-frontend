@@ -7,15 +7,72 @@ import {
   continueTransfer,
   getDraftMetadataValidationProgress,
   getFileChecksProgress,
-  getTransferProgress,
-  IDraftMetadataValidationProgress,
-  IFileCheckProgress
+  getTransferProgress
 } from "./get-checks-progress"
 import { isError } from "../errorhandling"
 
 const FILE_CHECKS_POLL_INTERVAL_MS = 10000
-const FILE_CHECKS_MAX_POLL_INTERVAL_MS = 120000
-const FILE_CHECKS_MAX_CONSECUTIVE_FAILURES = 3
+const DRAFT_METADATA_POLL_INTERVAL_MS = 5000
+const MAX_POLL_INTERVAL_MS = 120000
+const MAX_CONSECUTIVE_POLL_FAILURES = 3
+
+interface IChecksPollOptions<T> {
+  intervalMs: number
+  getProgress: () => Promise<T | Error>
+  isComplete: (progress: T) => boolean
+  shouldReload?: (progress: T) => boolean
+}
+
+const pollChecksProgress = <T>({
+  intervalMs,
+  getProgress,
+  isComplete,
+  shouldReload = () => false
+}: IChecksPollOptions<T>): void => {
+  let consecutiveFailures = 0
+
+  const scheduleNextPoll = (delayMs: number) => {
+    setTimeout(poll, delayMs)
+  }
+
+  const backoffDelayMs = () =>
+    Math.min(intervalMs * 2 ** consecutiveFailures, MAX_POLL_INTERVAL_MS)
+
+  const poll = async () => {
+    let progress: T | Error
+    try {
+      progress = await getProgress()
+    } catch (err) {
+      progress = err instanceof Error ? err : Error(String(err))
+    }
+
+    if (isError(progress)) {
+      consecutiveFailures += 1
+      if (consecutiveFailures >= MAX_CONSECUTIVE_POLL_FAILURES) {
+        window.location.reload()
+        return
+      }
+      scheduleNextPoll(backoffDelayMs())
+      return
+    }
+
+    consecutiveFailures = 0
+
+    if (shouldReload(progress)) {
+      window.location.reload()
+      return
+    }
+
+    if (isComplete(progress)) {
+      redirectToChecksResults()
+      return
+    }
+
+    scheduleNextPoll(intervalMs)
+  }
+
+  scheduleNextPoll(intervalMs)
+}
 
 export class Checks {
   checkJudgmentTransferProgress: (
@@ -38,7 +95,7 @@ export class Checks {
   updateFileCheckProgress: (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void
-  ) => void | Error = (
+  ) => void = (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void
   ) => {
@@ -47,73 +104,19 @@ export class Checks {
       return
     }
 
-    let consecutiveFailures = 0
-
-    // Chained rather than setInterval so slow reads cannot pile up concurrent requests.
-    const scheduleNextPoll = (delayMs: number) => {
-      setTimeout(poll, delayMs)
-    }
-
-    const backoffDelayMs = () =>
-      Math.min(
-        FILE_CHECKS_POLL_INTERVAL_MS * 2 ** consecutiveFailures,
-        FILE_CHECKS_MAX_POLL_INTERVAL_MS
-      )
-
-    const poll = async () => {
-      // An uncaught throw would end the chain and leave the page inert.
-      let fileChecksProgress: IFileCheckProgress | Error
-      try {
-        fileChecksProgress = await getFileChecksProgress()
-      } catch (err) {
-        fileChecksProgress = err instanceof Error ? err : Error(String(err))
-      }
-
-      if (isError(fileChecksProgress)) {
-        consecutiveFailures += 1
-        // Reloading retries at the cost of re-running the same query, so retry in place first.
-        if (consecutiveFailures >= FILE_CHECKS_MAX_CONSECUTIVE_FAILURES) {
-          window.location.reload()
-          return
-        }
-        scheduleNextPoll(backoffDelayMs())
-        return
-      }
-
-      consecutiveFailures = 0
-
-      if (fileChecksProgress.backendChecksFailed) {
-        window.location.reload()
-        return
-      }
-
-      if (haveFileChecksCompleted(fileChecksProgress)) {
-        redirectToChecksResults()
-        return
-      }
-
-      scheduleNextPoll(FILE_CHECKS_POLL_INTERVAL_MS)
-    }
-
-    scheduleNextPoll(FILE_CHECKS_POLL_INTERVAL_MS)
+    pollChecksProgress({
+      intervalMs: FILE_CHECKS_POLL_INTERVAL_MS,
+      getProgress: getFileChecksProgress,
+      shouldReload: (progress) => Boolean(progress.backendChecksFailed),
+      isComplete: haveFileChecksCompleted
+    })
   }
 
-  updateDraftMetadataValidationProgress: () => void | Error = () => {
-    const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
-      const validationChecksProgress: IDraftMetadataValidationProgress | Error =
-        await getDraftMetadataValidationProgress()
-      if (!isError(validationChecksProgress)) {
-        const checksCompleted = hasDraftMetadataValidationCompleted(
-          validationChecksProgress
-        )
-        if (checksCompleted) {
-          clearInterval(intervalId)
-          redirectToChecksResults()
-        }
-      } else {
-        clearInterval(intervalId)
-        return validationChecksProgress
-      }
-    }, 5000)
+  updateDraftMetadataValidationProgress: () => void = () => {
+    pollChecksProgress({
+      intervalMs: DRAFT_METADATA_POLL_INTERVAL_MS,
+      getProgress: getDraftMetadataValidationProgress,
+      isComplete: hasDraftMetadataValidationCompleted
+    })
   }
 }
