@@ -15,30 +15,30 @@ const mockRedirectToChecksResults = {
   redirectToChecksResults: jest.fn()
 }
 
-import {Checks} from "../src/checks"
-import {hasDraftMetadataValidationCompleted, haveFileChecksCompleted} from "../src/checks/verify-checks-have-completed"
-import {redirectToChecksResults} from "../src/checks/redirect-to-checks-results"
+import { Checks } from "../src/checks"
+import {
+  hasDraftMetadataValidationCompleted,
+  haveFileChecksCompleted
+} from "../src/checks/verify-checks-have-completed"
+import { redirectToChecksResults } from "../src/checks/redirect-to-checks-results"
 
 beforeAll(() => {
   //stop console errors from window.location.reload in these tests that arise as described here: https://remarkablemark.org/blog/2018/11/17/mock-window-location/
   console.error = jest.fn()
-});
+})
 
-jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
+
+jest.mock("../src/checks/get-checks-progress", () => mockGetCheckProgress)
 
 jest.mock(
-    "../src/checks/get-checks-progress",
-    () => mockGetCheckProgress
+  "../src/checks/verify-checks-have-completed",
+  () => mockVerifyChecksHaveCompleted
 )
 
 jest.mock(
-    "../src/checks/verify-checks-have-completed",
-    () => mockVerifyChecksHaveCompleted
-)
-
-jest.mock(
-    "../src/checks/redirect-to-checks-results",
-    () => mockRedirectToChecksResults
+  "../src/checks/redirect-to-checks-results",
+  () => mockRedirectToChecksResults
 )
 const mockGoToNextPage = jest.fn()
 
@@ -112,32 +112,34 @@ const typesOfTransferProgress: {
 
 const checks = new Checks()
 
-const mockGetDraftMetadataValidationProgress: (progressType: string) => void = (progressType) => {
+const mockGetDraftMetadataValidationProgress: (progressType: string) => void = (
+  progressType
+) => {
   mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(
-      (_) => typesOfValidationProgress[progressType]
+    (_) => typesOfValidationProgress[progressType]
   )
 }
 
 const mockGetFileChecksProgress: (progressType: string) => void = (
-    progressType: string
+  progressType: string
 ) => {
   mockGetCheckProgress.getFileChecksProgress.mockImplementation(
-      (_) => typesOfProgress[progressType]
+    (_) => typesOfProgress[progressType]
   )
 }
 
 const mockTransferProgress: (progressType: string) => void = (
-    progressType: string
+  progressType: string
 ) => {
   mockGetCheckProgress.continueTransfer.mockImplementation()
   mockGetCheckProgress.getTransferProgress.mockImplementation(
-      (_) => typesOfTransferProgress[progressType]
+    (_) => typesOfTransferProgress[progressType]
   )
 }
 
 test("'updateFileCheckProgress' schedules the first poll with setTimeout", async () => {
   jest.spyOn(global, "setTimeout")
-  await checks.updateFileCheckProgress(false, mockGoToNextPage)
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
 
   expect(setTimeout).toHaveBeenCalledTimes(1)
   expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 10000)
@@ -146,16 +148,16 @@ test("'updateFileCheckProgress' schedules the first poll with setTimeout", async
 test("'updateFileCheckProgress' does not start a poll until the previous one has settled", async () => {
   mockGetFileChecksProgress("inProgress")
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => false
+    () => false
   )
 
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   // One request per completed poll, not one per interval tick.
   expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(1)
 
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
   expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(2)
 })
 
@@ -164,28 +166,28 @@ test("'updateFileCheckProgress' retries with backoff instead of giving up after 
   jest.spyOn(global, "setTimeout")
 
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(haveFileChecksCompleted).not.toHaveBeenCalled()
   expect(redirectToChecksResults).not.toHaveBeenCalled()
   expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 20000)
 
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
   expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 40000)
 })
 
-test("'updateFileCheckProgress' falls back to reloading once reads keep failing", async () => {
+test("'updateFileCheckProgress' falls back to reloading once reached max number of consecutive poll failures", async () => {
   mockGetFileChecksProgress("noData")
 
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
-  await jest.runOnlyPendingTimers()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
+  await jest.runOnlyPendingTimersAsync()
+  await jest.runOnlyPendingTimersAsync()
 
   // The third failure reloads instead of scheduling another poll, so the chain stops here.
   expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(3)
 
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
   expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(3)
 })
 
@@ -197,11 +199,11 @@ test("'updateFileCheckProgress' keeps polling when a read throws rather than ret
   jest.spyOn(global, "setTimeout")
 
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 20000)
 
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
   expect(mockGetCheckProgress.getFileChecksProgress).toHaveBeenCalledTimes(2)
 })
 
@@ -215,65 +217,71 @@ test("'updateDraftMetadataValidationProgress' schedules the first poll with setT
 
 test("'updateDraftMetadataValidationProgress' keeps polling after a failed read and redirects once validation completes", async () => {
   mockGetCheckProgress.getDraftMetadataValidationProgress
-    .mockImplementationOnce(() => Error("Retrieving progress failed: Bad Gateway"))
+    .mockImplementationOnce(() =>
+      Error("Retrieving progress failed: Bad Gateway")
+    )
     .mockImplementationOnce(() => typesOfValidationProgress["completed"])
   mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
-      () => true
+    () => true
   )
   jest.spyOn(global, "setTimeout")
 
   checks.updateDraftMetadataValidationProgress()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(redirectToChecksResults).not.toHaveBeenCalled()
   expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 10000)
 
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
   expect(redirectToChecksResults).toHaveBeenCalled()
 })
 
 test("'updateDraftMetadataValidationProgress' falls back to reloading once reads keep failing", async () => {
   mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(
-      () => Error("Retrieving progress failed")
+    () => Error("Retrieving progress failed")
   )
 
   checks.updateDraftMetadataValidationProgress()
-  await jest.runOnlyPendingTimers()
-  await jest.runOnlyPendingTimers()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
+  await jest.runOnlyPendingTimersAsync()
+  await jest.runOnlyPendingTimersAsync()
 
-  expect(mockGetCheckProgress.getDraftMetadataValidationProgress).toHaveBeenCalledTimes(3)
+  expect(
+    mockGetCheckProgress.getDraftMetadataValidationProgress
+  ).toHaveBeenCalledTimes(3)
 
-  await jest.runOnlyPendingTimers()
-  expect(mockGetCheckProgress.getDraftMetadataValidationProgress).toHaveBeenCalledTimes(3)
+  await jest.runOnlyPendingTimersAsync()
+  expect(
+    mockGetCheckProgress.getDraftMetadataValidationProgress
+  ).toHaveBeenCalledTimes(3)
 })
 
 test("'updateDraftMetadataValidationProgress' keeps polling when a read throws rather than returns an error", async () => {
-  mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(() =>
-    Promise.reject(new TypeError("Failed to fetch"))
+  mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(
+    () => Promise.reject(new TypeError("Failed to fetch"))
   )
 
   checks.updateDraftMetadataValidationProgress()
-  await jest.runOnlyPendingTimers()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
+  await jest.runOnlyPendingTimersAsync()
 
-  expect(mockGetCheckProgress.getDraftMetadataValidationProgress).toHaveBeenCalledTimes(2)
+  expect(
+    mockGetCheckProgress.getDraftMetadataValidationProgress
+  ).toHaveBeenCalledTimes(2)
 })
 
 test("'updateFileCheckProgress' redirects a standard user to the results page if all checks are complete", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
 
   mockGetFileChecksProgress("complete")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => true
+    () => true
   )
 
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(redirectToChecksResults).toHaveBeenCalled()
@@ -281,18 +289,16 @@ test("'updateFileCheckProgress' redirects a standard user to the results page if
 
 test("'updateDraftMetadataValidationProgress' redirects a standard user to the results page if all checks are 'completed'", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
 
   mockGetDraftMetadataValidationProgress("completed")
 
   mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
-      () => true
+    () => true
   )
 
   checks.updateDraftMetadataValidationProgress()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
   expect(redirectToChecksResults).toHaveBeenCalled()
@@ -300,18 +306,16 @@ test("'updateDraftMetadataValidationProgress' redirects a standard user to the r
 
 test("'updateDraftMetadataValidationProgress' redirects a standard user to the results page if all checks are 'completedWithIssues'", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
 
   mockGetDraftMetadataValidationProgress("completedWithIssues")
 
   mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
-      () => true
+    () => true
   )
 
   checks.updateDraftMetadataValidationProgress()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
   expect(redirectToChecksResults).toHaveBeenCalled()
@@ -319,16 +323,14 @@ test("'updateDraftMetadataValidationProgress' redirects a standard user to the r
 
 test("'updateFileCheckProgress' does not redirect a standard user if the checks are in progress", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
   mockGetFileChecksProgress("inProgress")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => false
+    () => false
   )
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(haveFileChecksCompleted).toHaveBeenCalled()
   expect(redirectToChecksResults).not.toHaveBeenCalled()
@@ -336,16 +338,14 @@ test("'updateFileCheckProgress' does not redirect a standard user if the checks 
 
 test("'updateDraftMetadataValidationProgress' does not redirect a standard user if the checks are in progress", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
   mockGetDraftMetadataValidationProgress("inProgress")
 
   mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
-      () => false
+    () => false
   )
   checks.updateDraftMetadataValidationProgress()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
   expect(redirectToChecksResults).not.toHaveBeenCalled()
@@ -353,16 +353,14 @@ test("'updateDraftMetadataValidationProgress' does not redirect a standard user 
 
 test("'updateFileCheckProgress' does not redirect a standard user if no file checks information is returned", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
   mockGetFileChecksProgress("noData")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => false
+    () => false
   )
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(haveFileChecksCompleted).not.toHaveBeenCalled()
   expect(redirectToChecksResults).not.toHaveBeenCalled()
@@ -370,16 +368,14 @@ test("'updateFileCheckProgress' does not redirect a standard user if no file che
 
 test("'updateDraftMetadataValidationProgress' does not redirect a standard user if no file checks information is returned", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
   mockGetDraftMetadataValidationProgress("noData")
 
   mockVerifyChecksHaveCompleted.hasDraftMetadataValidationCompleted.mockImplementation(
-      () => false
+    () => false
   )
   checks.updateDraftMetadataValidationProgress()
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(hasDraftMetadataValidationCompleted).toHaveBeenCalled()
   expect(redirectToChecksResults).not.toHaveBeenCalled()
@@ -387,17 +383,15 @@ test("'updateDraftMetadataValidationProgress' does not redirect a standard user 
 
 test("'updateFileCheckProgress' short-circuits the standard-user poll when backendChecksFailed is true", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
   mockGetFileChecksProgress("backendFailed")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => false
+    () => false
   )
   jest.spyOn(global, "setTimeout")
   checks.updateFileCheckProgress(false, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   // The terminal-failure branch must skip the progress/redirect logic and stop polling.
   expect(haveFileChecksCompleted).not.toHaveBeenCalled()
@@ -407,40 +401,34 @@ test("'updateFileCheckProgress' short-circuits the standard-user poll when backe
 
 test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all checks are complete", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
 
   mockTransferProgress("complete")
 
   checks.updateFileCheckProgress(true, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(mockGoToNextPage).toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' does not call goToNextPage for a judgment user if the checks are in progress", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
   mockTransferProgress("inProgress")
 
   checks.updateFileCheckProgress(true, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(mockGoToNextPage).toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' does not call goToNextPage for a judgment user if no file checks information is returned", async () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
+  mockGetCheckProgress.getConsignmentId.mockImplementation(() => consignmentId)
   mockTransferProgress("noData")
 
   checks.updateFileCheckProgress(true, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
+  await jest.runOnlyPendingTimersAsync()
 
   expect(mockGoToNextPage).not.toHaveBeenCalled()
 })

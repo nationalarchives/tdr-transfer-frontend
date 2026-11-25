@@ -1,13 +1,14 @@
 import Keycloak from "keycloak-js"
-import { renderModules } from "../src/index"
+import { renderModules } from "../src"
 
 jest.mock("../src/auth")
-jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 const mockUpdateDraftMetadataValidationProgress = jest.fn()
 const mockUpdateFileCheckProgress = jest.fn()
 jest.mock("../src/checks", () => ({
   Checks: jest.fn().mockImplementation(() => ({
-    updateDraftMetadataValidationProgress: mockUpdateDraftMetadataValidationProgress,
+    updateDraftMetadataValidationProgress:
+      mockUpdateDraftMetadataValidationProgress,
     updateFileCheckProgress: mockUpdateFileCheckProgress
   }))
 }))
@@ -62,7 +63,7 @@ test("renderModules does not call authorisation when no upload form present on p
     "</form>" +
     "</div>"
 
-  renderModules()
+  await renderModules()
 
   expect(keycloakInstance).toHaveBeenCalledTimes(0)
 
@@ -81,7 +82,7 @@ test("renderModules does not call authorisation when no identity pool id present
     "</form>" +
     "</div>"
 
-  renderModules()
+  await renderModules()
 
   expect(keycloakInstance).toHaveBeenCalledTimes(0)
 
@@ -109,7 +110,8 @@ test("renderModules calls authorisation when dialog is present on page", async (
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 
-  document.body.innerHTML = '<a href="#" class="timeout-dialog">' + getFrontEndInfoHtml()
+  document.body.innerHTML =
+    '<a href="#" class="timeout-dialog">' + getFrontEndInfoHtml()
 
   await renderModules()
   expect(keycloakInstance).toHaveBeenCalledTimes(1)
@@ -121,7 +123,8 @@ test("renderModules does not call authorisation when dialog box is not present o
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 
-  document.body.innerHTML = '<a href="#" class="not-timeout-dialog">' + getFrontEndInfoHtml()
+  document.body.innerHTML =
+    '<a href="#" class="not-timeout-dialog">' + getFrontEndInfoHtml()
 
   await renderModules()
 
@@ -130,10 +133,12 @@ test("renderModules does not call authorisation when dialog box is not present o
   keycloakInstance.mockRestore()
 })
 
-test("renderModules starts draft metadata validation polling even when Keycloak initialisation fails", async () => {
+test("renderModules starts draft metadata validation polling when Keycloak initialisation fails", async () => {
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() =>
-    Promise.resolve(Error("Timeout when waiting for 3rd party check iframe message."))
+    Promise.resolve(
+      Error("Timeout when waiting for 3rd party check iframe message.")
+    )
   )
 
   document.body.innerHTML =
@@ -156,7 +161,9 @@ test.each([
   async (_, isJudgmentPage) => {
     const keycloakInstance = getKeycloakInstance as jest.Mock
     keycloakInstance.mockImplementation(() =>
-      Promise.resolve(Error("Timeout when waiting for 3rd party check iframe message."))
+      Promise.resolve(
+        Error("Timeout when waiting for 3rd party check iframe message.")
+      )
     )
     mockUpdateFileCheckProgress.mockClear()
 
@@ -174,7 +181,6 @@ test.each([
       isJudgmentPage,
       expect.any(Function)
     )
-
     keycloakInstance.mockRestore()
   }
 )
@@ -183,8 +189,7 @@ test("renderModules should initialise the multi-select search module if the tna-
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 
-  document.body.innerHTML =
-    `
+  document.body.innerHTML = `
     <div class="tna-multi-select-search" data-module="multi-select-search">
         <div class="tna-multi-select-search" data-module="multi-select-search">
             <div class="tna-multi-select-search__filter">
@@ -208,5 +213,7 @@ test("renderModules should initialise the multi-select search module if the tna-
 
   await renderModules()
 
-  expect(document.body.innerHTML).toContain('<div class="tna-multi-select-search" data-module="multi-select-search" data-module-active="true">')
+  expect(document.body.innerHTML).toContain(
+    '<div class="tna-multi-select-search" data-module="multi-select-search" data-module-active="true">'
+  )
 })
