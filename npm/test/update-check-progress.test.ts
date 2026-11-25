@@ -236,7 +236,7 @@ test("'updateDraftMetadataValidationProgress' keeps polling after a failed read 
   expect(redirectToChecksResults).toHaveBeenCalled()
 })
 
-test("'updateDraftMetadataValidationProgress' falls back to reloading once reads keep failing", async () => {
+test("'updateDraftMetadataValidationProgress' falls back to reloading once reached max number of consecutive poll failures", async () => {
   mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(
     () => Error("Retrieving progress failed")
   )
@@ -256,7 +256,7 @@ test("'updateDraftMetadataValidationProgress' falls back to reloading once reads
   ).toHaveBeenCalledTimes(3)
 })
 
-test("'updateDraftMetadataValidationProgress' keeps polling when a read throws rather than returns an error", async () => {
+test("'updateDraftMetadataValidationProgress' keeps polling when a read throws an error", async () => {
   mockGetCheckProgress.getDraftMetadataValidationProgress.mockImplementation(
     () => Promise.reject(new TypeError("Failed to fetch"))
   )
