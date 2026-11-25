@@ -17,7 +17,7 @@ val playVersion = "3.0.3"
 val playPac4jVersion = "13.0.3-PLAY3.0"
 val pac4jVersion = "6.6.1"
 val sttpVersion = "3.11.0"
-val awsUtilsVersion = "0.1.344"
+val awsUtilsVersion = "0.1.345"
 val jackson3Version = "3.3.0"
 
 libraryDependencies ++= Seq(
