@@ -1,6 +1,11 @@
 # tdr-transfer-frontend
 Repository for TDR transfer code
 
+## Container HTTPS
+
+The container serves HTTPS only on port 9000. It expects an empty-password PKCS#12 bundle at
+`/$SERVICE_NAME/certs/this.p12` containing the private key and certificate chain.  This is generated at launch.   The bundle must be readable by `$SERVICE_NAME` (usually frontend).
+
 ## Running locally
 
 There are two ways to develop this project:
