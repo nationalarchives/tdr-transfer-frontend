@@ -43,24 +43,23 @@ jobs:
       WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
       WIZ_PROJECT_ID: ${{ secrets.WIZ_PROJECT_TDR }}
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-#  deploy:
-#    needs: pre-deploy
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: write
-#      id-token: write
-#    steps:
-#      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-#        with:
-#          persist-credentials: false
-#      - run: |
-#          if [ "$SNAPSHOT" = "true" ]; then
-#            gh workflow run deploy.yml -f environment=dev -f to-deploy=$NEXT_VERSION
-#          else
-#            gh workflow run deploy.yml -f environment=intg -f to-deploy=$NEXT_VERSION
-#          fi
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-#          NEXT_VERSION: ${{ needs.pre-deploy.outputs.next-version }}
-#          SNAPSHOT: ${{ inputs.snapshot == true }}
+  deploy:
+    needs: pre-deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: |
+          gh workflow run deploy.yml --ref "$WORKFLOW_REF" \
+            -f environment=drdev \
+            -f to-deploy=$NEXT_VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          NEXT_VERSION: ${{ needs.pre-deploy.outputs.next-version }}
+          SNAPSHOT: ${{ inputs.snapshot == true }}
+          WORKFLOW_REF: ${{ github.ref_name }}
 

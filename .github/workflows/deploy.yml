@@ -12,7 +12,7 @@ on:
           - prod
           - dev
           - drdev
-        default: 'intg'
+        default: 'drdev'
       to-deploy:
         description: 'Version to deploy'
         required: true
@@ -23,7 +23,7 @@ permissions:
   contents: write
 jobs:
   deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_deploy.yml@fc52a93f9636579d7478f01a8a960007134ad30f # v0.0.51
+    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_deploy.yml@714115ab533f9f6b0b4fed5a4293e9d57c2b89d8 # v0.0.51
     with:
       service: frontend
       image-name: transfer-frontend
