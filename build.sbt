@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.57",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.57",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.156",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.273",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.274",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
