@@ -59,7 +59,7 @@ dependencyOverrides ++= Seq(
   "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jackson2Version,
   "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % jackson2Version
 )
-dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
+dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.15"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 dependencyOverrides ++= Seq(
   "tools.jackson.core" % "jackson-databind" % jackson3Version,
