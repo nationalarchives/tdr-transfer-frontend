@@ -30,12 +30,12 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client3" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.309",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.309",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.310",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.500",
   "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.57",
   "uk.gov.nationalarchives" %% "tdr-service-inputs" % "0.0.57",
   "uk.gov.nationalarchives" % "da-metadata-schema_2.13" % "0.0.156",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.273",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.274",
   "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion,
   "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion,
@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.6.8",
   ws,
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.24.0" % Test,
+  "org.mockito" % "mockito-core" % "5.25.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
   "org.jsoup" % "jsoup" % "1.24.1" % Test
 )
@@ -59,7 +59,7 @@ dependencyOverrides ++= Seq(
   "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % jackson2Version,
   "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % jackson2Version
 )
-dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.14"
+dependencyOverrides += "org.asynchttpclient" % "async-http-client" % "3.0.15"
 dependencyOverrides += "org.scala-lang" % "scala-library" % scalaVersion.value
 dependencyOverrides ++= Seq(
   "tools.jackson.core" % "jackson-databind" % jackson3Version,
